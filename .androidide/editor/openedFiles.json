@@ -1,0 +1,125 @@
+{
+  "allFiles": [
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/build.gradle",
+      "selection": {
+        "end": {
+          "column": 26,
+          "index": 260,
+          "line": 13
+        },
+        "start": {
+          "column": 26,
+          "index": 260,
+          "line": 13
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/cpp/CMakeLists.txt",
+      "selection": {
+        "end": {
+          "column": 58,
+          "index": 442,
+          "line": 23
+        },
+        "start": {
+          "column": 58,
+          "index": 442,
+          "line": 23
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/cpp/ffmpeg_wrapper.h",
+      "selection": {
+        "end": {
+          "column": 35,
+          "index": 1645,
+          "line": 56
+        },
+        "start": {
+          "column": 35,
+          "index": 1645,
+          "line": 56
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/cpp/ffmpeg_wrapper.cpp",
+      "selection": {
+        "end": {
+          "column": 1,
+          "index": 6981,
+          "line": 225
+        },
+        "start": {
+          "column": 1,
+          "index": 6981,
+          "line": 225
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/cpp/native-lib.cpp",
+      "selection": {
+        "end": {
+          "column": 1,
+          "index": 3281,
+          "line": 81
+        },
+        "start": {
+          "column": 1,
+          "index": 3281,
+          "line": 81
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/java/com/tech/ezconvert/FFmpegExecutor.java",
+      "selection": {
+        "end": {
+          "column": 1,
+          "index": 3027,
+          "line": 79
+        },
+        "start": {
+          "column": 1,
+          "index": 3027,
+          "line": 79
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/java/com/tech/ezconvert/MainActivity.java",
+      "selection": {
+        "end": {
+          "column": 1,
+          "index": 2676,
+          "line": 86
+        },
+        "start": {
+          "column": 1,
+          "index": 2676,
+          "line": 86
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/res/layout/activity_main.xml",
+      "selection": {
+        "end": {
+          "column": 15,
+          "index": 1796,
+          "line": 55
+        },
+        "start": {
+          "column": 15,
+          "index": 1796,
+          "line": 55
+        }
+      }
+    }
+  ],
+  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/简转/app/build.gradle"
+}
