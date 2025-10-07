@@ -3,8 +3,8 @@ package com.tech.ezconvert;
 public class AudioProcessor {
     
     // 音频转换
-    public static FFmpegUtil.FFtask convertAudio(String inputPath, String outputPath,
-                                                String format, FFmpegUtil.FFmpegCallback callback) {
+    public static void convertAudio(String inputPath, String outputPath,
+                                   String format, FFmpegUtil.FFmpegCallback callback) {
         String[] command;
         
         switch (format.toLowerCase()) {
@@ -50,12 +50,12 @@ public class AudioProcessor {
                 };
         }
         
-        return FFmpegUtil.executeCommand(command, callback);
+        FFmpegUtil.executeCommand(command, callback);
     }
     
-    // 音频提取（从视频）
-    public static FFmpegUtil.FFtask extractAudioFromVideo(String inputPath, String outputPath,
-                                                         String format, FFmpegUtil.FFmpegCallback callback) {
+    // 音频提取
+    public static void extractAudioFromVideo(String inputPath, String outputPath,
+                                           String format, FFmpegUtil.FFmpegCallback callback) {
         String[] command;
         
         switch (format.toLowerCase()) {
@@ -87,12 +87,12 @@ public class AudioProcessor {
                 };
         }
         
-        return FFmpegUtil.executeCommand(command, callback);
+        FFmpegUtil.executeCommand(command, callback);
     }
     
     // 调整音频质量
-    public static FFmpegUtil.FFtask adjustAudioQuality(String inputPath, String outputPath,
-                                                      int bitrate, FFmpegUtil.FFmpegCallback callback) {
+    public static void adjustAudioQuality(String inputPath, String outputPath,
+                                        int bitrate, FFmpegUtil.FFmpegCallback callback) {
         String[] command = {
             "-i", inputPath,
             "-b:a", bitrate + "k",
@@ -100,6 +100,6 @@ public class AudioProcessor {
             outputPath
         };
         
-        return FFmpegUtil.executeCommand(command, callback);
+        FFmpegUtil.executeCommand(command, callback);
     }
 }

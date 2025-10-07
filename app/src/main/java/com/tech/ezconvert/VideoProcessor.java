@@ -3,8 +3,8 @@ package com.tech.ezconvert;
 public class VideoProcessor {
     
     // 视频转换
-    public static FFmpegUtil.FFtask convertVideo(String inputPath, String outputPath, 
-                                                String format, FFmpegUtil.FFmpegCallback callback) {
+    public static void convertVideo(String inputPath, String outputPath, 
+                                   String format, FFmpegUtil.FFmpegCallback callback) {
         String[] command;
         
         switch (format.toLowerCase()) {
@@ -54,12 +54,12 @@ public class VideoProcessor {
                 };
         }
         
-        return FFmpegUtil.executeCommand(command, callback);
+        FFmpegUtil.executeCommand(command, callback);
     }
     
     // 视频压缩
-    public static FFmpegUtil.FFtask compressVideo(String inputPath, String outputPath, 
-                                                  int quality, FFmpegUtil.FFmpegCallback callback) {
+    public static void compressVideo(String inputPath, String outputPath, 
+                                    int quality, FFmpegUtil.FFmpegCallback callback) {
         // quality: 0-100, 0最高质量
         int crf = 51 - (quality * 51 / 100);
         if (crf < 18) crf = 18;
@@ -74,12 +74,12 @@ public class VideoProcessor {
             outputPath
         };
         
-        return FFmpegUtil.executeCommand(command, callback);
+        FFmpegUtil.executeCommand(command, callback);
     }
     
     // 提取音频
-    public static FFmpegUtil.FFtask extractAudio(String inputPath, String outputPath,
-                                                FFmpegUtil.FFmpegCallback callback) {
+    public static void extractAudio(String inputPath, String outputPath,
+                                   FFmpegUtil.FFmpegCallback callback) {
         String[] command = {
             "-i", inputPath,
             "-vn", // 不处理视频
@@ -87,13 +87,13 @@ public class VideoProcessor {
             outputPath
         };
         
-        return FFmpegUtil.executeCommand(command, callback);
+        FFmpegUtil.executeCommand(command, callback);
     }
     
     // 视频裁剪
-    public static FFmpegUtil.FFtask cutVideo(String inputPath, String outputPath,
-                                            String startTime, String duration,
-                                            FFmpegUtil.FFmpegCallback callback) {
+    public static void cutVideo(String inputPath, String outputPath,
+                               String startTime, String duration,
+                               FFmpegUtil.FFmpegCallback callback) {
         String[] command = {
             "-i", inputPath,
             "-ss", startTime, // 开始时间
@@ -102,13 +102,13 @@ public class VideoProcessor {
             outputPath
         };
         
-        return FFmpegUtil.executeCommand(command, callback);
+        FFmpegUtil.executeCommand(command, callback);
     }
     
     // 添加水印
-    public static FFmpegUtil.FFtask addWatermark(String inputPath, String outputPath,
-                                                String watermarkPath, String position,
-                                                FFmpegUtil.FFmpegCallback callback) {
+    public static void addWatermark(String inputPath, String outputPath,
+                                   String watermarkPath, String position,
+                                   FFmpegUtil.FFmpegCallback callback) {
         String overlay;
         switch (position) {
             case "top-left":
@@ -135,6 +135,6 @@ public class VideoProcessor {
             outputPath
         };
         
-        return FFmpegUtil.executeCommand(command, callback);
+        FFmpegUtil.executeCommand(command, callback);
     }
 }

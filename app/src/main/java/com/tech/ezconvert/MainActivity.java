@@ -48,13 +48,12 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         checkPermissions();
         
         // 显示版本信息
-        String nativeVersion = nativeGetVersion();
         String ffmpegVersion = FFmpegUtil.getVersion();
         versionText.setText("EzConvert v0.1.0 | FFmpeg: " + ffmpegVersion);
         
         // 测试FFmpeg
-        String testResult = nativeTestFFmpeg();
-        Log.d("MainActivity", "FFmpeg测试: " + testResult);
+        //String testResult = nativeTestFFmpeg();
+        //Log.d("MainActivity", "FFmpeg测试: " + testResult);
     }
     
     private void initializeViews() {
@@ -71,7 +70,6 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         formatSpinner = findViewById(R.id.format_spinner);
         qualitySpinner = findViewById(R.id.quality_spinner);
         
-        // 设置按钮点击事件
         selectFileBtn.setOnClickListener(v -> openFilePicker());
         convertBtn.setOnClickListener(v -> startConversion());
         compressBtn.setOnClickListener(v -> startCompression());

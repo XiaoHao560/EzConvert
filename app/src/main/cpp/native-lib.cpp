@@ -14,6 +14,6 @@ Java_com_tech_ezconvert_MainActivity_nativeGetVersion(JNIEnv* env, jobject thiz)
 
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_tech_ezconvert_MainActivity_nativeTestFFmpeg(JNIEnv* env, jobject thiz) {
-    std::string status = "FFmpeg 已通过 Java 层集成";
+    std::string status = "FFmpeg 已通过 Java 层集成 (mobile-ffmpeg)";
     return env->NewStringUTF(status.c_str());
 }
