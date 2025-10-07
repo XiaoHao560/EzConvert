@@ -1,56 +1,214 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+<ScrollView
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     android:layout_height="match_parent"
+     android:layout_width="match_parent"
+     android:background="#f5f5f5"
+     android:padding="16dp">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="EzConvert - 媒体格式转换器"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:layout_marginBottom="32dp" />
+    <LinearLayout
+         android:layout_height="wrap_content"
+         android:layout_width="match_parent"
+         android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/status_text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="准备就绪..."
-        android:textSize="16sp"
-        android:layout_marginBottom="16dp"
-        android:background="#f0f0f0"
-        android:padding="8dp" />
+        <TextView
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:layout_marginBottom="16dp"
+             android:gravity="center"
+             android:textSize="24sp"
+             android:textColor="#2196F3"
+             android:text="EzConvert 媒体转换器"
+             android:textStyle="bold" />
 
-    <Button
-        android:id="@+id/test_info_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="测试媒体信息获取"
-        android:layout_marginBottom="8dp" />
+        <TextView
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:layout_marginBottom="24dp"
+             android:gravity="center"
+             android:textSize="12sp"
+             android:textColor="#666"
+             android:id="@+id/version_text"
+             android:text="版本信息" />
 
-    <Button
-        android:id="@+id/test_video_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="测试视频转换"
-        android:layout_marginBottom="8dp" />
+        <LinearLayout
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:layout_marginBottom="16dp"
+             android:background="@drawable/card_background"
+             android:elevation="4dp"
+             android:padding="16dp"
+             android:orientation="vertical">
 
-    <Button
-        android:id="@+id/test_audio_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="测试音频转换"
-        android:layout_marginBottom="16dp" />
+            <TextView
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="8dp"
+                 android:textSize="16sp"
+                 android:id="@+id/status_text"
+                 android:text="请选择要处理的媒体文件" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="当前模式: 模拟运行\n版本: 0.0.1"
-        android:textSize="12sp"
-        android:textColor="#666"
-        android:gravity="center" />
+            <ProgressBar
+                 android:layout_height="8dp"
+                 android:layout_width="match_parent"
+                 style="?android:attr/progressBarStyleHorizontal"
+                 android:progress="0"
+                 android:id="@+id/progress_bar" />
 
-</LinearLayout>
+            <TextView
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:gravity="center"
+                 android:textSize="12sp"
+                 android:textColor="#666"
+                 android:id="@+id/progress_text"
+                 android:text="进度: 0%" />
+
+        </LinearLayout>
+
+        <LinearLayout
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:layout_marginBottom="16dp"
+             android:background="@drawable/card_background"
+             android:elevation="2dp"
+             android:padding="16dp"
+             android:orientation="vertical">
+
+            <TextView
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="8dp"
+                 android:text="文件选择"
+                 android:textStyle="bold" />
+
+            <Button
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:backgroundTint="#2196F3"
+                 android:textColor="@android:color/white"
+                 android:id="@+id/select_file_btn"
+                 android:text="选择媒体文件" />
+
+        </LinearLayout>
+
+        <LinearLayout
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:layout_marginBottom="16dp"
+             android:background="@drawable/card_background"
+             android:elevation="2dp"
+             android:padding="16dp"
+             android:orientation="vertical">
+
+            <TextView
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="12dp"
+                 android:text="转换选项"
+                 android:textStyle="bold" />
+
+            <LinearLayout
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="8dp"
+                 android:orientation="horizontal">
+
+                <TextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="0dp"
+                     android:gravity="center_vertical"
+                     android:layout_weight="1"
+                     android:text="输出格式:" />
+
+                <Spinner
+                     android:layout_height="wrap_content"
+                     android:layout_width="0dp"
+                     android:layout_weight="1"
+                     android:id="@+id/format_spinner">
+
+                </Spinner>
+
+            </LinearLayout>
+
+            <LinearLayout
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:orientation="horizontal">
+
+                <TextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="0dp"
+                     android:gravity="center_vertical"
+                     android:layout_weight="1"
+                     android:text="质量设置:" />
+
+                <Spinner
+                     android:layout_height="wrap_content"
+                     android:layout_width="0dp"
+                     android:layout_weight="1"
+                     android:id="@+id/quality_spinner">
+
+                </Spinner>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:layout_marginBottom="16dp"
+             android:background="@drawable/card_background"
+             android:elevation="2dp"
+             android:padding="16dp"
+             android:orientation="vertical">
+
+            <TextView
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="12dp"
+                 android:text="处理操作"
+                 android:textStyle="bold" />
+
+            <Button
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="8dp"
+                 android:backgroundTint="#4CAF50"
+                 android:textColor="@android:color/white"
+                 android:id="@+id/convert_btn"
+                 android:text="转换格式" />
+
+            <Button
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="8dp"
+                 android:backgroundTint="#FF9800"
+                 android:textColor="@android:color/white"
+                 android:id="@+id/compress_btn"
+                 android:text="压缩视频" />
+
+            <Button
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:backgroundTint="#9C27B0"
+                 android:textColor="@android:color/white"
+                 android:id="@+id/extract_audio_btn"
+                 android:text="提取音频" />
+
+        </LinearLayout>
+
+        <TextView
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:gravity="center"
+             android:textSize="12sp"
+             android:textColor="#666"
+             android:layout_marginTop="8dp"
+             android:text="提示: 输出文件将保存在下载文件夹中" />
+
+    </LinearLayout>
+
+</ScrollView>

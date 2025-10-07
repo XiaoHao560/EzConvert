@@ -1,87 +1,277 @@
 package com.tech.ezconvert;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.os.Environment;
+import android.widget.*;
+import android.content.Intent;
+import android.net.Uri;
+import android.util.Log;
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity implements FFmpegExecutor.ConversionCallback {
+public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpegCallback {
     
-    private FFmpegExecutor ffmpegExecutor;
-    private TextView statusText;
-    private Button testInfoButton, testVideoButton, testAudioButton;
+    private static final int PERMISSION_REQUEST_CODE = 100;
+    private static final int FILE_PICKER_REQUEST = 101;
+    
+    private TextView statusText, progressText, versionText;
+    private ProgressBar progressBar;
+    private Button selectFileBtn, convertBtn, compressBtn, extractAudioBtn;
+    private Spinner formatSpinner, qualitySpinner;
+    private String currentInputPath = "";
+    private String currentOutputPath = "";
+    
+    // 加载本地库
+    static {
+        System.loadLibrary("ezconvert");
+    }
+    
+    // 本地方法声明
+    public native String nativeGetVersion();
+    public native String nativeTestFFmpeg();
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        ffmpegExecutor = new FFmpegExecutor();
+        initializeViews();
+        setupSpinners();
+        checkPermissions();
+        
+        // 显示版本信息
+        String nativeVersion = nativeGetVersion();
+        String ffmpegVersion = FFmpegUtil.getVersion();
+        versionText.setText("EzConvert v0.1.0 | FFmpeg: " + ffmpegVersion);
+        
+        // 测试FFmpeg
+        String testResult = nativeTestFFmpeg();
+        Log.d("MainActivity", "FFmpeg测试: " + testResult);
+    }
+    
+    private void initializeViews() {
         statusText = findViewById(R.id.status_text);
-        testInfoButton = findViewById(R.id.test_info_button);
-        testVideoButton = findViewById(R.id.test_video_button);
-        testAudioButton = findViewById(R.id.test_audio_button);
+        progressText = findViewById(R.id.progress_text);
+        progressBar = findViewById(R.id.progress_bar);
+        versionText = findViewById(R.id.version_text);
         
-        testInfoButton.setOnClickListener(v -> {
-            // 测试获取媒体信息
-            String info = ffmpegExecutor.getMediaInfo("/sdcard/Download/test.mp4");
-            statusText.setText("媒体信息:\n" + info);
-        });
+        selectFileBtn = findViewById(R.id.select_file_btn);
+        convertBtn = findViewById(R.id.convert_btn);
+        compressBtn = findViewById(R.id.compress_btn);
+        extractAudioBtn = findViewById(R.id.extract_audio_btn);
         
-        testVideoButton.setOnClickListener(v -> {
-            // 测试视频转换
-            statusText.setText("开始模拟视频转换...");
-            ffmpegExecutor.convertVideo(
-                "/sdcard/Download/input.mp4", 
-                "/sdcard/Download/output.avi", 
-                "avi", 
-                this
-            );
-        });
+        formatSpinner = findViewById(R.id.format_spinner);
+        qualitySpinner = findViewById(R.id.quality_spinner);
         
-        testAudioButton.setOnClickListener(v -> {
-            // 测试音频转换
-            statusText.setText("开始模拟音频转换...");
-            ffmpegExecutor.convertAudio(
-                "/sdcard/Download/input.mp3", 
-                "/sdcard/Download/output.wav", 
-                "wav", 
-                this
-            );
-        });
+        // 设置按钮点击事件
+        selectFileBtn.setOnClickListener(v -> openFilePicker());
+        convertBtn.setOnClickListener(v -> startConversion());
+        compressBtn.setOnClickListener(v -> startCompression());
+        extractAudioBtn.setOnClickListener(v -> extractAudio());
         
-        updateStatus("EzConvert v0.0.1 - 模拟模式已启动");
+        updateStatus("请选择要处理的媒体文件");
+    }
+    
+    private void setupSpinners() {
+        // 视频格式
+        ArrayAdapter<CharSequence> formatAdapter = ArrayAdapter.createFromResource(
+            this, R.array.video_formats, android.R.layout.simple_spinner_item);
+        formatAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        formatSpinner.setAdapter(formatAdapter);
+        
+        // 质量选项
+        ArrayAdapter<CharSequence> qualityAdapter = ArrayAdapter.createFromResource(
+            this, R.array.quality_options, android.R.layout.simple_spinner_item);
+        qualityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        qualitySpinner.setAdapter(qualityAdapter);
+        qualitySpinner.setSelection(1); // 默认中等质量
+    }
+    
+    private void checkPermissions() {
+        String[] permissions = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        };
+        
+        if (ContextCompat.checkSelfPermission(this, permissions[0]) != PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(this, permissions[1]) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE);
+        }
+    }
+    
+    private void openFilePicker() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        
+        String[] mimeTypes = {"video/*", "audio/*"};
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+        
+        startActivityForResult(Intent.createChooser(intent, "选择媒体文件"), FILE_PICKER_REQUEST);
+    }
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        if (requestCode == FILE_PICKER_REQUEST && resultCode == RESULT_OK) {
+            Uri uri = data.getData();
+            if (uri != null) {
+                currentInputPath = FileUtils.getPath(this, uri);
+                if (currentInputPath != null) {
+                    updateStatus("已选择文件: " + new File(currentInputPath).getName());
+                    
+                    // 显示媒体信息
+                    String mediaInfo = FFmpegUtil.getMediaInfo(currentInputPath);
+                    Log.d("MediaInfo", mediaInfo);
+                    
+                    // 生成输出路径
+                    generateOutputPath();
+                } else {
+                    updateStatus("无法获取文件路径");
+                    Toast.makeText(this, "无法获取文件路径", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    }
+    
+    private void generateOutputPath() {
+        if (currentInputPath.isEmpty()) return;
+        
+        File inputFile = new File(currentInputPath);
+        String fileName = inputFile.getName();
+        String baseName = fileName.contains(".") ? 
+            fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
+        
+        String outputDir = Environment.getExternalStoragePublicDirectory(
+            Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
+        
+        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        currentOutputPath = outputDir + File.separator + baseName + "_" + timestamp + ".mp4";
+    }
+    
+    private void startConversion() {
+        if (currentInputPath.isEmpty()) {
+            Toast.makeText(this, "请先选择文件", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        String format = formatSpinner.getSelectedItem().toString();
+        generateOutputPath(); // 重新生成输出路径
+        
+        updateStatus("开始转换视频...");
+        VideoProcessor.convertVideo(currentInputPath, currentOutputPath, format, this);
+    }
+    
+    private void startCompression() {
+        if (currentInputPath.isEmpty()) {
+            Toast.makeText(this, "请先选择文件", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        String qualityStr = qualitySpinner.getSelectedItem().toString();
+        int quality = getQualityValue(qualityStr);
+        
+        generateOutputPath();
+        
+        updateStatus("开始压缩视频...");
+        VideoProcessor.compressVideo(currentInputPath, currentOutputPath, quality, this);
+    }
+    
+    private void extractAudio() {
+        if (currentInputPath.isEmpty()) {
+            Toast.makeText(this, "请先选择文件", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        File inputFile = new File(currentInputPath);
+        String fileName = inputFile.getName();
+        String baseName = fileName.contains(".") ? 
+            fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
+            
+        String outputDir = Environment.getExternalStoragePublicDirectory(
+            Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
+        
+        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        currentOutputPath = outputDir + File.separator + baseName + "_audio_" + timestamp + ".mp3";
+        
+        updateStatus("开始提取音频...");
+        AudioProcessor.extractAudioFromVideo(currentInputPath, currentOutputPath, "mp3", this);
+    }
+    
+    private int getQualityValue(String qualityStr) {
+        switch (qualityStr) {
+            case "高质量": return 90;
+            case "中等质量": return 70;
+            case "低质量": return 50;
+            default: return 70;
+        }
     }
     
     private void updateStatus(String message) {
-        runOnUiThread(() -> statusText.setText(message));
-    }
-    
-    @Override
-    public void onProgressUpdate(int progress) {
-        runOnUiThread(() -> 
-            statusText.setText("处理进度: " + progress + "%"));
-    }
-    
-    @Override
-    public boolean isCancelled() {
-        return false;
-    }
-    
-    @Override
-    public void onConversionComplete(boolean success, String message) {
         runOnUiThread(() -> {
             statusText.setText(message);
-            Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+            Log.d("EzConvert", message);
         });
+    }
+    
+    // FFmpegCallback 实现
+    @Override
+    public void onProgress(int progress, long time) {
+        runOnUiThread(() -> {
+            progressBar.setProgress(progress);
+            progressText.setText("进度: " + progress + "%");
+        });
+    }
+    
+    @Override
+    public void onComplete(boolean success, String message) {
+        runOnUiThread(() -> {
+            if (success) {
+                updateStatus("处理完成: " + message);
+                Toast.makeText(MainActivity.this, "处理完成！输出文件: " + 
+                    new File(currentOutputPath).getName(), Toast.LENGTH_LONG).show();
+            } else {
+                updateStatus("处理失败: " + message);
+                Toast.makeText(MainActivity.this, "处理失败: " + message, Toast.LENGTH_LONG).show();
+            }
+            progressBar.setProgress(0);
+            progressText.setText("进度: 0%");
+        });
+    }
+    
+    @Override
+    public void onError(String error) {
+        runOnUiThread(() -> {
+            updateStatus("错误: " + error);
+            Toast.makeText(MainActivity.this, "错误: " + error, Toast.LENGTH_LONG).show();
+        });
+    }
+    
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, 
+                                         @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                updateStatus("权限已授予，请选择文件");
+            } else {
+                Toast.makeText(this, "需要存储权限才能处理文件", Toast.LENGTH_LONG).show();
+            }
+        }
     }
     
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (ffmpegExecutor != null) {
-            ffmpegExecutor.release();
-        }
+        FFmpegUtil.cancelCurrentTask();
     }
 }
