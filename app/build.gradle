@@ -11,7 +11,11 @@ android {
         minSdk 21
         targetSdk 33
         versionCode 1
+<<<<<<< HEAD
         versionName "0.1.2"
+=======
+        versionName "0.1.3"
+>>>>>>> bdc73d2 (feat：添加存储权限申请和管理)
         
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         

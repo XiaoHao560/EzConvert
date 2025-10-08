@@ -6,14 +6,18 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.widget.*;
 import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
+import android.view.View;
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Date;
 import java.util.Locale;
 
@@ -28,6 +32,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     private Spinner formatSpinner, qualitySpinner;
     private String currentInputPath = "";
     private String currentOutputPath = "";
+    private boolean permissionsGranted = false;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,13 +41,9 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         
         initializeViews();
         setupSpinners();
-        checkPermissions();
         
-        // 显示版本信息
-        String ffmpegVersion = FFmpegUtil.getVersion();
-        versionText.setText("EzConvert v0.1.1 | FFmpeg: " + ffmpegVersion);
-        
-        updateStatus("应用已启动，请选择媒体文件");
+        // 立即检查并申请权限
+        checkAndRequestPermissions();
     }
     
     private void initializeViews() {
@@ -59,12 +60,41 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         formatSpinner = findViewById(R.id.format_spinner);
         qualitySpinner = findViewById(R.id.quality_spinner);
         
-        selectFileBtn.setOnClickListener(v -> openFilePicker());
-        convertBtn.setOnClickListener(v -> startConversion());
-        compressBtn.setOnClickListener(v -> startCompression());
-        extractAudioBtn.setOnClickListener(v -> extractAudio());
+        selectFileBtn.setOnClickListener(v -> {
+            if (permissionsGranted) {
+                openFilePicker();
+            } else {
+                checkAndRequestPermissions();
+            }
+        });
         
-        updateStatus("请选择要处理的媒体文件");
+        convertBtn.setOnClickListener(v -> {
+            if (permissionsGranted) {
+                startConversion();
+            } else {
+                checkAndRequestPermissions();
+            }
+        });
+        
+        compressBtn.setOnClickListener(v -> {
+            if (permissionsGranted) {
+                startCompression();
+            } else {
+                checkAndRequestPermissions();
+            }
+        });
+        
+        extractAudioBtn.setOnClickListener(v -> {
+            if (permissionsGranted) {
+                extractAudio();
+            } else {
+                checkAndRequestPermissions();
+            }
+        });
+        
+        // 初始状态禁用功能按钮，等待权限授予
+        setFunctionButtonsEnabled(false);
+        updateStatus("正在申请存储权限...");
     }
     
     private void setupSpinners() {
@@ -82,19 +112,81 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         qualitySpinner.setSelection(1); // 默认中等质量
     }
     
-    private void checkPermissions() {
-        String[] permissions = {
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        };
+    private void checkAndRequestPermissions() {
+        List<String> permissionsNeeded = new ArrayList<>();
         
-        if (ContextCompat.checkSelfPermission(this, permissions[0]) != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(this, permissions[1]) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE);
+        // 基础存储权限
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) 
+                != PackageManager.PERMISSION_GRANTED) {
+            permissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+        }
+        
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) 
+                != PackageManager.PERMISSION_GRANTED) {
+            permissionsNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        }
+        
+        // 需要媒体权限（Android 13+）
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_VIDEO) 
+                    != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.READ_MEDIA_VIDEO);
+            }
+            
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO) 
+                    != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.READ_MEDIA_AUDIO);
+            }
+        }
+        
+        if (!permissionsNeeded.isEmpty()) {
+            // 请求权限
+            ActivityCompat.requestPermissions(this, 
+                permissionsNeeded.toArray(new String[0]), 
+                PERMISSION_REQUEST_CODE);
+        } else {
+            // 所有权限都已授予
+            onPermissionsGranted();
+        }
+    }
+    
+    private void onPermissionsGranted() {
+        permissionsGranted = true;
+        setFunctionButtonsEnabled(true);
+        
+        // 显示版本信息
+        String ffmpegVersion = FFmpegUtil.getVersion();
+        versionText.setText("EzConvert v0.1.2 | FFmpeg: " + ffmpegVersion);
+        
+        updateStatus("权限已授予，请选择媒体文件");
+        Toast.makeText(this, "存储权限已获得，现在可以选择文件了", Toast.LENGTH_LONG).show();
+    }
+    
+    private void setFunctionButtonsEnabled(boolean enabled) {
+        selectFileBtn.setEnabled(enabled);
+        convertBtn.setEnabled(enabled);
+        compressBtn.setEnabled(enabled);
+        extractAudioBtn.setEnabled(enabled);
+        
+        if (!enabled) {
+            selectFileBtn.setAlpha(0.5f);
+            convertBtn.setAlpha(0.5f);
+            compressBtn.setAlpha(0.5f);
+            extractAudioBtn.setAlpha(0.5f);
+        } else {
+            selectFileBtn.setAlpha(1.0f);
+            convertBtn.setAlpha(1.0f);
+            compressBtn.setAlpha(1.0f);
+            extractAudioBtn.setAlpha(1.0f);
         }
     }
     
     private void openFilePicker() {
+        if (!permissionsGranted) {
+            Toast.makeText(this, "请先授予存储权限", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("*/*");
         intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -102,7 +194,12 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         String[] mimeTypes = {"video/*", "audio/*"};
         intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
         
-        startActivityForResult(Intent.createChooser(intent, "选择媒体文件"), FILE_PICKER_REQUEST);
+        try {
+            startActivityForResult(Intent.createChooser(intent, "选择媒体文件"), FILE_PICKER_REQUEST);
+        } catch (Exception e) {
+            Toast.makeText(this, "无法打开文件选择器: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Log.e("MainActivity", "打开文件选择器失败", e);
+        }
     }
     
     @Override
@@ -147,9 +244,16 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         currentOutputPath = outputDir + File.separator + baseName + "_" + timestamp + ".mp4";
+        
+        Log.d("GeneratePath", "输出路径: " + currentOutputPath);
     }
     
     private void startConversion() {
+        if (!permissionsGranted) {
+            Toast.makeText(this, "请先授予存储权限", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
         if (currentInputPath.isEmpty()) {
             Toast.makeText(this, "请先选择文件", Toast.LENGTH_SHORT).show();
             return;
@@ -163,6 +267,11 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     }
     
     private void startCompression() {
+        if (!permissionsGranted) {
+            Toast.makeText(this, "请先授予存储权限", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
         if (currentInputPath.isEmpty()) {
             Toast.makeText(this, "请先选择文件", Toast.LENGTH_SHORT).show();
             return;
@@ -178,6 +287,11 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     }
     
     private void extractAudio() {
+        if (!permissionsGranted) {
+            Toast.makeText(this, "请先授予存储权限", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
         if (currentInputPath.isEmpty()) {
             Toast.makeText(this, "请先选择文件", Toast.LENGTH_SHORT).show();
             return;
@@ -252,10 +366,23 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
                                          @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                updateStatus("权限已授予，请选择文件");
+            boolean allGranted = true;
+            for (int result : grantResults) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    allGranted = false;
+                    break;
+                }
+            }
+            
+            if (allGranted) {
+                onPermissionsGranted();
             } else {
-                Toast.makeText(this, "需要存储权限才能处理文件", Toast.LENGTH_LONG).show();
+                permissionsGranted = false;
+                setFunctionButtonsEnabled(false);
+                updateStatus("存储权限被拒绝，无法访问媒体文件");
+                Toast.makeText(this, 
+                    "存储权限被拒绝，应用无法正常工作。请到设置中授予权限。", 
+                    Toast.LENGTH_LONG).show();
             }
         }
     }
