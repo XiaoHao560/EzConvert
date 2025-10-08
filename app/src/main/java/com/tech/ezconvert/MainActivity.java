@@ -13,7 +13,7 @@ import android.widget.*;
 import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
-import android.view.View;
+import android.provider.Settings;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     
     private static final int PERMISSION_REQUEST_CODE = 100;
     private static final int FILE_PICKER_REQUEST = 101;
+    private static final int MANAGE_STORAGE_REQUEST_CODE = 102;
     
     private TextView statusText, progressText, versionText;
     private ProgressBar progressBar;
@@ -41,6 +42,10 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         
         initializeViews();
         setupSpinners();
+        
+        // 显示版本信息
+        String ffmpegVersion = FFmpegUtil.getVersion();
+        versionText.setText("EzConvert v0.1.4 | FFmpeg: " + ffmpegVersion);
         
         // 立即检查并申请权限
         checkAndRequestPermissions();
@@ -69,7 +74,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         });
         
         convertBtn.setOnClickListener(v -> {
-            if (permissionsGranted) {
+            if (permissionsGranted && !currentInputPath.isEmpty()) {
                 startConversion();
             } else {
                 checkAndRequestPermissions();
@@ -77,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         });
         
         compressBtn.setOnClickListener(v -> {
-            if (permissionsGranted) {
+            if (permissionsGranted && !currentInputPath.isEmpty()) {
                 startCompression();
             } else {
                 checkAndRequestPermissions();
@@ -85,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         });
         
         extractAudioBtn.setOnClickListener(v -> {
-            if (permissionsGranted) {
+            if (permissionsGranted && !currentInputPath.isEmpty()) {
                 extractAudio();
             } else {
                 checkAndRequestPermissions();
@@ -115,7 +120,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     private void checkAndRequestPermissions() {
         List<String> permissionsNeeded = new ArrayList<>();
         
-        // 基础存储权限
+        // 检查基础存储权限
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) 
                 != PackageManager.PERMISSION_GRANTED) {
             permissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE);
@@ -126,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
             permissionsNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         }
         
-        // 需要媒体权限（Android 13+）
+        // 媒体权限（Android 13+）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_VIDEO) 
                     != PackageManager.PERMISSION_GRANTED) {
@@ -140,13 +145,43 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         }
         
         if (!permissionsNeeded.isEmpty()) {
+            Log.d("Permission", "申请权限: " + permissionsNeeded);
             // 请求权限
             ActivityCompat.requestPermissions(this, 
                 permissionsNeeded.toArray(new String[0]), 
                 PERMISSION_REQUEST_CODE);
         } else {
-            // 所有权限都已授予
+            // 检查是否真正有权限访问存储
+            verifyStoragePermissions();
+        }
+    }
+    
+    private void verifyStoragePermissions() {
+        // 测试是否真的可以访问存储
+        File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        boolean canWrite = downloadsDir != null && downloadsDir.canWrite();
+        boolean canRead = downloadsDir != null && downloadsDir.canRead();
+        
+        Log.d("Permission", "存储访问测试 - 可写: " + canWrite + ", 可读: " + canRead);
+        
+        if (canWrite && canRead) {
             onPermissionsGranted();
+        } else {
+            // 即使权限被授予，但实际无法访问存储
+            updateStatus("存储权限异常，无法访问文件");
+            Toast.makeText(this, 
+                "存储权限异常，请尝试重新授权或手动在设置中开启所有文件访问权限", 
+                Toast.LENGTH_LONG).show();
+            
+            // 引导用户到设置页面
+            try {
+                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                Uri uri = Uri.fromParts("package", getPackageName(), null);
+                intent.setData(uri);
+                startActivity(intent);
+            } catch (Exception e) {
+                Log.e("Permission", "无法打开设置页面", e);
+            }
         }
     }
     
@@ -154,19 +189,16 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         permissionsGranted = true;
         setFunctionButtonsEnabled(true);
         
-        // 显示版本信息
-        String ffmpegVersion = FFmpegUtil.getVersion();
-        versionText.setText("EzConvert v0.1.2 | FFmpeg: " + ffmpegVersion);
-        
         updateStatus("权限已授予，请选择媒体文件");
-        Toast.makeText(this, "存储权限已获得，现在可以选择文件了", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "存储权限已获得，现在可以选择文件了", Toast.LENGTH_SHORT).show();
+        Log.d("Permission", "所有权限已正确授予");
     }
     
     private void setFunctionButtonsEnabled(boolean enabled) {
         selectFileBtn.setEnabled(enabled);
-        convertBtn.setEnabled(enabled);
-        compressBtn.setEnabled(enabled);
-        extractAudioBtn.setEnabled(enabled);
+        convertBtn.setEnabled(enabled && !currentInputPath.isEmpty());
+        compressBtn.setEnabled(enabled && !currentInputPath.isEmpty());
+        extractAudioBtn.setEnabled(enabled && !currentInputPath.isEmpty());
         
         if (!enabled) {
             selectFileBtn.setAlpha(0.5f);
@@ -175,9 +207,9 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
             extractAudioBtn.setAlpha(0.5f);
         } else {
             selectFileBtn.setAlpha(1.0f);
-            convertBtn.setAlpha(1.0f);
-            compressBtn.setAlpha(1.0f);
-            extractAudioBtn.setAlpha(1.0f);
+            convertBtn.setAlpha(currentInputPath.isEmpty() ? 0.5f : 1.0f);
+            compressBtn.setAlpha(currentInputPath.isEmpty() ? 0.5f : 1.0f);
+            extractAudioBtn.setAlpha(currentInputPath.isEmpty() ? 0.5f : 1.0f);
         }
     }
     
@@ -210,7 +242,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
             Uri uri = data.getData();
             if (uri != null) {
                 currentInputPath = FileUtils.getPath(this, uri);
-                if (currentInputPath != null) {
+                if (currentInputPath != null && new File(currentInputPath).exists()) {
                     String fileName = new File(currentInputPath).getName();
                     updateStatus("已选择文件: " + fileName);
                     
@@ -221,11 +253,15 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
                     // 生成输出路径
                     generateOutputPath();
                     
+                    // 更新按钮状态
+                    setFunctionButtonsEnabled(true);
+                    
                     // 在状态栏显示文件信息
                     Toast.makeText(this, "已选择: " + fileName, Toast.LENGTH_SHORT).show();
                 } else {
-                    updateStatus("无法获取文件路径");
-                    Toast.makeText(this, "无法获取文件路径", Toast.LENGTH_SHORT).show();
+                    updateStatus("无法访问文件或文件不存在");
+                    Toast.makeText(this, "无法访问文件或文件不存在", Toast.LENGTH_SHORT).show();
+                    currentInputPath = "";
                 }
             }
         }
@@ -242,8 +278,14 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         String outputDir = Environment.getExternalStoragePublicDirectory(
             Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
         
+        // 确保下载目录存在
+        File outputDirFile = new File(outputDir);
+        if (!outputDirFile.exists()) {
+            outputDirFile.mkdirs();
+        }
+        
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-        currentOutputPath = outputDir + File.separator + baseName + "_" + timestamp + ".mp4";
+        currentOutputPath = outputDir + File.separator + baseName + "_converted_" + timestamp + ".mp4";
         
         Log.d("GeneratePath", "输出路径: " + currentOutputPath);
     }
@@ -365,25 +407,67 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, 
                                          @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        Log.d("Permission", "权限回调: requestCode=" + requestCode + ", 权限数量=" + permissions.length);
+        
         if (requestCode == PERMISSION_REQUEST_CODE) {
             boolean allGranted = true;
-            for (int result : grantResults) {
+            
+            for (int i = 0; i < permissions.length; i++) {
+                String permission = permissions[i];
+                int result = grantResults[i];
+                Log.d("Permission", "权限: " + permission + " = " + 
+                    (result == PackageManager.PERMISSION_GRANTED ? "授予" : "拒绝"));
+                
                 if (result != PackageManager.PERMISSION_GRANTED) {
                     allGranted = false;
-                    break;
                 }
             }
             
             if (allGranted) {
-                onPermissionsGranted();
+                // 验证实际存储访问能力
+                verifyStoragePermissions();
             } else {
                 permissionsGranted = false;
                 setFunctionButtonsEnabled(false);
-                updateStatus("存储权限被拒绝，无法访问媒体文件");
-                Toast.makeText(this, 
-                    "存储权限被拒绝，应用无法正常工作。请到设置中授予权限。", 
-                    Toast.LENGTH_LONG).show();
+                updateStatus("部分权限被拒绝，无法访问媒体文件");
+                
+                // 显示详细的权限指导
+                StringBuilder message = new StringBuilder();
+                message.append("以下权限被拒绝:\n");
+                for (int i = 0; i < permissions.length; i++) {
+                    if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+                        message.append(getPermissionName(permissions[i])).append("\n");
+                    }
+                }
+                message.append("\n请到应用设置中手动授予权限");
+                
+                Toast.makeText(this, message.toString(), Toast.LENGTH_LONG).show();
+                
+                // 引导用户到设置页面
+                try {
+                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                    Uri uri = Uri.fromParts("package", getPackageName(), null);
+                    intent.setData(uri);
+                    startActivity(intent);
+                } catch (Exception e) {
+                    Log.e("Permission", "无法打开设置页面", e);
+                }
             }
+        }
+    }
+    
+    private String getPermissionName(String permission) {
+        switch (permission) {
+            case Manifest.permission.READ_EXTERNAL_STORAGE:
+                return "读取存储";
+            case Manifest.permission.WRITE_EXTERNAL_STORAGE:
+                return "写入存储";
+            case Manifest.permission.READ_MEDIA_VIDEO:
+                return "读取视频";
+            case Manifest.permission.READ_MEDIA_AUDIO:
+                return "读取音频";
+            default:
+                return permission;
         }
     }
     
