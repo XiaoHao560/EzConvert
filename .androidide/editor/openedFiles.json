@@ -1,140 +1,20 @@
 {
   "allFiles": [
     {
-      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/build.gradle",
-      "selection": {
-        "end": {
-          "column": 27,
-          "index": 261,
-          "line": 13
-        },
-        "start": {
-          "column": 27,
-          "index": 261,
-          "line": 13
-        }
-      }
-    },
-    {
-      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/res/layout/activity_main.xml",
-      "selection": {
-        "end": {
-          "column": 13,
-          "index": 7750,
-          "line": 213
-        },
-        "start": {
-          "column": 13,
-          "index": 7750,
-          "line": 213
-        }
-      }
-    },
-    {
-      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/res/drawable/card_background.xml",
-      "selection": {
-        "end": {
-          "column": 8,
-          "index": 277,
-          "line": 7
-        },
-        "start": {
-          "column": 8,
-          "index": 277,
-          "line": 7
-        }
-      }
-    },
-    {
       "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/java/com/tech/ezconvert/MainActivity.java",
       "selection": {
         "end": {
-          "column": 8,
-          "index": 2447,
-          "line": 71
+          "column": 0,
+          "index": 0,
+          "line": 0
         },
         "start": {
-          "column": 8,
-          "index": 2447,
-          "line": 71
-        }
-      }
-    },
-    {
-      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/res/values/strings.xml",
-      "selection": {
-        "end": {
-          "column": 12,
-          "index": 379,
-          "line": 15
-        },
-        "start": {
-          "column": 12,
-          "index": 379,
-          "line": 15
-        }
-      }
-    },
-    {
-      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/java/com/tech/ezconvert/FFmpegUtil.java",
-      "selection": {
-        "end": {
-          "column": 15,
-          "index": 928,
-          "line": 27
-        },
-        "start": {
-          "column": 15,
-          "index": 928,
-          "line": 27
-        }
-      }
-    },
-    {
-      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/java/com/tech/ezconvert/VideoProcessor.java",
-      "selection": {
-        "end": {
-          "column": 1,
-          "index": 4281,
-          "line": 139
-        },
-        "start": {
-          "column": 1,
-          "index": 4281,
-          "line": 139
-        }
-      }
-    },
-    {
-      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/java/com/tech/ezconvert/AudioProcessor.java",
-      "selection": {
-        "end": {
-          "column": 11,
-          "index": 1609,
-          "line": 55
-        },
-        "start": {
-          "column": 11,
-          "index": 1609,
-          "line": 55
-        }
-      }
-    },
-    {
-      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/cpp/native-lib.cpp",
-      "selection": {
-        "end": {
-          "column": 1,
-          "index": 707,
-          "line": 18
-        },
-        "start": {
-          "column": 1,
-          "index": 707,
-          "line": 18
+          "column": 0,
+          "index": 0,
+          "line": 0
         }
       }
     }
   ],
-  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/cpp/native-lib.cpp"
+  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/java/com/tech/ezconvert/MainActivity.java"
 }

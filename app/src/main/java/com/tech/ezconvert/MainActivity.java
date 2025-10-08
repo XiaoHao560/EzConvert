@@ -29,15 +29,6 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     private String currentInputPath = "";
     private String currentOutputPath = "";
     
-    // 加载本地库
-    static {
-        System.loadLibrary("ezconvert");
-    }
-    
-    // 本地方法声明
-    public native String nativeGetVersion();
-    public native String nativeTestFFmpeg();
-    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,11 +40,9 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         
         // 显示版本信息
         String ffmpegVersion = FFmpegUtil.getVersion();
-        versionText.setText("EzConvert v0.1.0 | FFmpeg: " + ffmpegVersion);
+        versionText.setText("EzConvert v0.1.1 | FFmpeg: " + ffmpegVersion);
         
-        // 测试FFmpeg
-        //String testResult = nativeTestFFmpeg();
-        //Log.d("MainActivity", "FFmpeg测试: " + testResult);
+        updateStatus("应用已启动，请选择媒体文件");
     }
     
     private void initializeViews() {
@@ -125,7 +114,8 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
             if (uri != null) {
                 currentInputPath = FileUtils.getPath(this, uri);
                 if (currentInputPath != null) {
-                    updateStatus("已选择文件: " + new File(currentInputPath).getName());
+                    String fileName = new File(currentInputPath).getName();
+                    updateStatus("已选择文件: " + fileName);
                     
                     // 显示媒体信息
                     String mediaInfo = FFmpegUtil.getMediaInfo(currentInputPath);
@@ -133,6 +123,9 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
                     
                     // 生成输出路径
                     generateOutputPath();
+                    
+                    // 在状态栏显示文件信息
+                    Toast.makeText(this, "已选择: " + fileName, Toast.LENGTH_SHORT).show();
                 } else {
                     updateStatus("无法获取文件路径");
                     Toast.makeText(this, "无法获取文件路径", Toast.LENGTH_SHORT).show();
@@ -163,9 +156,9 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         }
         
         String format = formatSpinner.getSelectedItem().toString();
-        generateOutputPath(); // 重新生成输出路径
+        generateOutputPath();
         
-        updateStatus("开始转换视频...");
+        updateStatus("开始转换视频到 " + format + " 格式...");
         VideoProcessor.convertVideo(currentInputPath, currentOutputPath, format, this);
     }
     
@@ -180,7 +173,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         
         generateOutputPath();
         
-        updateStatus("开始压缩视频...");
+        updateStatus("开始压缩视频 (" + qualityStr + ")...");
         VideoProcessor.compressVideo(currentInputPath, currentOutputPath, quality, this);
     }
     
@@ -221,7 +214,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         });
     }
     
-    // FFmpegCallback 实现
+    // FFmpegCallback
     @Override
     public void onProgress(int progress, long time) {
         runOnUiThread(() -> {

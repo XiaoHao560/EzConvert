@@ -2,15 +2,12 @@ package com.tech.ezconvert;
 
 import android.util.Log;
 import com.arthenica.mobileffmpeg.FFmpeg;
-import com.arthenica.mobileffmpeg.FFprobe;
-import com.arthenica.mobileffmpeg.MediaInformation;
 import com.arthenica.mobileffmpeg.ExecuteCallback;
-import com.arthenica.mobileffmpeg.Statistics;
-import com.arthenica.mobileffmpeg.StatisticsCallback;
 
 public class FFmpegUtil {
     private static final String TAG = "FFmpegUtil";
     private static long currentExecutionId = 0;
+    private static ProgressSimulator progressSimulator;
     
     public interface FFmpegCallback {
         void onProgress(int progress, long time);
@@ -18,19 +15,18 @@ public class FFmpegUtil {
         void onError(String error);
     }
     
-    // 执行 FFmpeg 命令
     public static void executeCommand(String[] command, FFmpegCallback callback) {
         Log.d(TAG, "执行命令: " + String.join(" ", command));
         
-        // 设置统计回调（如果可用）
-        setupStatisticsCallback(callback);
+        // 停止之前的模拟进度
+        stopProgressSimulation();
         
-        // 执行命令
         currentExecutionId = FFmpeg.executeAsync(command, new ExecuteCallback() {
             @Override
             public void apply(long executionId, int returnCode) {
                 Log.d(TAG, "命令执行完成，返回码: " + returnCode);
                 currentExecutionId = 0;
+                stopProgressSimulation();
                 
                 if (callback != null) {
                     if (returnCode == 0) {
@@ -42,6 +38,9 @@ public class FFmpegUtil {
             }
         });
         
+        // 启动进度模拟
+        startProgressSimulation(callback);
+        
         // 检查执行是否立即失败
         if (currentExecutionId <= 0 && callback != null) {
             callback.onError("命令执行失败，无法启动FFmpeg进程");
@@ -51,113 +50,112 @@ public class FFmpegUtil {
     // 获取媒体信息
     public static String getMediaInfo(String filePath) {
         try {
-            MediaInformation mediaInfo = FFprobe.getMediaInformation(filePath);
-            if (mediaInfo != null) {
-                // 构建简化的媒体信息字符串
-                StringBuilder info = new StringBuilder();
-                info.append("文件路径: ").append(filePath).append("\n");
-                
-                if (mediaInfo.getFormat() != null) {
-                    info.append("格式: ").append(mediaInfo.getFormat()).append("\n");
-                }
-                
-                if (mediaInfo.getBitrate() > 0) {
-                    info.append("比特率: ").append(mediaInfo.getBitrate() / 1000).append(" kb/s\n");
-                }
-                
-                if (mediaInfo.getDuration() != null && mediaInfo.getDuration().length() > 0) {
-                    info.append("时长: ").append(mediaInfo.getDuration()).append("\n");
-                }
-                
-                if (mediaInfo.getStreams() != null) {
-                    info.append("流数量: ").append(mediaInfo.getStreams().size()).append("\n");
-                    
-                    // 简单统计视频和音频流
-                    int videoStreams = 0;
-                    int audioStreams = 0;
-                    for (int i = 0; i < mediaInfo.getStreams().size(); i++) {
-                        String codecType = mediaInfo.getStreams().get(i).getCodecType();
-                        if ("video".equals(codecType)) {
-                            videoStreams++;
-                        } else if ("audio".equals(codecType)) {
-                            audioStreams++;
-                        }
-                    }
-                    info.append("视频流: ").append(videoStreams).append("\n");
-                    info.append("音频流: ").append(audioStreams).append("\n");
-                }
-                
-                return info.toString();
-            } else {
-                return "无法获取媒体信息";
-            }
+            String[] command = {
+                "-i", filePath
+            };
+            
+            java.io.File file = new java.io.File(filePath);
+            StringBuilder info = new StringBuilder();
+            info.append("文件信息:\n");
+            info.append("路径: ").append(filePath).append("\n");
+            info.append("文件名: ").append(file.getName()).append("\n");
+            info.append("大小: ").append(formatFileSize(file.length())).append("\n");
+            info.append("最后修改: ").append(new java.util.Date(file.lastModified())).append("\n");
+            info.append("\n提示: 使用FFmpeg命令行工具获取详细媒体信息");
+            
+            return info.toString();
         } catch (Exception e) {
             Log.e(TAG, "获取媒体信息失败", e);
             return "错误: " + e.getMessage() + "\n文件路径: " + filePath;
         }
     }
     
-    // 设置统计信息回调
-    private static void setupStatisticsCallback(FFmpegCallback callback) {
-        try {
-            FFmpeg.enableStatisticsCallback(new StatisticsCallback() {
-                @Override
-                public void apply(Statistics statistics) {
-                    if (callback != null && statistics != null) {
-                        int progress = 0;
-                        long time = statistics.getTime();
-                        
-                        // 简单的进度模拟
-                        if (time > 0) {
-                            progress = (int) Math.min((time / 10000.0) * 100, 95);
-                        }
-                        
-                        callback.onProgress(progress, time);
-                    }
-                }
-            });
-        } catch (Exception e) {
-            Log.w(TAG, "统计回调不可用，将使用模拟进度", e);
-            startSimulatedProgress(callback);
+    // 格式化文件大小
+    private static String formatFileSize(long size) {
+        if (size <= 0) return "0 B";
+        final String[] units = new String[]{"B", "KB", "MB", "GB", "TB"};
+        int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
+        return String.format("%.1f %s", size / Math.pow(1024, digitGroups), units[digitGroups]);
+    }
+    
+    // 启动进度模拟
+    private static void startProgressSimulation(final FFmpegCallback callback) {
+        if (callback == null) return;
+        
+        stopProgressSimulation();
+        
+        progressSimulator = new ProgressSimulator(callback);
+        new Thread(progressSimulator).start();
+    }
+    
+    // 停止进度模拟
+    private static void stopProgressSimulation() {
+        if (progressSimulator != null) {
+            progressSimulator.stop();
+            progressSimulator = null;
         }
     }
     
-    // 模拟进度（当统计回调不可用时使用）
-    private static void startSimulatedProgress(final FFmpegCallback callback) {
-        if (callback == null) return;
+    // 进度模拟器
+    private static class ProgressSimulator implements Runnable {
+        private volatile boolean running = true;
+        private final FFmpegCallback callback;
         
-        new Thread(() -> {
+        ProgressSimulator(FFmpegCallback callback) {
+            this.callback = callback;
+        }
+        
+        @Override
+        public void run() {
+            int progress = 0;
+            long startTime = System.currentTimeMillis();
+            
             try {
-                for (int i = 0; i <= 100; i += 2) {
-                    Thread.sleep(200);
-                    callback.onProgress(i, i * 1000L);
+                while (running && progress < 95) {
+                    Thread.sleep(500);
                     
-                    // 如果任务完成，提前结束
-                    if (currentExecutionId == 0 && i > 50) {
+                    // 如果任务已经完成，提前结束
+                    if (currentExecutionId == 0) {
+                        callback.onProgress(100, System.currentTimeMillis() - startTime);
                         break;
                     }
+                    
+                    // 模拟进度增长（先快后慢）
+                    if (progress < 70) {
+                        progress += 5;
+                    } else {
+                        progress += 2;
+                    }
+                    
+                    long elapsedTime = System.currentTimeMillis() - startTime;
+                    callback.onProgress(Math.min(progress, 95), elapsedTime);
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
-        }).start();
+        }
+        
+        void stop() {
+            running = false;
+        }
     }
     
     // 取消当前任务
     public static void cancelCurrentTask() {
+        stopProgressSimulation();
         if (currentExecutionId != 0) {
             FFmpeg.cancel(currentExecutionId);
             currentExecutionId = 0;
         }
     }
     
-    // 获取 FFmpeg 版本
+    // 获取 FFmpeg 版本 （直接返回版本）
     public static String getVersion() {
         try {
-            return "mobile-ffmpeg-full-4.4.LTS";
+            return "4.4.LTS";
         } catch (Exception e) {
-            Log.w(TAG, "无法获取FFmpeg版本", e);
-            return "mobile-ffmpeg-full-4.4.LTS";
+            Log.w(TAG, "获取FFmpeg版本失败", e);
+            return "未知版本";
         }
     }
 }
