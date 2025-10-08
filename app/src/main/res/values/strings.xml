@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">EzConvert</string>
+    <string name="app_name">简转</string>
     
     <string-array name="video_formats">
         <item>mp4</item>

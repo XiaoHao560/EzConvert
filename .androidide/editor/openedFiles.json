@@ -14,7 +14,37 @@
           "line": 0
         }
       }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/AndroidManifest.xml",
+      "selection": {
+        "end": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        },
+        "start": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/res/values/strings.xml",
+      "selection": {
+        "end": {
+          "column": 30,
+          "index": 42,
+          "line": 1
+        },
+        "start": {
+          "column": 30,
+          "index": 42,
+          "line": 1
+        }
+      }
     }
   ],
-  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/java/com/tech/ezconvert/MainActivity.java"
+  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/res/values/strings.xml"
 }
