@@ -19,14 +19,14 @@
       "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/java/com/tech/ezconvert/MainActivity.java",
       "selection": {
         "end": {
-          "column": 43,
-          "index": 2568,
-          "line": 71
+          "column": 8,
+          "index": 2383,
+          "line": 66
         },
         "start": {
-          "column": 43,
-          "index": 2568,
-          "line": 71
+          "column": 8,
+          "index": 2383,
+          "line": 66
         }
       }
     },
@@ -34,17 +34,17 @@
       "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/build.gradle",
       "selection": {
         "end": {
-          "column": 27,
-          "index": 261,
+          "column": 26,
+          "index": 260,
           "line": 13
         },
         "start": {
-          "column": 27,
-          "index": 261,
+          "column": 26,
+          "index": 260,
           "line": 13
         }
       }
     }
   ],
-  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/简转/app/build.gradle"
+  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/AndroidManifest.xml"
 }

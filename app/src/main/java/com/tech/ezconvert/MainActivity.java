@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         
         // 显示版本信息
         String ffmpegVersion = FFmpegUtil.getVersion();
-        versionText.setText("EzConvert v0.1.4 | FFmpeg: " + ffmpegVersion);
+        versionText.setText("EzConvert v0.1.5 | FFmpeg: " + ffmpegVersion);
         
         // 立即检查并申请权限
         checkAndRequestPermissions();
@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
             }
         });
         
-        // 初始状态禁用功能按钮，等待权限授予
+        // 禁用功能按钮，等待权限授予
         setFunctionButtonsEnabled(false);
         updateStatus("正在申请存储权限...");
     }
@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     private void checkAndRequestPermissions() {
         List<String> permissionsNeeded = new ArrayList<>();
         
-        // 检查基础存储权限
+        // 检查基础存储权限（所有Android版本都需要）
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) 
                 != PackageManager.PERMISSION_GRANTED) {
             permissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE);
@@ -151,7 +151,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
                 permissionsNeeded.toArray(new String[0]), 
                 PERMISSION_REQUEST_CODE);
         } else {
-            // 检查是否真正有权限访问存储
+            // 检查是否真的有权限访问存储
             verifyStoragePermissions();
         }
     }
@@ -167,21 +167,54 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         if (canWrite && canRead) {
             onPermissionsGranted();
         } else {
-            // 即使权限被授予，但实际无法访问存储
-            updateStatus("存储权限异常，无法访问文件");
-            Toast.makeText(this, 
-                "存储权限异常，请尝试重新授权或手动在设置中开启所有文件访问权限", 
-                Toast.LENGTH_LONG).show();
-            
-            // 引导用户到设置页面
-            try {
-                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                Uri uri = Uri.fromParts("package", getPackageName(), null);
-                intent.setData(uri);
-                startActivity(intent);
-            } catch (Exception e) {
-                Log.e("Permission", "无法打开设置页面", e);
+            // 如果权限已授予，实际无法访问存储，尝试申请所有文件访问权限
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                requestAllFilesAccess();
+            } else {
+                updateStatus("存储权限异常，无法访问文件");
+                Toast.makeText(this, 
+                    "存储权限异常，请尝试重新授权", 
+                    Toast.LENGTH_LONG).show();
+                
+                // 打开设置页面
+                openAppSettings();
             }
+        }
+    }
+    
+    // 请求所有文件访问权限 (Android 11+)
+    private void requestAllFilesAccess() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) {
+                updateStatus("需要所有文件访问权限");
+                Toast.makeText(this, 
+                    "请授予\"所有文件访问权限\"以正常使用应用", 
+                    Toast.LENGTH_LONG).show();
+                
+                try {
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                    Uri uri = Uri.fromParts("package", getPackageName(), null);
+                    intent.setData(uri);
+                    startActivityForResult(intent, MANAGE_STORAGE_REQUEST_CODE);
+                } catch (Exception e) {
+                    Log.e("Permission", "无法打开所有文件访问设置", e);
+                    // 打开应用设置
+                    openAppSettings();
+                }
+            } else {
+                onPermissionsGranted();
+            }
+        }
+    }
+    
+    private void openAppSettings() {
+        try {
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            Uri uri = Uri.fromParts("package", getPackageName(), null);
+            intent.setData(uri);
+            startActivity(intent);
+        } catch (Exception e) {
+            Log.e("Permission", "无法打开设置页面", e);
         }
     }
     
@@ -262,6 +295,18 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
                     updateStatus("无法访问文件或文件不存在");
                     Toast.makeText(this, "无法访问文件或文件不存在", Toast.LENGTH_SHORT).show();
                     currentInputPath = "";
+                }
+            }
+        } else if (requestCode == MANAGE_STORAGE_REQUEST_CODE) {
+            // 处理所有文件访问权限的返回
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                if (Environment.isExternalStorageManager()) {
+                    onPermissionsGranted();
+                } else {
+                    updateStatus("所有文件访问权限被拒绝");
+                    Toast.makeText(this, 
+                        "所有文件访问权限被拒绝，部分功能可能受限", 
+                        Toast.LENGTH_LONG).show();
                 }
             }
         }
@@ -431,7 +476,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
                 setFunctionButtonsEnabled(false);
                 updateStatus("部分权限被拒绝，无法访问媒体文件");
                 
-                // 显示详细的权限指导
+                // 显示缺少的权限
                 StringBuilder message = new StringBuilder();
                 message.append("以下权限被拒绝:\n");
                 for (int i = 0; i < permissions.length; i++) {
@@ -443,15 +488,8 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
                 
                 Toast.makeText(this, message.toString(), Toast.LENGTH_LONG).show();
                 
-                // 引导用户到设置页面
-                try {
-                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                    Uri uri = Uri.fromParts("package", getPackageName(), null);
-                    intent.setData(uri);
-                    startActivity(intent);
-                } catch (Exception e) {
-                    Log.e("Permission", "无法打开设置页面", e);
-                }
+                // 打开设置页面
+                openAppSettings();
             }
         }
     }
@@ -468,6 +506,15 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
                 return "读取音频";
             default:
                 return permission;
+        }
+    }
+    
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // 当从设置页面返回时，重新检查权限
+        if (!permissionsGranted) {
+            checkAndRequestPermissions();
         }
     }
     
