@@ -20,12 +20,12 @@
       "selection": {
         "end": {
           "column": 8,
-          "index": 2383,
+          "index": 2386,
           "line": 66
         },
         "start": {
           "column": 8,
-          "index": 2383,
+          "index": 2386,
           "line": 66
         }
       }
@@ -46,5 +46,5 @@
       }
     }
   ],
-  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/AndroidManifest.xml"
+  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/简转/app/build.gradle"
 }
