@@ -104,7 +104,37 @@
           "line": 8
         }
       }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/简转/.gitignore",
+      "selection": {
+        "end": {
+          "column": 11,
+          "index": 1439,
+          "line": 83
+        },
+        "start": {
+          "column": 11,
+          "index": 1439,
+          "line": 83
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/简转/.github/workflows/build-on-tag.yml",
+      "selection": {
+        "end": {
+          "column": 0,
+          "index": 278,
+          "line": 14
+        },
+        "start": {
+          "column": 0,
+          "index": 278,
+          "line": 14
+        }
+      }
     }
   ],
-  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/res/values/strings.xml"
+  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/简转/.github/workflows/build-on-tag.yml"
 }
