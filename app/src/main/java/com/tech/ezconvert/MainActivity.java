@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         
         // 显示版本信息
         String ffmpegVersion = FFmpegUtil.getVersion();
-        versionText.setText("EzConvert v0.1.7 | FFmpeg: " + ffmpegVersion);
+        versionText.setText("EzConvert v0.1.8 | FFmpeg: " + ffmpegVersion);
         
         // 立即检查权限状态
         checkPermissionStatus();
@@ -190,7 +190,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     private void requestNecessaryPermissions() {
         List<String> permissionsToRequest = new ArrayList<>();
         
-        // 总是请求基础存储权限
+        // 请求基础存储权限
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) 
                 != PackageManager.PERMISSION_GRANTED) {
             permissionsToRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE);
@@ -349,17 +349,20 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         String baseName = fileName.contains(".") ? 
             fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
         
+        // 创建简转文件夹
         String outputDir = Environment.getExternalStoragePublicDirectory(
-            Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
+            Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + File.separator + "简转";
         
-        // 检查路径
+        // 检查目录
         File outputDirFile = new File(outputDir);
         if (!outputDirFile.exists()) {
             outputDirFile.mkdirs();
         }
         
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-        currentOutputPath = outputDir + File.separator + baseName + "_converted_" + timestamp + ".mp4";
+        currentOutputPath = outputDir + File.separator + baseName + "_converted_" + timestamp;
+        
+        Log.d("GeneratePath", "输出路径基础: " + currentOutputPath);
     }
     
     private void startConversion() {
@@ -374,7 +377,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         }
         
         String format = formatSpinner.getSelectedItem().toString();
-        generateOutputPath();
+        generateOutputPath(); // 生成基础路径
         
         updateStatus("开始转换视频到 " + format + " 格式...");
         VideoProcessor.convertVideo(currentInputPath, currentOutputPath, format, this);
@@ -394,7 +397,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         String qualityStr = qualitySpinner.getSelectedItem().toString();
         int quality = getQualityValue(qualityStr);
         
-        generateOutputPath();
+        generateOutputPath(); // 生成基础路径
         
         updateStatus("开始压缩视频 (" + qualityStr + ")...");
         VideoProcessor.compressVideo(currentInputPath, currentOutputPath, quality, this);
@@ -416,8 +419,15 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         String baseName = fileName.contains(".") ? 
             fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
             
+        // 创建简转文件夹
         String outputDir = Environment.getExternalStoragePublicDirectory(
-            Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
+            Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + File.separator + "简转";
+        
+        // 检查目录
+        File outputDirFile = new File(outputDir);
+        if (!outputDirFile.exists()) {
+            outputDirFile.mkdirs();
+        }
         
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         currentOutputPath = outputDir + File.separator + baseName + "_audio_" + timestamp + ".mp3";
@@ -442,7 +452,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         });
     }
     
-    // FFmpegCallback
+    // FFmpegCallback 实现
     @Override
     public void onProgress(int progress, long time) {
         runOnUiThread(() -> {
@@ -456,7 +466,10 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         runOnUiThread(() -> {
             if (success) {
                 updateStatus("处理完成: " + message);
-                Toast.makeText(MainActivity.this, "处理完成！", Toast.LENGTH_LONG).show();
+                String outputFileName = new File(currentOutputPath).getName();
+                Toast.makeText(MainActivity.this, 
+                    "处理完成！输出文件: " + outputFileName + "\n保存在: Download/简转/", 
+                    Toast.LENGTH_LONG).show();
             } else {
                 updateStatus("处理失败: " + message);
                 Toast.makeText(MainActivity.this, "处理失败: " + message, Toast.LENGTH_LONG).show();

@@ -6,11 +6,21 @@
         <item>avi</item>
         <item>mov</item>
         <item>mkv</item>
+        <item>flv</item>
+        <item>webm</item>
     </string-array>
     
     <string-array name="quality_options">
         <item>高质量</item>
         <item>中等质量</item>
         <item>低质量</item>
+    </string-array>
+    
+    <string-array name="audio_formats">
+        <item>mp3</item>
+        <item>wav</item>
+        <item>aac</item>
+        <item>flac</item>
+        <item>ogg</item>
     </string-array>
 </resources>

@@ -1,5 +1,7 @@
 package com.tech.ezconvert;
 
+import android.util.Log;
+
 public class AudioProcessor {
     
     // 音频转换
@@ -13,6 +15,7 @@ public class AudioProcessor {
                     "-i", inputPath,
                     "-codec:a", "libmp3lame",
                     "-b:a", "192k",
+                    "-ac", "2", // 立体声
                     outputPath
                 };
                 break;
@@ -21,6 +24,7 @@ public class AudioProcessor {
                 command = new String[]{
                     "-i", inputPath,
                     "-codec:a", "pcm_s16le",
+                    "-ac", "2",
                     outputPath
                 };
                 break;
@@ -30,6 +34,7 @@ public class AudioProcessor {
                     "-i", inputPath,
                     "-codec:a", "aac",
                     "-b:a", "128k",
+                    "-ac", "2",
                     outputPath
                 };
                 break;
@@ -50,10 +55,11 @@ public class AudioProcessor {
                 };
         }
         
+        Log.d("AudioProcessor", "音频转换命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
     }
     
-    // 音频提取
+    // 音频提取（从视频）
     public static void extractAudioFromVideo(String inputPath, String outputPath,
                                            String format, FFmpegUtil.FFmpegCallback callback) {
         String[] command;
@@ -65,6 +71,7 @@ public class AudioProcessor {
                     "-vn",
                     "-acodec", "libmp3lame",
                     "-b:a", "192k",
+                    "-ac", "2",
                     outputPath
                 };
                 break;
@@ -74,6 +81,18 @@ public class AudioProcessor {
                     "-i", inputPath,
                     "-vn",
                     "-acodec", "pcm_s16le",
+                    "-ac", "2",
+                    outputPath
+                };
+                break;
+                
+            case "aac":
+                command = new String[]{
+                    "-i", inputPath,
+                    "-vn",
+                    "-acodec", "aac",
+                    "-b:a", "128k",
+                    "-ac", "2",
                     outputPath
                 };
                 break;
@@ -87,6 +106,7 @@ public class AudioProcessor {
                 };
         }
         
+        Log.d("AudioProcessor", "音频提取命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
     }
     
@@ -97,6 +117,7 @@ public class AudioProcessor {
             "-i", inputPath,
             "-b:a", bitrate + "k",
             "-vn",
+            "-ac", "2",
             outputPath
         };
         

@@ -4,14 +4,14 @@
       "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/java/com/tech/ezconvert/MainActivity.java",
       "selection": {
         "end": {
-          "column": 39,
-          "index": 10150,
-          "line": 255
+          "column": 8,
+          "index": 2377,
+          "line": 66
         },
         "start": {
-          "column": 39,
-          "index": 10150,
-          "line": 255
+          "column": 8,
+          "index": 2377,
+          "line": 66
         }
       }
     },
@@ -29,7 +29,82 @@
           "line": 13
         }
       }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/cpp/native-lib.cpp",
+      "selection": {
+        "end": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        },
+        "start": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/java/com/tech/ezconvert/VideoProcessor.java",
+      "selection": {
+        "end": {
+          "column": 0,
+          "index": 54,
+          "line": 3
+        },
+        "start": {
+          "column": 0,
+          "index": 54,
+          "line": 3
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/java/com/tech/ezconvert/AudioProcessor.java",
+      "selection": {
+        "end": {
+          "column": 1,
+          "index": 3814,
+          "line": 125
+        },
+        "start": {
+          "column": 1,
+          "index": 3814,
+          "line": 125
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/res/values/strings.xml",
+      "selection": {
+        "end": {
+          "column": 30,
+          "index": 42,
+          "line": 1
+        },
+        "start": {
+          "column": 30,
+          "index": 42,
+          "line": 1
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/AndroidManifest.xml",
+      "selection": {
+        "end": {
+          "column": 62,
+          "index": 422,
+          "line": 8
+        },
+        "start": {
+          "column": 62,
+          "index": 422,
+          "line": 8
+        }
+      }
     }
   ],
-  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/java/com/tech/ezconvert/MainActivity.java"
+  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/res/values/strings.xml"
 }

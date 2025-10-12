@@ -1,11 +1,14 @@
 package com.tech.ezconvert;
 
+import android.util.Log;
+
 public class VideoProcessor {
     
     // 视频转换
     public static void convertVideo(String inputPath, String outputPath, 
                                    String format, FFmpegUtil.FFmpegCallback callback) {
         String[] command;
+        String outputFile = outputPath + "." + getFileExtension(format);
         
         switch (format.toLowerCase()) {
             case "mp4":
@@ -15,7 +18,8 @@ public class VideoProcessor {
                     "-c:a", "aac",
                     "-preset", "medium",
                     "-crf", "23",
-                    outputPath
+                    "-movflags", "+faststart", // 优化MP4播放
+                    outputFile
                 };
                 break;
                 
@@ -25,7 +29,7 @@ public class VideoProcessor {
                     "-c:v", "mpeg4",
                     "-c:a", "mp3",
                     "-q:v", "5",
-                    outputPath
+                    outputFile
                 };
                 break;
                 
@@ -34,26 +38,37 @@ public class VideoProcessor {
                     "-i", inputPath,
                     "-c:v", "libx264",
                     "-c:a", "aac",
-                    "-f", "mov",
-                    outputPath
+                    "-preset", "medium",
+                    "-crf", "23",
+                    outputFile
                 };
                 break;
                 
             case "mkv":
                 command = new String[]{
                     "-i", inputPath,
-                    "-c", "copy",
-                    outputPath
+                    "-c", "copy", // 直接复制流
+                    outputFile
+                };
+                break;
+                
+            case "flv":
+                command = new String[]{
+                    "-i", inputPath,
+                    "-c:v", "flv",
+                    "-c:a", "mp3",
+                    outputFile
                 };
                 break;
                 
             default:
                 command = new String[]{
                     "-i", inputPath,
-                    outputPath
+                    outputFile
                 };
         }
         
+        Log.d("VideoProcessor", "转换命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
     }
     
@@ -65,15 +80,19 @@ public class VideoProcessor {
         if (crf < 18) crf = 18;
         if (crf > 51) crf = 51;
         
+        String outputFile = outputPath + "_compressed.mp4";
+        
         String[] command = {
             "-i", inputPath,
             "-c:v", "libx264",
             "-crf", String.valueOf(crf),
             "-c:a", "aac",
             "-preset", "medium",
-            outputPath
+            "-movflags", "+faststart",
+            outputFile
         };
         
+        Log.d("VideoProcessor", "压缩命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
     }
     
@@ -136,5 +155,18 @@ public class VideoProcessor {
         };
         
         FFmpegUtil.executeCommand(command, callback);
+    }
+    
+    // 获取文件扩展名
+    private static String getFileExtension(String format) {
+        switch (format.toLowerCase()) {
+            case "mp4": return "mp4";
+            case "avi": return "avi";
+            case "mov": return "mov";
+            case "mkv": return "mkv";
+            case "flv": return "flv";
+            case "webm": return "webm";
+            default: return "mp4";
+        }
     }
 }
