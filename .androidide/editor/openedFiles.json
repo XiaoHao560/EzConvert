@@ -1,32 +1,17 @@
 {
   "allFiles": [
     {
-      "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/AndroidManifest.xml",
-      "selection": {
-        "end": {
-          "column": 0,
-          "index": 193,
-          "line": 4
-        },
-        "start": {
-          "column": 0,
-          "index": 193,
-          "line": 4
-        }
-      }
-    },
-    {
       "file": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/java/com/tech/ezconvert/MainActivity.java",
       "selection": {
         "end": {
-          "column": 8,
-          "index": 2386,
-          "line": 66
+          "column": 39,
+          "index": 10150,
+          "line": 255
         },
         "start": {
-          "column": 8,
-          "index": 2386,
-          "line": 66
+          "column": 39,
+          "index": 10150,
+          "line": 255
         }
       }
     },
@@ -46,5 +31,5 @@
       }
     }
   ],
-  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/简转/app/build.gradle"
+  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/简转/app/src/main/java/com/tech/ezconvert/MainActivity.java"
 }
