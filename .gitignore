@@ -82,3 +82,5 @@ lint/outputs/
 lint/tmp/
 # lint/reports/
 .androidide/
+*.keystore
+keystore.txt
