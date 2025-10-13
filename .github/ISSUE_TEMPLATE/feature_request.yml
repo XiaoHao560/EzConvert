@@ -1,0 +1,33 @@
+name: 💡 功能建议
+description: 想让 App 增加某个新功能？请尽情描述。
+title: "[Feat] 一句话说明需求"
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 遇到的问题 / 现状
+      placeholder: 越具体越好，方便大家理解场景。
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 你想要的解决方案（Android 端）
+      placeholder: 例如：希望在长按条目时弹出「批量删除」按钮。
+    validations:
+      required: true
+
+  - type: textarea
+    id: ui
+    attributes:
+      label: UI/UX 草稿（如有）
+      description: 可贴手绘图、Figma 链接或文字描述。
+
+  - type: checkboxes
+    id: volunteer
+    attributes:
+      label: 是否愿意贡献代码
+      options:
+        - label: 我愿意提交 PR 实现此功能。
