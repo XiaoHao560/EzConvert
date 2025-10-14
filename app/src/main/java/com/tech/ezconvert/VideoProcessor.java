@@ -18,7 +18,8 @@ public class VideoProcessor {
                     "-c:a", "aac",
                     "-preset", "medium",
                     "-crf", "23",
-                    "-movflags", "+faststart", // 优化MP4播放
+                    "-movflags", "+faststart",
+                    "-y", // 覆盖输出文件
                     outputFile
                 };
                 break;
@@ -29,6 +30,7 @@ public class VideoProcessor {
                     "-c:v", "mpeg4",
                     "-c:a", "mp3",
                     "-q:v", "5",
+                    "-y",
                     outputFile
                 };
                 break;
@@ -40,6 +42,7 @@ public class VideoProcessor {
                     "-c:a", "aac",
                     "-preset", "medium",
                     "-crf", "23",
+                    "-y",
                     outputFile
                 };
                 break;
@@ -47,7 +50,8 @@ public class VideoProcessor {
             case "mkv":
                 command = new String[]{
                     "-i", inputPath,
-                    "-c", "copy", // 直接复制流
+                    "-c", "copy",
+                    "-y",
                     outputFile
                 };
                 break;
@@ -57,6 +61,28 @@ public class VideoProcessor {
                     "-i", inputPath,
                     "-c:v", "flv",
                     "-c:a", "mp3",
+                    "-y",
+                    outputFile
+                };
+                break;
+                
+            case "webm":
+                command = new String[]{
+                    "-i", inputPath,
+                    "-c:v", "libvpx-vp9",
+                    "-c:a", "libopus",
+                    "-b:v", "1M",
+                    "-y",
+                    outputFile
+                };
+                break;
+                
+            case "gif":
+                command = new String[]{
+                    "-i", inputPath,
+                    "-vf", "fps=10,scale=480:-1:flags=lanczos",
+                    "-c:v", "gif",
+                    "-y",
                     outputFile
                 };
                 break;
@@ -64,6 +90,8 @@ public class VideoProcessor {
             default:
                 command = new String[]{
                     "-i", inputPath,
+                    "-c", "copy",
+                    "-y",
                     outputFile
                 };
         }
@@ -89,23 +117,11 @@ public class VideoProcessor {
             "-c:a", "aac",
             "-preset", "medium",
             "-movflags", "+faststart",
+            "-y",
             outputFile
         };
         
         Log.d("VideoProcessor", "压缩命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback);
-    }
-    
-    // 提取音频
-    public static void extractAudio(String inputPath, String outputPath,
-                                   FFmpegUtil.FFmpegCallback callback) {
-        String[] command = {
-            "-i", inputPath,
-            "-vn", // 不处理视频
-            "-acodec", "copy", // 直接复制音频流
-            outputPath
-        };
-        
         FFmpegUtil.executeCommand(command, callback);
     }
     
@@ -115,12 +131,15 @@ public class VideoProcessor {
                                FFmpegUtil.FFmpegCallback callback) {
         String[] command = {
             "-i", inputPath,
-            "-ss", startTime, // 开始时间
-            "-t", duration,   // 持续时间
-            "-c", "copy",     // 直接复制流
+            "-ss", startTime,
+            "-t", duration,
+            "-c", "copy",
+            "-avoid_negative_ts", "make_zero",
+            "-y",
             outputPath
         };
         
+        Log.d("VideoProcessor", "裁剪命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
     }
     
@@ -142,6 +161,9 @@ public class VideoProcessor {
             case "bottom-right":
                 overlay = "main_w-overlay_w-10:main_h-overlay_h-10";
                 break;
+            case "center":
+                overlay = "(main_w-overlay_w)/2:(main_h-overlay_h)/2";
+                break;
             default:
                 overlay = "10:10";
         }
@@ -149,11 +171,64 @@ public class VideoProcessor {
         String[] command = {
             "-i", inputPath,
             "-i", watermarkPath,
-            "-filter_complex", "overlay=" + overlay,
+            "-filter_complex", "[1]format=rgba,colorchannelmixer=aa=0.7[wm];[0][wm]overlay=" + overlay,
             "-codec:a", "copy",
+            "-y",
             outputPath
         };
         
+        Log.d("VideoProcessor", "水印命令: " + String.join(" ", command));
+        FFmpegUtil.executeCommand(command, callback);
+    }
+    
+    // 调整视频分辨率
+    public static void resizeVideo(String inputPath, String outputPath,
+                                  int width, int height, FFmpegUtil.FFmpegCallback callback) {
+        String scaleFilter = "scale=" + width + ":" + height + ":flags=lanczos";
+        
+        String[] command = {
+            "-i", inputPath,
+            "-vf", scaleFilter,
+            "-c:a", "copy",
+            "-y",
+            outputPath
+        };
+        
+        Log.d("VideoProcessor", "调整分辨率命令: " + String.join(" ", command));
+        FFmpegUtil.executeCommand(command, callback);
+    }
+    
+    // 提取视频帧（截图）
+    public static void extractFrame(String inputPath, String outputPath,
+                                   String timestamp, FFmpegUtil.FFmpegCallback callback) {
+        String[] command = {
+            "-i", inputPath,
+            "-ss", timestamp,
+            "-vframes", "1",
+            "-q:v", "2",
+            "-y",
+            outputPath
+        };
+        
+        Log.d("VideoProcessor", "截图命令: " + String.join(" ", command));
+        FFmpegUtil.executeCommand(command, callback);
+    }
+    
+    // 合并视频和音频
+    public static void mergeVideoAudio(String videoPath, String audioPath,
+                                      String outputPath, FFmpegUtil.FFmpegCallback callback) {
+        String[] command = {
+            "-i", videoPath,
+            "-i", audioPath,
+            "-c", "copy",
+            "-map", "0:v:0",
+            "-map", "1:a:0",
+            "-shortest",
+            "-y",
+            outputPath
+        };
+        
+        Log.d("VideoProcessor", "合并音视频命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
     }
     
@@ -166,6 +241,11 @@ public class VideoProcessor {
             case "mkv": return "mkv";
             case "flv": return "flv";
             case "webm": return "webm";
+            case "gif": return "gif";
+            case "mp3": return "mp3";
+            case "wav": return "wav";
+            case "aac": return "aac";
+            case "flac": return "flac";
             default: return "mp4";
         }
     }
