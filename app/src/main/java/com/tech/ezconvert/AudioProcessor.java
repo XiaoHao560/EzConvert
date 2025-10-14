@@ -12,7 +12,7 @@ public class AudioProcessor {
         String[] command;
         String outputFile = outputPath + "." + getAudioExtension(format);
         
-        boolean multithreading = SettingsActivity.isMultithreadingEnabled(context);
+        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
@@ -89,7 +89,7 @@ public class AudioProcessor {
         String[] command;
         String outputFile = outputPath + "." + getAudioExtension(format);
         
-        boolean multithreading = SettingsActivity.isMultithreadingEnabled(context);
+        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
@@ -158,7 +158,7 @@ public class AudioProcessor {
     // 调整音频质量
     public static void adjustAudioQuality(String inputPath, String outputPath,
                                         int bitrate, FFmpegUtil.FFmpegCallback callback, Context context) {
-        boolean multithreading = SettingsActivity.isMultithreadingEnabled(context);
+        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
@@ -187,7 +187,7 @@ public class AudioProcessor {
     public static void cutAudio(String inputPath, String outputPath,
                                String startTime, String duration,
                                FFmpegUtil.FFmpegCallback callback, Context context) {
-        boolean multithreading = SettingsActivity.isMultithreadingEnabled(context);
+        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
@@ -219,7 +219,7 @@ public class AudioProcessor {
     public static void fadeAudio(String inputPath, String outputPath,
                                 String fadeIn, String fadeOut,
                                 FFmpegUtil.FFmpegCallback callback, Context context) {
-        boolean multithreading = SettingsActivity.isMultithreadingEnabled(context);
+        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");

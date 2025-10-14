@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         
         // 显示版本信息
         String ffmpegVersion = FFmpegUtil.getVersion();
-        versionText.setText("EzConvert v0.1.8 | FFmpeg: " + ffmpegVersion);
+        versionText.setText("EzConvert v0.2.0 | FFmpeg: " + ffmpegVersion);
         
         // 立即检查权限状态
         checkPermissionStatus();
@@ -67,11 +67,16 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         convertAudioBtn = findViewById(R.id.convert_audio_btn);
         cutAudioBtn = findViewById(R.id.cut_audio_btn);
         
-        Button settingsBtn = findViewById(R.id.settings_btn);
+        ImageButton settingsBtn = findViewById(R.id.settings_btn);
         
         videoFormatSpinner = findViewById(R.id.video_format_spinner);
         audioFormatSpinner = findViewById(R.id.audio_format_spinner);
         qualitySpinner = findViewById(R.id.quality_spinner);
+        
+        settingsBtn.setOnClickListener(v -> {
+            Intent settingsIntent = new Intent(MainActivity.this, SettingsMainActivity.class);
+            startActivity(settingsIntent);
+        });
         
         selectFileBtn.setOnClickListener(v -> {
             if (permissionsGranted) {
@@ -135,11 +140,6 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
             } else {
                 requestNecessaryPermissions();
             }
-        });
-        
-        settingsBtn.setOnClickListener(v -> {
-            Intent settingsIntent = new Intent(MainActivity.this, SettingsActivity.class);
-            startActivity(settingsIntent);
         });
         
         setFunctionButtonsEnabled(false);

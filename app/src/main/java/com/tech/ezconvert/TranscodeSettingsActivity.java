@@ -7,7 +7,7 @@ import android.widget.Button;
 import android.widget.Switch;
 import android.widget.Toast;
 
-public class SettingsActivity extends AppCompatActivity {
+public class TranscodeSettingsActivity extends AppCompatActivity {
     
     private static final String PREFS_NAME = "EzConvertSettings";
     private static final String KEY_HARDWARE_ACCELERATION = "hardware_acceleration";

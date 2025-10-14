@@ -37,7 +37,13 @@
         </activity>
         
         <activity
-            android:name=".SettingsActivity"
+            android:name=".SettingsMainActivity"
+            android:exported="false"
+            android:label="设置"
+            android:theme="@style/Theme.AppCompat.Light.DarkActionBar" />
+            
+        <activity
+            android:name=".TranscodeSettingsActivity"
             android:exported="false"
             android:label="转码设置"
             android:theme="@style/Theme.AppCompat.Light.DarkActionBar" />
