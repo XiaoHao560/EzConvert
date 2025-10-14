@@ -30,7 +30,8 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     private TextView statusText, progressText, versionText;
     private ProgressBar progressBar;
     private Button selectFileBtn, convertBtn, compressBtn, extractAudioBtn;
-    private Spinner formatSpinner, qualitySpinner;
+    private Button cutVideoBtn, screenshotBtn, convertAudioBtn, cutAudioBtn;
+    private Spinner videoFormatSpinner, audioFormatSpinner, qualitySpinner;
     private String currentInputPath = "";
     private String currentOutputPath = "";
     private boolean permissionsGranted = false;
@@ -61,8 +62,13 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         convertBtn = findViewById(R.id.convert_btn);
         compressBtn = findViewById(R.id.compress_btn);
         extractAudioBtn = findViewById(R.id.extract_audio_btn);
+        cutVideoBtn = findViewById(R.id.cut_video_btn);
+        screenshotBtn = findViewById(R.id.screenshot_btn);
+        convertAudioBtn = findViewById(R.id.convert_audio_btn);
+        cutAudioBtn = findViewById(R.id.cut_audio_btn);
         
-        formatSpinner = findViewById(R.id.format_spinner);
+        videoFormatSpinner = findViewById(R.id.video_format_spinner);
+        audioFormatSpinner = findViewById(R.id.audio_format_spinner);
         qualitySpinner = findViewById(R.id.quality_spinner);
         
         selectFileBtn.setOnClickListener(v -> {
@@ -97,16 +103,54 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
             }
         });
         
+        cutVideoBtn.setOnClickListener(v -> {
+            if (permissionsGranted && !currentInputPath.isEmpty()) {
+                showCutVideoDialog();
+            } else {
+                requestNecessaryPermissions();
+            }
+        });
+        
+        screenshotBtn.setOnClickListener(v -> {
+            if (permissionsGranted && !currentInputPath.isEmpty()) {
+                showScreenshotDialog();
+            } else {
+                requestNecessaryPermissions();
+            }
+        });
+        
+        convertAudioBtn.setOnClickListener(v -> {
+            if (permissionsGranted && !currentInputPath.isEmpty()) {
+                convertAudio();
+            } else {
+                requestNecessaryPermissions();
+            }
+        });
+        
+        cutAudioBtn.setOnClickListener(v -> {
+            if (permissionsGranted && !currentInputPath.isEmpty()) {
+                showCutAudioDialog();
+            } else {
+                requestNecessaryPermissions();
+            }
+        });
+        
         setFunctionButtonsEnabled(false);
         updateStatus("正在检查权限状态...");
     }
     
     private void setupSpinners() {
         // 视频格式
-        ArrayAdapter<CharSequence> formatAdapter = ArrayAdapter.createFromResource(
+        ArrayAdapter<CharSequence> videoFormatAdapter = ArrayAdapter.createFromResource(
             this, R.array.video_formats, android.R.layout.simple_spinner_item);
-        formatAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        formatSpinner.setAdapter(formatAdapter);
+        videoFormatAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        videoFormatSpinner.setAdapter(videoFormatAdapter);
+        
+        // 音频格式
+        ArrayAdapter<CharSequence> audioFormatAdapter = ArrayAdapter.createFromResource(
+            this, R.array.audio_formats, android.R.layout.simple_spinner_item);
+        audioFormatAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        audioFormatSpinner.setAdapter(audioFormatAdapter);
         
         // 质量选项
         ArrayAdapter<CharSequence> qualityAdapter = ArrayAdapter.createFromResource(
@@ -277,16 +321,26 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     }
     
     private void setFunctionButtonsEnabled(boolean enabled) {
+        boolean hasFileSelected = !currentInputPath.isEmpty();
+        
         selectFileBtn.setEnabled(enabled);
-        convertBtn.setEnabled(enabled && !currentInputPath.isEmpty());
-        compressBtn.setEnabled(enabled && !currentInputPath.isEmpty());
-        extractAudioBtn.setEnabled(enabled && !currentInputPath.isEmpty());
+        convertBtn.setEnabled(enabled && hasFileSelected);
+        compressBtn.setEnabled(enabled && hasFileSelected);
+        extractAudioBtn.setEnabled(enabled && hasFileSelected);
+        cutVideoBtn.setEnabled(enabled && hasFileSelected);
+        screenshotBtn.setEnabled(enabled && hasFileSelected);
+        convertAudioBtn.setEnabled(enabled && hasFileSelected);
+        cutAudioBtn.setEnabled(enabled && hasFileSelected);
         
         float alpha = enabled ? 1.0f : 0.5f;
         selectFileBtn.setAlpha(alpha);
-        convertBtn.setAlpha(enabled && !currentInputPath.isEmpty() ? 1.0f : 0.5f);
-        compressBtn.setAlpha(enabled && !currentInputPath.isEmpty() ? 1.0f : 0.5f);
-        extractAudioBtn.setAlpha(enabled && !currentInputPath.isEmpty() ? 1.0f : 0.5f);
+        convertBtn.setAlpha(enabled && hasFileSelected ? 1.0f : 0.5f);
+        compressBtn.setAlpha(enabled && hasFileSelected ? 1.0f : 0.5f);
+        extractAudioBtn.setAlpha(enabled && hasFileSelected ? 1.0f : 0.5f);
+        cutVideoBtn.setAlpha(enabled && hasFileSelected ? 1.0f : 0.5f);
+        screenshotBtn.setAlpha(enabled && hasFileSelected ? 1.0f : 0.5f);
+        convertAudioBtn.setAlpha(enabled && hasFileSelected ? 1.0f : 0.5f);
+        cutAudioBtn.setAlpha(enabled && hasFileSelected ? 1.0f : 0.5f);
     }
     
     private void openFilePicker() {
@@ -333,6 +387,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
                     updateStatus("无法访问文件或文件不存在");
                     Toast.makeText(this, "无法访问文件或文件不存在", Toast.LENGTH_SHORT).show();
                     currentInputPath = "";
+                    setFunctionButtonsEnabled(true);
                 }
             }
         } else if (requestCode == MANAGE_STORAGE_REQUEST_CODE) {
@@ -376,7 +431,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
             return;
         }
         
-        String format = formatSpinner.getSelectedItem().toString();
+        String format = videoFormatSpinner.getSelectedItem().toString();
         generateOutputPath(); // 生成基础路径
         
         updateStatus("开始转换视频到 " + format + " 格式...");
@@ -430,10 +485,205 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         }
         
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-        currentOutputPath = outputDir + File.separator + baseName + "_audio_" + timestamp + ".mp3";
+        currentOutputPath = outputDir + File.separator + baseName + "_audio_" + timestamp;
         
         updateStatus("开始提取音频...");
         AudioProcessor.extractAudioFromVideo(currentInputPath, currentOutputPath, "mp3", this);
+    }
+    
+    private void convertAudio() {
+        if (!permissionsGranted) {
+            Toast.makeText(this, "请先授予存储权限", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        if (currentInputPath.isEmpty()) {
+            Toast.makeText(this, "请先选择文件", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        String format = audioFormatSpinner.getSelectedItem().toString();
+        
+        File inputFile = new File(currentInputPath);
+        String fileName = inputFile.getName();
+        String baseName = fileName.contains(".") ? 
+            fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
+            
+        // 创建简转文件夹
+        String outputDir = Environment.getExternalStoragePublicDirectory(
+            Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + File.separator + "简转";
+        
+        // 检查目录
+        File outputDirFile = new File(outputDir);
+        if (!outputDirFile.exists()) {
+            outputDirFile.mkdirs();
+        }
+        
+        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        currentOutputPath = outputDir + File.separator + baseName + "_converted_" + timestamp;
+        
+        updateStatus("开始转换音频到 " + format + " 格式...");
+        AudioProcessor.convertAudio(currentInputPath, currentOutputPath, format, this);
+    }
+    
+    private void showCutVideoDialog() {
+        // 创建裁剪视频的对话框
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        builder.setTitle("裁剪视频");
+        
+        // 创建对话框布局
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 40, 50, 10);
+        
+        final EditText startTimeInput = new EditText(this);
+        startTimeInput.setHint("开始时间 (格式: 00:00:00)");
+        layout.addView(startTimeInput);
+        
+        final EditText durationInput = new EditText(this);
+        durationInput.setHint("持续时间 (格式: 00:00:10)");
+        layout.addView(durationInput);
+        
+        builder.setView(layout);
+        
+        builder.setPositiveButton("开始裁剪", (dialog, which) -> {
+            String startTime = startTimeInput.getText().toString();
+            String duration = durationInput.getText().toString();
+            
+            if (startTime.isEmpty() || duration.isEmpty()) {
+                Toast.makeText(this, "请输入开始时间和持续时间", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            File inputFile = new File(currentInputPath);
+            String fileName = inputFile.getName();
+            String baseName = fileName.contains(".") ? 
+                fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
+                
+            // 创建简转文件夹
+            String outputDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + File.separator + "简转";
+            
+            // 检查目录
+            File outputDirFile = new File(outputDir);
+            if (!outputDirFile.exists()) {
+                outputDirFile.mkdirs();
+            }
+            
+            String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+            currentOutputPath = outputDir + File.separator + baseName + "_cut_" + timestamp + ".mp4";
+            
+            updateStatus("开始裁剪视频...");
+            VideoProcessor.cutVideo(currentInputPath, currentOutputPath, startTime, duration, this);
+        });
+        
+        builder.setNegativeButton("取消", null);
+        builder.show();
+    }
+    
+    private void showScreenshotDialog() {
+        // 创建截图的对话框
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        builder.setTitle("视频截图");
+        
+        // 创建对话框布局
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 40, 50, 10);
+        
+        final EditText timestampInput = new EditText(this);
+        timestampInput.setHint("时间点 (格式: 00:00:05)");
+        layout.addView(timestampInput);
+        
+        builder.setView(layout);
+        
+        builder.setPositiveButton("截图", (dialog, which) -> {
+            String timestamp = timestampInput.getText().toString();
+            
+            if (timestamp.isEmpty()) {
+                Toast.makeText(this, "请输入时间点", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            File inputFile = new File(currentInputPath);
+            String fileName = inputFile.getName();
+            String baseName = fileName.contains(".") ? 
+                fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
+                
+            // 创建简转文件夹
+            String outputDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + File.separator + "简转";
+            
+            // 检查目录
+            File outputDirFile = new File(outputDir);
+            if (!outputDirFile.exists()) {
+                outputDirFile.mkdirs();
+            }
+            
+            String fileTimestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+            currentOutputPath = outputDir + File.separator + baseName + "_screenshot_" + fileTimestamp + ".jpg";
+            
+            updateStatus("开始截图...");
+            VideoProcessor.extractFrame(currentInputPath, currentOutputPath, timestamp, this);
+        });
+        
+        builder.setNegativeButton("取消", null);
+        builder.show();
+    }
+    
+    private void showCutAudioDialog() {
+        // 创建裁剪音频的对话框
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        builder.setTitle("裁剪音频");
+        
+        // 创建对话框布局
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 40, 50, 10);
+        
+        final EditText startTimeInput = new EditText(this);
+        startTimeInput.setHint("开始时间 (格式: 00:00:00)");
+        layout.addView(startTimeInput);
+        
+        final EditText durationInput = new EditText(this);
+        durationInput.setHint("持续时间 (格式: 00:00:10)");
+        layout.addView(durationInput);
+        
+        builder.setView(layout);
+        
+        builder.setPositiveButton("开始裁剪", (dialog, which) -> {
+            String startTime = startTimeInput.getText().toString();
+            String duration = durationInput.getText().toString();
+            
+            if (startTime.isEmpty() || duration.isEmpty()) {
+                Toast.makeText(this, "请输入开始时间和持续时间", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            File inputFile = new File(currentInputPath);
+            String fileName = inputFile.getName();
+            String baseName = fileName.contains(".") ? 
+                fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
+                
+            // 创建简转文件夹
+            String outputDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + File.separator + "简转";
+            
+            // 检查目录
+            File outputDirFile = new File(outputDir);
+            if (!outputDirFile.exists()) {
+                outputDirFile.mkdirs();
+            }
+            
+            String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+            currentOutputPath = outputDir + File.separator + baseName + "_cut_" + timestamp + ".mp3";
+            
+            updateStatus("开始裁剪音频...");
+            AudioProcessor.cutAudio(currentInputPath, currentOutputPath, startTime, duration, this);
+        });
+        
+        builder.setNegativeButton("取消", null);
+        builder.show();
     }
     
     private int getQualityValue(String qualityStr) {

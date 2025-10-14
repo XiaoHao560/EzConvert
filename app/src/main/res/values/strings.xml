@@ -8,6 +8,7 @@
         <item>mkv</item>
         <item>flv</item>
         <item>webm</item>
+        <item>gif</item>
     </string-array>
     
     <string-array name="quality_options">
@@ -22,5 +23,12 @@
         <item>aac</item>
         <item>flac</item>
         <item>ogg</item>
+    </string-array>
+    
+    <string-array name="audio_quality_options">
+        <item>高音质 (320k)</item>
+        <item>中等音质 (192k)</item>
+        <item>标准音质 (128k)</item>
+        <item>低音质 (64k)</item>
     </string-array>
 </resources>

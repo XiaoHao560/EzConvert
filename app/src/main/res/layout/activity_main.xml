@@ -120,13 +120,36 @@
                      android:layout_width="0dp"
                      android:gravity="center_vertical"
                      android:layout_weight="1"
-                     android:text="输出格式:" />
+                     android:text="视频格式:" />
 
                 <Spinner
                      android:layout_height="wrap_content"
                      android:layout_width="0dp"
                      android:layout_weight="1"
-                     android:id="@+id/format_spinner">
+                     android:id="@+id/video_format_spinner">
+
+                </Spinner>
+
+            </LinearLayout>
+
+            <LinearLayout
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="8dp"
+                 android:orientation="horizontal">
+
+                <TextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="0dp"
+                     android:gravity="center_vertical"
+                     android:layout_weight="1"
+                     android:text="音频格式:" />
+
+                <Spinner
+                     android:layout_height="wrap_content"
+                     android:layout_width="0dp"
+                     android:layout_weight="1"
+                     android:id="@+id/audio_format_spinner">
 
                 </Spinner>
 
@@ -169,7 +192,7 @@
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
                  android:layout_marginBottom="12dp"
-                 android:text="处理操作"
+                 android:text="视频处理"
                  android:textStyle="bold" />
 
             <Button
@@ -193,10 +216,65 @@
             <Button
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
+                 android:layout_marginBottom="8dp"
                  android:backgroundTint="#9C27B0"
                  android:textColor="@android:color/white"
                  android:id="@+id/extract_audio_btn"
                  android:text="提取音频" />
+
+            <Button
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="8dp"
+                 android:backgroundTint="#795548"
+                 android:textColor="@android:color/white"
+                 android:id="@+id/cut_video_btn"
+                 android:text="裁剪视频" />
+
+            <Button
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="8dp"
+                 android:backgroundTint="#607D8B"
+                 android:textColor="@android:color/white"
+                 android:id="@+id/screenshot_btn"
+                 android:text="视频截图" />
+
+        </LinearLayout>
+
+        <LinearLayout
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:layout_marginBottom="16dp"
+             android:background="@drawable/card_background"
+             android:elevation="2dp"
+             android:padding="16dp"
+             android:orientation="vertical">
+
+            <TextView
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="12dp"
+                 android:text="音频处理"
+                 android:textStyle="bold" />
+
+            <Button
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="8dp"
+                 android:backgroundTint="#E91E63"
+                 android:textColor="@android:color/white"
+                 android:id="@+id/convert_audio_btn"
+                 android:text="转换音频格式" />
+
+            <Button
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="8dp"
+                 android:backgroundTint="#3F51B5"
+                 android:textColor="@android:color/white"
+                 android:id="@+id/cut_audio_btn"
+                 android:text="裁剪音频" />
 
         </LinearLayout>
 
