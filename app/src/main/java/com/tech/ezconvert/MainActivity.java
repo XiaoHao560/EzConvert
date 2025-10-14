@@ -67,6 +67,8 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         convertAudioBtn = findViewById(R.id.convert_audio_btn);
         cutAudioBtn = findViewById(R.id.cut_audio_btn);
         
+        Button settingsBtn = findViewById(R.id.settings_btn);
+        
         videoFormatSpinner = findViewById(R.id.video_format_spinner);
         audioFormatSpinner = findViewById(R.id.audio_format_spinner);
         qualitySpinner = findViewById(R.id.quality_spinner);
@@ -133,6 +135,11 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
             } else {
                 requestNecessaryPermissions();
             }
+        });
+        
+        settingsBtn.setOnClickListener(v -> {
+            Intent settingsIntent = new Intent(MainActivity.this, SettingsActivity.class);
+            startActivity(settingsIntent);
         });
         
         setFunctionButtonsEnabled(false);
@@ -435,7 +442,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         generateOutputPath(); // 生成基础路径
         
         updateStatus("开始转换视频到 " + format + " 格式...");
-        VideoProcessor.convertVideo(currentInputPath, currentOutputPath, format, this);
+        VideoProcessor.convertVideo(currentInputPath, currentOutputPath, format, this, this);
     }
     
     private void startCompression() {
@@ -455,7 +462,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         generateOutputPath(); // 生成基础路径
         
         updateStatus("开始压缩视频 (" + qualityStr + ")...");
-        VideoProcessor.compressVideo(currentInputPath, currentOutputPath, quality, this);
+        VideoProcessor.compressVideo(currentInputPath, currentOutputPath, quality, this, this);
     }
     
     private void extractAudio() {
@@ -488,7 +495,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         currentOutputPath = outputDir + File.separator + baseName + "_audio_" + timestamp;
         
         updateStatus("开始提取音频...");
-        AudioProcessor.extractAudioFromVideo(currentInputPath, currentOutputPath, "mp3", this);
+        AudioProcessor.extractAudioFromVideo(currentInputPath, currentOutputPath, "mp3", this, this);
     }
     
     private void convertAudio() {
@@ -523,7 +530,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         currentOutputPath = outputDir + File.separator + baseName + "_converted_" + timestamp;
         
         updateStatus("开始转换音频到 " + format + " 格式...");
-        AudioProcessor.convertAudio(currentInputPath, currentOutputPath, format, this);
+        AudioProcessor.convertAudio(currentInputPath, currentOutputPath, format, this, this);
     }
     
     private void showCutVideoDialog() {
@@ -574,7 +581,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
             currentOutputPath = outputDir + File.separator + baseName + "_cut_" + timestamp + ".mp4";
             
             updateStatus("开始裁剪视频...");
-            VideoProcessor.cutVideo(currentInputPath, currentOutputPath, startTime, duration, this);
+            VideoProcessor.cutVideo(currentInputPath, currentOutputPath, startTime, duration, this, this);
         });
         
         builder.setNegativeButton("取消", null);
@@ -624,7 +631,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
             currentOutputPath = outputDir + File.separator + baseName + "_screenshot_" + fileTimestamp + ".jpg";
             
             updateStatus("开始截图...");
-            VideoProcessor.extractFrame(currentInputPath, currentOutputPath, timestamp, this);
+            VideoProcessor.extractFrame(currentInputPath, currentOutputPath, timestamp, this, this);
         });
         
         builder.setNegativeButton("取消", null);
@@ -679,7 +686,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
             currentOutputPath = outputDir + File.separator + baseName + "_cut_" + timestamp + ".mp3";
             
             updateStatus("开始裁剪音频...");
-            AudioProcessor.cutAudio(currentInputPath, currentOutputPath, startTime, duration, this);
+            AudioProcessor.cutAudio(currentInputPath, currentOutputPath, startTime, duration, this, this);
         });
         
         builder.setNegativeButton("取消", null);

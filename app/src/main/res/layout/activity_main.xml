@@ -32,6 +32,16 @@
              android:id="@+id/version_text"
              android:text="版本信息" />
 
+        <Button
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="#607D8B"
+            android:textColor="@android:color/white"
+            android:id="@+id/settings_btn"
+            android:text="转码设置" />
+
         <LinearLayout
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
