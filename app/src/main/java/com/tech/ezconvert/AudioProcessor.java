@@ -38,6 +38,7 @@ public class AudioProcessor {
                     "-codec:a", "aac",
                     "-b:a", "128k",
                     "-ac", "2",
+                    "-strict", "-2",
                     "-y",
                     outputFile
                 };
@@ -66,7 +67,9 @@ public class AudioProcessor {
             default:
                 command = new String[]{
                     "-i", inputPath,
-                    "-c:a", "copy",
+                    "-codec:a", "libmp3lame",
+                    "-b:a", "192k",
+                    "-ac", "2",
                     "-y",
                     outputFile
                 };
@@ -113,6 +116,7 @@ public class AudioProcessor {
                     "-acodec", "aac",
                     "-b:a", "128k",
                     "-ac", "2",
+                    "-strict", "-2",
                     "-y",
                     outputFile
                 };
@@ -133,7 +137,9 @@ public class AudioProcessor {
                 command = new String[]{
                     "-i", inputPath,
                     "-vn",
-                    "-acodec", "copy",
+                    "-acodec", "libmp3lame",
+                    "-b:a", "192k",
+                    "-ac", "2",
                     "-y",
                     outputFile
                 };
@@ -167,7 +173,8 @@ public class AudioProcessor {
             "-i", inputPath,
             "-ss", startTime,
             "-t", duration,
-            "-c", "copy",
+            "-c:a", "libmp3lame",
+            "-b:a", "192k",
             "-y",
             outputPath
         };
@@ -183,6 +190,8 @@ public class AudioProcessor {
         String[] command = {
             "-i", inputPath,
             "-af", "afade=t=in:st=0:d=" + fadeIn + ",afade=t=out:st=" + fadeOut + ":d=3",
+            "-c:a", "libmp3lame",
+            "-b:a", "192k",
             "-y",
             outputPath
         };

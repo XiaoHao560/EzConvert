@@ -19,7 +19,8 @@ public class VideoProcessor {
                     "-preset", "medium",
                     "-crf", "23",
                     "-movflags", "+faststart",
-                    "-y", // 覆盖输出文件
+                    "-strict", "-2",
+                    "-y",
                     outputFile
                 };
                 break;
@@ -42,6 +43,7 @@ public class VideoProcessor {
                     "-c:a", "aac",
                     "-preset", "medium",
                     "-crf", "23",
+                    "-strict", "-2",
                     "-y",
                     outputFile
                 };
@@ -50,7 +52,9 @@ public class VideoProcessor {
             case "mkv":
                 command = new String[]{
                     "-i", inputPath,
-                    "-c", "copy",
+                    "-c:v", "libx264",
+                    "-c:a", "aac",
+                    "-strict", "-2",
                     "-y",
                     outputFile
                 };
@@ -90,7 +94,9 @@ public class VideoProcessor {
             default:
                 command = new String[]{
                     "-i", inputPath,
-                    "-c", "copy",
+                    "-c:v", "libx264",
+                    "-c:a", "aac",
+                    "-strict", "-2",
                     "-y",
                     outputFile
                 };
@@ -117,6 +123,7 @@ public class VideoProcessor {
             "-c:a", "aac",
             "-preset", "medium",
             "-movflags", "+faststart",
+            "-strict", "-2",
             "-y",
             outputFile
         };
@@ -133,8 +140,10 @@ public class VideoProcessor {
             "-i", inputPath,
             "-ss", startTime,
             "-t", duration,
-            "-c", "copy",
+            "-c:v", "libx264",
+            "-c:a", "aac",
             "-avoid_negative_ts", "make_zero",
+            "-strict", "-2",
             "-y",
             outputPath
         };
@@ -172,7 +181,8 @@ public class VideoProcessor {
             "-i", inputPath,
             "-i", watermarkPath,
             "-filter_complex", "[1]format=rgba,colorchannelmixer=aa=0.7[wm];[0][wm]overlay=" + overlay,
-            "-codec:a", "copy",
+            "-codec:a", "aac",
+            "-strict", "-2",
             "-y",
             outputPath
         };
@@ -189,7 +199,8 @@ public class VideoProcessor {
         String[] command = {
             "-i", inputPath,
             "-vf", scaleFilter,
-            "-c:a", "copy",
+            "-c:a", "aac",
+            "-strict", "-2",
             "-y",
             outputPath
         };
@@ -220,10 +231,12 @@ public class VideoProcessor {
         String[] command = {
             "-i", videoPath,
             "-i", audioPath,
-            "-c", "copy",
+            "-c:v", "copy",
+            "-c:a", "aac",
             "-map", "0:v:0",
             "-map", "1:a:0",
             "-shortest",
+            "-strict", "-2",
             "-y",
             outputPath
         };
