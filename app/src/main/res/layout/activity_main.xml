@@ -120,13 +120,36 @@
                      android:layout_width="0dp"
                      android:gravity="center_vertical"
                      android:layout_weight="1"
-                     android:text="输出格式:" />
+                     android:text="视频格式:" />
 
                 <Spinner
                      android:layout_height="wrap_content"
                      android:layout_width="0dp"
                      android:layout_weight="1"
-                     android:id="@+id/format_spinner">
+                     android:id="@+id/video_format_spinner">
+
+                </Spinner>
+
+            </LinearLayout>
+
+            <LinearLayout
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="8dp"
+                 android:orientation="horizontal">
+
+                <TextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="0dp"
+                     android:gravity="center_vertical"
+                     android:layout_weight="1"
+                     android:text="音频格式:" />
+
+                <Spinner
+                     android:layout_height="wrap_content"
+                     android:layout_width="0dp"
+                     android:layout_weight="1"
+                     android:id="@+id/audio_format_spinner">
 
                 </Spinner>
 
