@@ -27,14 +27,13 @@
                  android:textStyle="bold" />
 
             <ImageButton
-                 android:layout_height="40dp"
-                 android:layout_width="40dp"
-                 android:src="@android:drawable/ic_menu_preferences"
+                 android:layout_height="48dp"
+                 android:layout_width="48dp"
+                 android:src="@drawable/ic_menu"
                  android:contentDescription="设置"
                  android:background="?android:attr/selectableItemBackgroundBorderless"
-                 android:padding="8dp"
+                 android:padding="10dp"
                  android:layout_alignParentEnd="true"
-                 android:tint="#666"
                  android:id="@+id/settings_btn" />
 
         </RelativeLayout>
