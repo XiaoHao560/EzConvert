@@ -26,16 +26,6 @@
                  android:text="EzConvert 媒体转换器"
                  android:textStyle="bold" />
 
-            <ImageButton
-                 android:layout_height="48dp"
-                 android:layout_width="48dp"
-                 android:src="@drawable/ic_menu"
-                 android:contentDescription="设置"
-                 android:background="?android:attr/selectableItemBackgroundBorderless"
-                 android:padding="10dp"
-                 android:layout_alignParentEnd="true"
-                 android:id="@+id/settings_btn" />
-
         </RelativeLayout>
 
         <TextView
@@ -47,6 +37,16 @@
              android:textColor="#666"
              android:id="@+id/version_text"
              android:text="EzConvert v0.2.0 | FFmpeg: 4.4.LTS" />
+
+        <ImageButton
+             android:layout_height="48dp"
+             android:layout_width="48dp"
+             android:src="@drawable/ic_menu"
+             android:contentDescription="设置"
+             android:background="?android:attr/selectableItemBackgroundBorderless"
+             android:padding="10dp"
+             android:layout_gravity="end"
+             android:id="@+id/settings_btn" />
 
         <LinearLayout
              android:layout_height="wrap_content"
