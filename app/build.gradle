@@ -2,6 +2,126 @@ plugins {
     id 'com.android.application'
 }
 
+def getGitVersionCode() {
+    try {
+        def commitCount = getCmdOutput("git rev-list --count HEAD").toInteger()
+        def timestamp = new java.text.SimpleDateFormat("yyMMdd").format(new Date()).toInteger()
+        def versionCode = timestamp * 1000 + (commitCount % 1000)
+        
+        println "=== VersionCode Generation ==="
+        println "Build Date: ${new Date()}"
+        println "Git Commit Count: $commitCount"
+        println "Timestamp (YYMMDD): $timestamp"
+        println "Generated VersionCode: $versionCode"
+        
+        return versionCode
+        
+    } catch (Exception e) {
+        println "Warning: Could not get git version code: ${e.message}"
+        def fallback = new java.text.SimpleDateFormat("yyMMddHH").format(new Date()).toInteger()
+        println "Using fallback version code: $fallback"
+        return fallback
+    }
+}
+
+def getGitVersionName() {
+    try {
+        def branchName = getCmdOutput("git rev-parse --abbrev-ref HEAD")
+        def commitHash = getCmdOutput("git rev-parse --short HEAD")
+        def describe = getCmdOutput("git describe --tags --long --always")
+        
+        println "=== VersionName Generation ==="
+        println "Git Branch: $branchName"
+        println "Git Describe: $describe"
+        println "Commit Hash: $commitHash"
+        
+        if (describe.contains("0.1.7-alpha") || describe.contains("alpha")) {
+            println "Detected old alpha tag, using base version 0.2.0"
+            return getVersionFromBranch(branchName, commitHash)
+        }
+        
+        if (describe.matches("^v?\\d+(\\.\\d+)*\$")) {
+            def version = describe.replaceAll("^v", "")
+            if (version.contains("-")) {
+                version = version.split("-")[0]
+            }
+            return isMainBranch(branchName) ? version : "${version}-${getSafeBranchName(branchName)}"
+        }
+        else if (describe.matches(".*-\\d+-g[0-9a-f]+\$")) {
+            def parts = describe.split("-")
+            def baseVersion = parts[0].replaceAll("^v", "")
+            if (baseVersion.contains("-")) {
+                baseVersion = baseVersion.split("-")[0]
+            }
+            def commitsAfterTag = parts[1]
+            def suffix = isMainBranch(branchName) ? "" : "-${getSafeBranchName(branchName)}"
+            return "${baseVersion}.${commitsAfterTag}${suffix}"
+        }
+        else {
+            return getVersionFromBranch(branchName, commitHash)
+        }
+        
+    } catch (Exception e) {
+        println "Error getting git version name: ${e.message}"
+        return "0.2.0-dev"
+    }
+}
+
+def getVersionFromBranch(branchName, commitHash) {
+    def safeBranchName = getSafeBranchName(branchName)
+    if (isMainBranch(branchName)) {
+        return "0.2.0-${commitHash}"
+    } else {
+        return "0.2.0-${safeBranchName}(${commitHash})"
+    }
+}
+
+def getSafeBranchName(branchName) {
+    return branchName
+        .replaceAll("[^a-zA-Z0-9.-]", "-")
+        .replaceAll("^-+|-+\$", "")
+        .replaceAll("-+", "-")
+        .toLowerCase()
+        .take(15)
+}
+
+def isMainBranch(branchName) {
+    return branchName == "main" || branchName == "master"
+}
+
+def getCmdOutput(command) {
+    def stdout = new ByteArrayOutputStream()
+    try {
+        exec {
+            commandLine command.split(' ')
+            standardOutput = stdout
+        }
+        return stdout.toString().trim()
+    } catch (Exception e) {
+        throw e
+    }
+}
+
+task printVersionInfo {
+    doLast {
+        println "=== Project Version Information ==="
+        println "Version Code: ${getGitVersionCode()}"
+        println "Version Name: ${getGitVersionName()}"
+        
+        try {
+            def branchName = getCmdOutput("git rev-parse --abbrev-ref HEAD")
+            def commitHash = getCmdOutput("git rev-parse --short HEAD")
+            def describe = getCmdOutput("git describe --tags --long --always")
+            
+            println "Git Branch: $branchName"
+            println "Git Commit: $commitHash"
+            println "Git Describe: $describe"
+        } catch (Exception e) {
+            println "Cannot get Git information: ${e.message}"
+        }
+    }
+}
+
 android {
     namespace 'com.tech.ezconvert'
     compileSdk 33
@@ -10,8 +130,9 @@ android {
         applicationId "com.tech.ezconvert"
         minSdk 21
         targetSdk 33
-        versionCode 1
-        versionName "0.2.0"
+        
+        versionCode getGitVersionCode()
+        versionName getGitVersionName()
         
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -36,6 +157,7 @@ android {
             keyPassword System.getenv("KEY_PASSWORD")
         }
     }
+    
     buildTypes {
         release {
             signingConfig signingConfigs.release
@@ -73,4 +195,10 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}
+
+preBuild {
+    doFirst {
+        println "Build Info: ${getGitVersionName()} (${getGitVersionCode()})"
+    }
 }
