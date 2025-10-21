@@ -3,6 +3,7 @@ package com.tech.ezconvert;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.media.Image;
 import android.os.Bundle;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,12 +18,17 @@ public class LogViewerActivity extends AppCompatActivity {
     private static LogAdapter adapter;
 
     private RecyclerView recyclerView;
-    private Button clearBtn, copyBtn;
+    private ImageButton clearBtn, copyBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_log_viewer);
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("运行日志");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
         recyclerView = findViewById(R.id.log_recycler_view);
         clearBtn     = findViewById(R.id.btn_clear_log);
@@ -50,7 +56,12 @@ public class LogViewerActivity extends AppCompatActivity {
         if (adapter != null) adapter.notifyItemInserted(logBuffer.size() - 1);
     }
 
-    /* 简单 Adapter */
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();
+        return true;
+    }
+
     private static class LogAdapter extends RecyclerView.Adapter<LogAdapter.Holder> {
         private final List<String> list;
         LogAdapter(List<String> list) { this.list = list; }
@@ -60,7 +71,7 @@ public class LogViewerActivity extends AppCompatActivity {
             tv.setTextSize(12);
             return new Holder(tv);
         }
-        @Override public void onBindViewHolder(Holder h, int i) { ((TextView)h.itemView).setText(list.get(i)); }
+        @Override public void onBindViewHolder(Holder h, int i) { ((TextView) h.itemView).setText(list.get(i)); }
         @Override public int getItemCount() { return list.size(); }
         static class Holder extends RecyclerView.ViewHolder { Holder(android.view.View v) { super(v); } }
     }

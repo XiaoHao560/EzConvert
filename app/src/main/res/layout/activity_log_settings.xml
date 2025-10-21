@@ -1,43 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
      xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
      android:layout_height="match_parent"
      android:layout_width="match_parent"
-     android:padding="16dp"
-     android:orientation="vertical">
+     android:background="#F5F5F5"
+     android:fillViewport="true">
 
-    <TextView
-         android:layout_height="wrap_content"
-         android:layout_width="wrap_content"
-         android:layout_marginBottom="8dp"
-         android:textSize="18sp"
-         android:text="@string/log_level_title" />
-
-    <RadioGroup
+    <LinearLayout
          android:layout_height="wrap_content"
          android:layout_width="match_parent"
-         android:orientation="vertical"
-         android:id="@+id/rg_log_level">
+         android:padding="16dp"
+         android:orientation="vertical">
 
-        <RadioButton
+        <androidx.cardview.widget.CardView
              android:layout_height="wrap_content"
-             android:layout_width="wrap_content"
-             android:id="@+id/rb_log_all"
-             android:text="@string/log_level_verbose" />
+             android:layout_width="match_parent"
+             app:cardElevation="8dp"
+             app:cardUseCompatPadding="true"
+             app:cardBackgroundColor="@android:color/white"
+             app:cardCornerRadius="12dp">
 
-        <RadioButton
+            <LinearLayout
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:padding="16dp"
+                 android:orientation="vertical">
+
+                <TextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="wrap_content"
+                     android:layout_marginBottom="12dp"
+                     android:textSize="18sp"
+                     android:text="@string/log_level_title"
+                     android:textStyle="bold" />
+
+                <RadioGroup
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:orientation="vertical"
+                     android:id="@+id/rg_log_level">
+
+                    <RadioButton
+                         android:layout_height="wrap_content"
+                         android:layout_width="wrap_content"
+                         android:paddingVertical="8dp"
+                         android:id="@+id/rb_log_all"
+                         android:text="@string/log_level_verbose" />
+
+                    <RadioButton
+                         android:layout_height="wrap_content"
+                         android:layout_width="wrap_content"
+                         android:paddingVertical="8dp"
+                         android:id="@+id/rb_log_error"
+                         android:text="@string/log_level_error" />
+
+                </RadioGroup>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.appcompat.widget.AppCompatButton
              android:layout_height="wrap_content"
-             android:layout_width="wrap_content"
-             android:id="@+id/rb_log_error"
-             android:text="@string/log_level_error" />
+             android:layout_width="match_parent"
+             android:paddingVertical="14dp"
+             android:textSize="16sp"
+             app:cornerRadius="12dp"
+             android:textAllCaps="false"
+             android:layout_marginTop="24dp"
+             android:id="@+id/btn_view_log"
+             android:text="@string/view_log" />
 
-    </RadioGroup>
+    </LinearLayout>
 
-    <Button
-         android:layout_height="wrap_content"
-         android:layout_width="match_parent"
-         android:layout_marginTop="16dp"
-         android:id="@+id/btn_view_log"
-         android:text="@string/view_log" />
-
-</LinearLayout>
+</ScrollView>
