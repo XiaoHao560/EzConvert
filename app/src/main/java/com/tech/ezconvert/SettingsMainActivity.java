@@ -46,7 +46,11 @@ public class SettingsMainActivity extends AppCompatActivity {
             }
         };
         
-        generalSettingsItem.setOnClickListener(comingSoonListener);
+        // 打开通用设置
+        generalSettingsItem.setOnClickListener(v -> {
+            Intent intent = new Intent(SettingsMainActivity.this, LogViewerActivity.class);
+            startActivity(intent);
+        });
         aboutItem.setOnClickListener(comingSoonListener);
     }
 }

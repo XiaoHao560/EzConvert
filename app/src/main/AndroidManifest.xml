@@ -47,5 +47,11 @@
             android:exported="false"
             android:label="转码设置"
             android:theme="@style/Theme.AppCompat.Light.DarkActionBar" />
+            
+        <activity
+        android:name=".LogViewerActivity"
+        android:exported="false"
+        android:label="运行日志"
+        android:theme="@style/Theme.AppCompat.Light.DarkActionBar" />
     </application>
 </manifest>

@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        FFmpegUtil.initLogging(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
