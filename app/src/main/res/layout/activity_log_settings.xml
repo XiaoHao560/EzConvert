@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     android:layout_height="match_parent"
+     android:layout_width="match_parent"
+     android:padding="16dp"
+     android:orientation="vertical">
+
+    <TextView
+         android:layout_height="wrap_content"
+         android:layout_width="wrap_content"
+         android:layout_marginBottom="8dp"
+         android:textSize="18sp"
+         android:text="@string/log_level_title" />
+
+    <RadioGroup
+         android:layout_height="wrap_content"
+         android:layout_width="match_parent"
+         android:orientation="vertical"
+         android:id="@+id/rg_log_level">
+
+        <RadioButton
+             android:layout_height="wrap_content"
+             android:layout_width="wrap_content"
+             android:id="@+id/rb_log_all"
+             android:text="@string/log_level_verbose" />
+
+        <RadioButton
+             android:layout_height="wrap_content"
+             android:layout_width="wrap_content"
+             android:id="@+id/rb_log_error"
+             android:text="@string/log_level_error" />
+
+    </RadioGroup>
+
+    <Button
+         android:layout_height="wrap_content"
+         android:layout_width="match_parent"
+         android:layout_marginTop="16dp"
+         android:id="@+id/btn_view_log"
+         android:text="@string/view_log" />
+
+</LinearLayout>
