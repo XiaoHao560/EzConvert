@@ -1,106 +1,126 @@
 package com.tech.ezconvert;
 
 import android.util.Log;
+import android.content.Context;
+import java.util.ArrayList;
 
 public class VideoProcessor {
     
     // 视频转换
     public static void convertVideo(String inputPath, String outputPath, 
-                                   String format, FFmpegUtil.FFmpegCallback callback) {
+                                   String format, FFmpegUtil.FFmpegCallback callback, Context context) {
         String[] command;
         String outputFile = outputPath + "." + getFileExtension(format);
         
+        boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
+        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
+        
+        Log.d("VideoProcessor", "硬件加速: " + hardwareAcceleration + ", 多线程: " + multithreading);
+        
+        // 基础命令
+        ArrayList<String> commandList = new ArrayList<>();
+        commandList.add("-i");
+        commandList.add(inputPath);
+        
+        if (multithreading) {
+            commandList.add("-threads");
+            commandList.add("0"); // 0则自动选择线程数
+        }
+        
         switch (format.toLowerCase()) {
             case "mp4":
-                command = new String[]{
-                    "-i", inputPath,
-                    "-c:v", "libx264",
-                    "-c:a", "aac",
-                    "-preset", "medium",
-                    "-crf", "23",
-                    "-movflags", "+faststart",
-                    "-strict", "-2",
-                    "-y",
-                    outputFile
-                };
+                if (hardwareAcceleration) {
+                    // 硬件加速版本
+                    commandList.add("-c:v");
+                    commandList.add("h264_mediacodec");
+                    commandList.add("-c:a");
+                    commandList.add("aac");
+                } else {
+                    // 软件编码版本
+                    commandList.add("-c:v");
+                    commandList.add("libx264");
+                    commandList.add("-preset");
+                    commandList.add("medium");
+                    commandList.add("-crf");
+                    commandList.add("23");
+                    commandList.add("-c:a");
+                    commandList.add("aac");
+                }
+                commandList.add("-movflags");
+                commandList.add("+faststart");
                 break;
                 
             case "avi":
-                command = new String[]{
-                    "-i", inputPath,
-                    "-c:v", "mpeg4",
-                    "-c:a", "mp3",
-                    "-q:v", "5",
-                    "-y",
-                    outputFile
-                };
+                commandList.add("-c:v");
+                commandList.add("mpeg4");
+                commandList.add("-c:a");
+                commandList.add("mp3");
+                commandList.add("-q:v");
+                commandList.add("5");
                 break;
                 
             case "mov":
-                command = new String[]{
-                    "-i", inputPath,
-                    "-c:v", "libx264",
-                    "-c:a", "aac",
-                    "-preset", "medium",
-                    "-crf", "23",
-                    "-strict", "-2",
-                    "-y",
-                    outputFile
-                };
+                if (hardwareAcceleration) {
+                    commandList.add("-c:v");
+                    commandList.add("h264_mediacodec");
+                    commandList.add("-c:a");
+                    commandList.add("aac");
+                } else {
+                    commandList.add("-c:v");
+                    commandList.add("libx264");
+                    commandList.add("-preset");
+                    commandList.add("medium");
+                    commandList.add("-crf");
+                    commandList.add("23");
+                    commandList.add("-c:a");
+                    commandList.add("aac");
+                }
                 break;
                 
             case "mkv":
-                command = new String[]{
-                    "-i", inputPath,
-                    "-c:v", "libx264",
-                    "-c:a", "aac",
-                    "-strict", "-2",
-                    "-y",
-                    outputFile
-                };
+                commandList.add("-c:v");
+                commandList.add("libx264");
+                commandList.add("-c:a");
+                commandList.add("aac");
                 break;
                 
             case "flv":
-                command = new String[]{
-                    "-i", inputPath,
-                    "-c:v", "flv",
-                    "-c:a", "mp3",
-                    "-y",
-                    outputFile
-                };
+                commandList.add("-c:v");
+                commandList.add("flv");
+                commandList.add("-c:a");
+                commandList.add("mp3");
                 break;
                 
             case "webm":
-                command = new String[]{
-                    "-i", inputPath,
-                    "-c:v", "libvpx-vp9",
-                    "-c:a", "libopus",
-                    "-b:v", "1M",
-                    "-y",
-                    outputFile
-                };
+                commandList.add("-c:v");
+                commandList.add("libvpx-vp9");
+                commandList.add("-c:a");
+                commandList.add("libopus");
+                commandList.add("-b:v");
+                commandList.add("1M");
                 break;
                 
             case "gif":
-                command = new String[]{
-                    "-i", inputPath,
-                    "-vf", "fps=10,scale=480:-1:flags=lanczos",
-                    "-c:v", "gif",
-                    "-y",
-                    outputFile
-                };
+                commandList.add("-vf");
+                commandList.add("fps=10,scale=480:-1:flags=lanczos");
+                commandList.add("-c:v");
+                commandList.add("gif");
                 break;
                 
             default:
-                command = new String[]{
-                    "-i", inputPath,
-                    "-c:v", "libx264",
-                    "-c:a", "aac",
-                    "-strict", "-2",
-                    "-y",
-                    outputFile
-                };
+                commandList.add("-c:v");
+                commandList.add("libx264");
+                commandList.add("-c:a");
+                commandList.add("aac");
         }
+        
+        // 通用参数
+        commandList.add("-strict");
+        commandList.add("-2");
+        commandList.add("-y");
+        commandList.add(outputFile);
+        
+        command = commandList.toArray(new String[0]);
         
         Log.d("VideoProcessor", "转换命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
@@ -108,7 +128,7 @@ public class VideoProcessor {
     
     // 视频压缩
     public static void compressVideo(String inputPath, String outputPath, 
-                                    int quality, FFmpegUtil.FFmpegCallback callback) {
+                                    int quality, FFmpegUtil.FFmpegCallback callback, Context context) {
         // quality: 0-100, 0最高质量
         int crf = 51 - (quality * 51 / 100);
         if (crf < 18) crf = 18;
@@ -116,17 +136,40 @@ public class VideoProcessor {
         
         String outputFile = outputPath + "_compressed.mp4";
         
-        String[] command = {
-            "-i", inputPath,
-            "-c:v", "libx264",
-            "-crf", String.valueOf(crf),
-            "-c:a", "aac",
-            "-preset", "medium",
-            "-movflags", "+faststart",
-            "-strict", "-2",
-            "-y",
-            outputFile
-        };
+        boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
+        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
+        
+        ArrayList<String> commandList = new ArrayList<>();
+        commandList.add("-i");
+        commandList.add(inputPath);
+        
+        if (multithreading) {
+            commandList.add("-threads");
+            commandList.add("0");
+        }
+        
+        if (hardwareAcceleration) {
+            commandList.add("-c:v");
+            commandList.add("h264_mediacodec");
+        } else {
+            commandList.add("-c:v");
+            commandList.add("libx264");
+            commandList.add("-crf");
+            commandList.add(String.valueOf(crf));
+            commandList.add("-preset");
+            commandList.add("medium");
+        }
+        
+        commandList.add("-c:a");
+        commandList.add("aac");
+        commandList.add("-movflags");
+        commandList.add("+faststart");
+        commandList.add("-strict");
+        commandList.add("-2");
+        commandList.add("-y");
+        commandList.add(outputFile);
+        
+        String[] command = commandList.toArray(new String[0]);
         
         Log.d("VideoProcessor", "压缩命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
@@ -135,18 +178,42 @@ public class VideoProcessor {
     // 视频裁剪
     public static void cutVideo(String inputPath, String outputPath,
                                String startTime, String duration,
-                               FFmpegUtil.FFmpegCallback callback) {
-        String[] command = {
-            "-i", inputPath,
-            "-ss", startTime,
-            "-t", duration,
-            "-c:v", "libx264",
-            "-c:a", "aac",
-            "-avoid_negative_ts", "make_zero",
-            "-strict", "-2",
-            "-y",
-            outputPath
-        };
+                               FFmpegUtil.FFmpegCallback callback, Context context) {
+        boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
+        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
+        
+        ArrayList<String> commandList = new ArrayList<>();
+        commandList.add("-i");
+        commandList.add(inputPath);
+        
+        if (multithreading) {
+            commandList.add("-threads");
+            commandList.add("0");
+        }
+        
+        commandList.add("-ss");
+        commandList.add(startTime);
+        commandList.add("-t");
+        commandList.add(duration);
+        
+        if (hardwareAcceleration) {
+            commandList.add("-c:v");
+            commandList.add("h264_mediacodec");
+        } else {
+            commandList.add("-c:v");
+            commandList.add("libx264");
+        }
+        
+        commandList.add("-c:a");
+        commandList.add("aac");
+        commandList.add("-avoid_negative_ts");
+        commandList.add("make_zero");
+        commandList.add("-strict");
+        commandList.add("-2");
+        commandList.add("-y");
+        commandList.add(outputPath);
+        
+        String[] command = commandList.toArray(new String[0]);
         
         Log.d("VideoProcessor", "裁剪命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
@@ -155,7 +222,7 @@ public class VideoProcessor {
     // 添加水印
     public static void addWatermark(String inputPath, String outputPath,
                                    String watermarkPath, String position,
-                                   FFmpegUtil.FFmpegCallback callback) {
+                                   FFmpegUtil.FFmpegCallback callback, Context context) {
         String overlay;
         switch (position) {
             case "top-left":
@@ -177,15 +244,39 @@ public class VideoProcessor {
                 overlay = "10:10";
         }
         
-        String[] command = {
-            "-i", inputPath,
-            "-i", watermarkPath,
-            "-filter_complex", "[1]format=rgba,colorchannelmixer=aa=0.7[wm];[0][wm]overlay=" + overlay,
-            "-codec:a", "aac",
-            "-strict", "-2",
-            "-y",
-            outputPath
-        };
+        boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
+        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
+        
+        ArrayList<String> commandList = new ArrayList<>();
+        commandList.add("-i");
+        commandList.add(inputPath);
+        commandList.add("-i");
+        commandList.add(watermarkPath);
+        
+        if (multithreading) {
+            commandList.add("-threads");
+            commandList.add("0");
+        }
+        
+        commandList.add("-filter_complex");
+        commandList.add("[1]format=rgba,colorchannelmixer=aa=0.7[wm];[0][wm]overlay=" + overlay);
+        
+        if (hardwareAcceleration) {
+            commandList.add("-c:v");
+            commandList.add("h264_mediacodec");
+        } else {
+            commandList.add("-c:v");
+            commandList.add("libx264");
+        }
+        
+        commandList.add("-c:a");
+        commandList.add("aac");
+        commandList.add("-strict");
+        commandList.add("-2");
+        commandList.add("-y");
+        commandList.add(outputPath);
+        
+        String[] command = commandList.toArray(new String[0]);
         
         Log.d("VideoProcessor", "水印命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
@@ -193,17 +284,40 @@ public class VideoProcessor {
     
     // 调整视频分辨率
     public static void resizeVideo(String inputPath, String outputPath,
-                                  int width, int height, FFmpegUtil.FFmpegCallback callback) {
+                                  int width, int height, FFmpegUtil.FFmpegCallback callback, Context context) {
         String scaleFilter = "scale=" + width + ":" + height + ":flags=lanczos";
         
-        String[] command = {
-            "-i", inputPath,
-            "-vf", scaleFilter,
-            "-c:a", "aac",
-            "-strict", "-2",
-            "-y",
-            outputPath
-        };
+        boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
+        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
+        
+        ArrayList<String> commandList = new ArrayList<>();
+        commandList.add("-i");
+        commandList.add(inputPath);
+        
+        if (multithreading) {
+            commandList.add("-threads");
+            commandList.add("0");
+        }
+        
+        commandList.add("-vf");
+        commandList.add(scaleFilter);
+        
+        if (hardwareAcceleration) {
+            commandList.add("-c:v");
+            commandList.add("h264_mediacodec");
+        } else {
+            commandList.add("-c:v");
+            commandList.add("libx264");
+        }
+        
+        commandList.add("-c:a");
+        commandList.add("aac");
+        commandList.add("-strict");
+        commandList.add("-2");
+        commandList.add("-y");
+        commandList.add(outputPath);
+        
+        String[] command = commandList.toArray(new String[0]);
         
         Log.d("VideoProcessor", "调整分辨率命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
@@ -211,15 +325,28 @@ public class VideoProcessor {
     
     // 提取视频帧（截图）
     public static void extractFrame(String inputPath, String outputPath,
-                                   String timestamp, FFmpegUtil.FFmpegCallback callback) {
-        String[] command = {
-            "-i", inputPath,
-            "-ss", timestamp,
-            "-vframes", "1",
-            "-q:v", "2",
-            "-y",
-            outputPath
-        };
+                                   String timestamp, FFmpegUtil.FFmpegCallback callback, Context context) {
+        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
+        
+        ArrayList<String> commandList = new ArrayList<>();
+        commandList.add("-i");
+        commandList.add(inputPath);
+        
+        if (multithreading) {
+            commandList.add("-threads");
+            commandList.add("0");
+        }
+        
+        commandList.add("-ss");
+        commandList.add(timestamp);
+        commandList.add("-vframes");
+        commandList.add("1");
+        commandList.add("-q:v");
+        commandList.add("2");
+        commandList.add("-y");
+        commandList.add(outputPath);
+        
+        String[] command = commandList.toArray(new String[0]);
         
         Log.d("VideoProcessor", "截图命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
@@ -227,19 +354,42 @@ public class VideoProcessor {
     
     // 合并视频和音频
     public static void mergeVideoAudio(String videoPath, String audioPath,
-                                      String outputPath, FFmpegUtil.FFmpegCallback callback) {
-        String[] command = {
-            "-i", videoPath,
-            "-i", audioPath,
-            "-c:v", "copy",
-            "-c:a", "aac",
-            "-map", "0:v:0",
-            "-map", "1:a:0",
-            "-shortest",
-            "-strict", "-2",
-            "-y",
-            outputPath
-        };
+                                      String outputPath, FFmpegUtil.FFmpegCallback callback, Context context) {
+        boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
+        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
+        
+        ArrayList<String> commandList = new ArrayList<>();
+        commandList.add("-i");
+        commandList.add(videoPath);
+        commandList.add("-i");
+        commandList.add(audioPath);
+        
+        if (multithreading) {
+            commandList.add("-threads");
+            commandList.add("0");
+        }
+        
+        if (hardwareAcceleration) {
+            commandList.add("-c:v");
+            commandList.add("h264_mediacodec");
+        } else {
+            commandList.add("-c:v");
+            commandList.add("copy");
+        }
+        
+        commandList.add("-c:a");
+        commandList.add("aac");
+        commandList.add("-map");
+        commandList.add("0:v:0");
+        commandList.add("-map");
+        commandList.add("1:a:0");
+        commandList.add("-shortest");
+        commandList.add("-strict");
+        commandList.add("-2");
+        commandList.add("-y");
+        commandList.add(outputPath);
+        
+        String[] command = commandList.toArray(new String[0]);
         
         Log.d("VideoProcessor", "合并音视频命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);

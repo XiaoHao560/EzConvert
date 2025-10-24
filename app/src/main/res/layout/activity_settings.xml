@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     android:layout_height="match_parent"
+     android:layout_width="match_parent"
+     android:background="#f5f5f5"
+     android:padding="16dp">
+
+    <LinearLayout
+         android:layout_height="wrap_content"
+         android:layout_width="match_parent"
+         android:orientation="vertical">
+
+        <LinearLayout
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:layout_marginBottom="16dp"
+             android:background="@drawable/card_background"
+             android:elevation="2dp"
+             android:padding="16dp"
+             android:orientation="vertical">
+
+            <TextView
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="16dp"
+                 android:textSize="18sp"
+                 android:text="性能优化选项"
+                 android:textStyle="bold" />
+
+            <LinearLayout
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="16dp"
+                 android:orientation="horizontal">
+
+                <Switch
+                     android:layout_height="wrap_content"
+                     android:layout_width="0dp"
+                     android:trackTint="@color/switch_track"
+                     android:thumbTint="@color/switch_thumb"
+                     android:textSize="16sp"
+                     android:layout_weight="1"
+                     android:id="@+id/hardware_acceleration_switch"
+                     android:text="启用硬件编解码" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:orientation="horizontal">
+
+                <Switch
+                     android:layout_height="wrap_content"
+                     android:layout_width="0dp"
+                     android:trackTint="@color/switch_track"
+                     android:thumbTint="@color/switch_thumb"
+                     android:textSize="16sp"
+                     android:layout_weight="1"
+                     android:id="@+id/multithreading_switch"
+                     android:text="多线程优化" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:layout_marginBottom="16dp"
+             android:background="@drawable/card_background"
+             android:elevation="2dp"
+             android:padding="16dp"
+             android:orientation="vertical">
+
+            <TextView
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="12dp"
+                 android:text="硬件编解码说明"
+                 android:textStyle="bold" />
+
+            <TextView
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:textSize="14sp"
+                 android:textColor="#666"
+                 android:lineSpacingExtra="4dp"
+                 android:text="使用GPU进行视频编解码，可以显著提升转换速度，但可能在某些设备上存在兼容性问题。如果遇到转换失败，请关闭此选项。" />
+
+        </LinearLayout>
+
+        <LinearLayout
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:background="@drawable/card_background"
+             android:elevation="2dp"
+             android:padding="16dp"
+             android:orientation="vertical">
+
+            <TextView
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="12dp"
+                 android:text="多线程优化说明"
+                 android:textStyle="bold" />
+
+            <TextView
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:textSize="14sp"
+                 android:textColor="#666"
+                 android:lineSpacingExtra="4dp"
+                 android:text="使用多核CPU并行处理视频，可以提升转换速度，但会增加CPU使用率。" />
+
+        </LinearLayout>
+
+        <Button
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:backgroundTint="#2196F3"
+             android:textColor="@android:color/white"
+             android:layout_marginTop="16dp"
+             android:id="@+id/save_settings_btn"
+             android:text="保存设置" />
+
+    </LinearLayout>
+
+</ScrollView>

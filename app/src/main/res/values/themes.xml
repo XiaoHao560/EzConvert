@@ -5,5 +5,11 @@
     <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
   </style>
 
-  <style name="AppTheme" parent="Base.AppTheme" />
+  <style name="AppTheme" parent="Base.AppTheme">
+    <item name="android:windowFullscreen">true</item>
+    <item name="android:statusBarColor">@android:color/transparent</item>
+    
+    <item name="android:buttonTint">@null</item>
+    <item name="buttonTint">@null</item>
+  </style>
 </resources>

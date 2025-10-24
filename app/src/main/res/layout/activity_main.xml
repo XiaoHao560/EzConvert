@@ -12,15 +12,21 @@
          android:layout_width="match_parent"
          android:orientation="vertical">
 
-        <TextView
+        <RelativeLayout
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:layout_marginBottom="16dp"
-             android:gravity="center"
-             android:textSize="24sp"
-             android:textColor="#2196F3"
-             android:text="EzConvert 媒体转换器"
-             android:textStyle="bold" />
+             android:layout_marginBottom="16dp">
+
+            <TextView
+                 android:layout_height="wrap_content"
+                 android:layout_width="wrap_content"
+                 android:layout_centerHorizontal="true"
+                 android:textSize="24sp"
+                 android:textColor="#2196F3"
+                 android:text="EzConvert 媒体转换器"
+                 android:textStyle="bold" />
+
+        </RelativeLayout>
 
         <TextView
              android:layout_height="wrap_content"
@@ -30,7 +36,17 @@
              android:textSize="12sp"
              android:textColor="#666"
              android:id="@+id/version_text"
-             android:text="版本信息" />
+             android:text="EzConvert v0.2.0 | FFmpeg: 4.4.LTS" />
+
+        <ImageButton
+             android:layout_height="48dp"
+             android:layout_width="48dp"
+             android:src="@drawable/ic_menu"
+             android:contentDescription="设置"
+             android:background="?android:attr/selectableItemBackgroundBorderless"
+             android:padding="10dp"
+             android:layout_gravity="end"
+             android:id="@+id/settings_btn" />
 
         <LinearLayout
              android:layout_height="wrap_content"

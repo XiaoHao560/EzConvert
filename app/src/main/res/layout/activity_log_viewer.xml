@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     android:layout_height="match_parent"
+     android:layout_width="match_parent"
+     android:padding="16dp">
+
+    <androidx.recyclerview.widget.RecyclerView
+         android:layout_height="match_parent"
+         android:layout_width="match_parent"
+         android:layout_above="@+id/bottom_buttons"
+         android:id="@+id/log_recycler_view" />
+
+    <LinearLayout
+         android:layout_height="wrap_content"
+         android:layout_width="match_parent"
+         android:gravity="end"
+         android:orientation="horizontal"
+         android:layout_alignParentBottom="true"
+         android:id="@+id/bottom_buttons"
+         android:paddingTop="8dp">
+
+        <ImageButton
+             android:layout_height="48dp"
+             android:layout_width="48dp"
+             android:contentDescription="清空日志"
+             android:src="@drawable/ic_clear"
+             android:scaleType="centerInside"
+             android:background="@drawable/blue_rounded_bg"
+             android:padding="12dp"
+             android:id="@+id/btn_clear_log" />
+
+        <ImageButton
+             android:layout_height="48dp"
+             android:layout_width="48dp"
+             android:contentDescription="复制日志"
+             android:src="@drawable/ic_copy"
+             android:scaleType="centerInside"
+             android:background="@drawable/blue_rounded_bg"
+             android:padding="12dp"
+             android:layout_marginStart="8dp"
+             android:id="@+id/btn_copy_log" />
+
+    </LinearLayout>
+
+</RelativeLayout>

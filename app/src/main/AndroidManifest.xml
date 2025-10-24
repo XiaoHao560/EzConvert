@@ -22,7 +22,7 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
+        android:theme="@style/AppTheme"
         android:requestLegacyExternalStorage="true"
         tools:targetApi="29"
         tools:ignore="ScopedStorage">
@@ -35,5 +35,30 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <activity
+            android:name=".SettingsMainActivity"
+            android:exported="false"
+            android:label="设置" />
+            
+        <activity
+            android:name=".TranscodeSettingsActivity"
+            android:exported="false"
+            android:label="转码设置" />
+            
+        <activity
+            android:name=".LogViewerActivity"
+            android:exported="false"
+            android:label="运行日志" />
+        
+        <activity
+            android:name=".MoreSettingsActivity"
+            android:exported="false"
+            android:label="更多设置" />
+            
+        <activity
+            android:name=".LogSettingsActivity"
+            android:exported="false"
+            android:label="日志设置" />
     </application>
 </manifest>
