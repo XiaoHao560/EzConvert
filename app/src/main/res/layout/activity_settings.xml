@@ -37,6 +37,8 @@
                 <Switch
                      android:layout_height="wrap_content"
                      android:layout_width="0dp"
+                     android:trackTint="@color/switch_track"
+                     android:thumbTint="@color/switch_thumb"
                      android:textSize="16sp"
                      android:layout_weight="1"
                      android:id="@+id/hardware_acceleration_switch"
@@ -52,6 +54,8 @@
                 <Switch
                      android:layout_height="wrap_content"
                      android:layout_width="0dp"
+                     android:trackTint="@color/switch_track"
+                     android:thumbTint="@color/switch_thumb"
                      android:textSize="16sp"
                      android:layout_weight="1"
                      android:id="@+id/multithreading_switch"
@@ -115,7 +119,7 @@
         <Button
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:backgroundTint="#4CAF50"
+             android:backgroundTint="#2196F3"
              android:textColor="@android:color/white"
              android:layout_marginTop="16dp"
              android:id="@+id/save_settings_btn"

@@ -5,7 +5,7 @@
      android:layout_height="match_parent"
      android:layout_width="match_parent"
      android:background="#F5F5F5"
-     android:fillViewport="true">
+     android:fillViewport="true" >
 
     <LinearLayout
          android:layout_height="wrap_content"
@@ -41,17 +41,21 @@
                      android:orientation="vertical"
                      android:id="@+id/rg_log_level">
 
-                    <RadioButton
+                    <androidx.appcompat.widget.AppCompatRadioButton
                          android:layout_height="wrap_content"
                          android:layout_width="wrap_content"
                          android:paddingVertical="8dp"
+                         android:textColor="@color/radio_text_color"
+                         app:buttonTint="@drawable/radio_button_tint"
                          android:id="@+id/rb_log_all"
                          android:text="@string/log_level_verbose" />
 
-                    <RadioButton
+                    <androidx.appcompat.widget.AppCompatRadioButton
                          android:layout_height="wrap_content"
                          android:layout_width="wrap_content"
                          android:paddingVertical="8dp"
+                         android:textColor="@color/radio_text_color"
+                         app:buttonTint="@drawable/radio_button_tint"
                          android:id="@+id/rb_log_error"
                          android:text="@string/log_level_error" />
 
