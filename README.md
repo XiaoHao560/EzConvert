@@ -1,7 +1,7 @@
 ![Beta](https://img.shields.io/badge/status-beta-yellow.svg)
 # 项目更新日志
 
-从 v0.2.0 开始，我们使用结构化更新日志[change_log]。
+从 v0.2.0 开始，我们使用结构化更新日志[change_log](.change_log/)。
 此前版本的变更记录请查看 [GitHub Releases](链接) 或提交历史。
 
 # EzConvert
