@@ -35,25 +35,24 @@ def getGitVersionName() {
         println "Git Describe: $describe"
         println "Commit Hash: $commitHash"
         
-        if (describe.contains("0.1.7-alpha") || describe.contains("alpha")) {
-            println "Detected old alpha tag, using base version 0.2.0"
+        if (describe.contains("0.1.7-alpha")) {
+            println "Detected specific old alpha tag 0.1.7-alpha, using base version 0.2.0"
             return getVersionFromBranch(branchName, commitHash)
         }
         
         if (describe.matches("^v?\\d+(\\.\\d+)*\$")) {
             def version = describe.replaceAll("^v", "")
-            if (version.contains("-")) {
-                version = version.split("-")[0]
-            }
             return isMainBranch(branchName) ? version : "${version}-${getSafeBranchName(branchName)}"
         }
         else if (describe.matches(".*-\\d+-g[0-9a-f]+\$")) {
             def parts = describe.split("-")
             def baseVersion = parts[0].replaceAll("^v", "")
-            if (baseVersion.contains("-")) {
-                baseVersion = baseVersion.split("-")[0]
-            }
             def commitsAfterTag = parts[1]
+            
+            if (commitsAfterTag == "0") {
+                return baseVersion
+            }
+            
             def suffix = isMainBranch(branchName) ? "" : "-${getSafeBranchName(branchName)}"
             return "${baseVersion}.${commitsAfterTag}${suffix}"
         }
