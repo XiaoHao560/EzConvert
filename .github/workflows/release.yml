@@ -33,7 +33,9 @@ jobs:
             echo "Changelog file found"
             echo "changelog_exists=true" >> $GITHUB_OUTPUT
             
-            CONTENT=$(cat "$CHANGELOG_FILE" | sed 's/\\/\\\\/g; s/"/\\"/g; s/$/\\n/' | tr -d '\n')
+            CONTENT=$(cat "$CHANGELOG_FILE")
+            CONTENT="${CONTENT//\"/\\\"}"
+            CONTENT="${CONTENT//$'\n'/\\n}"
             echo "release_body=$CONTENT" >> $GITHUB_OUTPUT
           else
             echo "Warning: Changelog file $CHANGELOG_FILE not found"
