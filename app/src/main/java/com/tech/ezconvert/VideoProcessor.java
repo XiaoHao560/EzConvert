@@ -9,7 +9,6 @@ public class VideoProcessor {
     // 视频转换
     public static void convertVideo(String inputPath, String outputPath, 
                                    String format, FFmpegUtil.FFmpegCallback callback, Context context) {
-        String[] command;
         String outputFile = outputPath + "." + getFileExtension(format);
         
         boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
@@ -17,111 +16,124 @@ public class VideoProcessor {
         
         Log.d("VideoProcessor", "硬件加速: " + hardwareAcceleration + ", 多线程: " + multithreading);
         
-        // 基础命令
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
         commandList.add(inputPath);
         
         if (multithreading) {
             commandList.add("-threads");
-            commandList.add("0"); // 0则自动选择线程数
+            commandList.add("0");
         }
         
         switch (format.toLowerCase()) {
             case "mp4":
+            case "mov":
                 if (hardwareAcceleration) {
-                    // 硬件加速版本
+                    // FFmpegKit 6.0 应该支持这些硬件编码器
                     commandList.add("-c:v");
                     commandList.add("h264_mediacodec");
-                    commandList.add("-c:a");
-                    commandList.add("aac");
+                    commandList.add("-b:v");
+                    commandList.add("2000k");
                 } else {
-                    // 软件编码版本
                     commandList.add("-c:v");
                     commandList.add("libx264");
                     commandList.add("-preset");
                     commandList.add("medium");
                     commandList.add("-crf");
                     commandList.add("23");
-                    commandList.add("-c:a");
-                    commandList.add("aac");
                 }
+                commandList.add("-c:a");
+                commandList.add("aac");
+                commandList.add("-b:a");
+                commandList.add("128k");
                 commandList.add("-movflags");
                 commandList.add("+faststart");
                 break;
                 
-            case "avi":
-                commandList.add("-c:v");
-                commandList.add("mpeg4");
-                commandList.add("-c:a");
-                commandList.add("mp3");
-                commandList.add("-q:v");
-                commandList.add("5");
-                break;
-                
-            case "mov":
+            case "mkv":
                 if (hardwareAcceleration) {
                     commandList.add("-c:v");
-                    commandList.add("h264_mediacodec");
-                    commandList.add("-c:a");
-                    commandList.add("aac");
+                    commandList.add("hevc_mediacodec");
+                    commandList.add("-b:v");
+                    commandList.add("2000k");
                 } else {
                     commandList.add("-c:v");
-                    commandList.add("libx264");
+                    commandList.add("libx265");
                     commandList.add("-preset");
                     commandList.add("medium");
                     commandList.add("-crf");
-                    commandList.add("23");
-                    commandList.add("-c:a");
-                    commandList.add("aac");
+                    commandList.add("28");
                 }
-                break;
-                
-            case "mkv":
-                commandList.add("-c:v");
-                commandList.add("libx264");
                 commandList.add("-c:a");
                 commandList.add("aac");
-                break;
-                
-            case "flv":
-                commandList.add("-c:v");
-                commandList.add("flv");
-                commandList.add("-c:a");
-                commandList.add("mp3");
+                commandList.add("-b:a");
+                commandList.add("128k");
                 break;
                 
             case "webm":
                 commandList.add("-c:v");
                 commandList.add("libvpx-vp9");
-                commandList.add("-c:a");
-                commandList.add("libopus");
                 commandList.add("-b:v");
                 commandList.add("1M");
+                commandList.add("-c:a");
+                commandList.add("libopus");
+                break;
+                
+            case "avi":
+                commandList.add("-c:v");
+                commandList.add("mpeg4");
+                commandList.add("-q:v");
+                commandList.add("5");
+                commandList.add("-c:a");
+                commandList.add("libmp3lame");
+                commandList.add("-b:a");
+                commandList.add("192k");
+                break;
+                
+            case "flv":
+                commandList.add("-c:v");
+                commandList.add("libx264");
+                commandList.add("-preset");
+                commandList.add("fast");
+                commandList.add("-c:a");
+                commandList.add("aac");
+                commandList.add("-b:a");
+                commandList.add("128k");
                 break;
                 
             case "gif":
                 commandList.add("-vf");
                 commandList.add("fps=10,scale=480:-1:flags=lanczos");
-                commandList.add("-c:v");
-                commandList.add("gif");
+                commandList.add("-pix_fmt");
+                commandList.add("rgb24");
+                commandList.add("-loop");
+                commandList.add("0");
                 break;
                 
             default:
-                commandList.add("-c:v");
-                commandList.add("libx264");
+                if (hardwareAcceleration) {
+                    commandList.add("-c:v");
+                    commandList.add("h264_mediacodec");
+                    commandList.add("-b:v");
+                    commandList.add("2000k");
+                } else {
+                    commandList.add("-c:v");
+                    commandList.add("libx264");
+                    commandList.add("-preset");
+                    commandList.add("medium");
+                    commandList.add("-crf");
+                    commandList.add("23");
+                }
                 commandList.add("-c:a");
                 commandList.add("aac");
+                commandList.add("-b:a");
+                commandList.add("128k");
         }
         
-        // 通用参数
-        commandList.add("-strict");
-        commandList.add("-2");
         commandList.add("-y");
         commandList.add(outputFile);
         
-        command = commandList.toArray(new String[0]);
-        
+        String[] command = commandList.toArray(new String[0]);
         Log.d("VideoProcessor", "转换命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
     }
@@ -151,6 +163,8 @@ public class VideoProcessor {
         if (hardwareAcceleration) {
             commandList.add("-c:v");
             commandList.add("h264_mediacodec");
+            commandList.add("-b:v");
+            commandList.add(getBitrateForQuality(quality) + "k");
         } else {
             commandList.add("-c:v");
             commandList.add("libx264");
@@ -164,13 +178,10 @@ public class VideoProcessor {
         commandList.add("aac");
         commandList.add("-movflags");
         commandList.add("+faststart");
-        commandList.add("-strict");
-        commandList.add("-2");
         commandList.add("-y");
         commandList.add(outputFile);
         
         String[] command = commandList.toArray(new String[0]);
-        
         Log.d("VideoProcessor", "压缩命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
     }
@@ -202,19 +213,18 @@ public class VideoProcessor {
         } else {
             commandList.add("-c:v");
             commandList.add("libx264");
+            commandList.add("-preset");
+            commandList.add("fast");
         }
         
         commandList.add("-c:a");
         commandList.add("aac");
         commandList.add("-avoid_negative_ts");
         commandList.add("make_zero");
-        commandList.add("-strict");
-        commandList.add("-2");
         commandList.add("-y");
         commandList.add(outputPath);
         
         String[] command = commandList.toArray(new String[0]);
-        
         Log.d("VideoProcessor", "裁剪命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
     }
@@ -267,17 +277,16 @@ public class VideoProcessor {
         } else {
             commandList.add("-c:v");
             commandList.add("libx264");
+            commandList.add("-preset");
+            commandList.add("fast");
         }
         
         commandList.add("-c:a");
         commandList.add("aac");
-        commandList.add("-strict");
-        commandList.add("-2");
         commandList.add("-y");
         commandList.add(outputPath);
         
         String[] command = commandList.toArray(new String[0]);
-        
         Log.d("VideoProcessor", "水印命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
     }
@@ -308,17 +317,16 @@ public class VideoProcessor {
         } else {
             commandList.add("-c:v");
             commandList.add("libx264");
+            commandList.add("-preset");
+            commandList.add("fast");
         }
         
         commandList.add("-c:a");
         commandList.add("aac");
-        commandList.add("-strict");
-        commandList.add("-2");
         commandList.add("-y");
         commandList.add(outputPath);
         
         String[] command = commandList.toArray(new String[0]);
-        
         Log.d("VideoProcessor", "调整分辨率命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
     }
@@ -347,7 +355,6 @@ public class VideoProcessor {
         commandList.add(outputPath);
         
         String[] command = commandList.toArray(new String[0]);
-        
         Log.d("VideoProcessor", "截图命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
     }
@@ -384,13 +391,10 @@ public class VideoProcessor {
         commandList.add("-map");
         commandList.add("1:a:0");
         commandList.add("-shortest");
-        commandList.add("-strict");
-        commandList.add("-2");
         commandList.add("-y");
         commandList.add(outputPath);
         
         String[] command = commandList.toArray(new String[0]);
-        
         Log.d("VideoProcessor", "合并音视频命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
     }
@@ -399,17 +403,20 @@ public class VideoProcessor {
     private static String getFileExtension(String format) {
         switch (format.toLowerCase()) {
             case "mp4": return "mp4";
-            case "avi": return "avi";
             case "mov": return "mov";
             case "mkv": return "mkv";
-            case "flv": return "flv";
             case "webm": return "webm";
+            case "avi": return "avi";
+            case "flv": return "flv";
             case "gif": return "gif";
-            case "mp3": return "mp3";
-            case "wav": return "wav";
-            case "aac": return "aac";
-            case "flac": return "flac";
             default: return "mp4";
         }
+    }
+    
+    // 根据质量获取比特率
+    private static int getBitrateForQuality(int quality) {
+        if (quality >= 90) return 4000; // 高质量
+        if (quality >= 70) return 2000; // 中等质量
+        return 1000; // 低质量
     }
 }

@@ -128,7 +128,7 @@ android {
 
     defaultConfig {
         applicationId "com.tech.ezconvert"
-        minSdk 21
+        minSdk 24
         targetSdk 33
         
         versionCode getGitVersionCode()
@@ -190,8 +190,12 @@ dependencies {
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     
-    implementation 'com.arthenica:mobile-ffmpeg-full:4.4.LTS'
-    
+    //implementation 'com.arthenica:mobile-ffmpeg-full:4.4.LTS'
+    //implementation 'com.github.jiusanzhou:mobile-ffmpeg-mediacodec:4.4.LTS.1'
+    //implementation 'com.github.arthenica:mobile-ffmpeg:full-gpl-4.4.LTS'
+    //implementation files('libs/mobile-ffmpeg-full-gpl-4.4.LTS.aar')
+    implementation 'com.arthenica:ffmpeg-kit-full-gpl:6.0-2'
+
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'

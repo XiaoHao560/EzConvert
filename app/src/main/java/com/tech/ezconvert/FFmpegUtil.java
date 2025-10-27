@@ -4,16 +4,17 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-import com.arthenica.mobileffmpeg.FFmpeg;
-import com.arthenica.mobileffmpeg.ExecuteCallback;
-import com.arthenica.mobileffmpeg.Config;
-import com.arthenica.mobileffmpeg.Level;
-import com.arthenica.mobileffmpeg.LogCallback;
+import com.arthenica.ffmpegkit.FFmpegKit;
+import com.arthenica.ffmpegkit.FFmpegSession;
+import com.arthenica.ffmpegkit.FFmpegSessionCompleteCallback;
+import com.arthenica.ffmpegkit.LogCallback;
+import com.arthenica.ffmpegkit.ReturnCode;
+import com.arthenica.ffmpegkit.FFmpegKitConfig;
 
 public class FFmpegUtil {
 
     private static final String TAG = "FFmpegUtil";
-    private static long currentExecutionId = 0;
+    private static FFmpegSession currentSession = null;
     private static ProgressSimulator progressSimulator;
 
     public interface FFmpegCallback {
@@ -25,39 +26,55 @@ public class FFmpegUtil {
     public static void initLogging(Context context) {
         SharedPreferences sp = context.getSharedPreferences("debug_settings", Context.MODE_PRIVATE);
         boolean verbose = sp.getBoolean("log_verbose", false);
-        Config.setLogLevel(verbose ? Level.AV_LOG_DEBUG : Level.AV_LOG_ERROR);
-        Config.enableLogCallback(new LogCallback() {
-            @Override
-            public void apply(com.arthenica.mobileffmpeg.LogMessage msg) {
-                String line = msg.getText();
-                Log.d("FFmpegLog", line);
-                LogViewerActivity.appendLog(line);
-            }
-        });
+        
+        // FFmpegKit 的日志级别设置
+        if (verbose) {
+            FFmpegKitConfig.enableLogCallback(new LogCallback() {
+                @Override
+                public void apply(com.arthenica.ffmpegkit.Log log) {
+                    String line = log.getMessage();
+                    Log.d("FFmpegLog", line);
+                    LogViewerActivity.appendLog(line);
+                }
+            });
+        } else {
+            // 禁用详细日志
+            FFmpegKitConfig.enableLogCallback(null);
+        }
     }
 
     public static void executeCommand(String[] command, FFmpegCallback callback) {
         Log.d(TAG, "执行命令: " + String.join(" ", command));
         stopProgressSimulation();
 
-        currentExecutionId = FFmpeg.executeAsync(command, new ExecuteCallback() {
+        String commandString = String.join(" ", command);
+        
+        currentSession = FFmpegKit.executeAsync(commandString, new FFmpegSessionCompleteCallback() {
             @Override
-            public void apply(long executionId, int returnCode) {
-                Log.d(TAG, "命令执行完成，返回码: " + returnCode);
-                currentExecutionId = 0;
+            public void apply(FFmpegSession session) {
+                ReturnCode returnCode = session.getReturnCode();
+                Log.d(TAG, "命令执行完成，返回码: " + (returnCode != null ? returnCode.getValue() : "null"));
+                
                 stopProgressSimulation();
                 if (callback != null) {
-                    if (returnCode == 0) {
+                    if (ReturnCode.isSuccess(returnCode)) {
                         callback.onComplete(true, "处理完成");
                     } else {
-                        callback.onComplete(false, "处理失败，返回码: " + returnCode);
+                        String errorMessage = "处理失败";
+                        if (session.getFailStackTrace() != null) {
+                            errorMessage += ": " + session.getFailStackTrace();
+                        } else if (returnCode != null) {
+                            errorMessage += "，返回码: " + returnCode.getValue();
+                        }
+                        callback.onComplete(false, errorMessage);
                     }
                 }
+                currentSession = null;
             }
         });
 
         startProgressSimulation(callback);
-        if (currentExecutionId <= 0 && callback != null) {
+        if (currentSession == null && callback != null) {
             callback.onError("命令执行失败，无法启动FFmpeg进程");
         }
     }
@@ -81,15 +98,16 @@ public class FFmpegUtil {
 
     public static void cancelCurrentTask() {
         stopProgressSimulation();
-        if (currentExecutionId != 0) {
-            FFmpeg.cancel(currentExecutionId);
-            currentExecutionId = 0;
+        if (currentSession != null) {
+            FFmpegKit.cancel(currentSession.getSessionId());
+            currentSession = null;
         }
     }
 
     public static String getVersion() {
         try {
-            return "4.4.LTS";
+            // FFmpegKit 6.0 版本
+            return "6.0-2";
         } catch (Exception e) {
             Log.w(TAG, "获取FFmpeg版本失败", e);
             return "未知版本";
@@ -127,7 +145,7 @@ public class FFmpegUtil {
             try {
                 while (running && progress < 95) {
                     Thread.sleep(500);
-                    if (currentExecutionId == 0) {
+                    if (currentSession == null || currentSession.getState().equals(com.arthenica.ffmpegkit.SessionState.COMPLETED)) {
                         callback.onProgress(100, System.currentTimeMillis() - start);
                         break;
                     }
