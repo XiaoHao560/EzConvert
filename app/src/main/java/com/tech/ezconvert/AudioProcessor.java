@@ -9,7 +9,6 @@ public class AudioProcessor {
     // 音频转换
     public static void convertAudio(String inputPath, String outputPath,
                                    String format, FFmpegUtil.FFmpegCallback callback, Context context) {
-        String[] command;
         String outputFile = outputPath + "." + getAudioExtension(format);
         
         boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
@@ -25,7 +24,7 @@ public class AudioProcessor {
         
         switch (format.toLowerCase()) {
             case "mp3":
-                commandList.add("-codec:a");
+                commandList.add("-c:a");
                 commandList.add("libmp3lame");
                 commandList.add("-b:a");
                 commandList.add("192k");
@@ -34,39 +33,46 @@ public class AudioProcessor {
                 break;
                 
             case "wav":
-                commandList.add("-codec:a");
+                commandList.add("-c:a");
                 commandList.add("pcm_s16le");
                 commandList.add("-ac");
                 commandList.add("2");
                 break;
                 
             case "aac":
-                commandList.add("-codec:a");
+                commandList.add("-c:a");
                 commandList.add("aac");
                 commandList.add("-b:a");
                 commandList.add("128k");
                 commandList.add("-ac");
                 commandList.add("2");
-                commandList.add("-strict");
-                commandList.add("-2");
                 break;
                 
             case "flac":
-                commandList.add("-codec:a");
+                commandList.add("-c:a");
                 commandList.add("flac");
                 commandList.add("-compression_level");
                 commandList.add("8");
                 break;
                 
             case "ogg":
-                commandList.add("-codec:a");
+                commandList.add("-c:a");
                 commandList.add("libvorbis");
                 commandList.add("-q:a");
                 commandList.add("4");
                 break;
                 
+            case "m4a":
+                commandList.add("-c:a");
+                commandList.add("aac");
+                commandList.add("-b:a");
+                commandList.add("128k");
+                commandList.add("-ac");
+                commandList.add("2");
+                break;
+                
             default:
-                commandList.add("-codec:a");
+                commandList.add("-c:a");
                 commandList.add("libmp3lame");
                 commandList.add("-b:a");
                 commandList.add("192k");
@@ -77,8 +83,7 @@ public class AudioProcessor {
         commandList.add("-y");
         commandList.add(outputFile);
         
-        command = commandList.toArray(new String[0]);
-        
+        String[] command = commandList.toArray(new String[0]);
         Log.d("AudioProcessor", "音频转换命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
     }
@@ -86,7 +91,6 @@ public class AudioProcessor {
     // 音频提取（从视频）
     public static void extractAudioFromVideo(String inputPath, String outputPath,
                                            String format, FFmpegUtil.FFmpegCallback callback, Context context) {
-        String[] command;
         String outputFile = outputPath + "." + getAudioExtension(format);
         
         boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
@@ -104,7 +108,7 @@ public class AudioProcessor {
         
         switch (format.toLowerCase()) {
             case "mp3":
-                commandList.add("-acodec");
+                commandList.add("-c:a");
                 commandList.add("libmp3lame");
                 commandList.add("-b:a");
                 commandList.add("192k");
@@ -113,32 +117,39 @@ public class AudioProcessor {
                 break;
                 
             case "wav":
-                commandList.add("-acodec");
+                commandList.add("-c:a");
                 commandList.add("pcm_s16le");
                 commandList.add("-ac");
                 commandList.add("2");
                 break;
                 
             case "aac":
-                commandList.add("-acodec");
+                commandList.add("-c:a");
                 commandList.add("aac");
                 commandList.add("-b:a");
                 commandList.add("128k");
                 commandList.add("-ac");
                 commandList.add("2");
-                commandList.add("-strict");
-                commandList.add("-2");
                 break;
                 
             case "flac":
-                commandList.add("-acodec");
+                commandList.add("-c:a");
                 commandList.add("flac");
                 commandList.add("-compression_level");
                 commandList.add("8");
                 break;
                 
+            case "m4a":
+                commandList.add("-c:a");
+                commandList.add("aac");
+                commandList.add("-b:a");
+                commandList.add("128k");
+                commandList.add("-ac");
+                commandList.add("2");
+                break;
+                
             default:
-                commandList.add("-acodec");
+                commandList.add("-c:a");
                 commandList.add("libmp3lame");
                 commandList.add("-b:a");
                 commandList.add("192k");
@@ -149,8 +160,7 @@ public class AudioProcessor {
         commandList.add("-y");
         commandList.add(outputFile);
         
-        command = commandList.toArray(new String[0]);
-        
+        String[] command = commandList.toArray(new String[0]);
         Log.d("AudioProcessor", "音频提取命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
     }
@@ -178,7 +188,6 @@ public class AudioProcessor {
         commandList.add(outputPath);
         
         String[] command = commandList.toArray(new String[0]);
-        
         Log.d("AudioProcessor", "调整音频质量命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
     }
@@ -210,7 +219,6 @@ public class AudioProcessor {
         commandList.add(outputPath);
         
         String[] command = commandList.toArray(new String[0]);
-        
         Log.d("AudioProcessor", "音频裁剪命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
     }
@@ -240,7 +248,6 @@ public class AudioProcessor {
         commandList.add(outputPath);
         
         String[] command = commandList.toArray(new String[0]);
-        
         Log.d("AudioProcessor", "音频淡入淡出命令: " + String.join(" ", command));
         FFmpegUtil.executeCommand(command, callback);
     }

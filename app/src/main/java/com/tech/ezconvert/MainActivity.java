@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         
         // 显示版本信息
         String ffmpegVersion = FFmpegUtil.getVersion();
-        versionText.setText("EzConvert v0.3.0 | FFmpeg: " + ffmpegVersion);
+        versionText.setText("EzConvert v0.3.1 | FFmpeg: " + ffmpegVersion);
         
         // 检查权限状态
         PermissionManager.checkPermissionStatus(this);
