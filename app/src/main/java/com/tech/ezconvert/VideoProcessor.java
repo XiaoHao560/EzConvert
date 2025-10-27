@@ -29,7 +29,6 @@ public class VideoProcessor {
             case "mp4":
             case "mov":
                 if (hardwareAcceleration) {
-                    // FFmpegKit 6.0 应该支持这些硬件编码器
                     commandList.add("-c:v");
                     commandList.add("h264_mediacodec");
                     commandList.add("-b:v");
@@ -51,19 +50,14 @@ public class VideoProcessor {
                 break;
                 
             case "mkv":
-                if (hardwareAcceleration) {
-                    commandList.add("-c:v");
-                    commandList.add("hevc_mediacodec");
-                    commandList.add("-b:v");
-                    commandList.add("2000k");
-                } else {
-                    commandList.add("-c:v");
-                    commandList.add("libx265");
-                    commandList.add("-preset");
-                    commandList.add("medium");
-                    commandList.add("-crf");
-                    commandList.add("28");
-                }
+                // MKV 格式不使用硬件加速，因为硬件编码器与 MKV 兼容性不好
+                // 使用软件编码器确保兼容性
+                commandList.add("-c:v");
+                commandList.add("libx265");
+                commandList.add("-preset");
+                commandList.add("medium");
+                commandList.add("-crf");
+                commandList.add("28");
                 commandList.add("-c:a");
                 commandList.add("aac");
                 commandList.add("-b:a");

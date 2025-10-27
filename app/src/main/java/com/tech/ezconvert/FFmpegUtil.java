@@ -7,6 +7,7 @@ import android.util.Log;
 import com.arthenica.ffmpegkit.FFmpegKit;
 import com.arthenica.ffmpegkit.FFmpegSession;
 import com.arthenica.ffmpegkit.FFmpegSessionCompleteCallback;
+import com.arthenica.ffmpegkit.Level;
 import com.arthenica.ffmpegkit.LogCallback;
 import com.arthenica.ffmpegkit.ReturnCode;
 import com.arthenica.ffmpegkit.FFmpegKitConfig;
@@ -25,22 +26,40 @@ public class FFmpegUtil {
 
     public static void initLogging(Context context) {
         SharedPreferences sp = context.getSharedPreferences("debug_settings", Context.MODE_PRIVATE);
-        boolean verbose = sp.getBoolean("log_verbose", false);
+        boolean verbose = sp.getBoolean("log_verbose", true);
         
-        // FFmpegKit 的日志级别设置
-        if (verbose) {
-            FFmpegKitConfig.enableLogCallback(new LogCallback() {
+        // 日志级别设置
+        FFmpegKitConfig.enableLogCallback(new LogCallback() {
                 @Override
                 public void apply(com.arthenica.ffmpegkit.Log log) {
                     String line = log.getMessage();
-                    Log.d("FFmpegLog", line);
+                    Level level = log.getLevel();
+                    
+                    switch (level) {
+                        case AV_LOG_ERROR:
+                            Log.e("FFmpegLog", line);
+                            break;
+                        case AV_LOG_WARNING:
+                            Log.w("FFmpegLog", line);
+                            break;
+                        case AV_LOG_INFO:
+                            Log.i("FFmpegLog", line);
+                            break;
+                        case AV_LOG_DEBUG:
+                            if (verbose) {
+                                Log.d("FFmpegLog", line);
+                            }
+                            break;
+                        default:
+                            if (verbose) {
+                                Log.v("FFmoegLog", line);
+                            }
+                            break;
+                    }
+                    
                     LogViewerActivity.appendLog(line);
                 }
-            });
-        } else {
-            // 禁用详细日志
-            FFmpegKitConfig.enableLogCallback(null);
-        }
+        });
     }
 
     public static void executeCommand(String[] command, FFmpegCallback callback) {
@@ -106,7 +125,6 @@ public class FFmpegUtil {
 
     public static String getVersion() {
         try {
-            // FFmpegKit 6.0 版本
             return "6.0-2";
         } catch (Exception e) {
             Log.w(TAG, "获取FFmpeg版本失败", e);

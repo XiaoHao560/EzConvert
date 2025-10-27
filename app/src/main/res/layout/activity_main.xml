@@ -70,6 +70,7 @@
                  android:layout_width="match_parent"
                  style="?android:attr/progressBarStyleHorizontal"
                  android:progress="0"
+                 android:progressTint="#2196F3"
                  android:id="@+id/progress_bar" />
 
             <TextView
