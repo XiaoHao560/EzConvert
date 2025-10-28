@@ -24,50 +24,98 @@ public class PermissionManager {
     
     public interface PermissionCallback {
         void onAllPermissionsGranted();
-        void onPartialPermissionsGranted();
         void onPermissionsDenied();
     }
     
-    // 检查必要权限
+    // 检查是否拥有所有必要权限
     public static boolean checkAllPermissions(Context context) {
         return checkBasicPermissions(context) && 
                checkMediaPermissions(context) && 
                checkStorageAccess(context);
     }
     
-    // 请求必要权限
-    public static void requestNecessaryPermissions(Activity activity, int requestCode) {
-        List<String> permissionsToRequest = getMissingPermissions(activity);
-        
-        if (!permissionsToRequest.isEmpty()) {
-            Log.d(TAG, "请求权限: " + permissionsToRequest);
-            ActivityCompat.requestPermissions(activity, 
-                permissionsToRequest.toArray(new String[0]), requestCode);
-        } else if (!checkStorageAccess(activity)) {
-            // 没有权限要请求，但存储访问仍受限，请求所有文件访问权限
-            requestAllFilesAccess(activity);
+    // 检查是否有基本的媒体访问权限（用于决定按钮是否可用）
+    public static boolean hasMediaAccessPermissions(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Android 13+ 需要媒体权限
+            return checkMediaPermissions(context);
         } else {
-            Log.d(TAG, "所有权限已授予");
+            // Android 12以下需要存储权限
+            return checkBasicPermissions(context);
         }
     }
     
-    // 获取缺失权限列表
+    // 请求必要的权限（初次启动时申请）
+    public static void requestInitialPermissions(Activity activity, int requestCode) {
+        Log.d(TAG, "请求初始权限");
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Android 13+ 直接请求媒体权限
+            requestMediaPermissions(activity, requestCode);
+        } else {
+            // Android 12以下请求存储权限
+            requestBasicPermissions(activity, requestCode);
+        }
+    }
+    
+     // 请求媒体权限（Android 13+）
+    private static void requestMediaPermissions(Activity activity, int requestCode) {
+        List<String> permissionsToRequest = new ArrayList<>();
+        
+        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_MEDIA_VIDEO) 
+                != PackageManager.PERMISSION_GRANTED) {
+            permissionsToRequest.add(Manifest.permission.READ_MEDIA_VIDEO);
+        }
+        
+        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_MEDIA_AUDIO) 
+                != PackageManager.PERMISSION_GRANTED) {
+            permissionsToRequest.add(Manifest.permission.READ_MEDIA_AUDIO);
+        }
+        
+        if (!permissionsToRequest.isEmpty()) {
+            Log.d(TAG, "请求媒体权限: " + permissionsToRequest);
+            ActivityCompat.requestPermissions(activity, 
+                permissionsToRequest.toArray(new String[0]), requestCode);
+        } else {
+            Log.d(TAG, "已有所有媒体权限");
+            if (activity instanceof MainActivity) {
+                ((MainActivity) activity).onPermissionsGranted();
+            }
+        }
+    }
+    
+    //请求基础存储权限（Android 12以下）
+    private static void requestBasicPermissions(Activity activity, int requestCode) {
+        List<String> permissionsToRequest = new ArrayList<>();
+        
+        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE) 
+                != PackageManager.PERMISSION_GRANTED) {
+            permissionsToRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+        }
+        
+        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) 
+                != PackageManager.PERMISSION_GRANTED) {
+            permissionsToRequest.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        }
+        
+        if (!permissionsToRequest.isEmpty()) {
+            Log.d(TAG, "请求基础权限: " + permissionsToRequest);
+            ActivityCompat.requestPermissions(activity, 
+                permissionsToRequest.toArray(new String[0]), requestCode);
+        } else {
+            Log.d(TAG, "已有所有基础权限");
+            if (activity instanceof MainActivity) {
+                ((MainActivity) activity).onPermissionsGranted();
+            }
+        }
+    }
+    
+     // 查看缺失的权限列表
     public static List<String> getMissingPermissions(Context context) {
         List<String> missingPermissions = new ArrayList<>();
         
-        // 基础存储权限
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) 
-                != PackageManager.PERMISSION_GRANTED) {
-            missingPermissions.add(Manifest.permission.READ_EXTERNAL_STORAGE);
-        }
-        
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) 
-                != PackageManager.PERMISSION_GRANTED) {
-            missingPermissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        }
-        
-        // 媒体权限 (Android 13+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Android 13+ 检查媒体权限
             if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_VIDEO) 
                     != PackageManager.PERMISSION_GRANTED) {
                 missingPermissions.add(Manifest.permission.READ_MEDIA_VIDEO);
@@ -77,12 +125,23 @@ public class PermissionManager {
                     != PackageManager.PERMISSION_GRANTED) {
                 missingPermissions.add(Manifest.permission.READ_MEDIA_AUDIO);
             }
+        } else {
+            // Android 12以下检查存储权限
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) 
+                    != PackageManager.PERMISSION_GRANTED) {
+                missingPermissions.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+            }
+            
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) 
+                    != PackageManager.PERMISSION_GRANTED) {
+                missingPermissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            }
         }
         
         return missingPermissions;
     }
     
-    // 检查基础存储权限
+     // 检查基础存储权限
     public static boolean checkBasicPermissions(Context context) {
         boolean hasRead = ContextCompat.checkSelfPermission(context, 
             Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
@@ -93,10 +152,10 @@ public class PermissionManager {
         return hasRead && hasWrite;
     }
     
-    // 检查媒体权限（Android 13+）
+     // 检查媒体权限（Android 13+）
     public static boolean checkMediaPermissions(Context context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            return true; // Android 12及以下不需要媒体权限
+            return true;
         }
         
         boolean hasVideo = ContextCompat.checkSelfPermission(context, 
@@ -108,7 +167,7 @@ public class PermissionManager {
         return hasVideo && hasAudio;
     }
     
-    // 检查实际存储访问能力
+     // 检查是否真的可以存储
     public static boolean checkStorageAccess(Context context) {
         try {
             File downloadsDir = Environment.getExternalStoragePublicDirectory(
@@ -132,40 +191,7 @@ public class PermissionManager {
         }
     }
     
-    // 请求所有文件访问权限 (Android 11+)
-    public static void requestAllFilesAccess(Activity activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (!Environment.isExternalStorageManager()) {
-                Log.d(TAG, "请求所有文件访问权限");
-                
-                try {
-                    Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
-                    Uri uri = Uri.fromParts("package", activity.getPackageName(), null);
-                    intent.setData(uri);
-                    activity.startActivityForResult(intent, 102);
-                } catch (Exception e) {
-                    Log.e(TAG, "无法打开所有文件访问设置", e);
-                    openAppSettings(activity);
-                }
-            } else {
-                Log.d(TAG, "已有所有文件访问权限");
-            }
-        }
-    }
-    
-    // 打开应用设置界面
-    public static void openAppSettings(Activity activity) {
-        try {
-            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-            Uri uri = Uri.fromParts("package", activity.getPackageName(), null);
-            intent.setData(uri);
-            activity.startActivity(intent);
-        } catch (Exception e) {
-            Log.e(TAG, "无法打开设置页面", e);
-        }
-    }
-    
-    // 处理权限请求结果
+     // 处理权限请求
     public static void handlePermissionResult(Activity activity, int requestCode, 
                                             String[] permissions, int[] grantResults) {
         Log.d(TAG, "处理权限请求结果");
@@ -181,55 +207,36 @@ public class PermissionManager {
             
             if (allGranted) {
                 Log.d(TAG, "所有请求的权限已授予");
-                if (checkStorageAccess(activity)) {
-                    // 权限完全通过
-                    if (activity instanceof MainActivity) {
-                        ((MainActivity) activity).onPermissionsGranted();
-                    }
-                } else {
-                    // 需要所有文件访问权限
-                    requestAllFilesAccess(activity);
+                if (activity instanceof MainActivity) {
+                    ((MainActivity) activity).onPermissionsGranted();
                 }
             } else {
                 Log.d(TAG, "部分或全部权限被拒绝");
-                // 重新检查当前权限状态
-                checkPermissionStatus(activity);
+                if (activity instanceof MainActivity) {
+                    ((MainActivity) activity).onPermissionsDenied();
+                }
             }
         }
     }
     
-    // 检查当前权限状态
+     // 检查当前权限状态
     public static void checkPermissionStatus(Activity activity) {
-        boolean hasBasicPermissions = checkBasicPermissions(activity);
-        boolean hasMediaPermissions = checkMediaPermissions(activity);
-        boolean hasStorageAccess = checkStorageAccess(activity);
+        boolean hasRequiredPermissions = hasMediaAccessPermissions(activity);
         
-        Log.d(TAG, "权限状态 - 基础: " + hasBasicPermissions + 
-              ", 媒体: " + hasMediaPermissions + ", 存储访问: " + hasStorageAccess);
+        Log.d(TAG, "权限状态 - 所需权限: " + hasRequiredPermissions);
         
-        if (hasStorageAccess) {
-            // 权限完全通过
+        if (hasRequiredPermissions) {
+            // 有权限
             if (activity instanceof MainActivity) {
                 ((MainActivity) activity).onPermissionsGranted();
             }
-        } else if (hasBasicPermissions || hasMediaPermissions) {
-            // 有部分权限但无法访问存储，需要申请更多权限
-            if (activity instanceof MainActivity) {
-                ((MainActivity) activity).updateStatus("部分权限已授予，但需要更多权限来访问文件");
-            }
-            requestNecessaryPermissions(activity, 100);
         } else {
-            // 没有任何权限
+            // 没有权限
             if (activity instanceof MainActivity) {
-                ((MainActivity) activity).updateStatus("需要存储权限来访问媒体文件");
+                ((MainActivity) activity).onPermissionsDenied();
             }
-            requestNecessaryPermissions(activity, 100);
+            // 申请权限
+            requestInitialPermissions(activity, 100);
         }
-    }
-    
-    // 处理所有文件访问权限请求结果
-    public static void handleAllFilesAccessResult(Activity activity) {
-        Log.d(TAG, "处理所有文件访问权限结果");
-        checkPermissionStatus(activity);
     }
 }
