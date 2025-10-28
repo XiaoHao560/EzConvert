@@ -33,14 +33,13 @@ jobs:
             echo "Changelog file found"
             echo "changelog_exists=true" >> $GITHUB_OUTPUT
             
-            CONTENT=$(cat "$CHANGELOG_FILE")
-            CONTENT="${CONTENT//\"/\\\"}"
-            CONTENT="${CONTENT//$'\n'/\\n}"
-            echo "release_body=$CONTENT" >> $GITHUB_OUTPUT
+            cat "$CHANGELOG_FILE" > release_body.md
           else
             echo "Warning: Changelog file $CHANGELOG_FILE not found"
             echo "changelog_exists=false" >> $GITHUB_OUTPUT
-            echo "release_body=## $TAG_NAME\n\n> 自动构建版本，详情请查看项目文档。" >> $GITHUB_OUTPUT
+            echo "## $TAG_NAME" > release_body.md
+            echo "" >> release_body.md
+            echo "> 自动构建版本，详情请查看项目文档。" >> release_body.md
           fi
 
       - name: Decide variant
@@ -82,7 +81,6 @@ jobs:
           files: app/build/outputs/apk/${{ steps.variant.outputs.variant }}/*.apk
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
-          body: |
-            ${{ steps.changelog.outputs.release_body }}
+          body_path: release_body.md
           prerelease: ${{ steps.variant.outputs.is_prerelease }}
           draft: false
