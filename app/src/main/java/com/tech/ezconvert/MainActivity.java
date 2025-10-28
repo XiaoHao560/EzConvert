@@ -43,7 +43,11 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         
         // 显示版本信息
         String ffmpegVersion = FFmpegUtil.getVersion();
-        versionText.setText("EzConvert v0.3.1 | FFmpeg: " + ffmpegVersion);
+        versionText.setText("EzConvert v0.3.2 | FFmpegKit: " + ffmpegVersion);
+        
+        // 初始按钮状态
+        setFunctionButtonsEnabled(false);
+        updateStatus("正在检查权限...");
         
         // 检查权限状态
         PermissionManager.checkPermissionStatus(this);
@@ -70,10 +74,42 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         audioFormatSpinner = findViewById(R.id.audio_format_spinner);
         qualitySpinner = findViewById(R.id.quality_spinner);
         
+        // 按钮点击
         setupButtonListeners(settingsBtn);
+    }
+    
+    private void setupSpinners() {
+        // 视频格式
+        ArrayAdapter<CharSequence> videoAdapter = ArrayAdapter.createFromResource(
+            this,
+            R.array.video_formats,
+            android.R.layout.simple_spinner_item
+        );
+        videoAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        videoFormatSpinner.setAdapter(videoAdapter);
         
-        setFunctionButtonsEnabled(false);
-        updateStatus("正在检查权限状态...");
+        // 音频格式
+        ArrayAdapter<CharSequence> audioAdapter = ArrayAdapter.createFromResource(
+            this,
+            R.array.audio_formats,
+            android.R.layout.simple_spinner_item
+        );
+        audioAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        audioFormatSpinner.setAdapter(audioAdapter);
+        
+        // 质量
+        ArrayAdapter<CharSequence> qualityAdapter = ArrayAdapter.createFromResource(
+            this,
+            R.array.quality_options,
+            android.R.layout.simple_spinner_item
+        );
+        qualityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        qualitySpinner.setAdapter(qualityAdapter);
+        
+        // 默认选择
+        videoFormatSpinner.setSelection(0); // MP4
+        audioFormatSpinner.setSelection(0); // MP3
+        qualitySpinner.setSelection(1); // 中等
     }
     
     private void setupButtonListeners(ImageButton settingsBtn) {
@@ -82,19 +118,24 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
             startActivity(settingsIntent);
         });
         
+        // 文件选择按键
         selectFileBtn.setOnClickListener(v -> {
             if (permissionsGranted) {
                 openFilePicker();
             } else {
-                PermissionManager.requestNecessaryPermissions(this, PERMISSION_REQUEST_CODE);
+                Toast.makeText(this, "需要媒体访问权限才能选择文件", Toast.LENGTH_SHORT).show();
+                PermissionManager.requestInitialPermissions(this, PERMISSION_REQUEST_CODE);
             }
         });
         
         View.OnClickListener functionButtonListener = v -> {
             if (permissionsGranted && !currentInputPath.isEmpty()) {
                 handleFunctionButtonClick(v.getId());
+            } else if (!permissionsGranted) {
+                Toast.makeText(this, "请先授予权限并选择文件", Toast.LENGTH_SHORT).show();
+                PermissionManager.requestInitialPermissions(this, PERMISSION_REQUEST_CODE);
             } else {
-                PermissionManager.requestNecessaryPermissions(this, PERMISSION_REQUEST_CODE);
+                Toast.makeText(this, "请先选择文件", Toast.LENGTH_SHORT).show();
             }
         };
         
@@ -107,61 +148,52 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         cutAudioBtn.setOnClickListener(functionButtonListener);
     }
     
-    private void handleFunctionButtonClick(int buttonId) {
-        if (!permissionsGranted) {
-            Toast.makeText(this, "请先授予存储权限", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        
-        if (currentInputPath.isEmpty()) {
-            Toast.makeText(this, "请先选择文件", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        
-        if (buttonId == R.id.convert_btn) {
+    private void handleFunctionButtonClick(int viewId) {
+        if (viewId == R.id.convert_btn) {
             startConversion();
-        } else if (buttonId == R.id.compress_btn) {
+        } else if (viewId == R.id.compress_btn) {
             startCompression();
-        } else if (buttonId == R.id.extract_audio_btn) {
+        } else if (viewId == R.id.extract_audio_btn) {
             extractAudio();
-        } else if (buttonId == R.id.cut_video_btn) {
-            showCutVideoDialog();
-        } else if (buttonId == R.id.screenshot_btn) {
-            showScreenshotDialog();
-        } else if (buttonId == R.id.convert_audio_btn) {
+        } else if (viewId == R.id.convert_audio_btn) {
             convertAudio();
-        } else if (buttonId == R.id.cut_audio_btn) {
+        } else if (viewId == R.id.cut_video_btn) {
+            showCutVideoDialog();
+        } else if (viewId == R.id.screenshot_btn) {
+            showScreenshotDialog();
+        } else if (viewId == R.id.cut_audio_btn) {
             showCutAudioDialog();
+        } else {
+            Log.w("MainActivity", "未知的按钮ID: " + viewId);
         }
     }
     
-    private void setupSpinners() {
-        // 视频格式
-        ArrayAdapter<CharSequence> videoFormatAdapter = ArrayAdapter.createFromResource(
-            this, R.array.video_formats, android.R.layout.simple_spinner_item);
-        videoFormatAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        videoFormatSpinner.setAdapter(videoFormatAdapter);
-        
-        // 音频格式
-        ArrayAdapter<CharSequence> audioFormatAdapter = ArrayAdapter.createFromResource(
-            this, R.array.audio_formats, android.R.layout.simple_spinner_item);
-        audioFormatAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        audioFormatSpinner.setAdapter(audioFormatAdapter);
-        
-        // 质量选项
-        ArrayAdapter<CharSequence> qualityAdapter = ArrayAdapter.createFromResource(
-            this, R.array.quality_options, android.R.layout.simple_spinner_item);
-        qualityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        qualitySpinner.setAdapter(qualityAdapter);
-        qualitySpinner.setSelection(1); // 默认中等质量
-    }
-    
-    // 权限授予回调方法
+    // 权限授予回调
     public void onPermissionsGranted() {
         permissionsGranted = true;
         setFunctionButtonsEnabled(true);
         updateStatus("权限已授予，请选择媒体文件");
         Log.d("MainActivity", "权限检测通过");
+        
+        // 释放选择文件按键
+        selectFileBtn.setEnabled(true);
+        selectFileBtn.setAlpha(1.0f);
+    }
+    
+    // 权限拒绝回调
+    public void onPermissionsDenied() {
+        permissionsGranted = false;
+        setFunctionButtonsEnabled(false);
+        updateStatus("需要媒体访问权限才能使用应用功能");
+        Log.d("MainActivity", "权限被拒绝");
+        
+        // 禁用选择文件按键
+        selectFileBtn.setEnabled(false);
+        selectFileBtn.setAlpha(0.5f);
+        
+        Toast.makeText(this, 
+            "需要媒体访问权限才能选择和处理文件", 
+            Toast.LENGTH_LONG).show();
     }
     
     // 状态更新方法（PermissionManager调用）
@@ -175,7 +207,6 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     private void setFunctionButtonsEnabled(boolean enabled) {
         boolean hasFileSelected = !currentInputPath.isEmpty();
         
-        selectFileBtn.setEnabled(enabled);
         convertBtn.setEnabled(enabled && hasFileSelected);
         compressBtn.setEnabled(enabled && hasFileSelected);
         extractAudioBtn.setEnabled(enabled && hasFileSelected);
@@ -184,8 +215,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         convertAudioBtn.setEnabled(enabled && hasFileSelected);
         cutAudioBtn.setEnabled(enabled && hasFileSelected);
         
-        float alpha = enabled ? 1.0f : 0.5f;
-        selectFileBtn.setAlpha(alpha);
+        float alpha = enabled && hasFileSelected ? 1.0f : 0.5f;
         convertBtn.setAlpha(enabled && hasFileSelected ? 1.0f : 0.5f);
         compressBtn.setAlpha(enabled && hasFileSelected ? 1.0f : 0.5f);
         extractAudioBtn.setAlpha(enabled && hasFileSelected ? 1.0f : 0.5f);
@@ -198,6 +228,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     private void openFilePicker() {
         if (!permissionsGranted) {
             Toast.makeText(this, "请先授予存储权限", Toast.LENGTH_SHORT).show();
+            PermissionManager.requestInitialPermissions(this, PERMISSION_REQUEST_CODE);
             return;
         }
         
@@ -231,7 +262,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
                     // 生成输出路径
                     generateOutputPath();
                     
-                    // 更新按钮状态
+                    // 更新按键状态
                     setFunctionButtonsEnabled(true);
                     
                     Toast.makeText(this, "已选择: " + fileName, Toast.LENGTH_SHORT).show();
@@ -244,7 +275,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
             }
         } else if (requestCode == MANAGE_STORAGE_REQUEST_CODE) {
             // 处理所有文件访问权限的返回
-            PermissionManager.handleAllFilesAccessResult(this);
+            PermissionManager.checkPermissionStatus(this);
         }
     }
     
@@ -273,6 +304,17 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     }
     
     private void startConversion() {
+        if (!permissionsGranted) {
+            Toast.makeText(this, "请先授予存储权限", Toast.LENGTH_SHORT).show();
+            PermissionManager.requestInitialPermissions(this, PERMISSION_REQUEST_CODE);
+            return;
+        }
+        
+        if (currentInputPath.isEmpty()) {
+            Toast.makeText(this, "请先选择文件", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
         String format = videoFormatSpinner.getSelectedItem().toString();
         generateOutputPath(); // 生成基础路径
         
@@ -281,6 +323,17 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     }
     
     private void startCompression() {
+        if (!permissionsGranted) {
+            Toast.makeText(this, "请先授予存储权限", Toast.LENGTH_SHORT).show();
+            PermissionManager.requestInitialPermissions(this, PERMISSION_REQUEST_CODE);
+            return;
+        }
+        
+        if (currentInputPath.isEmpty()) {
+            Toast.makeText(this, "请先选择文件", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
         String qualityStr = qualitySpinner.getSelectedItem().toString();
         int quality = getQualityValue(qualityStr);
         
@@ -291,6 +344,17 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     }
     
     private void extractAudio() {
+        if (!permissionsGranted) {
+            Toast.makeText(this, "请先授予存储权限", Toast.LENGTH_SHORT).show();
+            PermissionManager.requestInitialPermissions(this, PERMISSION_REQUEST_CODE);
+            return;
+        }
+        
+        if (currentInputPath.isEmpty()) {
+            Toast.makeText(this, "请先选择文件", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
         File inputFile = new File(currentInputPath);
         String fileName = inputFile.getName();
         String baseName = fileName.contains(".") ? 
@@ -314,6 +378,17 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     }
     
     private void convertAudio() {
+        if (!permissionsGranted) {
+            Toast.makeText(this, "请先授予存储权限", Toast.LENGTH_SHORT).show();
+            PermissionManager.requestInitialPermissions(this, PERMISSION_REQUEST_CODE);
+            return;
+        }
+        
+        if (currentInputPath.isEmpty()) {
+            Toast.makeText(this, "请先选择文件", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
         String format = audioFormatSpinner.getSelectedItem().toString();
         
         File inputFile = new File(currentInputPath);
@@ -540,10 +615,8 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     @Override
     protected void onResume() {
         super.onResume();
-        // 从设置页面返回后，重新检查权限状态
-        if (!permissionsGranted) {
-            PermissionManager.checkPermissionStatus(this);
-        }
+        // 从设置页面返回时，重新检查权限
+        PermissionManager.checkPermissionStatus(this);
     }
     
     @Override
