@@ -28,6 +28,7 @@
         <item>aac</item>
         <item>flac</item>
         <item>ogg</item>
+        <item>m4a</item>
     </string-array>
     
     <string-array name="audio_quality_options">
