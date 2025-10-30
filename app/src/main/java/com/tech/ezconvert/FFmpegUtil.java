@@ -66,7 +66,23 @@ public class FFmpegUtil {
         Log.d(TAG, "执行命令: " + String.join(" ", command));
         stopProgressSimulation();
 
-        String commandString = String.join(" ", command);
+        StringBuilder commandBuilder = new StringBuilder();
+        for (int i = 0; i < command.length; i++) {
+            String arg = command[i];
+            
+            if (isFilePathArgument(command, i, arg)) {
+                commandBuilder.append("\"").append(arg).append("\"");
+            } else {
+                commandBuilder.append(arg);
+            }
+            
+            if (i < command.length - 1) {
+                commandBuilder.append(" ");
+            }
+        }
+        
+        String commandString = commandBuilder.toString();
+        Log.d(TAG, "转义后的命令: " + commandString);
         
         currentSession = FFmpegKit.executeAsync(commandString, new FFmpegSessionCompleteCallback() {
             @Override
@@ -96,6 +112,22 @@ public class FFmpegUtil {
         if (currentSession == null && callback != null) {
             callback.onError("命令执行失败，无法启动FFmpeg进程");
         }
+    }
+
+    private static boolean isFilePathArgument(String[] command, int index, String arg) {
+        if (index > 0 && "-i".equals(command[index - 1])) {
+            return true;
+        }
+        
+        if (index == command.length - 1) {
+            return true;
+        }
+        
+        if (arg.contains("/") || arg.contains(".")) {
+            return true;
+        }
+        
+        return false;
     }
 
     public static String getMediaInfo(String filePath) {
