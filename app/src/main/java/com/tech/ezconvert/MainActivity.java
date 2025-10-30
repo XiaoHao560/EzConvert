@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         
         // 显示版本信息
         String ffmpegVersion = FFmpegUtil.getVersion();
-        versionText.setText("EzConvert v0.3.3 | FFmpegKit: " + ffmpegVersion);
+        versionText.setText("EzConvert v0.3.4 | FFmpegKit: " + ffmpegVersion);
         
         // 初始按钮状态
         setFunctionButtonsEnabled(false);
@@ -172,7 +172,10 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     public void onPermissionsGranted() {
         permissionsGranted = true;
         setFunctionButtonsEnabled(true);
-        updateStatus("权限已授予，请选择媒体文件");
+        // 只有在没有选择文件时才显示默认状态
+        if (currentInputPath.isEmpty()) {
+            updateStatus("权限已授予，请选择媒体文件");
+        }
         Log.d("MainActivity", "权限检测通过");
         
         // 释放选择文件按键
@@ -263,14 +266,14 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
                     generateOutputPath();
                     
                     // 更新按键状态
-                    setFunctionButtonsEnabled(true);
+                    setFunctionButtonsEnabled(permissionsGranted);
                     
                     Toast.makeText(this, "已选择: " + fileName, Toast.LENGTH_SHORT).show();
                 } else {
                     updateStatus("无法访问文件或文件不存在");
                     Toast.makeText(this, "无法访问文件或文件不存在", Toast.LENGTH_SHORT).show();
                     currentInputPath = "";
-                    setFunctionButtonsEnabled(true);
+                    setFunctionButtonsEnabled(permissionsGranted);
                 }
             }
         } else if (requestCode == MANAGE_STORAGE_REQUEST_CODE) {
