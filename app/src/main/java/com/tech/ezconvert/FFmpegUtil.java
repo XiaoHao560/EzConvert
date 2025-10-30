@@ -17,6 +17,7 @@ public class FFmpegUtil {
     private static final String TAG = "FFmpegUtil";
     private static FFmpegSession currentSession = null;
     private static ProgressSimulator progressSimulator;
+    private static boolean verboseLogging = true; // 默认开启详细日志
 
     public interface FFmpegCallback {
         void onProgress(int progress, long time);
@@ -26,7 +27,9 @@ public class FFmpegUtil {
 
     public static void initLogging(Context context) {
         SharedPreferences sp = context.getSharedPreferences("debug_settings", Context.MODE_PRIVATE);
-        boolean verbose = sp.getBoolean("log_verbose", true);
+        verboseLogging = sp.getBoolean("log_verbose", true);
+        
+        Log.d(TAG, "初始化日志设置，详细日志模式: " + verboseLogging);
         
         // 日志级别设置
         FFmpegKitConfig.enableLogCallback(new LogCallback() {
@@ -34,6 +37,11 @@ public class FFmpegUtil {
                 public void apply(com.arthenica.ffmpegkit.Log log) {
                     String line = log.getMessage();
                     Level level = log.getLevel();
+                    
+                    // 根据日志级别设置过滤日志
+                    if (!shouldLog(level)) {
+                        return; // 不记录此日志
+                    }
                     
                     switch (level) {
                         case AV_LOG_ERROR:
@@ -46,20 +54,36 @@ public class FFmpegUtil {
                             Log.i("FFmpegLog", line);
                             break;
                         case AV_LOG_DEBUG:
-                            if (verbose) {
+                            if (verboseLogging) {
                                 Log.d("FFmpegLog", line);
                             }
                             break;
                         default:
-                            if (verbose) {
-                                Log.v("FFmoegLog", line);
+                            if (verboseLogging) {
+                                Log.v("FFmpegLog", line);
                             }
                             break;
                     }
                     
-                    LogViewerActivity.appendLog(line);
+                    // 只在详细模式下记录所有日志到LogViewer
+                    if (verboseLogging || level == Level.AV_LOG_ERROR || level == Level.AV_LOG_WARNING) {
+                        LogViewerActivity.appendLog(line);
+                    }
                 }
         });
+    }
+
+    // 根据当前日志设置判断是否应该记录此日志
+    private static boolean shouldLog(Level level) {
+        if (!verboseLogging) {
+            // 不是详细模式下只记录错误和警告...等日志
+            return level == Level.AV_LOG_ERROR || 
+                   level == Level.AV_LOG_WARNING ||
+                   level == Level.AV_LOG_FATAL ||
+                   level == Level.AV_LOG_PANIC;
+        }
+        // 详细模式下记录所有日志
+        return true;
     }
 
     public static void executeCommand(String[] command, FFmpegCallback callback) {
