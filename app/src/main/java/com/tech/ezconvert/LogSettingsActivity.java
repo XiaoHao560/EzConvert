@@ -23,7 +23,7 @@ public class LogSettingsActivity extends AppCompatActivity {
         rbError = findViewById(R.id.rb_log_error);
         btnViewLog = findViewById(R.id.btn_view_log);
 
-        boolean isAll = sp.getBoolean("log_verbose", false);
+        boolean isAll = sp.getBoolean("log_verbose", true); // 默认开启详细日志
         rbAll.setChecked(isAll);
         rbError.setChecked(!isAll);
 
@@ -31,7 +31,12 @@ public class LogSettingsActivity extends AppCompatActivity {
         rg.setOnCheckedChangeListener((group, checkedId) -> {
             boolean verbose = checkedId == R.id.rb_log_all;
             sp.edit().putBoolean("log_verbose", verbose).apply();
+            
             FFmpegUtil.initLogging(this);
+            
+            // 显示设置提示
+            String message = verbose ? "已启用详细日志模式" : "已启用仅错误日志模式";
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         });
 
         btnViewLog.setOnClickListener(v ->
