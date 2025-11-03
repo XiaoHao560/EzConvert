@@ -1,7 +1,5 @@
 package com.tech.ezconvert;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import android.Manifest;
 import android.content.Intent;
 import android.net.Uri;
@@ -9,9 +7,10 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
 import android.util.Log;
-import android.widget.*;
 import android.view.View;
-
+import android.widget.*;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -51,6 +50,8 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         
         // 检查权限状态
         PermissionManager.checkPermissionStatus(this);
+        
+        handleShareIntent(getIntent());
     }
     
     private void initializeViews() {
@@ -626,5 +627,39 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     protected void onDestroy() {
         super.onDestroy();
         FFmpegUtil.cancelCurrentTask();
+    }
+
+    private void handleShareIntent(Intent intent) {
+        String action = intent.getAction();
+        String type   = intent.getType();
+        
+        if (Intent.ACTION_SEND.equals(action) && type != null) {
+            if (type.startsWith("video/") || type.startsWith("audio/")) {
+                Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                if (uri != null) {
+                    String path = FileUtils.getPath(this, uri);
+                    if (path != null && new File(path).exists()) {
+                        currentInputPath = path;
+                        currentOutputPath = generateShareOutputPath(path);
+                        updateStatus("已接收分享：" + new File(path).getName());
+                        setFunctionButtonsEnabled(permissionsGranted);
+                    } else {
+                        Toast.makeText(this, "无法解析分享文件", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        }
+    }
+
+    private String generateShareOutputPath(String inputPath) {
+        File in = new File(inputPath);
+        String base = in.getName().contains(".") ?
+                      in.getName().substring(0, in.getName().lastIndexOf('.')) :
+                      in.getName();
+        String ts = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                                .getAbsolutePath() + File.separator + "简转";
+        new File(dir).mkdir();
+        return dir + File.separator + base + "_share_" + ts;
     }
 }
