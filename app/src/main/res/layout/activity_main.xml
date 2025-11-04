@@ -36,7 +36,7 @@
              android:textSize="12sp"
              android:textColor="#666"
              android:id="@+id/version_text"
-             android:text="EzConvert v0.2.0 | FFmpeg: 4.4.LTS" />
+             android:text="EzConvert v0.4.0 | FFmpegKit: 6.0-2" />
 
         <ImageButton
              android:layout_height="48dp"

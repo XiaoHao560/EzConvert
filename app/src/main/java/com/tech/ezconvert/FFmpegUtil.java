@@ -179,15 +179,6 @@ public class FFmpegUtil {
         }
     }
 
-    public static String getVersion() {
-        try {
-            return "6.0-2";
-        } catch (Exception e) {
-            Log.w(TAG, "获取FFmpeg版本失败", e);
-            return "未知版本";
-        }
-    }
-
     private static String formatFileSize(long size) {
         if (size <= 0) return "0 B";
         final String[] units = new String[]{"B", "KB", "MB", "GB", "TB"};

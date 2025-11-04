@@ -40,10 +40,6 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         initializeViews();
         setupSpinners();
         
-        // 显示版本信息
-        String ffmpegVersion = FFmpegUtil.getVersion();
-        versionText.setText("EzConvert v0.3.5 | FFmpegKit: " + ffmpegVersion);
-        
         // 初始按钮状态
         setFunctionButtonsEnabled(false);
         updateStatus("正在检查权限...");

@@ -41,6 +41,7 @@ public class LogViewerActivity extends AppCompatActivity {
         clearBtn.setOnClickListener(v -> {
             logBuffer.clear();
             adapter.notifyDataSetChanged();
+            Toast.makeText(this, "日志已清除", Toast.LENGTH_SHORT).show();
         });
 
         copyBtn.setOnClickListener(v -> {
