@@ -26,6 +26,8 @@ public class VideoProcessor {
         }
         
         switch (format.toLowerCase()) {
+            // mp4,mov 格式如果启用了硬件编解码则使用 h264_media
+            //            没有启用则使用 libx264
             case "mp4":
             case "mov":
                 if (hardwareAcceleration) {
@@ -50,8 +52,7 @@ public class VideoProcessor {
                 break;
                 
             case "mkv":
-                // MKV 格式不使用硬件加速，因为硬件编码器与 MKV 兼容性不好
-                // 使用软件编码器确保兼容性
+                // mkv 目前只有软件解码方案 libx265
                 commandList.add("-c:v");
                 commandList.add("libx265");
                 commandList.add("-preset");
@@ -65,19 +66,31 @@ public class VideoProcessor {
                 break;
                 
             case "webm":
+                // webm 目前只有软件解码方案 libvpx-vp9
                 commandList.add("-c:v");
                 commandList.add("libvpx-vp9");
                 commandList.add("-b:v");
                 commandList.add("1M");
                 commandList.add("-c:a");
                 commandList.add("libopus");
+                commandList.add("-b:a");
+                commandList.add("128k");
                 break;
                 
             case "avi":
-                commandList.add("-c:v");
-                commandList.add("mpeg4");
-                commandList.add("-q:v");
-                commandList.add("5");
+            // avi 如果启用了硬件编解码则使用 h264_media
+            //     没有启用则使用 mpeg4
+                if (hardwareAcceleration) {
+                    commandList.add("-c:v");
+                    commandList.add("h264_mediacodec");
+                    commandList.add("-b:v");
+                    commandList.add("1500k");
+                } else {
+                    commandList.add("-c:v");
+                    commandList.add("mpeg4");
+                    commandList.add("-q:v");
+                    commandList.add("5");
+                }
                 commandList.add("-c:a");
                 commandList.add("libmp3lame");
                 commandList.add("-b:a");
@@ -85,10 +98,19 @@ public class VideoProcessor {
                 break;
                 
             case "flv":
-                commandList.add("-c:v");
-                commandList.add("libx264");
-                commandList.add("-preset");
-                commandList.add("fast");
+            // flv 如果启用了硬件编解码则使用 h264_media
+            //     没有启用则使用 libx264
+                if (hardwareAcceleration) {
+                    commandList.add("-c:v");
+                    commandList.add("h264_mediacodec");
+                    commandList.add("-b:v");
+                    commandList.add("1500k");
+                } else {
+                    commandList.add("-c:v");
+                    commandList.add("libx264");
+                    commandList.add("-preset");
+                    commandList.add("fast");
+                }
                 commandList.add("-c:a");
                 commandList.add("aac");
                 commandList.add("-b:a");
@@ -96,15 +118,18 @@ public class VideoProcessor {
                 break;
                 
             case "gif":
+            // gif 没有硬件编解码
                 commandList.add("-vf");
                 commandList.add("fps=10,scale=480:-1:flags=lanczos");
                 commandList.add("-pix_fmt");
-                commandList.add("rgb24");
+                commandList.add("rgb8");
                 commandList.add("-loop");
                 commandList.add("0");
                 break;
                 
             default:
+            // 默认方案如果启用了硬件编解码则使用 h264_media
+            //        没有启用则使用 libx264
                 if (hardwareAcceleration) {
                     commandList.add("-c:v");
                     commandList.add("h264_mediacodec");
@@ -204,6 +229,8 @@ public class VideoProcessor {
         if (hardwareAcceleration) {
             commandList.add("-c:v");
             commandList.add("h264_mediacodec");
+            commandList.add("-b:v");
+            commandList.add("2000k");
         } else {
             commandList.add("-c:v");
             commandList.add("libx264");
@@ -268,6 +295,8 @@ public class VideoProcessor {
         if (hardwareAcceleration) {
             commandList.add("-c:v");
             commandList.add("h264_mediacodec");
+            commandList.add("-b:v");
+            commandList.add("2000k");
         } else {
             commandList.add("-c:v");
             commandList.add("libx264");
@@ -308,6 +337,8 @@ public class VideoProcessor {
         if (hardwareAcceleration) {
             commandList.add("-c:v");
             commandList.add("h264_mediacodec");
+            commandList.add("-b:v");
+            commandList.add("1500k");
         } else {
             commandList.add("-c:v");
             commandList.add("libx264");
@@ -373,6 +404,8 @@ public class VideoProcessor {
         if (hardwareAcceleration) {
             commandList.add("-c:v");
             commandList.add("h264_mediacodec");
+            commandList.add("-b:v");
+            commandList.add("2000k");
         } else {
             commandList.add("-c:v");
             commandList.add("copy");
