@@ -148,6 +148,19 @@ android {
         }
     }
     
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            def appName = "EzConvert"
+            def buildType = variant.buildType.name
+            def versionName = variant.versionName
+            def versionCode = variant.versionCode
+            
+            def suffix = buildType == "debug" ? "-debug" : ""
+            
+            outputFileName = "${appName}${suffix}-v${versionName}(${versionCode}).apk"
+        }
+    }
+    
     signingConfigs {
         release {
             storeFile file(System.getenv("KEYSTORE_FILE") ?: "debug.keystore")
