@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 检出代码
-      - uses: actions/checkout@v4
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           
@@ -36,19 +36,19 @@ jobs:
             android-${{ runner.os }}-
 
       - name: 配置 JDK 17
-      - uses: actions/setup-java@v4
+        uses: actions/setup-java@v4
         with: 
           distribution: temurin
           java-version: 17
           
       - name: 初始化 Gradle
-      - uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v4
       
       - name: 编译 Debug APK
-      - run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug
       
       - name: 上传 APK
-      - uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4
         with:
           name: app-debug
           path: app/build/outputs/apk/debug/*.apk
