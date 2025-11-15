@@ -194,6 +194,76 @@
 
             </LinearLayout>
 
+            <View
+                 android:layout_height="1dp"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="12dp"
+                 android:background="#E0E0E0"
+                 android:layout_marginTop="8dp" />
+
+            <LinearLayout
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="8dp"
+                 android:orientation="horizontal">
+
+                <TextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="0dp"
+                     android:gravity="center_vertical"
+                     android:layout_weight="1"
+                     android:text="@string/volume_setting" />
+
+                <Spinner
+                     android:layout_height="wrap_content"
+                     android:layout_width="0dp"
+                     android:layout_weight="1"
+                     android:id="@+id/volume_spinner">
+
+                </Spinner>
+
+            </LinearLayout>
+
+            <LinearLayout
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="8dp"
+                 android:visibility="gone"
+                 android:orientation="vertical"
+                 android:id="@+id/custom_volume_layout">
+
+                <LinearLayout
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:orientation="horizontal">
+
+                    <TextView
+                         android:layout_height="wrap_content"
+                         android:layout_width="0dp"
+                         android:gravity="center_vertical"
+                         android:layout_weight="1"
+                         android:text="音量大小" />
+
+                    <TextView
+                         android:layout_height="wrap_content"
+                         android:layout_width="wrap_content"
+                         android:id="@+id/volume_percent_text"
+                         android:text="100%" />
+
+                </LinearLayout>
+
+                <SeekBar
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:max="200"
+                     android:progressBackgroundTint="#E0E0E0"
+                     android:thumbTint="#2196F3"
+                     android:progressTint="#2196F3"
+                     android:progress="100"
+                     android:id="@+id/volume_seekbar" />
+
+            </LinearLayout>
+
         </LinearLayout>
 
         <LinearLayout

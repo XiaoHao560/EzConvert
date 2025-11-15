@@ -8,7 +8,7 @@ public class AudioProcessor {
     
     // 音频转换
     public static void convertAudio(String inputPath, String outputPath,
-                                   String format, FFmpegUtil.FFmpegCallback callback, Context context) {
+                                   String format, int volume, FFmpegUtil.FFmpegCallback callback, Context context) {
         String outputFile = outputPath + "." + getAudioExtension(format);
         
         boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
@@ -20,6 +20,12 @@ public class AudioProcessor {
         if (multithreading) {
             commandList.add("-threads");
             commandList.add("0");
+        }
+        
+        if (volume != 100) {
+            double volumeFactor = volume / 100.0;
+            commandList.add("-af");
+            commandList.add("volume=" + volumeFactor);
         }
         
         switch (format.toLowerCase()) {
@@ -90,7 +96,7 @@ public class AudioProcessor {
     
     // 音频提取（从视频）
     public static void extractAudioFromVideo(String inputPath, String outputPath,
-                                           String format, FFmpegUtil.FFmpegCallback callback, Context context) {
+                                           String format, int volume, FFmpegUtil.FFmpegCallback callback, Context context) {
         String outputFile = outputPath + "." + getAudioExtension(format);
         
         boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
@@ -102,6 +108,12 @@ public class AudioProcessor {
         if (multithreading) {
             commandList.add("-threads");
             commandList.add("0");
+        }
+        
+        if (volume != 100) {
+            double volumeFactor = volume / 100.0;
+            commandList.add("-af");
+            commandList.add("volume=" + volumeFactor);
         }
         
         commandList.add("-vn");
@@ -194,7 +206,7 @@ public class AudioProcessor {
     
     // 音频裁剪
     public static void cutAudio(String inputPath, String outputPath,
-                               String startTime, String duration,
+                               String startTime, String duration, int volume,
                                FFmpegUtil.FFmpegCallback callback, Context context) {
         boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
         
@@ -205,6 +217,12 @@ public class AudioProcessor {
         if (multithreading) {
             commandList.add("-threads");
             commandList.add("0");
+        }
+        
+        if (volume != 100) {
+            double volumeFactor = volume / 100.0;
+            commandList.add("-af");
+            commandList.add("volume=" + volumeFactor);
         }
         
         commandList.add("-ss");

@@ -8,7 +8,7 @@ public class VideoProcessor {
     
     // 视频转换
     public static void convertVideo(String inputPath, String outputPath, 
-                                   String format, FFmpegUtil.FFmpegCallback callback, Context context) {
+                                   String format, int volume, FFmpegUtil.FFmpegCallback callback, Context context) {
         String outputFile = outputPath + "." + getFileExtension(format);
         
         boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
@@ -23,6 +23,12 @@ public class VideoProcessor {
         if (multithreading) {
             commandList.add("-threads");
             commandList.add("0");
+        }
+        
+        if (volume != 100) {
+            double volumeFactor = volume / 100.0;
+            commandList.add("-af");
+            commandList.add("volume=" + volumeFactor);
         }
         
         switch (format.toLowerCase()) {
@@ -159,7 +165,7 @@ public class VideoProcessor {
     
     // 视频压缩
     public static void compressVideo(String inputPath, String outputPath, 
-                                    int quality, FFmpegUtil.FFmpegCallback callback, Context context) {
+                                    int quality, int volume, FFmpegUtil.FFmpegCallback callback, Context context) {
         // quality: 0-100, 0最高质量
         int crf = 51 - (quality * 51 / 100);
         if (crf < 18) crf = 18;
@@ -177,6 +183,12 @@ public class VideoProcessor {
         if (multithreading) {
             commandList.add("-threads");
             commandList.add("0");
+        }
+        
+        if (volume != 100) {
+            double volumeFactor = volume / 100.0;
+            commandList.add("-af");
+            commandList.add("volume=" + volumeFactor);
         }
         
         if (hardwareAcceleration) {
@@ -207,7 +219,7 @@ public class VideoProcessor {
     
     // 视频裁剪
     public static void cutVideo(String inputPath, String outputPath,
-                               String startTime, String duration,
+                               String startTime, String duration, int volume,
                                FFmpegUtil.FFmpegCallback callback, Context context) {
         boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
         boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
@@ -219,6 +231,12 @@ public class VideoProcessor {
         if (multithreading) {
             commandList.add("-threads");
             commandList.add("0");
+        }
+        
+        if (volume != 100) {
+            double volumeFactor = volume / 100.0;
+            commandList.add("-af");
+            commandList.add("volume=" + volumeFactor);
         }
         
         commandList.add("-ss");
