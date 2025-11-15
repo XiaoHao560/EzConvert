@@ -5,6 +5,12 @@
     <string name="log_level_error">仅记录错误日志</string>
     <string name="view_log">查看日志</string>
     <string name="log_level_title">日志等级</string>
+
+    <string name="volume_setting">音量设置</string>
+    <string name="volume_normal">正常（100%）</string>
+    <string name="volume_low">较低（50%）</string>
+    <string name="volume_high">较高（150%）</string>
+    <string name="volume_custom">自定义：%d%%</string>
     
     <string-array name="video_formats">
         <item>mp4</item>
@@ -20,6 +26,13 @@
         <item>高质量</item>
         <item>中等质量</item>
         <item>低质量</item>
+    </string-array>
+
+    <string-array name="volume_options">
+        <item>正常（100%）</item>
+        <item>较低（50%）</item>
+        <item>较高（150%）</item>
+        <item>自定义</item>
     </string-array>
     
     <string-array name="audio_formats">

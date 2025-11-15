@@ -22,14 +22,17 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     private static final int FILE_PICKER_REQUEST = 101;
     private static final int MANAGE_STORAGE_REQUEST_CODE = 102;
     
-    private TextView statusText, progressText, versionText;
+    private TextView statusText, progressText, versionText, volumePercentText;
     private ProgressBar progressBar;
     private Button selectFileBtn, convertBtn, compressBtn, extractAudioBtn;
     private Button cutVideoBtn, screenshotBtn, convertAudioBtn, cutAudioBtn;
-    private Spinner videoFormatSpinner, audioFormatSpinner, qualitySpinner;
+    private Spinner videoFormatSpinner, audioFormatSpinner, qualitySpinner, volumeSpinner;
+    private SeekBar volumeSeekBar;
+    private LinearLayout customVolumeLayout;
     private String currentInputPath = "";
     private String currentOutputPath = "";
     private boolean permissionsGranted = false;
+    private int currentVolume = 100;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +58,11 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         progressText = findViewById(R.id.progress_text);
         progressBar = findViewById(R.id.progress_bar);
         versionText = findViewById(R.id.version_text);
+        
+        volumeSpinner = findViewById(R.id.volume_spinner);
+        volumeSeekBar = findViewById(R.id.volume_seekbar);
+        volumePercentText = findViewById(R.id.volume_percent_text);
+        customVolumeLayout = findViewById(R.id.custom_volume_layout);
         
         selectFileBtn = findViewById(R.id.select_file_btn);
         convertBtn = findViewById(R.id.convert_btn);
@@ -102,6 +110,66 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         );
         qualityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         qualitySpinner.setAdapter(qualityAdapter);
+        
+        // 音量设置
+        ArrayAdapter<CharSequence> volumeAdapter = ArrayAdapter.createFromResource(
+            this,
+            R.array.volume_options,
+            android.R.layout.simple_spinner_item
+        );
+        volumeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        volumeSpinner.setAdapter(volumeAdapter);
+        volumeSpinner.setSelection(0); //默认正常音量
+        
+        // 音量滑动条监听
+        volumeSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+          @Override
+          public void onProgressChanged(SeekBar seekbar, int progress, boolean fromUser) {
+              currentVolume = progress;
+              volumePercentText.setText(progress + "%");
+              
+              // 更新spinner显示为"自定义"
+              if (fromUser) {
+                  volumeSpinner.setSelection(3); // 自定义
+              }
+          }
+          
+          @Override
+          public void onStartTrackingTouch(SeekBar seekbar) {}
+          
+          @Override
+          public void onStopTrackingTouch(SeekBar seekbar) {}
+        });
+        
+        volumeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                switch (position) {
+                    case 0: // 正常
+                        currentVolume = 100;
+                        volumeSeekBar.setProgress(100);
+                        customVolumeLayout.setVisibility(View.GONE);
+                        break;
+                    case 1: // 较低
+                        currentVolume = 50;
+                        volumeSeekBar.setProgress(50);
+                        customVolumeLayout.setVisibility(View.GONE);
+                        break;
+                    case 2: //较高
+                        currentVolume = 150;
+                        volumeSeekBar.setProgress(150);
+                        customVolumeLayout.setVisibility(View.GONE);
+                        break;
+                    case 3: // 自定义
+                    customVolumeLayout.setVisibility(View.VISIBLE);
+                    break;
+                }
+                volumePercentText.setText(currentVolume + "%");
+            }
+            
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
         
         // 默认选择
         videoFormatSpinner.setSelection(0); // MP4
@@ -319,7 +387,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         generateOutputPath(); // 生成基础路径
         
         updateStatus("开始转换视频到 " + format + " 格式...");
-        VideoProcessor.convertVideo(currentInputPath, currentOutputPath, format, this, this);
+        VideoProcessor.convertVideo(currentInputPath, currentOutputPath, format, currentVolume, this, this);
     }
     
     private void startCompression() {
@@ -340,7 +408,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         generateOutputPath(); // 生成基础路径
         
         updateStatus("开始压缩视频 (" + qualityStr + ")...");
-        VideoProcessor.compressVideo(currentInputPath, currentOutputPath, quality, this, this);
+        VideoProcessor.compressVideo(currentInputPath, currentOutputPath, quality, currentVolume, this, this);
     }
     
     private void extractAudio() {
@@ -374,7 +442,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         currentOutputPath = outputDir + File.separator + baseName + "_audio_" + timestamp;
         
         updateStatus("开始提取音频...");
-        AudioProcessor.extractAudioFromVideo(currentInputPath, currentOutputPath, "mp3", this, this);
+        AudioProcessor.extractAudioFromVideo(currentInputPath, currentOutputPath, "mp3", currentVolume, this, this);
     }
     
     private void convertAudio() {
@@ -410,7 +478,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         currentOutputPath = outputDir + File.separator + baseName + "_converted_" + timestamp;
         
         updateStatus("开始转换音频到 " + format + " 格式...");
-        AudioProcessor.convertAudio(currentInputPath, currentOutputPath, format, this, this);
+        AudioProcessor.convertAudio(currentInputPath, currentOutputPath, format, currentVolume, this, this);
     }
     
     private void showCutVideoDialog() {
@@ -457,7 +525,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
             currentOutputPath = outputDir + File.separator + baseName + "_cut_" + timestamp + ".mp4";
             
             updateStatus("开始裁剪视频...");
-            VideoProcessor.cutVideo(currentInputPath, currentOutputPath, startTime, duration, this, this);
+            VideoProcessor.cutVideo(currentInputPath, currentOutputPath, startTime, duration, currentVolume, this, this);
         });
         
         builder.setNegativeButton("取消", null);
@@ -554,7 +622,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
             currentOutputPath = outputDir + File.separator + baseName + "_cut_" + timestamp + ".mp3";
             
             updateStatus("开始裁剪音频...");
-            AudioProcessor.cutAudio(currentInputPath, currentOutputPath, startTime, duration, this, this);
+            AudioProcessor.cutAudio(currentInputPath, currentOutputPath, startTime, duration, currentVolume, this, this);
         });
         
         builder.setNegativeButton("取消", null);
