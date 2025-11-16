@@ -256,7 +256,7 @@
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
                      android:max="200"
-                     android:progressBackgroundTint="#E0E0E0"
+                     android:progressBackgroundTint="#90CAF9"
                      android:thumbTint="#2196F3"
                      android:progressTint="#2196F3"
                      android:progress="100"
