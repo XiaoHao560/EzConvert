@@ -9,6 +9,6 @@
     <color name="switch_track">#90CAF9</color>
     
     <color name="radio_checked">#2196F3</color>
-    <color name="radio_unchecked">#757575</color>
+    <color name="radio_unchecked">#90CAF9</color>
     <color name="radio_text_color">#333333</color>
 </resources>
