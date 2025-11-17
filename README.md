@@ -1,3 +1,7 @@
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/XiaoHao560/EzConvert?style=flat-square)
+![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/XiaoHao560/EzConvert?include_prereleases&style=flat-square&label=pre-release&color=orange)
+![CI](https://github.com/XiaoHao560/EzConvert/workflows/ci/badge.svg)
+![GitHub all releases](https://img.shields.io/github/downloads/XiaoHao560/EzConvert/total?style=flat-square)
 ![Beta](https://img.shields.io/badge/status-beta-yellow.svg)
 # 项目更新日志
 
