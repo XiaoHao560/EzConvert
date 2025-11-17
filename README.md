@@ -1,4 +1,11 @@
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/XiaoHao560/EzConvert?style=flat-square)
+![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/XiaoHao560/EzConvert?include_prereleases&style=flat-square&label=pre-release&color=orange)
+![CI](https://github.com/XiaoHao560/EzConvert/workflows/ci/badge.svg)
+![GitHub all releases](https://img.shields.io/github/downloads/XiaoHao560/EzConvert/total?style=flat-square)
 ![Beta](https://img.shields.io/badge/status-beta-yellow.svg)
+![GitHub top language](https://img.shields.io/github/languages/top/XiaoHao560/EzConvert?style=flat-square&color=informational)
+![GitHub repo size](https://img.shields.io/github/repo-size/XiaoHao560/EzConvert?style=flat-square&color=informational)
+![License](https://img.shields.io/github/license/XiaoHao560/EzConvert?style=flat-square&color=informational)
 # 项目更新日志
 
 从 v0.2.0 开始，我们使用结构化更新日志[change_log](change_log/)。
