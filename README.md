@@ -5,7 +5,7 @@
 ![Beta](https://img.shields.io/badge/status-beta-yellow.svg)
 ![GitHub top language](https://img.shields.io/github/languages/top/XiaoHao560/EzConvert?style=flat-square&color=informational)
 ![GitHub repo size](https://img.shields.io/github/repo-size/XiaoHao560/EzConvert?style=flat-square&color=informational)
-![License](https://img.shields.io/github/license/XiaoHao560/EzConvert?style=flat-square&color=informational)
+![License](https://img.shields.io/github/license/XiaoHao560/EzConvert?style=flat-square)
 # 项目更新日志
 
 从 v0.2.0 开始，我们使用结构化更新日志[change_log](change_log/)。
