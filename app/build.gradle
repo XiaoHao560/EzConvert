@@ -38,12 +38,18 @@ def getGitVersionName() {
         
         if (isDetachedHEAD) {
             def githubRef = System.getenv("GITHUB_REF")
+            println "GITHUB_REF: $githubRef"
+            
             if (githubRef?.startsWith("refs/tags/")) {
                 println "Tag build detected, using tag-based versioning"
                 return extractVersionFromTag(describe)
             } else if (githubRef?.startsWith("refs/heads/")) {
                 branchName = githubRef.substring(11)
                 println "Recovered branch name from GITHUB_REF: $branchName"
+            } else if (githubRef?.startsWith("refs/pull/")) {
+                def prNumber = githubRef.split("/")[2]
+                branchName = "pr-$prNumber"
+                println "PR build detected, using branch: $branchName"
             } else {
                 branchName = "detached-${commitHash}"
             }
@@ -105,7 +111,8 @@ def extractVersionFromTag(describe) {
 
 def isMainBranch(branchName) {
     return branchName == "main" || branchName == "master" || 
-           branchName.startsWith("refs/tags/") // tag 构建也当作"主分支"处理
+           branchName.startsWith("refs/tags/") ||
+           branchName.startsWith("pr-")
 }
 
 def getSafeBranchName(branchName) {
