@@ -48,12 +48,23 @@ jobs:
       - name: 判断构建变体
         id: variant
         run: |
-          if [[ "${{ github.ref_name }}" == *"-alpha" ]] || [[ "${{ github.ref_name }}" == *"-debug" ]]; then
+          TAG_NAME="${{ github.ref_name }}"
+          echo "Checking tag: $TAG_NAME"
+          
+          if [[ "$TAG_NAME" == *"-alpha"* ]] || \
+             [[ "$TAG_NAME" == *"-beta"* ]] || \
+             [[ "$TAG_NAME" == *"-rc"* ]] || \
+             [[ "$TAG_NAME" == *"-debug"* ]] || \
+             [[ "$TAG_NAME" =~ -alpha\.[0-9]+$ ]] || \
+             [[ "$TAG_NAME" =~ -beta\.[0-9]+$ ]] || \
+             [[ "$TAG_NAME" =~ -rc\.[0-9]+$ ]]; then
             echo "variant=debug" >> $GITHUB_OUTPUT
             echo "is_prerelease=true" >> $GITHUB_OUTPUT
+            echo "This is a pre-release version"
           else
             echo "variant=release" >> $GITHUB_OUTPUT
             echo "is_prerelease=false" >> $GITHUB_OUTPUT
+            echo "This is a release version"
           fi
 
       - name: 解码签名密钥 (仅 Release)
