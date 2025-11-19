@@ -26,23 +26,41 @@ def getGitVersionCode() {
 
 def getGitVersionName() {
     try {
-        def branchName = getCmdOutput("git rev-parse --abbrev-ref HEAD")
-        def commitHash = getCmdOutput("git rev-parse --short HEAD")
         def describe = getCmdOutput("git describe --tags --long --always")
+        def commitHash = getCmdOutput("git rev-parse --short HEAD")
         
         println "=== VersionName Generation ==="
-        println "Git Branch: $branchName"
         println "Git Describe: $describe"
         println "Commit Hash: $commitHash"
         
+        def branchName = getCmdOutput("git rev-parse --abbrev-ref HEAD")
+        def isDetachedHEAD = (branchName == "HEAD")
+        
+        if (isDetachedHEAD) {
+            def githubRef = System.getenv("GITHUB_REF")
+            if (githubRef?.startsWith("refs/tags/")) {
+                println "Tag build detected, using tag-based versioning"
+                return extractVersionFromTag(describe)
+            } else if (githubRef?.startsWith("refs/heads/")) {
+                branchName = githubRef.substring(11)
+                println "Recovered branch name from GITHUB_REF: $branchName"
+            } else {
+                branchName = "detached-${commitHash}"
+            }
+        }
+        
+        def isMainBranch = isMainBranch(branchName)
+        
+        println "Final Branch: $branchName"
+        println "Is Main Branch: $isMainBranch"
+        
         if (describe.contains("0.1.7-alpha")) {
-            println "Detected specific old alpha tag 0.1.7-alpha, using base version 0.2.0"
-            return getVersionFromBranch(branchName, commitHash)
+            return isMainBranch ? "0.2.0.alpha" : "0.2.0.alpha-${getSafeBranchName(branchName)}"
         }
         
         if (describe.matches("^v?\\d+(\\.\\d+)*\$")) {
             def version = describe.replaceAll("^v", "")
-            return isMainBranch(branchName) ? version : "${version}-${getSafeBranchName(branchName)}"
+            return isMainBranch ? version : "${version}-${getSafeBranchName(branchName)}"
         }
         else if (describe.matches(".*-\\d+-g[0-9a-f]+\$")) {
             def parts = describe.split("-")
@@ -50,14 +68,13 @@ def getGitVersionName() {
             def commitsAfterTag = parts[1]
             
             if (commitsAfterTag == "0") {
-                return baseVersion
+                return isMainBranch ? baseVersion : "${baseVersion}-${getSafeBranchName(branchName)}"
             }
             
-            def suffix = isMainBranch(branchName) ? "" : "-${getSafeBranchName(branchName)}"
-            return "${baseVersion}.${commitsAfterTag}${suffix}"
+            return isMainBranch ? "${baseVersion}.${commitsAfterTag}" : "${baseVersion}.${commitsAfterTag}-${getSafeBranchName(branchName)}"
         }
         else {
-            return getVersionFromBranch(branchName, commitHash)
+            return isMainBranch ? "0.2.0-${commitHash}" : "0.2.0-${getSafeBranchName(branchName)}"
         }
         
     } catch (Exception e) {
@@ -66,13 +83,29 @@ def getGitVersionName() {
     }
 }
 
-def getVersionFromBranch(branchName, commitHash) {
-    def safeBranchName = getSafeBranchName(branchName)
-    if (isMainBranch(branchName)) {
-        return "0.2.0-${commitHash}"
-    } else {
-        return "0.2.0-${safeBranchName}(${commitHash})"
+def extractVersionFromTag(describe) {
+    if (describe.matches("^v?\\d+(\\.\\d+)*\$")) {
+        return describe.replaceAll("^v", "")
     }
+    else if (describe.matches(".*-\\d+-g[0-9a-f]+\$")) {
+        def parts = describe.split("-")
+        def baseVersion = parts[0].replaceAll("^v", "")
+        def commitsAfterTag = parts[1]
+        
+        if (commitsAfterTag == "0") {
+            return baseVersion
+        }
+        
+        return "${baseVersion}.${commitsAfterTag}"
+    }
+    else {
+        return describe
+    }
+}
+
+def isMainBranch(branchName) {
+    return branchName == "main" || branchName == "master" || 
+           branchName.startsWith("refs/tags/") // tag 构建也当作"主分支"处理
 }
 
 def getSafeBranchName(branchName) {
@@ -82,10 +115,6 @@ def getSafeBranchName(branchName) {
         .replaceAll("-+", "-")
         .toLowerCase()
         .take(15)
-}
-
-def isMainBranch(branchName) {
-    return branchName == "main" || branchName == "master"
 }
 
 def getCmdOutput(command) {
@@ -202,10 +231,6 @@ dependencies {
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     
-    //implementation 'com.arthenica:mobile-ffmpeg-full:4.4.LTS'
-    //implementation 'com.github.jiusanzhou:mobile-ffmpeg-mediacodec:4.4.LTS.1'
-    //implementation 'com.github.arthenica:mobile-ffmpeg:full-gpl-4.4.LTS'
-    //implementation files('libs/mobile-ffmpeg-full-gpl-4.4.LTS.aar')
     implementation 'com.arthenica:ffmpeg-kit-full-gpl:6.0-2'
 
     testImplementation 'junit:junit:4.13.2'
