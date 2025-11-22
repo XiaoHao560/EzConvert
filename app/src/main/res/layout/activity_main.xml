@@ -6,7 +6,7 @@
      android:layout_width="match_parent"
      android:background="@color/bg_light"
      android:fadeScrollbars="false"
-     android:padding="16dp">
+     android:padding="12dp">
 
     <LinearLayout
          android:layout_height="wrap_content"
@@ -16,7 +16,7 @@
         <RelativeLayout
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:layout_marginBottom="16dp"
+             android:layout_marginBottom="12dp"
              android:id="@+id/title_container">
 
             <TextView
@@ -43,226 +43,124 @@
         <TextView
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:layout_marginBottom="24dp"
+             android:layout_marginBottom="16dp"
              android:gravity="center"
              android:textSize="12sp"
              android:textColor="#666"
              android:id="@+id/version_text"
              android:text="EzConvert v0.4.0 | FFmpegKit: 6.0-2" />
 
-        <LinearLayout
+        <androidx.cardview.widget.CardView
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:layout_marginBottom="16dp"
-             android:background="@drawable/card_background_enhanced"
-             android:elevation="6dp"
-             android:padding="20dp"
-             android:orientation="vertical"
-             android:clipToPadding="false"
+             android:layout_marginBottom="8dp"
+             app:cardElevation="4dp"
+             app:cardUseCompatPadding="true"
+             app:cardBackgroundColor="@android:color/white"
+             app:cardCornerRadius="12dp"
              android:id="@+id/status_card">
 
-            <TextView
+            <LinearLayout
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
-                 android:layout_marginBottom="12dp"
-                 android:textSize="16sp"
-                 android:id="@+id/status_text"
-                 android:text="请选择要处理的媒体文件" />
+                 android:padding="16dp"
+                 android:orientation="vertical">
 
-            <ProgressBar
-                 android:layout_height="8dp"
-                 android:layout_width="match_parent"
-                 android:progressBackgroundTint="#E3F2FD"
-                 android:progressTint="#2196F3"
-                 style="?android:attr/progressBarStyleHorizontal"
-                 android:progress="0"
-                 android:id="@+id/progress_bar" />
+                <TextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="8dp"
+                     android:textSize="16sp"
+                     android:id="@+id/status_text"
+                     android:text="请选择要处理的媒体文件" />
 
-            <TextView
-                 android:layout_height="wrap_content"
-                 android:layout_width="match_parent"
-                 android:gravity="center"
-                 android:textSize="12sp"
-                 android:textColor="#666"
-                 android:id="@+id/progress_text"
-                 android:text="进度: 0%" />
+                <ProgressBar
+                     android:layout_height="6dp"
+                     android:layout_width="match_parent"
+                     android:progressBackgroundTint="#E3F2FD"
+                     android:progressTint="#2196F3"
+                     style="?android:attr/progressBarStyleHorizontal"
+                     android:progress="0"
+                     android:id="@+id/progress_bar" />
 
-        </LinearLayout>
+                <TextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:gravity="center"
+                     android:textSize="12sp"
+                     android:textColor="#666"
+                     android:id="@+id/progress_text"
+                     android:text="进度: 0%" />
 
-        <LinearLayout
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:layout_marginBottom="16dp"
-             android:background="@drawable/card_background_enhanced"
-             android:elevation="4dp"
-             android:padding="20dp"
-             android:orientation="vertical"
-             android:clipToPadding="false"
+             android:layout_marginBottom="8dp"
+             app:cardElevation="2dp"
+             app:cardUseCompatPadding="true"
+             app:cardBackgroundColor="@android:color/white"
+             app:cardCornerRadius="12dp"
              android:id="@+id/file_selection_card">
 
-            <TextView
+            <LinearLayout
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
-                 android:layout_marginBottom="12dp"
-                 android:textSize="16sp"
-                 android:text="文件选择"
-                 android:textStyle="bold" />
+                 android:padding="16dp"
+                 android:orientation="vertical">
 
-            <Button
-                 android:layout_height="48dp"
-                 android:layout_width="match_parent"
-                 android:textSize="14sp"
-                 android:backgroundTint="#2196F3"
-                 android:textColor="@android:color/white"
-                 android:id="@+id/select_file_btn"
-                 android:text="选择媒体文件" />
+                <TextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="12dp"
+                     android:textSize="16sp"
+                     android:text="文件选择"
+                     android:textStyle="bold" />
 
-        </LinearLayout>
+                <Button
+                     android:layout_height="44dp"
+                     android:layout_width="match_parent"
+                     android:textSize="14sp"
+                     android:backgroundTint="#2196F3"
+                     android:textColor="@android:color/white"
+                     android:id="@+id/select_file_btn"
+                     android:text="选择媒体文件" />
 
-        <LinearLayout
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:layout_marginBottom="16dp"
-             android:background="@drawable/card_background_enhanced"
-             android:elevation="4dp"
-             android:padding="20dp"
-             android:orientation="vertical"
-             android:clipToPadding="false"
+             android:layout_marginBottom="8dp"
+             app:cardElevation="2dp"
+             app:cardUseCompatPadding="true"
+             app:cardBackgroundColor="@android:color/white"
+             app:cardCornerRadius="12dp"
              android:id="@+id/options_card">
 
-            <TextView
-                 android:layout_height="wrap_content"
-                 android:layout_width="match_parent"
-                 android:layout_marginBottom="16dp"
-                 android:textSize="16sp"
-                 android:text="转换选项"
-                 android:textStyle="bold" />
-
             <LinearLayout
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
-                 android:layout_marginBottom="12dp"
-                 android:gravity="center_vertical"
-                 android:orientation="horizontal">
+                 android:padding="16dp"
+                 android:orientation="vertical">
 
                 <TextView
                      android:layout_height="wrap_content"
-                     android:layout_width="0dp"
-                     android:gravity="center_vertical"
-                     android:textSize="14sp"
-                     android:layout_weight="1"
-                     android:text="视频格式:" />
-
-                <Spinner
-                     android:layout_height="48dp"
-                     android:layout_width="0dp"
-                     android:background="@drawable/spinner_background"
-                     android:popupBackground="@drawable/card_background_enhanced"
-                     android:layout_weight="1"
-                     android:id="@+id/video_format_spinner">
-
-                </Spinner>
-
-            </LinearLayout>
-
-            <LinearLayout
-                 android:layout_height="wrap_content"
-                 android:layout_width="match_parent"
-                 android:layout_marginBottom="12dp"
-                 android:gravity="center_vertical"
-                 android:orientation="horizontal">
-
-                <TextView
-                     android:layout_height="wrap_content"
-                     android:layout_width="0dp"
-                     android:gravity="center_vertical"
-                     android:textSize="14sp"
-                     android:layout_weight="1"
-                     android:text="音频格式:" />
-
-                <Spinner
-                     android:layout_height="48dp"
-                     android:layout_width="0dp"
-                     android:background="@drawable/spinner_background"
-                     android:popupBackground="@drawable/card_background_enhanced"
-                     android:layout_weight="1"
-                     android:id="@+id/audio_format_spinner">
-
-                </Spinner>
-
-            </LinearLayout>
-
-            <LinearLayout
-                 android:layout_height="wrap_content"
-                 android:layout_width="match_parent"
-                 android:layout_marginBottom="16dp"
-                 android:gravity="center_vertical"
-                 android:orientation="horizontal">
-
-                <TextView
-                     android:layout_height="wrap_content"
-                     android:layout_width="0dp"
-                     android:gravity="center_vertical"
-                     android:textSize="14sp"
-                     android:layout_weight="1"
-                     android:text="质量设置:" />
-
-                <Spinner
-                     android:layout_height="48dp"
-                     android:layout_width="0dp"
-                     android:background="@drawable/spinner_background"
-                     android:popupBackground="@drawable/card_background_enhanced"
-                     android:layout_weight="1"
-                     android:id="@+id/quality_spinner">
-
-                </Spinner>
-
-            </LinearLayout>
-
-            <View
-                 android:layout_height="1dp"
-                 android:layout_width="match_parent"
-                 android:layout_marginBottom="16dp"
-                 android:background="#E0E0E0" />
-
-            <LinearLayout
-                 android:layout_height="wrap_content"
-                 android:layout_width="match_parent"
-                 android:layout_marginBottom="12dp"
-                 android:gravity="center_vertical"
-                 android:orientation="horizontal">
-
-                <TextView
-                     android:layout_height="wrap_content"
-                     android:layout_width="0dp"
-                     android:gravity="center_vertical"
-                     android:textSize="14sp"
-                     android:layout_weight="1"
-                     android:text="@string/volume_setting" />
-
-                <Spinner
-                     android:layout_height="48dp"
-                     android:layout_width="0dp"
-                     android:background="@drawable/spinner_background"
-                     android:popupBackground="@drawable/card_background_enhanced"
-                     android:layout_weight="1"
-                     android:id="@+id/volume_spinner">
-
-                </Spinner>
-
-            </LinearLayout>
-
-            <LinearLayout
-                 android:layout_height="wrap_content"
-                 android:layout_width="match_parent"
-                 android:layout_marginBottom="8dp"
-                 android:visibility="gone"
-                 android:orientation="vertical"
-                 android:id="@+id/custom_volume_layout">
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="12dp"
+                     android:textSize="16sp"
+                     android:text="转换选项"
+                     android:textStyle="bold" />
 
                 <LinearLayout
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
+                     android:layout_marginBottom="8dp"
                      android:gravity="center_vertical"
                      android:orientation="horizontal">
 
@@ -272,143 +170,280 @@
                          android:gravity="center_vertical"
                          android:textSize="14sp"
                          android:layout_weight="1"
-                         android:text="音量大小" />
+                         android:text="视频格式:" />
 
-                    <TextView
-                         android:layout_height="wrap_content"
-                         android:layout_width="wrap_content"
-                         android:textColor="#2196F3"
-                         android:id="@+id/volume_percent_text"
-                         android:text="100%"
-                         android:textStyle="bold" />
+                    <Spinner
+                         android:layout_height="40dp"
+                         android:layout_width="0dp"
+                         android:background="@drawable/spinner_background"
+                         android:popupBackground="@drawable/card_background_enhanced"
+                         android:layout_weight="1"
+                         android:id="@+id/video_format_spinner">
+
+                    </Spinner>
 
                 </LinearLayout>
 
-                <SeekBar
+                <LinearLayout
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
-                     android:max="200"
-                     android:progressBackgroundTint="#E3F2FD"
-                     android:thumbTint="#2196F3"
-                     android:progressTint="#2196F3"
-                     android:progress="100"
-                     android:id="@+id/volume_seekbar" />
+                     android:layout_marginBottom="8dp"
+                     android:gravity="center_vertical"
+                     android:orientation="horizontal">
+
+                    <TextView
+                         android:layout_height="wrap_content"
+                         android:layout_width="0dp"
+                         android:gravity="center_vertical"
+                         android:textSize="14sp"
+                         android:layout_weight="1"
+                         android:text="音频格式:" />
+
+                    <Spinner
+                         android:layout_height="40dp"
+                         android:layout_width="0dp"
+                         android:background="@drawable/spinner_background"
+                         android:popupBackground="@drawable/card_background_enhanced"
+                         android:layout_weight="1"
+                         android:id="@+id/audio_format_spinner">
+
+                    </Spinner>
+
+                </LinearLayout>
+
+                <LinearLayout
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="12dp"
+                     android:gravity="center_vertical"
+                     android:orientation="horizontal">
+
+                    <TextView
+                         android:layout_height="wrap_content"
+                         android:layout_width="0dp"
+                         android:gravity="center_vertical"
+                         android:textSize="14sp"
+                         android:layout_weight="1"
+                         android:text="质量设置:" />
+
+                    <Spinner
+                         android:layout_height="40dp"
+                         android:layout_width="0dp"
+                         android:background="@drawable/spinner_background"
+                         android:popupBackground="@drawable/card_background_enhanced"
+                         android:layout_weight="1"
+                         android:id="@+id/quality_spinner">
+
+                    </Spinner>
+
+                </LinearLayout>
+
+                <View
+                     android:layout_height="1dp"
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="12dp"
+                     android:background="#E0E0E0" />
+
+                <LinearLayout
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="8dp"
+                     android:gravity="center_vertical"
+                     android:orientation="horizontal">
+
+                    <TextView
+                         android:layout_height="wrap_content"
+                         android:layout_width="0dp"
+                         android:gravity="center_vertical"
+                         android:textSize="14sp"
+                         android:layout_weight="1"
+                         android:text="@string/volume_setting" />
+
+                    <Spinner
+                         android:layout_height="40dp"
+                         android:layout_width="0dp"
+                         android:background="@drawable/spinner_background"
+                         android:popupBackground="@drawable/card_background_enhanced"
+                         android:layout_weight="1"
+                         android:id="@+id/volume_spinner">
+
+                    </Spinner>
+
+                </LinearLayout>
+
+                <LinearLayout
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="4dp"
+                     android:visibility="gone"
+                     android:orientation="vertical"
+                     android:id="@+id/custom_volume_layout">
+
+                    <LinearLayout
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:gravity="center_vertical"
+                         android:orientation="horizontal">
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="0dp"
+                             android:gravity="center_vertical"
+                             android:textSize="14sp"
+                             android:layout_weight="1"
+                             android:text="音量大小" />
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="wrap_content"
+                             android:textColor="#2196F3"
+                             android:id="@+id/volume_percent_text"
+                             android:text="100%"
+                             android:textStyle="bold" />
+
+                    </LinearLayout>
+
+                    <SeekBar
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:max="200"
+                         android:progressBackgroundTint="#E3F2FD"
+                         android:thumbTint="#2196F3"
+                         android:progressTint="#2196F3"
+                         android:progress="100"
+                         android:id="@+id/volume_seekbar" />
+
+                </LinearLayout>
 
             </LinearLayout>
 
-        </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
-        <LinearLayout
+        <androidx.cardview.widget.CardView
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:layout_marginBottom="16dp"
-             android:background="@drawable/card_background_enhanced"
-             android:elevation="4dp"
-             android:padding="20dp"
-             android:orientation="vertical"
-             android:clipToPadding="false"
+             android:layout_marginBottom="8dp"
+             app:cardElevation="2dp"
+             app:cardUseCompatPadding="true"
+             app:cardBackgroundColor="@android:color/white"
+             app:cardCornerRadius="12dp"
              android:id="@+id/video_processing_card">
 
-            <TextView
+            <LinearLayout
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
-                 android:layout_marginBottom="16dp"
-                 android:textSize="16sp"
-                 android:text="视频处理"
-                 android:textStyle="bold" />
+                 android:padding="16dp"
+                 android:orientation="vertical">
 
-            <Button
-                 android:layout_height="48dp"
-                 android:layout_width="match_parent"
-                 android:layout_marginBottom="8dp"
-                 android:textSize="14sp"
-                 android:backgroundTint="#4CAF50"
-                 android:textColor="@android:color/white"
-                 android:id="@+id/convert_btn"
-                 android:text="转换格式" />
+                <TextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="12dp"
+                     android:textSize="16sp"
+                     android:text="视频处理"
+                     android:textStyle="bold" />
 
-            <Button
-                 android:layout_height="48dp"
-                 android:layout_width="match_parent"
-                 android:layout_marginBottom="8dp"
-                 android:textSize="14sp"
-                 android:backgroundTint="#FF9800"
-                 android:textColor="@android:color/white"
-                 android:id="@+id/compress_btn"
-                 android:text="压缩视频" />
+                <Button
+                     android:layout_height="40dp"
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="6dp"
+                     android:textSize="14sp"
+                     android:backgroundTint="#4CAF50"
+                     android:textColor="@android:color/white"
+                     android:id="@+id/convert_btn"
+                     android:text="转换格式" />
 
-            <Button
-                 android:layout_height="48dp"
-                 android:layout_width="match_parent"
-                 android:layout_marginBottom="8dp"
-                 android:textSize="14sp"
-                 android:backgroundTint="#9C27B0"
-                 android:textColor="@android:color/white"
-                 android:id="@+id/extract_audio_btn"
-                 android:text="提取音频" />
+                <Button
+                     android:layout_height="40dp"
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="6dp"
+                     android:textSize="14sp"
+                     android:backgroundTint="#FF9800"
+                     android:textColor="@android:color/white"
+                     android:id="@+id/compress_btn"
+                     android:text="压缩视频" />
 
-            <Button
-                 android:layout_height="48dp"
-                 android:layout_width="match_parent"
-                 android:layout_marginBottom="8dp"
-                 android:textSize="14sp"
-                 android:backgroundTint="#795548"
-                 android:textColor="@android:color/white"
-                 android:id="@+id/cut_video_btn"
-                 android:text="裁剪视频" />
+                <Button
+                     android:layout_height="40dp"
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="6dp"
+                     android:textSize="14sp"
+                     android:backgroundTint="#9C27B0"
+                     android:textColor="@android:color/white"
+                     android:id="@+id/extract_audio_btn"
+                     android:text="提取音频" />
 
-            <Button
-                 android:layout_height="48dp"
-                 android:layout_width="match_parent"
-                 android:layout_marginBottom="8dp"
-                 android:textSize="14sp"
-                 android:backgroundTint="#607D8B"
-                 android:textColor="@android:color/white"
-                 android:id="@+id/screenshot_btn"
-                 android:text="视频截图" />
+                <Button
+                     android:layout_height="40dp"
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="6dp"
+                     android:textSize="14sp"
+                     android:backgroundTint="#795548"
+                     android:textColor="@android:color/white"
+                     android:id="@+id/cut_video_btn"
+                     android:text="裁剪视频" />
 
-        </LinearLayout>
+                <Button
+                     android:layout_height="40dp"
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="6dp"
+                     android:textSize="14sp"
+                     android:backgroundTint="#607D8B"
+                     android:textColor="@android:color/white"
+                     android:id="@+id/screenshot_btn"
+                     android:text="视频截图" />
 
-        <LinearLayout
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:layout_marginBottom="16dp"
-             android:background="@drawable/card_background_enhanced"
-             android:elevation="4dp"
-             android:padding="20dp"
-             android:orientation="vertical"
-             android:clipToPadding="false"
+             android:layout_marginBottom="8dp"
+             app:cardElevation="2dp"
+             app:cardUseCompatPadding="true"
+             app:cardBackgroundColor="@android:color/white"
+             app:cardCornerRadius="12dp"
              android:id="@+id/audio_processing_card">
 
-            <TextView
+            <LinearLayout
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
-                 android:layout_marginBottom="16dp"
-                 android:textSize="16sp"
-                 android:text="音频处理"
-                 android:textStyle="bold" />
+                 android:padding="16dp"
+                 android:orientation="vertical">
 
-            <Button
-                 android:layout_height="48dp"
-                 android:layout_width="match_parent"
-                 android:layout_marginBottom="8dp"
-                 android:textSize="14sp"
-                 android:backgroundTint="#E91E63"
-                 android:textColor="@android:color/white"
-                 android:id="@+id/convert_audio_btn"
-                 android:text="转换音频格式" />
+                <TextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="12dp"
+                     android:textSize="16sp"
+                     android:text="音频处理"
+                     android:textStyle="bold" />
 
-            <Button
-                 android:layout_height="48dp"
-                 android:layout_width="match_parent"
-                 android:layout_marginBottom="8dp"
-                 android:textSize="14sp"
-                 android:backgroundTint="#3F51B5"
-                 android:textColor="@android:color/white"
-                 android:id="@+id/cut_audio_btn"
-                 android:text="裁剪音频" />
+                <Button
+                     android:layout_height="40dp"
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="6dp"
+                     android:textSize="14sp"
+                     android:backgroundTint="#E91E63"
+                     android:textColor="@android:color/white"
+                     android:id="@+id/convert_audio_btn"
+                     android:text="转换音频格式" />
 
-        </LinearLayout>
+                <Button
+                     android:layout_height="40dp"
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="6dp"
+                     android:textSize="14sp"
+                     android:backgroundTint="#3F51B5"
+                     android:textColor="@android:color/white"
+                     android:id="@+id/cut_audio_btn"
+                     android:text="裁剪音频" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
 
         <TextView
              android:layout_height="wrap_content"
