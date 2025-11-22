@@ -11,7 +11,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.*;
 import android.window.SplashScreen;
-import android.window.SplashScreen;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import java.io.File;
