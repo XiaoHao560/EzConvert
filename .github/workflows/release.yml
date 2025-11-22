@@ -95,7 +95,7 @@ jobs:
         with:
           files: app/build/outputs/apk/${{ steps.variant.outputs.variant }}/*.apk
           tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
           body_path: release_body.md
           prerelease: ${{ steps.variant.outputs.is_prerelease }}
           draft: false
