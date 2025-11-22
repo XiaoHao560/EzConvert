@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
@@ -81,6 +82,25 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         
         // 按钮点击
         setupButtonListeners(settingsBtn);
+        
+        // 卡片入场动画
+        setupCardAnimations();
+    }
+    
+    private void setupCardAnimations() {
+        View[] cards = {
+            findViewById(R.id.status_card),
+            findViewById(R.id.file_selection_card), 
+            findViewById(R.id.options_card),
+            findViewById(R.id.video_processing_card),
+            findViewById(R.id.audio_processing_card)
+        };
+        
+        for (int i = 0; i < cards.length; i++) {
+            if (cards[i] != null) {
+                AnimationUtils.animateCardEntrance(cards[i], i * 100);
+            }
+        }
     }
     
     private void setupSpinners() {
@@ -178,13 +198,22 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     }
     
     private void setupButtonListeners(ImageButton settingsBtn) {
+        // 设置按钮添加旋转动画
         settingsBtn.setOnClickListener(v -> {
-            Intent settingsIntent = new Intent(MainActivity.this, SettingsMainActivity.class);
-            startActivity(settingsIntent);
+            AnimationUtils.animateButtonClick(v);
+            v.animate().rotationBy(180).setDuration(300).start();
+            
+            new Handler().postDelayed(() -> {
+                Intent settingsIntent = new Intent(MainActivity.this, SettingsMainActivity.class);
+                startActivity(settingsIntent);
+                // 页面切换动画
+                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+            }, 150);
         });
         
-        // 文件选择按键
+        // 文件选择按钮
         selectFileBtn.setOnClickListener(v -> {
+            AnimationUtils.animateButtonClick(v);
             if (permissionsGranted) {
                 openFilePicker();
             } else {
@@ -193,7 +222,9 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
             }
         });
         
+        // 功能按钮统一添加动画
         View.OnClickListener functionButtonListener = v -> {
+            AnimationUtils.animateButtonClick(v);
             if (permissionsGranted && !currentInputPath.isEmpty()) {
                 handleFunctionButtonClick(v.getId());
             } else if (!permissionsGranted) {
@@ -237,6 +268,10 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     public void onPermissionsGranted() {
         permissionsGranted = true;
         setFunctionButtonsEnabled(true);
+        
+        // 成功动画反馈
+        AnimationUtils.animateBounce(selectFileBtn);
+        
         // 只有在没有选择文件时才显示默认状态
         if (currentInputPath.isEmpty()) {
             updateStatus("权限已授予，请选择媒体文件");
@@ -267,6 +302,8 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     // 状态更新方法（PermissionManager调用）
     public void updateStatus(String message) {
         runOnUiThread(() -> {
+            // 状态文本更新动画
+            AnimationUtils.animateStatusUpdate(statusText);
             statusText.setText(message);
             Log.d("EzConvert", message);
         });
@@ -642,8 +679,11 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     @Override
     public void onProgress(int progress, long time) {
         runOnUiThread(() -> {
-            progressBar.setProgress(progress);
+            AnimationUtils.animateProgressSmoothly(progressBar, progress);
             progressText.setText("进度: " + progress + "%");
+            
+            // 为进度文本添加微动画
+            AnimationUtils.animateStatusUpdate(progressText);
         });
     }
     

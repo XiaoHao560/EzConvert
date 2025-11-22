@@ -4,8 +4,8 @@
      xmlns:app="http://schemas.android.com/apk/res-auto"
      android:layout_height="match_parent"
      android:layout_width="match_parent"
-     android:background="#F5F5F5"
-     android:padding="16dp"
+     android:background="@color/bg_light"
+     android:padding="20dp"
      android:orientation="vertical">
 
     <androidx.cardview.widget.CardView
@@ -14,37 +14,53 @@
          app:cardElevation="8dp"
          app:cardUseCompatPadding="true"
          app:cardBackgroundColor="@android:color/white"
-         app:cardCornerRadius="12dp">
+         app:cardCornerRadius="16dp"
+         android:id="@+id/run_log_card">
 
         <LinearLayout
-             android:layout_height="wrap_content"
+             android:layout_height="72dp"
              android:layout_width="match_parent"
+             android:paddingEnd="20dp"
              android:gravity="center_vertical"
              android:background="?attr/selectableItemBackground"
-             android:padding="16dp"
              android:orientation="horizontal"
+             android:paddingStart="20dp"
              android:id="@+id/item_run_log">
 
             <ImageView
-                 android:layout_height="24dp"
-                 android:layout_width="24dp"
-                 android:src="@drawable/ic_log_1" />
+                 android:layout_height="32dp"
+                 android:layout_width="32dp"
+                 android:src="@drawable/ic_log_1"
+                 android:tint="#2196F3" />
 
             <TextView
                  android:layout_height="wrap_content"
                  android:layout_width="0dp"
                  android:textSize="16sp"
+                 android:textColor="@color/text_primary"
                  android:layout_marginStart="16dp"
                  android:layout_weight="1"
+                 android:textStyle="bold"
                  android:text="@string/run_log" />
 
             <ImageView
                  android:layout_height="24dp"
                  android:layout_width="24dp"
-                 android:src="@drawable/ic_arrow_right" />
+                 android:src="@drawable/ic_arrow_right"
+                 android:tint="#9E9E9E" />
 
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
+
+    <TextView
+         android:layout_height="wrap_content"
+         android:layout_width="match_parent"
+         android:gravity="center"
+         android:textSize="12sp"
+         android:textColor="@color/text_hint"
+         android:layout_marginTop="16dp"
+         android:lineSpacingExtra="4dp"
+         android:text="查看应用运行日志和错误信息，便于问题排查" />
 
 </LinearLayout>
