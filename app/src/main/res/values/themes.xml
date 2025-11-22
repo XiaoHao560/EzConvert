@@ -63,4 +63,16 @@
     <item name="android:windowAllowEnterTransitionOverlap">true</item>
     <item name="android:windowAllowReturnTransitionOverlap">true</item>
   </style>
+  
+  <!-- 开屏动画 -->
+  <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+    <!-- 设置启动屏背景色 -->
+    <item name="windowSplashScreenBackground">@color/bg_card</item>
+    <!-- 设置启动图标 -->
+    <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+    <!-- 设置启动图标的动画时长（毫秒） -->
+    <item name="windowSplashScreenAnimationDuration">1000</item>
+    <!-- 设置启动屏之后应用的主题 -->
+    <item name="postSplashScreenTheme">@style/AppTheme</item>
+  </style>
 </resources>

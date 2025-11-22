@@ -10,6 +10,8 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.*;
+import android.window.SplashScreen;
+import android.window.SplashScreen;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import java.io.File;
@@ -37,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        androidx.core.splashscreen.SplashScreen.installSplashScreen(this);
         FFmpegUtil.initLogging(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
