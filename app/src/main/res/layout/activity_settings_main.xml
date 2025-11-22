@@ -1,178 +1,214 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
      xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
      android:layout_height="match_parent"
      android:layout_width="match_parent"
-     android:background="#f5f5f5"
-     android:padding="16dp">
+     android:background="@color/bg_light"
+     android:padding="20dp">
 
     <LinearLayout
          android:layout_height="wrap_content"
          android:layout_width="match_parent"
          android:orientation="vertical">
 
-        <LinearLayout
+        <androidx.cardview.widget.CardView
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:layout_marginBottom="16dp"
-             android:background="@drawable/card_background"
-             android:elevation="2dp"
-             android:padding="16dp"
-             android:orientation="vertical">
-
-            <TextView
-                 android:layout_height="wrap_content"
-                 android:layout_width="match_parent"
-                 android:layout_marginBottom="16dp"
-                 android:textSize="18sp"
-                 android:text="应用设置"
-                 android:textStyle="bold" />
+             android:layout_marginBottom="24dp"
+             app:cardElevation="8dp"
+             app:cardUseCompatPadding="true"
+             app:cardBackgroundColor="@android:color/white"
+             app:cardCornerRadius="16dp"
+             android:id="@+id/settings_card">
 
             <LinearLayout
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
-                 android:layout_marginBottom="12dp"
-                 android:background="?android:attr/selectableItemBackground"
-                 android:clickable="true"
-                 android:padding="12dp"
-                 android:orientation="horizontal"
-                 android:focusable="true"
-                 android:id="@+id/transcode_settings_item">
+                 android:padding="8dp"
+                 android:orientation="vertical">
 
-                <ImageView
-                     android:layout_height="24dp"
-                     android:layout_width="24dp"
-                     android:layout_marginEnd="16dp"
-                     android:src="@drawable/ic_play" />
+                <TextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="8dp"
+                     android:textSize="20sp"
+                     android:textColor="@color/text_primary"
+                     android:layout_marginTop="16dp"
+                     android:layout_marginStart="16dp"
+                     android:text="应用设置"
+                     android:textStyle="bold" />
 
                 <LinearLayout
-                     android:layout_height="wrap_content"
-                     android:layout_width="0dp"
-                     android:orientation="vertical"
-                     android:layout_weight="1">
+                     android:layout_height="72dp"
+                     android:layout_width="match_parent"
+                     android:paddingEnd="16dp"
+                     android:background="?android:attr/selectableItemBackground"
+                     android:gravity="center_vertical"
+                     android:clickable="true"
+                     android:orientation="horizontal"
+                     android:paddingStart="16dp"
+                     android:focusable="true"
+                     android:id="@+id/transcode_settings_item">
 
-                    <TextView
-                         android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:textSize="16sp"
-                         android:text="转码设置"
-                         android:textStyle="bold" />
+                    <ImageView
+                         android:layout_height="32dp"
+                         android:layout_width="32dp"
+                         android:layout_marginEnd="16dp"
+                         android:src="@drawable/ic_play"
+                         android:tint="#2196F3" />
 
-                    <TextView
+                    <LinearLayout
                          android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:textSize="14sp"
-                         android:textColor="#666"
-                         android:text="硬件加速、多线程优化等性能设置" />
+                         android:layout_width="0dp"
+                         android:orientation="vertical"
+                         android:layout_weight="1">
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="16sp"
+                             android:textColor="@color/text_primary"
+                             android:text="转码设置"
+                             android:textStyle="bold" />
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="14sp"
+                             android:textColor="@color/text_hint"
+                             android:text="硬件加速、多线程优化等性能设置" />
+
+                    </LinearLayout>
+
+                    <ImageView
+                         android:layout_height="24dp"
+                         android:layout_width="24dp"
+                         android:src="@drawable/ic_arrow_right"
+                         android:tint="#9E9E9E" />
 
                 </LinearLayout>
 
-                <ImageView
-                     android:layout_height="24dp"
-                     android:layout_width="24dp"
-                     android:src="@drawable/ic_arrow_right" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                 android:layout_height="wrap_content"
-                 android:layout_width="match_parent"
-                 android:layout_marginBottom="12dp"
-                 android:background="?android:attr/selectableItemBackground"
-                 android:clickable="true"
-                 android:padding="12dp"
-                 android:orientation="horizontal"
-                 android:focusable="true"
-                 android:id="@+id/general_settings_item">
-
-                <ImageView
-                     android:layout_height="24dp"
-                     android:layout_width="24dp"
-                     android:layout_marginEnd="16dp"
-                     android:src="@drawable/ic_settings" />
+                <View
+                     android:layout_height="1dp"
+                     android:layout_width="match_parent"
+                     android:background="#F0F0F0"
+                     android:layout_marginStart="64dp" />
 
                 <LinearLayout
-                     android:layout_height="wrap_content"
-                     android:layout_width="0dp"
-                     android:orientation="vertical"
-                     android:layout_weight="1">
+                     android:layout_height="72dp"
+                     android:layout_width="match_parent"
+                     android:paddingEnd="16dp"
+                     android:background="?android:attr/selectableItemBackground"
+                     android:gravity="center_vertical"
+                     android:clickable="true"
+                     android:orientation="horizontal"
+                     android:paddingStart="16dp"
+                     android:focusable="true"
+                     android:id="@+id/general_settings_item">
 
-                    <TextView
-                         android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:textSize="16sp"
-                         android:text="通用设置"
-                         android:textStyle="bold" />
+                    <ImageView
+                         android:layout_height="32dp"
+                         android:layout_width="32dp"
+                         android:layout_marginEnd="16dp"
+                         android:src="@drawable/ic_settings" />
 
-                    <TextView
+                    <LinearLayout
                          android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:textSize="14sp"
-                         android:textColor="#666"
-                         android:text="界面、语言、通知等通用设置" />
+                         android:layout_width="0dp"
+                         android:orientation="vertical"
+                         android:layout_weight="1">
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="16sp"
+                             android:textColor="@color/text_primary"
+                             android:text="通用设置"
+                             android:textStyle="bold" />
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="14sp"
+                             android:textColor="@color/text_hint"
+                             android:text="界面、语言、通知等通用设置" />
+
+                    </LinearLayout>
+
+                    <ImageView
+                         android:layout_height="24dp"
+                         android:layout_width="24dp"
+                         android:src="@drawable/ic_arrow_right"
+                         android:tint="#9E9E9E" />
 
                 </LinearLayout>
 
-                <ImageView
-                     android:layout_height="24dp"
-                     android:layout_width="24dp"
-                     android:src="@drawable/ic_arrow_right" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                 android:layout_height="wrap_content"
-                 android:layout_width="match_parent"
-                 android:background="?android:attr/selectableItemBackground"
-                 android:clickable="true"
-                 android:padding="12dp"
-                 android:orientation="horizontal"
-                 android:focusable="true"
-                 android:id="@+id/about_item">
-
-                <ImageView
-                     android:layout_height="24dp"
-                     android:layout_width="24dp"
-                     android:layout_marginEnd="16dp"
-                     android:src="@drawable/alert_circle" />
+                <View
+                     android:layout_height="1dp"
+                     android:layout_width="match_parent"
+                     android:background="#F0F0F0"
+                     android:layout_marginStart="64dp" />
 
                 <LinearLayout
-                     android:layout_height="wrap_content"
-                     android:layout_width="0dp"
-                     android:orientation="vertical"
-                     android:layout_weight="1">
+                     android:layout_height="72dp"
+                     android:layout_width="match_parent"
+                     android:paddingEnd="16dp"
+                     android:background="?android:attr/selectableItemBackground"
+                     android:gravity="center_vertical"
+                     android:clickable="true"
+                     android:orientation="horizontal"
+                     android:paddingStart="16dp"
+                     android:focusable="true"
+                     android:id="@+id/about_item">
 
-                    <TextView
-                         android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:textSize="16sp"
-                         android:text="关于"
-                         android:textStyle="bold" />
+                    <ImageView
+                         android:layout_height="32dp"
+                         android:layout_width="32dp"
+                         android:layout_marginEnd="16dp"
+                         android:src="@drawable/alert_circle" />
 
-                    <TextView
+                    <LinearLayout
                          android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:textSize="14sp"
-                         android:textColor="#666"
-                         android:text="版本信息、帮助和支持" />
+                         android:layout_width="0dp"
+                         android:orientation="vertical"
+                         android:layout_weight="1">
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="16sp"
+                             android:textColor="@color/text_primary"
+                             android:text="关于"
+                             android:textStyle="bold" />
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="14sp"
+                             android:textColor="@color/text_hint"
+                             android:text="版本信息、帮助和支持" />
+
+                    </LinearLayout>
+
+                    <ImageView
+                         android:layout_height="24dp"
+                         android:layout_width="24dp"
+                         android:src="@drawable/ic_arrow_right"
+                         android:tint="#9E9E9E" />
 
                 </LinearLayout>
 
-                <ImageView
-                     android:layout_height="24dp"
-                     android:layout_width="24dp"
-                     android:src="@drawable/ic_arrow_right" />
-
             </LinearLayout>
 
-        </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
         <TextView
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
              android:gravity="center"
              android:textSize="12sp"
-             android:textColor="#999"
+             android:textColor="@color/text_hint"
              android:text="EzConvert v0.4.0" />
 
     </LinearLayout>
