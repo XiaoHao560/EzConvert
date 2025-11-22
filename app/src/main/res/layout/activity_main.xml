@@ -4,7 +4,8 @@
      xmlns:app="http://schemas.android.com/apk/res-auto"
      android:layout_height="match_parent"
      android:layout_width="match_parent"
-     android:background="#f5f5f5"
+     android:background="@color/bg_light"
+     android:fadeScrollbars="false"
      android:padding="16dp">
 
     <LinearLayout
@@ -15,7 +16,8 @@
         <RelativeLayout
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:layout_marginBottom="16dp">
+             android:layout_marginBottom="16dp"
+             android:id="@+id/title_container">
 
             <TextView
                  android:layout_height="wrap_content"
@@ -25,6 +27,16 @@
                  android:textColor="#2196F3"
                  android:text="EzConvert 媒体转换器"
                  android:textStyle="bold" />
+
+            <ImageButton
+                 android:layout_height="48dp"
+                 android:layout_width="48dp"
+                 android:src="@drawable/ic_menu"
+                 android:contentDescription="设置"
+                 android:background="?attr/selectableItemBackgroundBorderless"
+                 android:padding="10dp"
+                 android:layout_alignParentEnd="true"
+                 android:id="@+id/settings_btn" />
 
         </RelativeLayout>
 
@@ -38,29 +50,21 @@
              android:id="@+id/version_text"
              android:text="EzConvert v0.4.0 | FFmpegKit: 6.0-2" />
 
-        <ImageButton
-             android:layout_height="48dp"
-             android:layout_width="48dp"
-             android:src="@drawable/ic_menu"
-             android:contentDescription="设置"
-             android:background="?android:attr/selectableItemBackgroundBorderless"
-             android:padding="10dp"
-             android:layout_gravity="end"
-             android:id="@+id/settings_btn" />
-
         <LinearLayout
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
              android:layout_marginBottom="16dp"
-             android:background="@drawable/card_background"
-             android:elevation="4dp"
-             android:padding="16dp"
-             android:orientation="vertical">
+             android:background="@drawable/card_background_enhanced"
+             android:elevation="6dp"
+             android:padding="20dp"
+             android:orientation="vertical"
+             android:clipToPadding="false"
+             android:id="@+id/status_card">
 
             <TextView
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
-                 android:layout_marginBottom="8dp"
+                 android:layout_marginBottom="12dp"
                  android:textSize="16sp"
                  android:id="@+id/status_text"
                  android:text="请选择要处理的媒体文件" />
@@ -68,6 +72,7 @@
             <ProgressBar
                  android:layout_height="8dp"
                  android:layout_width="match_parent"
+                 android:progressBackgroundTint="#E3F2FD"
                  android:progressTint="#2196F3"
                  style="?android:attr/progressBarStyleHorizontal"
                  android:progress="0"
@@ -88,21 +93,25 @@
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
              android:layout_marginBottom="16dp"
-             android:background="@drawable/card_background"
-             android:elevation="2dp"
-             android:padding="16dp"
-             android:orientation="vertical">
+             android:background="@drawable/card_background_enhanced"
+             android:elevation="4dp"
+             android:padding="20dp"
+             android:orientation="vertical"
+             android:clipToPadding="false"
+             android:id="@+id/file_selection_card">
 
             <TextView
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
-                 android:layout_marginBottom="8dp"
+                 android:layout_marginBottom="12dp"
+                 android:textSize="16sp"
                  android:text="文件选择"
                  android:textStyle="bold" />
 
             <Button
-                 android:layout_height="wrap_content"
+                 android:layout_height="48dp"
                  android:layout_width="match_parent"
+                 android:textSize="14sp"
                  android:backgroundTint="#2196F3"
                  android:textColor="@android:color/white"
                  android:id="@+id/select_file_btn"
@@ -114,34 +123,41 @@
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
              android:layout_marginBottom="16dp"
-             android:background="@drawable/card_background"
-             android:elevation="2dp"
-             android:padding="16dp"
-             android:orientation="vertical">
+             android:background="@drawable/card_background_enhanced"
+             android:elevation="4dp"
+             android:padding="20dp"
+             android:orientation="vertical"
+             android:clipToPadding="false"
+             android:id="@+id/options_card">
 
             <TextView
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
-                 android:layout_marginBottom="12dp"
+                 android:layout_marginBottom="16dp"
+                 android:textSize="16sp"
                  android:text="转换选项"
                  android:textStyle="bold" />
 
             <LinearLayout
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
-                 android:layout_marginBottom="8dp"
+                 android:layout_marginBottom="12dp"
+                 android:gravity="center_vertical"
                  android:orientation="horizontal">
 
                 <TextView
                      android:layout_height="wrap_content"
                      android:layout_width="0dp"
                      android:gravity="center_vertical"
+                     android:textSize="14sp"
                      android:layout_weight="1"
                      android:text="视频格式:" />
 
                 <Spinner
-                     android:layout_height="wrap_content"
+                     android:layout_height="48dp"
                      android:layout_width="0dp"
+                     android:background="@drawable/spinner_background"
+                     android:popupBackground="@drawable/card_background_enhanced"
                      android:layout_weight="1"
                      android:id="@+id/video_format_spinner">
 
@@ -152,19 +168,23 @@
             <LinearLayout
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
-                 android:layout_marginBottom="8dp"
+                 android:layout_marginBottom="12dp"
+                 android:gravity="center_vertical"
                  android:orientation="horizontal">
 
                 <TextView
                      android:layout_height="wrap_content"
                      android:layout_width="0dp"
                      android:gravity="center_vertical"
+                     android:textSize="14sp"
                      android:layout_weight="1"
                      android:text="音频格式:" />
 
                 <Spinner
-                     android:layout_height="wrap_content"
+                     android:layout_height="48dp"
                      android:layout_width="0dp"
+                     android:background="@drawable/spinner_background"
+                     android:popupBackground="@drawable/card_background_enhanced"
                      android:layout_weight="1"
                      android:id="@+id/audio_format_spinner">
 
@@ -175,18 +195,23 @@
             <LinearLayout
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
+                 android:layout_marginBottom="16dp"
+                 android:gravity="center_vertical"
                  android:orientation="horizontal">
 
                 <TextView
                      android:layout_height="wrap_content"
                      android:layout_width="0dp"
                      android:gravity="center_vertical"
+                     android:textSize="14sp"
                      android:layout_weight="1"
                      android:text="质量设置:" />
 
                 <Spinner
-                     android:layout_height="wrap_content"
+                     android:layout_height="48dp"
                      android:layout_width="0dp"
+                     android:background="@drawable/spinner_background"
+                     android:popupBackground="@drawable/card_background_enhanced"
                      android:layout_weight="1"
                      android:id="@+id/quality_spinner">
 
@@ -197,26 +222,29 @@
             <View
                  android:layout_height="1dp"
                  android:layout_width="match_parent"
-                 android:layout_marginBottom="12dp"
-                 android:background="#E0E0E0"
-                 android:layout_marginTop="8dp" />
+                 android:layout_marginBottom="16dp"
+                 android:background="#E0E0E0" />
 
             <LinearLayout
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
-                 android:layout_marginBottom="8dp"
+                 android:layout_marginBottom="12dp"
+                 android:gravity="center_vertical"
                  android:orientation="horizontal">
 
                 <TextView
                      android:layout_height="wrap_content"
                      android:layout_width="0dp"
                      android:gravity="center_vertical"
+                     android:textSize="14sp"
                      android:layout_weight="1"
                      android:text="@string/volume_setting" />
 
                 <Spinner
-                     android:layout_height="wrap_content"
+                     android:layout_height="48dp"
                      android:layout_width="0dp"
+                     android:background="@drawable/spinner_background"
+                     android:popupBackground="@drawable/card_background_enhanced"
                      android:layout_weight="1"
                      android:id="@+id/volume_spinner">
 
@@ -235,20 +263,24 @@
                 <LinearLayout
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
+                     android:gravity="center_vertical"
                      android:orientation="horizontal">
 
                     <TextView
                          android:layout_height="wrap_content"
                          android:layout_width="0dp"
                          android:gravity="center_vertical"
+                         android:textSize="14sp"
                          android:layout_weight="1"
                          android:text="音量大小" />
 
                     <TextView
                          android:layout_height="wrap_content"
                          android:layout_width="wrap_content"
+                         android:textColor="#2196F3"
                          android:id="@+id/volume_percent_text"
-                         android:text="100%" />
+                         android:text="100%"
+                         android:textStyle="bold" />
 
                 </LinearLayout>
 
@@ -256,7 +288,7 @@
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
                      android:max="200"
-                     android:progressBackgroundTint="#90CAF9"
+                     android:progressBackgroundTint="#E3F2FD"
                      android:thumbTint="#2196F3"
                      android:progressTint="#2196F3"
                      android:progress="100"
@@ -270,58 +302,66 @@
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
              android:layout_marginBottom="16dp"
-             android:background="@drawable/card_background"
-             android:elevation="2dp"
-             android:padding="16dp"
-             android:orientation="vertical">
+             android:background="@drawable/card_background_enhanced"
+             android:elevation="4dp"
+             android:padding="20dp"
+             android:orientation="vertical"
+             android:clipToPadding="false"
+             android:id="@+id/video_processing_card">
 
             <TextView
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
-                 android:layout_marginBottom="12dp"
+                 android:layout_marginBottom="16dp"
+                 android:textSize="16sp"
                  android:text="视频处理"
                  android:textStyle="bold" />
 
             <Button
-                 android:layout_height="wrap_content"
+                 android:layout_height="48dp"
                  android:layout_width="match_parent"
                  android:layout_marginBottom="8dp"
+                 android:textSize="14sp"
                  android:backgroundTint="#4CAF50"
                  android:textColor="@android:color/white"
                  android:id="@+id/convert_btn"
                  android:text="转换格式" />
 
             <Button
-                 android:layout_height="wrap_content"
+                 android:layout_height="48dp"
                  android:layout_width="match_parent"
                  android:layout_marginBottom="8dp"
+                 android:textSize="14sp"
                  android:backgroundTint="#FF9800"
                  android:textColor="@android:color/white"
                  android:id="@+id/compress_btn"
                  android:text="压缩视频" />
 
             <Button
-                 android:layout_height="wrap_content"
+                 android:layout_height="48dp"
                  android:layout_width="match_parent"
                  android:layout_marginBottom="8dp"
+                 android:textSize="14sp"
                  android:backgroundTint="#9C27B0"
                  android:textColor="@android:color/white"
                  android:id="@+id/extract_audio_btn"
                  android:text="提取音频" />
 
             <Button
-                 android:layout_height="wrap_content"
+                 android:layout_height="48dp"
                  android:layout_width="match_parent"
                  android:layout_marginBottom="8dp"
+                 android:textSize="14sp"
                  android:backgroundTint="#795548"
                  android:textColor="@android:color/white"
                  android:id="@+id/cut_video_btn"
                  android:text="裁剪视频" />
 
             <Button
-                 android:layout_height="wrap_content"
+                 android:layout_height="48dp"
                  android:layout_width="match_parent"
                  android:layout_marginBottom="8dp"
+                 android:textSize="14sp"
                  android:backgroundTint="#607D8B"
                  android:textColor="@android:color/white"
                  android:id="@+id/screenshot_btn"
@@ -333,31 +373,36 @@
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
              android:layout_marginBottom="16dp"
-             android:background="@drawable/card_background"
-             android:elevation="2dp"
-             android:padding="16dp"
-             android:orientation="vertical">
+             android:background="@drawable/card_background_enhanced"
+             android:elevation="4dp"
+             android:padding="20dp"
+             android:orientation="vertical"
+             android:clipToPadding="false"
+             android:id="@+id/audio_processing_card">
 
             <TextView
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
-                 android:layout_marginBottom="12dp"
+                 android:layout_marginBottom="16dp"
+                 android:textSize="16sp"
                  android:text="音频处理"
                  android:textStyle="bold" />
 
             <Button
-                 android:layout_height="wrap_content"
+                 android:layout_height="48dp"
                  android:layout_width="match_parent"
                  android:layout_marginBottom="8dp"
+                 android:textSize="14sp"
                  android:backgroundTint="#E91E63"
                  android:textColor="@android:color/white"
                  android:id="@+id/convert_audio_btn"
                  android:text="转换音频格式" />
 
             <Button
-                 android:layout_height="wrap_content"
+                 android:layout_height="48dp"
                  android:layout_width="match_parent"
                  android:layout_marginBottom="8dp"
+                 android:textSize="14sp"
                  android:backgroundTint="#3F51B5"
                  android:textColor="@android:color/white"
                  android:id="@+id/cut_audio_btn"
