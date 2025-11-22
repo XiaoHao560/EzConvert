@@ -5,7 +5,7 @@
      android:layout_height="match_parent"
      android:layout_width="match_parent"
      android:background="@color/bg_light"
-     android:padding="20dp">
+     android:padding="12dp">
 
     <LinearLayout
          android:layout_height="wrap_content"
@@ -15,24 +15,24 @@
         <androidx.cardview.widget.CardView
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:layout_marginBottom="16dp"
-             app:cardElevation="8dp"
+             android:layout_marginBottom="8dp"
+             app:cardElevation="4dp"
              app:cardUseCompatPadding="true"
              app:cardBackgroundColor="@android:color/white"
-             app:cardCornerRadius="16dp"
+             app:cardCornerRadius="12dp"
              android:id="@+id/performance_card">
 
             <LinearLayout
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
-                 android:padding="20dp"
+                 android:padding="16dp"
                  android:orientation="vertical">
 
                 <TextView
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
-                     android:layout_marginBottom="20dp"
-                     android:textSize="18sp"
+                     android:layout_marginBottom="16dp"
+                     android:textSize="16sp"
                      android:textColor="@color/text_primary"
                      android:text="性能优化选项"
                      android:textStyle="bold" />
@@ -40,7 +40,7 @@
                 <LinearLayout
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
-                     android:layout_marginBottom="16dp"
+                     android:layout_marginBottom="12dp"
                      android:gravity="center_vertical"
                      android:orientation="horizontal">
 
@@ -53,7 +53,7 @@
                         <TextView
                              android:layout_height="wrap_content"
                              android:layout_width="match_parent"
-                             android:textSize="16sp"
+                             android:textSize="14sp"
                              android:textColor="@color/text_primary"
                              android:text="启用硬件编解码"
                              android:textStyle="bold" />
@@ -61,9 +61,9 @@
                         <TextView
                              android:layout_height="wrap_content"
                              android:layout_width="match_parent"
-                             android:textSize="14sp"
+                             android:textSize="12sp"
                              android:textColor="@color/text_hint"
-                             android:layout_marginTop="4dp"
+                             android:layout_marginTop="2dp"
                              android:text="使用GPU加速视频处理" />
 
                     </LinearLayout>
@@ -92,7 +92,7 @@
                         <TextView
                              android:layout_height="wrap_content"
                              android:layout_width="match_parent"
-                             android:textSize="16sp"
+                             android:textSize="14sp"
                              android:textColor="@color/text_primary"
                              android:text="多线程优化"
                              android:textStyle="bold" />
@@ -100,9 +100,9 @@
                         <TextView
                              android:layout_height="wrap_content"
                              android:layout_width="match_parent"
-                             android:textSize="14sp"
+                             android:textSize="12sp"
                              android:textColor="@color/text_hint"
-                             android:layout_marginTop="4dp"
+                             android:layout_marginTop="2dp"
                              android:text="使用多核CPU并行处理" />
 
                     </LinearLayout>
@@ -123,23 +123,24 @@
         <androidx.cardview.widget.CardView
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:layout_marginBottom="16dp"
-             app:cardElevation="4dp"
+             android:layout_marginBottom="8dp"
+             app:cardElevation="2dp"
              app:cardUseCompatPadding="true"
              app:cardBackgroundColor="@android:color/white"
-             app:cardCornerRadius="12dp"
+             app:cardCornerRadius="10dp"
              android:id="@+id/explanation_card_1">
 
             <LinearLayout
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
-                 android:padding="16dp"
+                 android:padding="12dp"
                  android:orientation="vertical">
 
                 <TextView
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
-                     android:layout_marginBottom="8dp"
+                     android:layout_marginBottom="6dp"
+                     android:textSize="14sp"
                      android:textColor="@color/text_primary"
                      android:text="硬件编解码说明"
                      android:textStyle="bold" />
@@ -147,9 +148,9 @@
                 <TextView
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
-                     android:textSize="14sp"
+                     android:textSize="12sp"
                      android:textColor="@color/text_secondary"
-                     android:lineSpacingExtra="4dp"
+                     android:lineSpacingExtra="2dp"
                      android:text="使用GPU进行视频编解码，可以显著提升转换速度，但可能在某些设备上存在兼容性问题。如果遇到转换失败，请关闭此选项。" />
 
             </LinearLayout>
@@ -159,23 +160,24 @@
         <androidx.cardview.widget.CardView
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:layout_marginBottom="24dp"
-             app:cardElevation="4dp"
+             android:layout_marginBottom="16dp"
+             app:cardElevation="2dp"
              app:cardUseCompatPadding="true"
              app:cardBackgroundColor="@android:color/white"
-             app:cardCornerRadius="12dp"
+             app:cardCornerRadius="10dp"
              android:id="@+id/explanation_card_2">
 
             <LinearLayout
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
-                 android:padding="16dp"
+                 android:padding="12dp"
                  android:orientation="vertical">
 
                 <TextView
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
-                     android:layout_marginBottom="8dp"
+                     android:layout_marginBottom="6dp"
+                     android:textSize="14sp"
                      android:textColor="@color/text_primary"
                      android:text="多线程优化说明"
                      android:textStyle="bold" />
@@ -183,9 +185,9 @@
                 <TextView
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
-                     android:textSize="14sp"
+                     android:textSize="12sp"
                      android:textColor="@color/text_secondary"
-                     android:lineSpacingExtra="4dp"
+                     android:lineSpacingExtra="2dp"
                      android:text="使用多核CPU并行处理视频，可以提升转换速度，但会增加CPU使用率和电池消耗。" />
 
             </LinearLayout>
@@ -193,9 +195,9 @@
         </androidx.cardview.widget.CardView>
 
         <Button
-             android:layout_height="56dp"
+             android:layout_height="48dp"
              android:layout_width="match_parent"
-             android:textSize="16sp"
+             android:textSize="14sp"
              android:backgroundTint="#2196F3"
              android:textColor="@android:color/white"
              android:id="@+id/save_settings_btn"
