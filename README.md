@@ -7,9 +7,14 @@
 ![GitHub repo size](https://img.shields.io/github/repo-size/XiaoHao560/EzConvert?style=flat-square&color=informational)
 ![License](https://img.shields.io/github/license/XiaoHao560/EzConvert?style=flat-square)
 # 项目更新日志
+<details markdown='1'><summary>展开/收起</summary>
 
-从 v0.2.0 开始，我们使用结构化更新日志[change_log](change_log/)。
+从 v0.2.0 开始，我们使用**结构化更新日志**[change_log](change_log/)。
 此前版本的变更记录请查看 [GitHub Releases](https://github.com/XiaoHao560/EzConvert/releases) 或提交历史。
+
+从 v0.5.1 开始，我们使用**线性历史**的方式合并PR，所有PR均使用 **Rebase & Merge** 的方式合并。
+
+</details>
 
 # EzConvert
 
