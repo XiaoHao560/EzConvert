@@ -25,6 +25,9 @@ public class LogViewerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_log_viewer);
 
+        // 进入动画
+        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("运行日志");
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -61,6 +64,12 @@ public class LogViewerActivity extends AppCompatActivity {
     public boolean onSupportNavigateUp() {
         finish();
         return true;
+    }
+
+    @Override
+    public void finish() {
+        super.finish();
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 
     private static class LogAdapter extends RecyclerView.Adapter<LogAdapter.Holder> {

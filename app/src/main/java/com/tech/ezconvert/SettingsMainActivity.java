@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.Toast;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.ActivityOptionsCompat;
 
 public class SettingsMainActivity extends AppCompatActivity {
     
@@ -17,6 +19,8 @@ public class SettingsMainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings_main);
+        
+        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         
         initializeViews();
         setupClickListeners();
@@ -34,7 +38,12 @@ public class SettingsMainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 // 打开转码设置界面
                 Intent intent = new Intent(SettingsMainActivity.this, TranscodeSettingsActivity.class);
-                startActivity(intent);
+                ActivityOptionsCompat options = ActivityOptionsCompat.makeCustomAnimation(
+                    SettingsMainActivity.this,
+                    R.anim.slide_in_right,
+                    R.anim.slide_out_left
+                );
+                ActivityCompat.startActivity(SettingsMainActivity.this, intent, options.toBundle());
             }
         });
         
@@ -48,8 +57,20 @@ public class SettingsMainActivity extends AppCompatActivity {
         
         // 打开通用设置
         generalSettingsItem.setOnClickListener(v -> {
-            startActivity(new Intent(SettingsMainActivity.this, MoreSettingsActivity.class));
+            Intent intent = new Intent(SettingsMainActivity.this, MoreSettingsActivity.class);
+            ActivityOptionsCompat options = ActivityOptionsCompat.makeCustomAnimation(
+                SettingsMainActivity.this,
+                R.anim.slide_in_right,
+                R.anim.slide_out_left
+            );
+            ActivityCompat.startActivity(SettingsMainActivity.this, intent, options.toBundle());
         });
         aboutItem.setOnClickListener(comingSoonListener);
+    }
+    
+    @Override
+    public void finish() {
+        super.finish();
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 }

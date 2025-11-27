@@ -5,6 +5,8 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.ActivityOptionsCompat;
 
 public class LogSettingsActivity extends AppCompatActivity {
 
@@ -39,7 +41,20 @@ public class LogSettingsActivity extends AppCompatActivity {
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         });
 
-        btnViewLog.setOnClickListener(v ->
-                startActivity(new Intent(this, LogViewerActivity.class)));
+        btnViewLog.setOnClickListener(v -> {
+            Intent intent = new Intent(this, LogViewerActivity.class);
+            ActivityOptionsCompat options = ActivityOptionsCompat.makeCustomAnimation(
+                this,
+                R.anim.slide_in_right,
+                R.anim.slide_out_left
+            );
+            ActivityCompat.startActivity(this, intent, options.toBundle());
+        });
+    }
+
+    @Override
+    public void finish() {
+        super.finish();
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 }
