@@ -1,27 +1,31 @@
 package com.tech.ezconvert;
 
-import android.Manifest;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.*;
-import android.window.SplashScreen;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.ActivityOptionsCompat;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpegCallback {
     
     private static final int PERMISSION_REQUEST_CODE = 100;
-    private static final int FILE_PICKER_REQUEST = 101;
     private static final int MANAGE_STORAGE_REQUEST_CODE = 102;
     
     private TextView statusText, progressText, versionText, volumePercentText;
@@ -36,12 +40,18 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     private boolean permissionsGranted = false;
     private int currentVolume = 100;
     
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    
+    private ActivityResultLauncher<Intent> filePickerLauncher;
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         androidx.core.splashscreen.SplashScreen.installSplashScreen(this);
         FFmpegUtil.initLogging(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        
+        setupActivityResultLaunchers();
         
         initializeViews();
         setupSpinners();
@@ -54,6 +64,40 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         PermissionManager.checkPermissionStatus(this);
         
         handleShareIntent(getIntent());
+    }
+    
+    private void setupActivityResultLaunchers() {
+        filePickerLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    Intent data = result.getData();
+                    if (data != null) {
+                        Uri uri = data.getData();
+                        if (uri != null) {
+                            currentInputPath = FileUtils.getPath(this, uri);
+                            if (currentInputPath != null && new File(currentInputPath).exists()) {
+                                String fileName = new File(currentInputPath).getName();
+                                updateStatus("已选择文件: " + fileName);
+                                
+                                // 生成输出路径
+                                generateOutputPath();
+                                
+                                // 更新按键状态
+                                setFunctionButtonsEnabled(permissionsGranted);
+                                
+                                Toast.makeText(this, "已选择: " + fileName, Toast.LENGTH_SHORT).show();
+                            } else {
+                                updateStatus("无法访问文件或文件不存在");
+                                Toast.makeText(this, "无法访问文件或文件不存在", Toast.LENGTH_SHORT).show();
+                                currentInputPath = "";
+                                setFunctionButtonsEnabled(permissionsGranted);
+                            }
+                        }
+                    }
+                }
+            }
+        );
     }
     
     private void initializeViews() {
@@ -205,12 +249,17 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
             AnimationUtils.animateButtonClick(v);
             v.animate().rotationBy(180).setDuration(300).start();
             
-            new Handler().postDelayed(() -> {
-                Intent settingsIntent = new Intent(MainActivity.this, SettingsMainActivity.class);
-                startActivity(settingsIntent);
-                // 页面切换动画
-                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
-            }, 150);
+            scheduler.schedule(() -> {
+                runOnUiThread(() -> {
+                    Intent settingsIntent = new Intent(MainActivity.this, SettingsMainActivity.class);
+                    ActivityOptionsCompat options = ActivityOptionsCompat.makeCustomAnimation(
+                        MainActivity.this,
+                        R.anim.slide_in_right,
+                        R.anim.slide_out_left
+                    );
+                    ActivityCompat.startActivity(MainActivity.this, settingsIntent, options.toBundle());
+                });
+            }, 150, TimeUnit.MILLISECONDS);
         });
         
         // 文件选择按钮
@@ -347,7 +396,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
         
         try {
-            startActivityForResult(Intent.createChooser(intent, "选择媒体文件"), FILE_PICKER_REQUEST);
+            filePickerLauncher.launch(Intent.createChooser(intent, "选择媒体文件"));
         } catch (Exception e) {
             Toast.makeText(this, "无法打开文件选择器", Toast.LENGTH_SHORT).show();
             Log.e("MainActivity", "打开文件选择器失败", e);
@@ -358,29 +407,8 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         
-        if (requestCode == FILE_PICKER_REQUEST && resultCode == RESULT_OK) {
-            Uri uri = data.getData();
-            if (uri != null) {
-                currentInputPath = FileUtils.getPath(this, uri);
-                if (currentInputPath != null && new File(currentInputPath).exists()) {
-                    String fileName = new File(currentInputPath).getName();
-                    updateStatus("已选择文件: " + fileName);
-                    
-                    // 生成输出路径
-                    generateOutputPath();
-                    
-                    // 更新按键状态
-                    setFunctionButtonsEnabled(permissionsGranted);
-                    
-                    Toast.makeText(this, "已选择: " + fileName, Toast.LENGTH_SHORT).show();
-                } else {
-                    updateStatus("无法访问文件或文件不存在");
-                    Toast.makeText(this, "无法访问文件或文件不存在", Toast.LENGTH_SHORT).show();
-                    currentInputPath = "";
-                    setFunctionButtonsEnabled(permissionsGranted);
-                }
-            }
-        } else if (requestCode == MANAGE_STORAGE_REQUEST_CODE) {
+        // 保留 MANAGE_STORAGE_REQUEST_CODE 的处理，因为这是特殊的权限请求
+        if (requestCode == MANAGE_STORAGE_REQUEST_CODE) {
             // 处理所有文件访问权限的返回
             PermissionManager.checkPermissionStatus(this);
         }
@@ -733,6 +761,10 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     protected void onDestroy() {
         super.onDestroy();
         FFmpegUtil.cancelCurrentTask();
+        // 关闭 Executor
+        if (!scheduler.isShutdown()) {
+            scheduler.shutdown();
+        }
     }
 
     private void handleShareIntent(Intent intent) {
@@ -741,7 +773,15 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         
         if (Intent.ACTION_SEND.equals(action) && type != null) {
             if (type.startsWith("video/") || type.startsWith("audio/")) {
-                Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                Uri uri = null;
+                // 使用类型安全的方法替代过时的 getParcelableExtra
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    uri = intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri.class);
+                } else {
+                    // 对于旧版本，使用已过时的方法但添加抑制警告注解
+                    uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                }
+                
                 if (uri != null) {
                     String path = FileUtils.getPath(this, uri);
                     if (path != null && new File(path).exists()) {

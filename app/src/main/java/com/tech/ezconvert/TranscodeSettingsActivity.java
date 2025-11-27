@@ -22,6 +22,8 @@ public class TranscodeSettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
         
+        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+        
         initializeViews();
         loadSettings();
         
@@ -53,6 +55,12 @@ public class TranscodeSettingsActivity extends AppCompatActivity {
         
         Toast.makeText(this, "设置已保存", Toast.LENGTH_SHORT).show();
         finish();
+    }
+    
+    @Override
+    public void finish() {
+        super.finish();
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
     
     // 静态方法供其他类读取设置
