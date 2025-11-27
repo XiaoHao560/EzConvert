@@ -774,7 +774,6 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         if (Intent.ACTION_SEND.equals(action) && type != null) {
             if (type.startsWith("video/") || type.startsWith("audio/")) {
                 Uri uri = null;
-                // 使用类型安全的方法替代过时的 getParcelableExtra
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     uri = intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri.class);
                 } else {

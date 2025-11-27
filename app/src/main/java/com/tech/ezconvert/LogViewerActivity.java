@@ -25,7 +25,6 @@ public class LogViewerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_log_viewer);
 
-        // 进入动画
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 
         if (getSupportActionBar() != null) {
