@@ -42,13 +42,17 @@ public class LogSettingsActivity extends AppCompatActivity {
         });
 
         btnViewLog.setOnClickListener(v -> {
-            Intent intent = new Intent(this, LogViewerActivity.class);
-            ActivityOptionsCompat options = ActivityOptionsCompat.makeCustomAnimation(
-                this,
-                R.anim.slide_in_right,
-                R.anim.slide_out_left
-            );
-            ActivityCompat.startActivity(this, intent, options.toBundle());
+            AnimationUtils.animateButtonClick(v);
+            
+            v.postDelayed(() -> {
+                Intent intent = new Intent(this, LogViewerActivity.class);
+                ActivityOptionsCompat options = ActivityOptionsCompat.makeCustomAnimation(
+                    this,
+                    R.anim.slide_in_right,
+                    R.anim.slide_out_left
+                );
+                ActivityCompat.startActivity(this, intent, options.toBundle());
+            }, 200);
         });
     }
 

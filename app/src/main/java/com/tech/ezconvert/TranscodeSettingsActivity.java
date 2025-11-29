@@ -27,7 +27,10 @@ public class TranscodeSettingsActivity extends AppCompatActivity {
         initializeViews();
         loadSettings();
         
-        saveSettingsBtn.setOnClickListener(v -> saveSettings());
+        saveSettingsBtn.setOnClickListener(v -> {
+            AnimationUtils.animateButtonClick(v);
+            saveSettings();
+        });
     }
     
     private void initializeViews() {
