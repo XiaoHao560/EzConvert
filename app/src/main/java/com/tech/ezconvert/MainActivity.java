@@ -721,10 +721,11 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     public void onComplete(boolean success, String message) {
         runOnUiThread(() -> {
             if (success) {
-                updateStatus("处理完成: " + message);
-                String outputFileName = new File(currentOutputPath).getName();
+                String outputFileName = new File(currentInputPath).getName();
+                updateStatus("处理完成: " + outputFileName);
                 Toast.makeText(MainActivity.this, 
-                    "处理完成！输出文件: " + outputFileName + "\n保存在: Download/简转/", 
+                    // Toast 内输出文件名会导致 Toast 过长显示不全
+                    "处理完成！输出文件"/* + outputFileName */+ "\n保存在: Download/简转/", 
                     Toast.LENGTH_LONG).show();
             } else {
                 updateStatus("处理失败: " + message);
