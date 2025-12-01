@@ -122,8 +122,7 @@
                          android:layout_height="32dp"
                          android:layout_width="32dp"
                          android:layout_marginEnd="16dp"
-                         android:src="@drawable/ic_copy"
-                         android:tint="#2196F3" />
+                         android:src="@drawable/ic_code" />
 
                     <LinearLayout
                          android:layout_height="wrap_content"
@@ -177,8 +176,7 @@
                          android:layout_height="32dp"
                          android:layout_width="32dp"
                          android:layout_marginEnd="16dp"
-                         android:src="@drawable/ic_log"
-                         android:tint="#2196F3" />
+                         android:src="@drawable/ic_github" />
 
                     <LinearLayout
                          android:layout_height="wrap_content"
@@ -232,8 +230,7 @@
                          android:layout_height="32dp"
                          android:layout_width="32dp"
                          android:layout_marginEnd="16dp"
-                         android:src="@drawable/ic_settings"
-                         android:tint="#2196F3" />
+                         android:src="@drawable/ic_clock" />
 
                     <LinearLayout
                          android:layout_height="wrap_content"
