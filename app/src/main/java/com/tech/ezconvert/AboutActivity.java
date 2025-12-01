@@ -14,8 +14,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.app.ActivityOptionsCompat;
+import android.util.Log;
 import androidx.core.content.ContextCompat;
 
 import io.noties.markwon.Markwon;
@@ -32,9 +31,11 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.Arrays;
 
 public class AboutActivity extends AppCompatActivity {
     
+    private static final String TAG = "AboutActivity";
     private TextView versionText;
     private TextView updateStatusText;
     private LinearLayout testUpdateItem;
@@ -151,6 +152,8 @@ public class AboutActivity extends AppCompatActivity {
             // 开发版本检测逻辑
             isDevelopmentVersion = isDevelopmentVersion(version);
             
+            Log.d(TAG, "版本号: " + version + ", 是否为开发版本: " + isDevelopmentVersion);
+            
         } catch (PackageManager.NameNotFoundException e) {
             versionText.setText("版本 0.0.0");
             isDevelopmentVersion = true; // 默认为开发版本
@@ -161,33 +164,117 @@ public class AboutActivity extends AppCompatActivity {
         // 移除版本号前面的 'v' 或 'V'
         String cleanVersion = version.replaceFirst("^[vV]", "").toLowerCase();
         
-        // 判断是否为开发版本的逻辑：
-        // 1. 包含分支名（feat/, fix/, hotfix/, chore/, docs/, style/, refactor/, test/等）
+        Log.d(TAG, "检查版本: " + cleanVersion + " 是否为开发版本");
+        
+       /*
+        1. 首先检查是否为标准的预发布版本（无论是 .alpha 还是 -alpha 格式）
+        标准的预发布版本：alpha, beta, rc, preview, pre-release 等
+        支持两种格式：0.6.0.alpha（点分隔）和 0.6.0-alpha（横杠分隔）
+       */
+       
+        // 检查是否为标准的预发布版本标识
+        String[] versionParts = cleanVersion.split("\\.");
+        boolean isStandardPrerelease = false;
+        
+        // 检查最后一部分是否是标准的预发布标识
+        if (versionParts.length > 0) {
+            String lastPart = versionParts[versionParts.length - 1].toLowerCase();
+            // 检查标准预发布标识
+            if (lastPart.matches("alpha|beta|rc[0-9]*|preview|pre-release")) {
+                isStandardPrerelease = true;
+            }
+            
+            // 检查是否有横杠分隔的预发布标识
+            for (String part : versionParts) {
+                if (part.contains("-")) {
+                    String[] subParts = part.split("-");
+                    if (subParts.length >= 2) {
+                        String prereleasePart = subParts[1].toLowerCase();
+                        if (prereleasePart.matches("alpha|beta|rc[0-9]*|preview|pre-release")) {
+                            isStandardPrerelease = true;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 如果是标准的预发布版本，先检查是否包含分支信息
+        if (isStandardPrerelease) {
+            Log.d(TAG, "检测到标准预发布版本标识");
+            
+            // 检查是否包含分支信息（feat/, fix/, hotfix/, chore/, docs/, style/, refactor/, test/等）
+            if (cleanVersion.matches(".*(feat|fix|hotfix|chore|docs|style|refactor|test)[\\-/].*")) {
+                Log.d(TAG, "包含分支信息，判定为开发版本");
+                return true;
+            }
+            
+            // 检查预发布版本是否包含额外的分支信息
+            // 例如：1.0.0.alpha-feat-new-ui 或 1.0.0-alpha-feat-new-ui
+            if (cleanVersion.contains("-")) {
+                String[] dashParts = cleanVersion.split("-");
+                // 如果有多个"-"，说明有额外的分支信息
+                if (dashParts.length > 2) {
+                    Log.d(TAG, "预发布版本包含分支信息，判定为开发版本");
+                    return true;
+                }
+                
+                // 如果只有一个"-"，检查是否包含分支关键词
+                if (dashParts.length == 2) {
+                    String secondPart = dashParts[1].toLowerCase();
+                    // 检查第二部分是否包含分支关键词
+                    if (secondPart.matches(".*(feat|fix|hotfix|chore|docs|style|refactor|test|dev|local|feature|branch).*")) {
+                        Log.d(TAG, "预发布标识包含分支关键词，判定为开发版本");
+                        return true;
+                    }
+                }
+            }
+            
+            // 标准的预发布版本，不是开发版本
+            Log.d(TAG, "标准预发布版本，不是开发版本");
+            return false;
+        }
+        
+        // 2. 检查是否包含分支信息（feat/, fix/, hotfix/, chore/, docs/, style/, refactor/, test/等）
         if (cleanVersion.matches(".*(feat|fix|hotfix|chore|docs|style|refactor|test)[\\-/].*")) {
+            Log.d(TAG, "包含分支信息，判定为开发版本");
             return true;
         }
         
-        // 2. 包含开发环境标识
+        // 3. 检查是否包含开发环境特定标识（这些是开发版本）
         if (cleanVersion.contains("dev") || 
-            cleanVersion.contains("snapshot") ||
             cleanVersion.contains("nightly") ||
-            cleanVersion.contains("local")) {
+            cleanVersion.contains("local") ||
+            cleanVersion.contains("feature") ||
+            cleanVersion.contains("branch")) {
+            Log.d(TAG, "包含开发环境标识，判定为开发版本");
             return true;
         }
         
-        // 3. 特殊的开发分支模式
+        // 4. 检查是否包含Git提交哈希（Git描述格式）
         if (cleanVersion.matches(".*\\d+-g[0-9a-f]+$")) { // Git描述格式，如 1.0.0-1-gabc123
+            Log.d(TAG, "包含Git提交哈希，判定为开发版本");
             return true;
         }
         
-        // 4. 检查是否包含构建号等非标准部分
-        String[] parts = cleanVersion.split("\\.");
+        // 5. snapshot 标识（这是开发版本）
+        if (cleanVersion.contains("snapshot")) {
+            Log.d(TAG, "包含snapshot标识，判定为开发版本");
+            return true;
+        }
+        
+        // 6. 检查版本号部分数量
+        // 先移除可能的预发布标识部分
+        String baseVersion = cleanVersion.split("-")[0];
+        String[] parts = baseVersion.split("\\.");
+        
+        // 如果主版本号部分超过3个，可能是开发版本（如 0.5.2.1）
         if (parts.length > 3) {
-            // 如果有超过3个部分，可能是开发版本（如 0.5.2.1）
+            Log.d(TAG, "版本号部分超过3个，判定为开发版本");
             return true;
         }
         
         // 默认不是开发版本
+        Log.d(TAG, "未匹配到开发版本特征，判定为非开发版本");
         return false;
     }
     
@@ -298,6 +385,8 @@ public class AboutActivity extends AppCompatActivity {
                         final String finalHtmlUrl = htmlUrl;
                         final String finalPublishedAt = publishedAt;
                         
+                        Log.d(TAG, "找到最新版本: " + latestVersion + ", 是否为预发布: " + isPrerelease);
+                        
                         // 回到主线程处理结果
                         mainHandler.post(() -> handleUpdateResult(finalLatestVersion, finalReleaseName, 
                             finalReleaseNotes, finalIsPrerelease, finalHtmlUrl, finalPublishedAt));
@@ -336,10 +425,14 @@ public class AboutActivity extends AppCompatActivity {
             }
             String currentVersion = pInfo.versionName;
             
-            int comparison = compareVersions(latestVersion, currentVersion);
+            int comparison = compareVersions(currentVersion, latestVersion);
             
-            if (comparison > 0) {
-                // 有新版本可用
+            Log.d(TAG, "版本比较结果: 本地=" + currentVersion + ", GitHub=" + latestVersion + ", 比较结果=" + comparison);
+            Log.d(TAG, "当前版本是否为开发版本: " + isDevelopmentVersion);
+            Log.d(TAG, "GitHub版本是否为预发布: " + isPrerelease);
+            
+            if (comparison < 0) {
+                // 有新版本可用（本地版本 < GitHub版本）
                 String statusText = "有新版本 " + latestVersion;
                 if (isPrerelease) {
                     statusText += " (预发布)";
@@ -355,6 +448,8 @@ public class AboutActivity extends AppCompatActivity {
                 // 如果是开发版本，显示测试选项
                 if (isDevelopmentVersion) {
                     testUpdateItem.setVisibility(View.VISIBLE);
+                } else {
+                    testUpdateItem.setVisibility(View.GONE);
                 }
             } else if (comparison == 0) {
                 // 版本相同
@@ -364,24 +459,32 @@ public class AboutActivity extends AppCompatActivity {
                 }
                 updateStatusText.setText(statusText);
                 updateStatusText.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray));
+                updateStatusText.setOnClickListener(null); // 移除点击事件
                 
-                // 如果是开发版本，显示测试选项
+                // 只有在确实是开发版本时才显示测试选项
                 if (isDevelopmentVersion) {
                     testUpdateItem.setVisibility(View.VISIBLE);
+                    Log.d(TAG, "显示测试更新按钮（开发版本）");
+                } else {
+                    testUpdateItem.setVisibility(View.GONE);
                 }
             } else {
-                // 当前版本比找到的版本更新（可能是开发版本）
+                // 当前版本比找到的版本更新（本地版本 > GitHub版本，可能是开发版本）
                 updateStatusText.setText("当前为开发版本");
                 updateStatusText.setTextColor(ContextCompat.getColor(this, android.R.color.holo_blue_dark));
+                updateStatusText.setOnClickListener(null); // 移除点击事件
                 
                 // 显示测试更新选项
                 if (isDevelopmentVersion) {
                     testUpdateItem.setVisibility(View.VISIBLE);
+                } else {
+                    testUpdateItem.setVisibility(View.GONE);
                 }
             }
         } catch (Exception e) {
             updateStatusText.setText("版本检查异常");
             updateStatusText.setTextColor(ContextCompat.getColor(this, android.R.color.holo_red_dark));
+            updateStatusText.setOnClickListener(null); // 移除点击事件
         }
     }
     
@@ -390,6 +493,13 @@ public class AboutActivity extends AppCompatActivity {
             // 移除版本号前面的 'v' 或 'V'
             String cleanV1 = v1.replaceFirst("^[vV]", "");
             String cleanV2 = v2.replaceFirst("^[vV]", "");
+            
+            Log.d(TAG, "比较版本: " + cleanV1 + " vs " + cleanV2);
+            
+            // 特殊处理点分隔的预发布版本（如 0.6.0.alpha -> 0.6.0-alpha）
+            // 这样可以让 0.6.0.alpha 和 0.6.0-alpha 正确比较
+            cleanV1 = normalizeVersion(cleanV1);
+            cleanV2 = normalizeVersion(cleanV2);
             
             // 分割版本号为数字部分和预发布标识部分
             String[] parts1 = cleanV1.split("-", 2);
@@ -402,6 +512,7 @@ public class AboutActivity extends AppCompatActivity {
             // 比较主版本号
             int mainComparison = compareMainVersions(mainVersion1, mainVersion2);
             if (mainComparison != 0) {
+                Log.d(TAG, "主版本比较结果: " + mainComparison);
                 return mainComparison;
             }
             
@@ -409,22 +520,56 @@ public class AboutActivity extends AppCompatActivity {
             boolean hasPreRelease1 = parts1.length > 1;
             boolean hasPreRelease2 = parts2.length > 1;
             
+            Log.d(TAG, "预发布标识检查: v1=" + hasPreRelease1 + ", v2=" + hasPreRelease2);
+            
             if (!hasPreRelease1 && !hasPreRelease2) {
+                Log.d(TAG, "都是正式版，返回0");
                 return 0; // 都是正式版
             } else if (!hasPreRelease1 && hasPreRelease2) {
+                Log.d(TAG, "v1是正式版，v2是预发布版，返回1");
                 return 1; // v1是正式版，v2是预发布版，正式版 > 预发布版
             } else if (hasPreRelease1 && !hasPreRelease2) {
+                Log.d(TAG, "v1是预发布版，v2是正式版，返回-1");
                 return -1; // v1是预发布版，v2是正式版，预发布版 < 正式版
             } else {
                 // 都是预发布版，比较预发布标识
                 String preRelease1 = parts1[1];
                 String preRelease2 = parts2[1];
-                return comparePreReleaseIdentifiers(preRelease1, preRelease2);
+                int prereleaseComparison = comparePreReleaseIdentifiers(preRelease1, preRelease2);
+                Log.d(TAG, "预发布标识比较结果: " + prereleaseComparison);
+                return prereleaseComparison;
             }
         } catch (Exception e) {
+            Log.e(TAG, "版本比较异常: " + e.getMessage());
             // 如果版本号格式异常，使用字符串比较
             return v1.compareTo(v2);
         }
+    }
+    
+    private String normalizeVersion(String version) {
+        
+        /*
+         将点分隔的预发布版本转换为横杠分隔，便于比较
+         例如: 0.6.0.alpha -> 0.6.0-alpha
+         例如: 0.6.0.beta -> 0.6.0-beta
+        */
+        
+        String[] parts = version.split("\\.");
+        if (parts.length >= 4) {
+            // 检查最后一部分是否为预发布标识
+            String lastPart = parts[parts.length - 1].toLowerCase();
+            if (lastPart.matches("alpha|beta|rc[0-9]*|preview|pre-release")) {
+                // 重建版本号
+                StringBuilder builder = new StringBuilder();
+                for (int i = 0; i < parts.length - 2; i++) {
+                    builder.append(parts[i]).append(".");
+                }
+                builder.append(parts[parts.length - 2]);
+                builder.append("-").append(parts[parts.length - 1]);
+                return builder.toString();
+            }
+        }
+        return version;
     }
     
     private int compareMainVersions(String v1, String v2) {
