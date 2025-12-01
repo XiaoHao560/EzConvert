@@ -169,7 +169,7 @@ public class AboutActivity extends AppCompatActivity {
        /*
         1. 首先检查是否为标准的预发布版本（无论是 .alpha 还是 -alpha 格式）
         标准的预发布版本：alpha, beta, rc, preview, pre-release 等
-        支持两种格式：0.6.0.alpha（点分隔）和 0.6.0-alpha（横杠分隔）
+        支持两种格式：0.0.0.alpha（点分隔）和 0.0.0-alpha（横杠分隔）
        */
        
         // 检查是否为标准的预发布版本标识
@@ -496,8 +496,8 @@ public class AboutActivity extends AppCompatActivity {
             
             Log.d(TAG, "比较版本: " + cleanV1 + " vs " + cleanV2);
             
-            // 特殊处理点分隔的预发布版本（如 0.6.0.alpha -> 0.6.0-alpha）
-            // 这样可以让 0.6.0.alpha 和 0.6.0-alpha 正确比较
+            // 特殊处理点分隔的预发布版本（如 0.0.0.alpha -> 0.0.0-alpha）
+            // 这样可以让 0.0.0.alpha 和 0.0.0-alpha 正确比较
             cleanV1 = normalizeVersion(cleanV1);
             cleanV2 = normalizeVersion(cleanV2);
             
@@ -550,8 +550,8 @@ public class AboutActivity extends AppCompatActivity {
         
         /*
          将点分隔的预发布版本转换为横杠分隔，便于比较
-         例如: 0.6.0.alpha -> 0.6.0-alpha
-         例如: 0.6.0.beta -> 0.6.0-beta
+         例如: 0.0.0.alpha -> 0.0.0-alpha
+         例如: 0.0.0.beta -> 0.0.0-beta
         */
         
         String[] parts = version.split("\\.");
