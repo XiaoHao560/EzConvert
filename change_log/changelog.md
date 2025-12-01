@@ -6,3 +6,12 @@
 - **关于** 界面
 - Markdown 语法支持 (用于 **检查更新** 显示)
 - 检查更新
+- 版本识别 (检测为**开发版本**可强制拉取最新版本)
+> [!NOTE]
+> 开发版本检测规则：
+> 1. 版本号中包含分支名（feat/, fix/, hotfix/, chore/, docs/, style/, refactor/, test/等）
+> 2. 包含开发环境标识（dev, snapshot, nightly, local）
+> 3. 特殊的开发分支模式
+> 4. 检查是否包含构建号等非标准部分
+> 
+> 默认版本为 release/预发布版本
