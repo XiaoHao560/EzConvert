@@ -68,5 +68,10 @@
             android:name=".LogSettingsActivity"
             android:exported="false"
             android:label="日志设置" />
+            
+        <activity
+            android:name=".AboutActivity"
+            android:exported="false"
+            android:label="关于" />
     </application>
 </manifest>

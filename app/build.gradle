@@ -240,6 +240,13 @@ dependencies {
     implementation 'androidx.core:core-splashscreen:1.0.1'
     
     implementation 'com.arthenica:ffmpeg-kit-full-gpl:6.0-2'
+    
+    implementation 'io.noties.markwon:core:4.6.2'
+    implementation 'io.noties.markwon:ext-tables:4.6.2'
+    implementation 'io.noties.markwon:ext-strikethrough:4.6.2'
+    implementation 'io.noties.markwon:linkify:4.6.2'
+    implementation 'io.noties.markwon:html:4.6.2'
+    implementation 'io.noties.markwon:image:4.6.2'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'

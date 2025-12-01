@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     android:layout_height="match_parent"
+     android:layout_width="match_parent"
+     android:background="@color/bg_light"
+     android:padding="20dp">
+
+    <LinearLayout
+         android:layout_height="wrap_content"
+         android:layout_width="match_parent"
+         android:orientation="vertical">
+
+        <androidx.cardview.widget.CardView
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:layout_marginBottom="24dp"
+             app:cardElevation="8dp"
+             app:cardUseCompatPadding="true"
+             app:cardBackgroundColor="@android:color/white"
+             app:cardCornerRadius="16dp">
+
+            <LinearLayout
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:padding="24dp"
+                 android:orientation="vertical">
+
+                <LinearLayout
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="16dp"
+                     android:gravity="center"
+                     android:orientation="vertical">
+
+                    <ImageView
+                         android:layout_height="64dp"
+                         android:layout_width="64dp"
+                         android:layout_marginBottom="8dp"
+                         android:src="@mipmap/ic_launcher" />
+
+                    <TextView
+                         android:layout_height="wrap_content"
+                         android:layout_width="wrap_content"
+                         android:textSize="24sp"
+                         android:textColor="@color/text_primary"
+                         android:text="EzConvert"
+                         android:textStyle="bold" />
+
+                    <TextView
+                         android:layout_height="wrap_content"
+                         android:layout_width="wrap_content"
+                         android:textSize="14sp"
+                         android:textColor="@color/text_hint"
+                         android:layout_marginTop="4dp"
+                         android:id="@+id/version_text"
+                         android:text="版本 0.5.2" />
+
+                </LinearLayout>
+
+                <TextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="16dp"
+                     android:textSize="14sp"
+                     android:textColor="@color/text_primary"
+                     android:lineSpacingExtra="4dp"
+                     android:text="一个简单易用的音视频转换工具，支持多种格式转换、压缩、裁剪等功能。" />
+
+                <TextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:textSize="13sp"
+                     android:textColor="@color/text_primary"
+                     android:lineSpacingExtra="4dp"
+                     android:text="开发者: XiaoHao\n邮箱: xiaohao@example.com" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:layout_marginBottom="24dp"
+             app:cardElevation="8dp"
+             app:cardUseCompatPadding="true"
+             app:cardBackgroundColor="@android:color/white"
+             app:cardCornerRadius="16dp">
+
+            <LinearLayout
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:padding="8dp"
+                 android:orientation="vertical">
+
+                <TextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="8dp"
+                     android:textSize="16sp"
+                     android:textColor="@color/text_primary"
+                     android:layout_marginTop="16dp"
+                     android:layout_marginStart="16dp"
+                     android:text="相关信息"
+                     android:textStyle="bold" />
+
+                <LinearLayout
+                     android:layout_height="72dp"
+                     android:layout_width="match_parent"
+                     android:paddingEnd="16dp"
+                     android:background="?android:attr/selectableItemBackground"
+                     android:gravity="center_vertical"
+                     android:clickable="true"
+                     android:orientation="horizontal"
+                     android:paddingStart="16dp"
+                     android:focusable="true"
+                     android:id="@+id/source_code_item">
+
+                    <ImageView
+                         android:layout_height="32dp"
+                         android:layout_width="32dp"
+                         android:layout_marginEnd="16dp"
+                         android:src="@drawable/ic_copy"
+                         android:tint="#2196F3" />
+
+                    <LinearLayout
+                         android:layout_height="wrap_content"
+                         android:layout_width="0dp"
+                         android:orientation="vertical"
+                         android:layout_weight="1">
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="16sp"
+                             android:textColor="@color/text_primary"
+                             android:text="源代码" />
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="12sp"
+                             android:textColor="@color/text_hint"
+                             android:text="查看GitHub上的源代码" />
+
+                    </LinearLayout>
+
+                    <ImageView
+                         android:layout_height="24dp"
+                         android:layout_width="24dp"
+                         android:src="@drawable/ic_arrow_right"
+                         android:tint="#9E9E9E" />
+
+                </LinearLayout>
+
+                <View
+                     android:layout_height="1dp"
+                     android:layout_width="match_parent"
+                     android:background="#F0F0F0"
+                     android:layout_marginStart="64dp" />
+
+                <LinearLayout
+                     android:layout_height="72dp"
+                     android:layout_width="match_parent"
+                     android:paddingEnd="16dp"
+                     android:background="?android:attr/selectableItemBackground"
+                     android:gravity="center_vertical"
+                     android:clickable="true"
+                     android:orientation="horizontal"
+                     android:paddingStart="16dp"
+                     android:focusable="true"
+                     android:id="@+id/feedback_item">
+
+                    <ImageView
+                         android:layout_height="32dp"
+                         android:layout_width="32dp"
+                         android:layout_marginEnd="16dp"
+                         android:src="@drawable/ic_log"
+                         android:tint="#2196F3" />
+
+                    <LinearLayout
+                         android:layout_height="wrap_content"
+                         android:layout_width="0dp"
+                         android:orientation="vertical"
+                         android:layout_weight="1">
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="16sp"
+                             android:textColor="@color/text_primary"
+                             android:text="问题反馈" />
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="12sp"
+                             android:textColor="@color/text_hint"
+                             android:text="在GitHub上报告问题" />
+
+                    </LinearLayout>
+
+                    <ImageView
+                         android:layout_height="24dp"
+                         android:layout_width="24dp"
+                         android:src="@drawable/ic_arrow_right"
+                         android:tint="#9E9E9E" />
+
+                </LinearLayout>
+
+                <View
+                     android:layout_height="1dp"
+                     android:layout_width="match_parent"
+                     android:background="#F0F0F0"
+                     android:layout_marginStart="64dp" />
+
+                <LinearLayout
+                     android:layout_height="72dp"
+                     android:layout_width="match_parent"
+                     android:paddingEnd="16dp"
+                     android:background="?android:attr/selectableItemBackground"
+                     android:gravity="center_vertical"
+                     android:clickable="true"
+                     android:orientation="horizontal"
+                     android:paddingStart="16dp"
+                     android:focusable="true"
+                     android:id="@+id/check_update_item">
+
+                    <ImageView
+                         android:layout_height="32dp"
+                         android:layout_width="32dp"
+                         android:layout_marginEnd="16dp"
+                         android:src="@drawable/ic_settings"
+                         android:tint="#2196F3" />
+
+                    <LinearLayout
+                         android:layout_height="wrap_content"
+                         android:layout_width="0dp"
+                         android:orientation="vertical"
+                         android:layout_weight="1">
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="16sp"
+                             android:textColor="@color/text_primary"
+                             android:text="检查更新" />
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:clickable="true"
+                             android:textSize="12sp"
+                             android:textColor="@color/text_hint"
+                             android:focusable="true"
+                             android:id="@+id/update_status_text"
+                             android:text="点击检查更新" />
+
+                    </LinearLayout>
+
+                    <ImageView
+                         android:layout_height="24dp"
+                         android:layout_width="24dp"
+                         android:src="@drawable/ic_arrow_right"
+                         android:tint="#9E9E9E" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:visibility="gone"
+                     android:paddingEnd="16dp"
+                     android:orientation="vertical"
+                     android:paddingBottom="8dp"
+                     android:paddingStart="64dp"
+                     android:id="@+id/test_update_item"
+                     android:paddingTop="8dp">
+
+                    <LinearLayout
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:background="?android:attr/selectableItemBackground"
+                         android:clickable="true"
+                         android:orientation="vertical"
+                         android:focusable="true"
+                         android:id="@+id/test_update_click_area">
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="14sp"
+                             android:textColor="#2196F3"
+                             android:text="强制拉取最新版" />
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="10sp"
+                             android:textColor="@color/text_hint"
+                             android:layout_marginTop="2dp"
+                             android:text="仅做测试版本更新" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             app:cardElevation="8dp"
+             app:cardUseCompatPadding="true"
+             app:cardBackgroundColor="@android:color/white"
+             app:cardCornerRadius="16dp">
+
+            <LinearLayout
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:padding="24dp"
+                 android:orientation="vertical">
+
+                <LinearLayout
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:background="?android:attr/selectableItemBackground"
+                     android:clickable="true"
+                     android:orientation="vertical"
+                     android:focusable="true"
+                     android:id="@+id/license_item">
+
+                    <TextView
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:layout_marginBottom="8dp"
+                         android:textSize="16sp"
+                         android:textColor="@color/text_primary"
+                         android:text="开源许可证"
+                         android:textStyle="bold" />
+
+                    <TextView
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:textSize="13sp"
+                         android:textColor="@color/text_primary"
+                         android:lineSpacingExtra="4dp"
+                         android:text="EzConvert 使用 GPLv3 许可证开源\n© 2025 XiaoHao. 保留所有权利。" />
+
+                </LinearLayout>
+
+                <View
+                     android:layout_height="1dp"
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="16dp"
+                     android:background="#F0F0F0"
+                     android:layout_marginTop="16dp" />
+
+                <TextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="8dp"
+                     android:textSize="16sp"
+                     android:textColor="@color/text_primary"
+                     android:text="鸣谢"
+                     android:textStyle="bold" />
+
+                <TextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:textSize="13sp"
+                     android:textColor="@color/text_primary"
+                     android:lineSpacingExtra="4dp"
+                     android:text="• FFmpegKit - 音视频处理核心库\n• AndroidX - 现代Android支持库\n• Material Components - 界面组件" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:gravity="center"
+             android:textSize="12sp"
+             android:textColor="@color/text_hint"
+             android:layout_marginTop="16dp"
+             android:text="感谢使用 EzConvert" />
+
+    </LinearLayout>
+
+</ScrollView>
