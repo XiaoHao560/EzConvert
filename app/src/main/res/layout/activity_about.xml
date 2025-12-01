@@ -74,7 +74,7 @@
                      android:textSize="13sp"
                      android:textColor="@color/text_primary"
                      android:lineSpacingExtra="4dp"
-                     android:text="开发者: XiaoHao\n邮箱: xiaohao@example.com" />
+                     android:text="开发者: XiaoHao\n邮箱: wzdmymzyl@163.com" />
 
             </LinearLayout>
 
