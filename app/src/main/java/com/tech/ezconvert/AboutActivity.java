@@ -17,7 +17,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.text.HtmlCompat;
 
 import io.noties.markwon.Markwon;
 import io.noties.markwon.ext.tables.TablePlugin;
@@ -43,7 +42,6 @@ public class AboutActivity extends AppCompatActivity {
     private boolean includePrereleases = true; // 是否包含预发布版本
     private boolean isDevelopmentVersion = false; // 是否为开发版本
     
-    // Markwon
     private Markwon markwon;
     
     // 存储从GitHub获取的最新版本信息，用于测试
@@ -150,18 +148,47 @@ public class AboutActivity extends AppCompatActivity {
             String version = pInfo.versionName;
             versionText.setText("版本 " + version);
             
-            // 检查是否为开发版本（包含特定标识）
-            isDevelopmentVersion = version.contains("dev") || 
-                                   version.contains("alpha") || 
-                                   version.contains("beta") || 
-                                   version.contains("rc") ||
-                                   version.contains("SNAPSHOT") ||
-                                   version.contains("test");
+            // 开发版本检测逻辑
+            isDevelopmentVersion = isDevelopmentVersion(version);
             
         } catch (PackageManager.NameNotFoundException e) {
             versionText.setText("版本 0.0.0");
-            isDevelopmentVersion = true; // 默认开发版本
+            isDevelopmentVersion = true; // 默认为开发版本
         }
+    }
+    
+    private boolean isDevelopmentVersion(String version) {
+        // 移除版本号前面的 'v' 或 'V'
+        String cleanVersion = version.replaceFirst("^[vV]", "").toLowerCase();
+        
+        // 判断是否为开发版本的逻辑：
+        // 1. 包含分支名（feat/, fix/, hotfix/, chore/, docs/, style/, refactor/, test/等）
+        if (cleanVersion.matches(".*(feat|fix|hotfix|chore|docs|style|refactor|test)[\\-/].*")) {
+            return true;
+        }
+        
+        // 2. 包含开发环境标识
+        if (cleanVersion.contains("dev") || 
+            cleanVersion.contains("snapshot") ||
+            cleanVersion.contains("nightly") ||
+            cleanVersion.contains("local")) {
+            return true;
+        }
+        
+        // 3. 特殊的开发分支模式
+        if (cleanVersion.matches(".*\\d+-g[0-9a-f]+$")) { // Git描述格式，如 1.0.0-1-gabc123
+            return true;
+        }
+        
+        // 4. 检查是否包含构建号等非标准部分
+        String[] parts = cleanVersion.split("\\.");
+        if (parts.length > 3) {
+            // 如果有超过3个部分，可能是开发版本（如 0.5.2.1）
+            return true;
+        }
+        
+        // 默认不是开发版本
+        return false;
     }
     
     private void checkForUpdates() {
@@ -178,6 +205,7 @@ public class AboutActivity extends AppCompatActivity {
                 int responseCode = conn.getResponseCode();
                 
                 if (responseCode == 404) {
+                    // 仓库不存在或没有访问权限
                     mainHandler.post(() -> {
                         updateStatusText.setText("仓库未找到");
                         updateStatusText.setTextColor(ContextCompat.getColor(AboutActivity.this, android.R.color.holo_red_dark));
@@ -319,7 +347,7 @@ public class AboutActivity extends AppCompatActivity {
                 updateStatusText.setText(statusText);
                 updateStatusText.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark));
                 
-                // 添加点击查看更新详情的功能
+                // 点击查看更新详情
                 updateStatusText.setOnClickListener(v -> {
                     showUpdateDialog(releaseName, releaseNotes, isPrerelease, htmlUrl);
                 });
@@ -336,6 +364,11 @@ public class AboutActivity extends AppCompatActivity {
                 }
                 updateStatusText.setText(statusText);
                 updateStatusText.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray));
+                
+                // 如果是开发版本，显示测试选项
+                if (isDevelopmentVersion) {
+                    testUpdateItem.setVisibility(View.VISIBLE);
+                }
             } else {
                 // 当前版本比找到的版本更新（可能是开发版本）
                 updateStatusText.setText("当前为开发版本");
