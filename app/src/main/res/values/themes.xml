@@ -1,21 +1,20 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
   <!-- Base application theme. -->
   <style name="Base.AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
-    <!-- Customize your theme here. -->
-    <item name="colorPrimary">@color/colorPrimary</item>
-    <item name="colorPrimaryVariant">#1976D2</item>
-    <item name="colorSecondary">#03DAC5</item>
-    <item name="colorSecondaryVariant">#018786</item>
+    <item name="colorPrimary">@color/switch_thumb</item>
+    <item name="colorPrimaryContainer">@color/switch_track</item>
+    <item name="colorOnPrimaryContainer">@color/switch_thumb</item>
+    <item name="colorSurface">@android:color/white</item>
+    <item name="colorSurfaceVariant">#E0E0E0</item>
+    <item name="colorOutline">@color/border_medium</item>
     
-    <!-- 圆角设计 -->
+    <item name="materialSwitchStyle">@style/Widget.App.MaterialSwitch</item>
+    
     <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.SmallComponent</item>
     <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.MediumComponent</item>
     <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.LargeComponent</item>
     
-    <!-- 按钮样式 -->
     <item name="materialButtonStyle">@style/Widget.App.Button</item>
-    
-    <!-- 动画持续时间 -->
     <item name="android:windowAnimationStyle">@style/WindowAnimationTransition</item>
     <item name="android:windowContentTransitions">true</item>
   </style>
@@ -24,16 +23,15 @@
     <item name="android:windowFullscreen">false</item>
     <item name="android:statusBarColor">@android:color/transparent</item>
     <item name="android:navigationBarColor">@android:color/transparent</item>
-    
-    <!-- 边缘到边缘显示 -->
     <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
-    
-    <!-- 移除按钮着色 -->
     <item name="android:buttonTint">@null</item>
     <item name="buttonTint">@null</item>
   </style>
 
-  <!-- 圆角形状定义 -->
+  <style name="Widget.App.MaterialSwitch" parent="Widget.Material3.CompoundButton.MaterialSwitch">
+
+  </style>
+  
   <style name="ShapeAppearance.SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
     <item name="cornerFamily">rounded</item>
     <item name="cornerSize">8dp</item>
@@ -49,14 +47,12 @@
     <item name="cornerSize">16dp</item>
   </style>
 
-  <!-- 按钮样式 -->
   <style name="Widget.App.Button" parent="Widget.Material3.Button">
     <item name="android:insetTop">0dp</item>
     <item name="android:insetBottom">0dp</item>
     <item name="cornerRadius">12dp</item>
   </style>
 
-  <!-- 窗口动画 -->
   <style name="WindowAnimationTransition">
     <item name="android:windowEnterAnimation">@anim/slide_in_right</item>
     <item name="android:windowExitAnimation">@anim/slide_out_left</item>
@@ -64,15 +60,10 @@
     <item name="android:windowAllowReturnTransitionOverlap">true</item>
   </style>
   
-  <!-- 开屏动画 -->
   <style name="Theme.App.Starting" parent="Theme.SplashScreen">
-    <!-- 设置启动屏背景色 -->
     <item name="windowSplashScreenBackground">@color/bg_card</item>
-    <!-- 设置启动图标 -->
     <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
-    <!-- 设置启动图标的动画时长（毫秒） -->
     <item name="windowSplashScreenAnimationDuration">1000</item>
-    <!-- 设置启动屏之后应用的主题 -->
     <item name="postSplashScreenTheme">@style/AppTheme</item>
   </style>
 </resources>
