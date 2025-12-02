@@ -3,7 +3,6 @@
     <color name="colorPrimary">#2196F3</color>
     <color name="colorPrimaryDark">#1976D2</color>
     <color name="colorPrimaryLight">#64B5F6</color>
-    <color name="colorAccent">#03DAC5</color>
 
     <color name="bg_light">#F8F9FA</color>
     <color name="bg_card">#FFFFFF</color>
@@ -15,15 +14,14 @@
     <color name="border_light">#E0E0E0</color>
     <color name="border_medium">#BDBDBD</color>
     
-    <color name="success_color">#4CAF50</color>
-    <color name="warning_color">#FF9800</color>
-    <color name="error_color">#F44336</color>
-    <color name="info_color">#2196F3</color>
-    
     <color name="switch_thumb">#2196F3</color>
     <color name="switch_track">#90CAF9</color>
+
+    <color name="surface">#2196F3</color>
+    <color name="surface_variant">#E0E0E0</color>
     
     <color name="radio_checked">#2196F3</color>
     <color name="radio_unchecked">#90CAF9</color>
     <color name="radio_text_color">#333333</color>
+    
 </resources>
