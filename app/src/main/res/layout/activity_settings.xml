@@ -68,11 +68,9 @@
 
                     </LinearLayout>
 
-                    <Switch
+                    <com.google.android.material.materialswitch.MaterialSwitch
                          android:layout_height="wrap_content"
                          android:layout_width="wrap_content"
-                         android:trackTint="@color/switch_track"
-                         android:thumbTint="@color/switch_thumb"
                          android:id="@+id/hardware_acceleration_switch" />
 
                 </LinearLayout>
@@ -107,11 +105,9 @@
 
                     </LinearLayout>
 
-                    <Switch
+                    <com.google.android.material.materialswitch.MaterialSwitch
                          android:layout_height="wrap_content"
                          android:layout_width="wrap_content"
-                         android:trackTint="@color/switch_track"
-                         android:thumbTint="@color/switch_thumb"
                          android:id="@+id/multithreading_switch" />
 
                 </LinearLayout>

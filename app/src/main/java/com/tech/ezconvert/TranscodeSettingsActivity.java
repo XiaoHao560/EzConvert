@@ -4,8 +4,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
-import android.widget.Switch;
 import android.widget.Toast;
+import com.google.android.material.materialswitch.MaterialSwitch;
 
 public class TranscodeSettingsActivity extends AppCompatActivity {
     
@@ -13,8 +13,8 @@ public class TranscodeSettingsActivity extends AppCompatActivity {
     private static final String KEY_HARDWARE_ACCELERATION = "hardware_acceleration";
     private static final String KEY_MULTITHREADING = "multithreading";
     
-    private Switch hardwareAccelerationSwitch;
-    private Switch multithreadingSwitch;
+    private MaterialSwitch hardwareAccelerationSwitch;
+    private MaterialSwitch multithreadingSwitch;
     private Button saveSettingsBtn;
     
     @Override
@@ -66,7 +66,6 @@ public class TranscodeSettingsActivity extends AppCompatActivity {
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
     
-    // 静态方法供其他类读取设置
     public static boolean isHardwareAccelerationEnabled(android.content.Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         return prefs.getBoolean(KEY_HARDWARE_ACCELERATION, false);
