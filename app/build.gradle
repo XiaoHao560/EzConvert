@@ -2,6 +2,41 @@ plugins {
     id 'com.android.application'
 }
 
+def isRunningOnGithub = System.getenv('GITHUB_ACTIONS') == 'true'
+
+println "=== Build environmental information ==="
+println "运行在 GitHub Actions: $isRunningOnGithub"
+
+// 读取本地密钥配置
+def getLocalKeystoreConfig() {
+    def config = [:]
+    def keystorePropertiesFile = rootProject.file('key/keystore.properties')
+    
+    if (keystorePropertiesFile.exists()) {
+        try {
+            def properties = new Properties()
+            properties.load(new FileInputStream(keystorePropertiesFile))
+            
+            config.fileName = properties.getProperty('storeFile', '')
+            config.storePassword = properties.getProperty('storePassword', '')
+            config.keyAlias = properties.getProperty('keyAlias', '')
+            config.keyPassword = properties.getProperty('keyPassword', '')
+            
+            if (config.fileName && config.storePassword && config.keyAlias && config.keyPassword) {
+                def keystoreFile = rootProject.file("key/${config.fileName}")
+                config.fileExists = keystoreFile.exists()
+                if (config.fileExists) {
+                    println "✓ Local key configuration has been loaded"
+                    return config
+                }
+            }
+        } catch (Exception e) {
+            println "✗ Loading local key configuration failed: ${e.message}"
+        }
+    }
+    return null
+}
+
 def getGitVersionCode() {
     try {
         def commitCount = getCmdOutput("git rev-list --count HEAD").toInteger()
@@ -157,6 +192,17 @@ task printVersionInfo {
     }
 }
 
+task checkSigningConfig {
+    doLast {
+        println "=== Signature configuration check ==="
+        println "Current environment: ${isRunningOnGithub ? 'GitHub Actions' : 'local'}"
+        if (android.signingConfigs.hasProperty('release')) {
+            println "Release signature file: ${android.signingConfigs.release.storeFile}"
+            println "Release signature file exists: ${android.signingConfigs.release.storeFile.exists()}"
+        }
+    }
+}
+
 android {
     namespace 'com.tech.ezconvert'
     compileSdk 34
@@ -184,6 +230,49 @@ android {
         }
     }
     
+    // 签名配置
+    signingConfigs {
+        
+        release {
+            // GitHub Actions 环境
+            if (isRunningOnGithub) {
+                println "GitHub Actions environment detected, using CI/CD signing configuration"
+                storeFile file(System.getenv("KEYSTORE_FILE") ?: "debug.keystore")
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KEY_ALIAS")
+                keyPassword System.getenv("KEY_PASSWORD")
+                
+                enableV1Signing true
+                enableV2Signing true
+                enableV3Signing true
+                enableV4Signing false
+            }
+            // 本地环境
+            else {
+                def localConfig = getLocalKeystoreConfig()
+                if (localConfig != null) {
+                    println "Release build: use local key configuration"
+                    storeFile file(rootProject.file("key/${localConfig.fileName}"))
+                    storePassword localConfig.storePassword
+                    keyAlias localConfig.keyAlias
+                    keyPassword localConfig.keyPassword
+                    
+                    enableV1Signing true
+                    enableV2Signing true
+                    enableV3Signing true
+                    enableV4Signing false
+                } else {
+                    // 如果没有配置本地密钥，就不配置release签名，构建会失败
+                    println "Error: The local build Release requires the signing configuration in the key folder"
+                    println "Please create key/keystore.properties and configure the signing information"
+                    
+                    // 这里抛出异常，让构建失败
+                    throw new GradleException("No local signing configuration found. Please create the key folder and configure keystore.properties")
+                }
+            }
+        }
+    }
+    
     applicationVariants.all { variant ->
         variant.outputs.all {
             def appName = "EzConvert"
@@ -197,20 +286,17 @@ android {
         }
     }
     
-    signingConfigs {
-        release {
-            storeFile file(System.getenv("KEYSTORE_FILE") ?: "debug.keystore")
-            storePassword System.getenv("KEYSTORE_PASSWORD")
-            keyAlias System.getenv("KEY_ALIAS")
-            keyPassword System.getenv("KEY_PASSWORD")
-        }
-    }
-    
     buildTypes {
         release {
-            signingConfig signingConfigs.release
-            minifyEnabled false
+            if (signingConfigs.hasProperty('release')) {
+                signingConfig signingConfigs.release
+            }
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled false
         }
     }
     
@@ -256,5 +342,6 @@ dependencies {
 preBuild {
     doFirst {
         println "Build Info: ${getGitVersionName()} (${getGitVersionCode()})"
+        println "Build type: ${gradle.startParameter.taskNames.find { it.contains('Release') } ? 'Release' : 'Debug'}"
     }
 }
