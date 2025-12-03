@@ -83,4 +83,6 @@ lint/tmp/
 # lint/reports/
 .androidide/
 *.keystore
+keystore.properties
 keystore.txt
+key/
