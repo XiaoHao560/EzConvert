@@ -58,17 +58,16 @@ jobs:
              [[ "$TAG_NAME" =~ -alpha\.[0-9]+$ ]] || \
              [[ "$TAG_NAME" =~ -beta\.[0-9]+$ ]] || \
              [[ "$TAG_NAME" =~ -rc\.[0-9]+$ ]]; then
-            echo "variant=debug" >> $GITHUB_OUTPUT
+            echo "variant=release" >> $GITHUB_OUTPUT
             echo "is_prerelease=true" >> $GITHUB_OUTPUT
-            echo "This is a pre-release version"
+            echo "This is a pre-release version (using release build)"
           else
             echo "variant=release" >> $GITHUB_OUTPUT
             echo "is_prerelease=false" >> $GITHUB_OUTPUT
             echo "This is a release version"
           fi
 
-      - name: 解码签名密钥 (仅 Release)
-        if: steps.variant.outputs.variant == 'release'
+      - name: 解码签名密钥
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > xiaohao-app-key.keystore
         shell: bash
