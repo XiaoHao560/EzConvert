@@ -48,7 +48,7 @@
              android:textSize="12sp"
              android:textColor="#666"
              android:id="@+id/version_text"
-             android:text="EzConvert v0.6.1 | FFmpegKit: 6.0-2" />
+             android:text="EzConvert v0.7.0 | FFmpegKit: 6.0-2" />
 
         <androidx.cardview.widget.CardView
              android:layout_height="wrap_content"
