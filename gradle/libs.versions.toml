@@ -1,0 +1,63 @@
+[versions]
+# Android SDK
+compileSdk = "34"
+minSdk = "24"
+targetSdk = "33"
+
+# AndroidX
+appcompat = "1.6.1"
+material = "1.12.0"
+constraintlayout = "2.1.4"
+core-splashscreen = "1.0.1"
+
+# FFmpeg
+ffmpeg-kit = "6.0-2"
+
+# Markwon
+markwon = "4.6.2"
+
+# Testing
+junit = "4.13.2"
+junit-android = "1.1.5"
+espresso = "3.5.1"
+
+# Build Tools
+gradle-plugin = "8.2.0"
+#kotlin = "1.9.0"
+
+[libraries]
+# AndroidX
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
+
+# FFmpeg
+ffmpeg-kit-full-gpl = { group = "com.arthenica", name = "ffmpeg-kit-full-gpl", version.ref = "ffmpeg-kit" }
+
+# Markwon Core
+markwon-core = { group = "io.noties.markwon", name = "core", version.ref = "markwon" }
+markwon-ext-tables = { group = "io.noties.markwon", name = "ext-tables", version.ref = "markwon" }
+markwon-ext-strikethrough = { group = "io.noties.markwon", name = "ext-strikethrough", version.ref = "markwon" }
+markwon-linkify = { group = "io.noties.markwon", name = "linkify", version.ref = "markwon" }
+markwon-html = { group = "io.noties.markwon", name = "html", version.ref = "markwon" }
+markwon-image = { group = "io.noties.markwon", name = "image", version.ref = "markwon" }
+
+# Testing
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junit-android" }
+androidx-espresso = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
+
+# Markwon bundle
+[bundles]
+markwon-all = [
+  "markwon-core",
+  "markwon-ext-tables", 
+  "markwon-ext-strikethrough",
+  "markwon-linkify",
+  "markwon-html",
+  "markwon-image"
+]
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "gradle-plugin" }
