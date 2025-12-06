@@ -1,6 +1,12 @@
+// app/build.gradle
+
 plugins {
-    id 'com.android.application'
+    // 不再需要指定版本，版本在 libs.versions.toml 中管理
+    alias(libs.plugins.android.application)
 }
+
+// 版本号生成脚本
+apply from: '../gradle/versioning.gradle'
 
 def isRunningOnGithub = System.getenv('GITHUB_ACTIONS') == 'true'
 
@@ -37,161 +43,6 @@ def getLocalKeystoreConfig() {
     return null
 }
 
-def getGitVersionCode() {
-    try {
-        def commitCount = getCmdOutput("git rev-list --count HEAD").toInteger()
-        def timestamp = new java.text.SimpleDateFormat("yyMMdd").format(new Date()).toInteger()
-        def versionCode = timestamp * 1000 + (commitCount % 1000)
-        
-        println "=== VersionCode Generation ==="
-        println "Build Date: ${new Date()}"
-        println "Git Commit Count: $commitCount"
-        println "Timestamp (YYMMDD): $timestamp"
-        println "Generated VersionCode: $versionCode"
-        
-        return versionCode
-        
-    } catch (Exception e) {
-        println "Warning: Could not get git version code: ${e.message}"
-        def fallback = new java.text.SimpleDateFormat("yyMMddHH").format(new Date()).toInteger()
-        println "Using fallback version code: $fallback"
-        return fallback
-    }
-}
-
-def getGitVersionName() {
-    try {
-        def describe = getCmdOutput("git describe --tags --long --always")
-        def commitHash = getCmdOutput("git rev-parse --short HEAD")
-        
-        println "=== VersionName Generation ==="
-        println "Git Describe: $describe"
-        println "Commit Hash: $commitHash"
-        
-        def branchName = getCmdOutput("git rev-parse --abbrev-ref HEAD")
-        def isDetachedHEAD = (branchName == "HEAD")
-        
-        if (isDetachedHEAD) {
-            def githubRef = System.getenv("GITHUB_REF")
-            println "GITHUB_REF: $githubRef"
-            
-            if (githubRef?.startsWith("refs/tags/")) {
-                println "Tag build detected, using tag-based versioning"
-                return extractVersionFromTag(describe)
-            } else if (githubRef?.startsWith("refs/heads/")) {
-                branchName = githubRef.substring(11)
-                println "Recovered branch name from GITHUB_REF: $branchName"
-            } else if (githubRef?.startsWith("refs/pull/")) {
-                def prNumber = githubRef.split("/")[2]
-                branchName = "pr-$prNumber"
-                println "PR build detected, using branch: $branchName"
-            } else {
-                branchName = "detached-${commitHash}"
-            }
-        }
-        
-        def isMainBranch = isMainBranch(branchName)
-        
-        println "Final Branch: $branchName"
-        println "Is Main Branch: $isMainBranch"
-        
-        if (describe.contains("0.1.7-alpha")) {
-            return isMainBranch ? "0.2.0.alpha" : "0.2.0.alpha-${getSafeBranchName(branchName)}"
-        }
-        
-        if (describe.matches("^v?\\d+(\\.\\d+)*\$")) {
-            def version = describe.replaceAll("^v", "")
-            return isMainBranch ? version : "${version}-${getSafeBranchName(branchName)}"
-        }
-        else if (describe.matches(".*-\\d+-g[0-9a-f]+\$")) {
-            def parts = describe.split("-")
-            def baseVersion = parts[0].replaceAll("^v", "")
-            def commitsAfterTag = parts[1]
-            
-            if (commitsAfterTag == "0") {
-                return isMainBranch ? baseVersion : "${baseVersion}-${getSafeBranchName(branchName)}"
-            }
-            
-            return isMainBranch ? "${baseVersion}.${commitsAfterTag}" : "${baseVersion}.${commitsAfterTag}-${getSafeBranchName(branchName)}"
-        }
-        else {
-            return isMainBranch ? "0.2.0-${commitHash}" : "0.2.0-${getSafeBranchName(branchName)}"
-        }
-        
-    } catch (Exception e) {
-        println "Error getting git version name: ${e.message}"
-        return "0.2.0-dev"
-    }
-}
-
-def extractVersionFromTag(describe) {
-    if (describe.matches("^v?\\d+(\\.\\d+)*\$")) {
-        return describe.replaceAll("^v", "")
-    }
-    else if (describe.matches(".*-\\d+-g[0-9a-f]+\$")) {
-        def parts = describe.split("-")
-        def baseVersion = parts[0].replaceAll("^v", "")
-        def commitsAfterTag = parts[1]
-        
-        if (commitsAfterTag == "0") {
-            return baseVersion
-        }
-        
-        return "${baseVersion}.${commitsAfterTag}"
-    }
-    else {
-        return describe
-    }
-}
-
-def isMainBranch(branchName) {
-    return branchName == "main" || branchName == "master" || 
-           branchName.startsWith("refs/tags/") ||
-           branchName.startsWith("pr-")
-}
-
-def getSafeBranchName(branchName) {
-    return branchName
-        .replaceAll("[^a-zA-Z0-9.-]", "-")
-        .replaceAll("^-+|-+\$", "")
-        .replaceAll("-+", "-")
-        .toLowerCase()
-        .take(15)
-}
-
-def getCmdOutput(command) {
-    def stdout = new ByteArrayOutputStream()
-    try {
-        exec {
-            commandLine command.split(' ')
-            standardOutput = stdout
-        }
-        return stdout.toString().trim()
-    } catch (Exception e) {
-        throw e
-    }
-}
-
-task printVersionInfo {
-    doLast {
-        println "=== Project Version Information ==="
-        println "Version Code: ${getGitVersionCode()}"
-        println "Version Name: ${getGitVersionName()}"
-        
-        try {
-            def branchName = getCmdOutput("git rev-parse --abbrev-ref HEAD")
-            def commitHash = getCmdOutput("git rev-parse --short HEAD")
-            def describe = getCmdOutput("git describe --tags --long --always")
-            
-            println "Git Branch: $branchName"
-            println "Git Commit: $commitHash"
-            println "Git Describe: $describe"
-        } catch (Exception e) {
-            println "Cannot get Git information: ${e.message}"
-        }
-    }
-}
-
 task checkSigningConfig {
     doLast {
         println "=== Signature configuration check ==="
@@ -205,12 +56,13 @@ task checkSigningConfig {
 
 android {
     namespace 'com.tech.ezconvert'
-    compileSdk 34
+    // 从 libs.versions.toml 读取 SDK 版本
+    compileSdk libs.versions.compileSdk.get().toInteger()
 
     defaultConfig {
         applicationId "com.tech.ezconvert"
-        minSdk 24
-        targetSdk 33
+        minSdk libs.versions.minSdk.get().toInteger()
+        targetSdk libs.versions.targetSdk.get().toInteger()
         
         versionCode getGitVersionCode()
         versionName getGitVersionName()
@@ -320,23 +172,29 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.12.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.core:core-splashscreen:1.0.1'
+    // AndroidX
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.material
+    implementation libs.androidx.constraintlayout
+    implementation libs.androidx.core.splashscreen
     
-    implementation 'com.arthenica:ffmpeg-kit-full-gpl:6.0-2'
+    // FFmpeg
+    implementation libs.ffmpeg.kit.full.gpl
     
-    implementation 'io.noties.markwon:core:4.6.2'
-    implementation 'io.noties.markwon:ext-tables:4.6.2'
-    implementation 'io.noties.markwon:ext-strikethrough:4.6.2'
-    implementation 'io.noties.markwon:linkify:4.6.2'
-    implementation 'io.noties.markwon:html:4.6.2'
-    implementation 'io.noties.markwon:image:4.6.2'
+    // Markwon bundle
+    implementation libs.bundles.markwon.all
+    
+    // implementation libs.markwon.core
+    // implementation libs.markwon.ext.tables
+    // implementation libs.markwon.ext.strikethrough
+    // implementation libs.markwon.linkify
+    // implementation libs.markwon.html
+    // implementation libs.markwon.image
 
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    // Testing
+    testImplementation libs.junit
+    androidTestImplementation libs.androidx.junit
+    androidTestImplementation libs.androidx.espresso
 }
 
 preBuild {
