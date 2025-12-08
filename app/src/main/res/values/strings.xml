@@ -11,6 +11,13 @@
     <string name="volume_low">较低（50%）</string>
     <string name="volume_high">较高（150%）</string>
     <string name="volume_custom">自定义：%d%%</string>
+    <string name="check_frequency">检测频率</string>
+    <string name="select_frequency">选择频率</string>
+    
+    <string-array name="update_frequency_options">
+        <item>每24小时检测</item>
+        <item>每次进入应用检测</item>
+    </string-array>
     
     <string-array name="video_formats">
         <item>mp4</item>

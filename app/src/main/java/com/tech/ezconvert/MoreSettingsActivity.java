@@ -2,12 +2,24 @@ package com.tech.ezconvert;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
 
 public class MoreSettingsActivity extends AppCompatActivity {
+    
+    private com.google.android.material.materialswitch.MaterialSwitch autoUpdateSwitch;
+    private Spinner frequencySpinner;
+    private LinearLayout frequencyLayout;
+    private UpdateSettingsManager settingsManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -16,6 +28,16 @@ public class MoreSettingsActivity extends AppCompatActivity {
 
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 
+        settingsManager = new UpdateSettingsManager(this);
+        
+        // 初始化视图
+        initViews();
+        setupClickListeners();
+        loadCurrentSettings();
+    }
+
+    private void initViews() {
+        // 运行日志
         LinearLayout logEntry = findViewById(R.id.item_run_log);
         logEntry.setOnClickListener(v -> {
             Intent intent = new Intent(this, LogSettingsActivity.class);
@@ -26,6 +48,91 @@ public class MoreSettingsActivity extends AppCompatActivity {
             );
             ActivityCompat.startActivity(this, intent, options.toBundle());
         });
+        
+        // 自动更新开关
+        autoUpdateSwitch = findViewById(R.id.auto_update_switch);
+        frequencySpinner = findViewById(R.id.frequency_spinner);
+        frequencyLayout = findViewById(R.id.frequency_layout);
+        
+        // 设置Spinner适配器
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+            this,
+            R.array.update_frequency_options,
+            android.R.layout.simple_spinner_item
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        frequencySpinner.setAdapter(adapter);
+    }
+
+    private void setupClickListeners() {
+        // 自动更新开关监听
+        autoUpdateSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                settingsManager.setAutoCheckEnabled(isChecked);
+                updateFrequencyLayoutVisibility(isChecked);
+            }
+        });
+        
+        // 频率选择监听
+        frequencySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                int frequency = mapPositionToFrequency(position);
+                settingsManager.setCheckFrequency(frequency);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                
+            }
+        });
+    }
+
+    private void loadCurrentSettings() {
+        // 加载当前设置
+        boolean autoCheckEnabled = settingsManager.isAutoCheckEnabled();
+        int currentFrequency = settingsManager.getCheckFrequency();
+        
+        // 更新开关状态
+        autoUpdateSwitch.setChecked(autoCheckEnabled);
+        
+        // 更新Spinner选择
+        int spinnerPosition = mapFrequencyToPosition(currentFrequency);
+        frequencySpinner.setSelection(spinnerPosition);
+        
+        // 更新布局可见性
+        updateFrequencyLayoutVisibility(autoCheckEnabled);
+    }
+
+    private void updateFrequencyLayoutVisibility(boolean enabled) {
+        if (frequencyLayout != null) {
+            frequencyLayout.setEnabled(enabled);
+            frequencyLayout.setAlpha(enabled ? 1.0f : 0.5f);
+            frequencySpinner.setEnabled(enabled);
+        }
+    }
+
+    private int mapPositionToFrequency(int position) {
+        switch (position) {
+            case 0: // 每24小时检测
+                return UpdateSettingsManager.FREQUENCY_EVERY_24_HOURS;
+            case 1: // 每次进入应用检测
+                return UpdateSettingsManager.FREQUENCY_EVERY_LAUNCH;
+            default:
+                return UpdateSettingsManager.FREQUENCY_EVERY_24_HOURS;
+        }
+    }
+
+    private int mapFrequencyToPosition(int frequency) {
+        switch (frequency) {
+            case UpdateSettingsManager.FREQUENCY_EVERY_24_HOURS:
+                return 0;
+            case UpdateSettingsManager.FREQUENCY_EVERY_LAUNCH:
+                return 1;
+            default:
+                return 0;
+        }
     }
 
     @Override
