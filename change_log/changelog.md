@@ -2,6 +2,7 @@
 
 ### 新增
 - 主界面滚动条淡出
+- 自动检测更新
 - ### 构建相关
     - 添加 SourceFile 和 LineNumberTable
     - 模块化开发

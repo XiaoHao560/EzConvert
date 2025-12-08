@@ -5,6 +5,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.*;
@@ -41,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     private int currentVolume = 100;
     
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private UpdateChecker updateChecker;
     
     private ActivityResultLauncher<Intent> filePickerLauncher;
     
@@ -51,8 +54,10 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        setupActivityResultLaunchers();
+        // 初始化更新检查器
+        updateChecker = new UpdateChecker(this);
         
+        setupActivityResultLaunchers();
         initializeViews();
         setupSpinners();
         
@@ -64,6 +69,15 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         PermissionManager.checkPermissionStatus(this);
         
         handleShareIntent(getIntent());
+        
+        // 延迟2秒后自动检查更新（等待主界面加载完成）
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (updateChecker.shouldAutoCheck()) {
+                updateChecker.checkForAutoUpdate();
+            } else {
+                Log.d("MainActivity", "自动检测更新已关闭或者未到检测时间");
+            }
+        }, 2000);
     }
     
     private void setupActivityResultLaunchers() {
@@ -724,8 +738,7 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
                 String outputFileName = new File(currentInputPath).getName();
                 updateStatus("处理完成: " + outputFileName);
                 Toast.makeText(MainActivity.this, 
-                    // Toast 内输出文件名会导致 Toast 过长显示不全
-                    "处理完成！输出文件"/* + outputFileName */+ "\n保存在: Download/简转/", 
+                    "处理完成！输出文件\n保存在: Download/简转/", 
                     Toast.LENGTH_LONG).show();
             } else {
                 updateStatus("处理失败: " + message);
@@ -762,9 +775,15 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
     protected void onDestroy() {
         super.onDestroy();
         FFmpegUtil.cancelCurrentTask();
+        
         // 关闭 Executor
         if (!scheduler.isShutdown()) {
             scheduler.shutdown();
+        }
+        
+        // 清理更新检查器
+        if (updateChecker != null) {
+            updateChecker.cleanup();
         }
     }
 
