@@ -45,32 +45,32 @@
         </activity>
         
         <activity
-            android:name=".SettingsMainActivity"
+            android:name=".ui.SettingsMainActivity"
             android:exported="false"
             android:label="设置" />
             
         <activity
-            android:name=".TranscodeSettingsActivity"
+            android:name=".ui.TranscodeSettingsActivity"
             android:exported="false"
             android:label="转码设置" />
             
         <activity
-            android:name=".LogViewerActivity"
+            android:name=".ui.LogViewerActivity"
             android:exported="false"
             android:label="运行日志" />
         
         <activity
-            android:name=".MoreSettingsActivity"
+            android:name=".ui.MoreSettingsActivity"
             android:exported="false"
             android:label="更多设置" />
             
         <activity
-            android:name=".LogSettingsActivity"
+            android:name=".ui.LogSettingsActivity"
             android:exported="false"
             android:label="日志设置" />
             
         <activity
-            android:name=".AboutActivity"
+            android:name=".ui.AboutActivity"
             android:exported="false"
             android:label="关于" />
     </application>
