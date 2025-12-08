@@ -1,7 +1,9 @@
-package com.tech.ezconvert;
+package com.tech.ezconvert.processor;
 
-import android.util.Log;
 import android.content.Context;
+import android.util.Log;
+import com.tech.ezconvert.ui.TranscodeSettingsActivity;
+import com.tech.ezconvert.utils.FFmpegUtil;
 import java.util.ArrayList;
 
 public class VideoProcessor {

@@ -1,12 +1,13 @@
-package com.tech.ezconvert;
+package com.tech.ezconvert.ui;
 
-import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
+import com.tech.ezconvert.R;
 
 public class SettingsMainActivity extends AppCompatActivity {
     

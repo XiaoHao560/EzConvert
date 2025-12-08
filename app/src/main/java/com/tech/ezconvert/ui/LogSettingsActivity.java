@@ -1,4 +1,4 @@
-package com.tech.ezconvert;
+package com.tech.ezconvert.ui;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -7,6 +7,9 @@ import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
+import com.tech.ezconvert.R;
+import com.tech.ezconvert.utils.AnimationUtils;
+import com.tech.ezconvert.utils.FFmpegUtil;
 
 public class LogSettingsActivity extends AppCompatActivity {
 

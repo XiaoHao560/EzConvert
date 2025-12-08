@@ -1,16 +1,16 @@
-package com.tech.ezconvert;
+package com.tech.ezconvert.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
-
 import com.arthenica.ffmpegkit.FFmpegKit;
+import com.arthenica.ffmpegkit.FFmpegKitConfig;
 import com.arthenica.ffmpegkit.FFmpegSession;
 import com.arthenica.ffmpegkit.FFmpegSessionCompleteCallback;
 import com.arthenica.ffmpegkit.Level;
 import com.arthenica.ffmpegkit.LogCallback;
 import com.arthenica.ffmpegkit.ReturnCode;
-import com.arthenica.ffmpegkit.FFmpegKitConfig;
+import com.tech.ezconvert.ui.LogViewerActivity;
 
 public class FFmpegUtil {
 

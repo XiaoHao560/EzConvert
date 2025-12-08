@@ -1,4 +1,4 @@
-package com.tech.ezconvert;
+package com.tech.ezconvert.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,11 +8,11 @@ import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
-import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
+import com.tech.ezconvert.R;
+import com.tech.ezconvert.utils.UpdateSettingsManager;
 
 public class MoreSettingsActivity extends AppCompatActivity {
     

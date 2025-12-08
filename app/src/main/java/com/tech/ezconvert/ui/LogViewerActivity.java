@@ -1,14 +1,13 @@
-package com.tech.ezconvert;
+package com.tech.ezconvert.ui;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
-import android.media.Image;
 import android.os.Bundle;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.*;
-
+import com.tech.ezconvert.R;
 import java.util.ArrayList;
 import java.util.List;
 

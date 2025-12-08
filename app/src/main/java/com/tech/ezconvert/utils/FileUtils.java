@@ -1,4 +1,4 @@
-package com.tech.ezconvert;
+package com.tech.ezconvert.utils;
 
 import android.content.ContentUris;
 import android.content.Context;
@@ -9,7 +9,6 @@ import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
-import java.io.File;
 
 public class FileUtils {
     private static final String TAG = "FileUtils";

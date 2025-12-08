@@ -1,4 +1,4 @@
-package com.tech.ezconvert;
+package com.tech.ezconvert.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
