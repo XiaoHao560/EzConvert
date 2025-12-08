@@ -12,22 +12,20 @@ jobs:
   create-pull-request:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: peter-evans/create-pull-request@v6
+          
+      - uses: repo-sync/pull-request@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "Auto-created PR from ${{ github.ref_name }}"
-          title: "Auto PR: ${{ github.ref_name }}"
-          body: |
+          source_branch: ${{ github.ref_name }}
+          destination_branch: main
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pr_title: "Auto PR: ${{ github.ref_name }}"
+          pr_body: |
             分支 `${{ github.ref_name }}` 的变更已自动创建 PR。
             提交者：${{ github.actor }}
-          branch: ${{ github.ref_name }}
-          base: main
-          labels: |
-            automated-pr
-            needs-review
+          pr_label: "automated-pr,needs-review"
