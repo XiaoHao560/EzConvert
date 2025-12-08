@@ -1,10 +1,9 @@
-package com.tech.ezconvert;
+package com.tech.ezconvert.utils;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.Capability;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
@@ -19,19 +18,13 @@ import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
-
 import io.noties.markwon.Markwon;
-import io.noties.markwon.ext.tables.TablePlugin;
 import io.noties.markwon.ext.strikethrough.StrikethroughPlugin;
-import io.noties.markwon.linkify.LinkifyPlugin;
+import io.noties.markwon.ext.tables.TablePlugin;
 import io.noties.markwon.html.HtmlPlugin;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-
+import io.noties.markwon.linkify.LinkifyPlugin;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -39,6 +32,8 @@ import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class UpdateChecker {
     private static final String TAG = "UpdateChecker";

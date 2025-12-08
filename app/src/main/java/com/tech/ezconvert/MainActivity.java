@@ -16,7 +16,14 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
-
+import com.tech.ezconvert.processor.AudioProcessor;
+import com.tech.ezconvert.processor.VideoProcessor;
+import com.tech.ezconvert.ui.SettingsMainActivity;
+import com.tech.ezconvert.utils.AnimationUtils;
+import com.tech.ezconvert.utils.FFmpegUtil;
+import com.tech.ezconvert.utils.FileUtils;
+import com.tech.ezconvert.utils.PermissionManager;
+import com.tech.ezconvert.utils.UpdateChecker;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;

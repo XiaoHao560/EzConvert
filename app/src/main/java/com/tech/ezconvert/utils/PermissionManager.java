@@ -1,19 +1,15 @@
-package com.tech.ezconvert;
+package com.tech.ezconvert.utils;
 
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
-import android.provider.Settings;
 import android.util.Log;
-
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
+import com.tech.ezconvert.MainActivity;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;

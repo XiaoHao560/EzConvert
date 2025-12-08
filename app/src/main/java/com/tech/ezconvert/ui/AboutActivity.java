@@ -1,4 +1,4 @@
-package com.tech.ezconvert;
+package com.tech.ezconvert.ui;
 
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -16,12 +16,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-
+import com.tech.ezconvert.R;
+import com.tech.ezconvert.utils.UpdateChecker;
 import io.noties.markwon.Markwon;
-import io.noties.markwon.ext.tables.TablePlugin;
 import io.noties.markwon.ext.strikethrough.StrikethroughPlugin;
-import io.noties.markwon.linkify.LinkifyPlugin;
+import io.noties.markwon.ext.tables.TablePlugin;
 import io.noties.markwon.html.HtmlPlugin;
+import io.noties.markwon.linkify.LinkifyPlugin;
 
 public class AboutActivity extends AppCompatActivity implements UpdateChecker.UpdateCheckListener {
     

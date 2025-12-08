@@ -1,11 +1,13 @@
-package com.tech.ezconvert;
+package com.tech.ezconvert.ui;
 
-import androidx.appcompat.app.AppCompatActivity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Toast;
+import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.materialswitch.MaterialSwitch;
+import com.tech.ezconvert.R;
+import com.tech.ezconvert.utils.AnimationUtils;
 
 public class TranscodeSettingsActivity extends AppCompatActivity {
     
