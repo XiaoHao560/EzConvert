@@ -8,16 +8,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.AnimationUtils;
+import com.tech.ezconvert.utils.ConfigManager;
 
 public class TranscodeSettingsActivity extends AppCompatActivity {
-    
-    private static final String PREFS_NAME = "EzConvertSettings";
-    private static final String KEY_HARDWARE_ACCELERATION = "hardware_acceleration";
-    private static final String KEY_MULTITHREADING = "multithreading";
     
     private MaterialSwitch hardwareAccelerationSwitch;
     private MaterialSwitch multithreadingSwitch;
     private Button saveSettingsBtn;
+    private ConfigManager configManager;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +24,7 @@ public class TranscodeSettingsActivity extends AppCompatActivity {
         
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         
+        configManager = ConfigManager.getInstance(this);
         initializeViews();
         loadSettings();
         
@@ -42,23 +41,18 @@ public class TranscodeSettingsActivity extends AppCompatActivity {
     }
     
     private void loadSettings() {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        boolean hardwareAcceleration = prefs.getBoolean(KEY_HARDWARE_ACCELERATION, false);
-        boolean multithreading = prefs.getBoolean(KEY_MULTITHREADING, true);
+        boolean hardwareAcceleration = configManager.isHardwareAccelerationEnabled();
+        boolean multithreading = configManager.isMultithreadingEnabled();
         
         hardwareAccelerationSwitch.setChecked(hardwareAcceleration);
         multithreadingSwitch.setChecked(multithreading);
     }
     
     private void saveSettings() {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
+        configManager.setHardwareAccelerationEnabled(hardwareAccelerationSwitch.isChecked());
+        configManager.setMultithreadingEnabled(multithreadingSwitch.isChecked());
         
-        editor.putBoolean(KEY_HARDWARE_ACCELERATION, hardwareAccelerationSwitch.isChecked());
-        editor.putBoolean(KEY_MULTITHREADING, multithreadingSwitch.isChecked());
-        editor.apply();
-        
-        Toast.makeText(this, "设置已保存", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "设置已保存到配置文件", Toast.LENGTH_SHORT).show();
         finish();
     }
     
@@ -69,12 +63,12 @@ public class TranscodeSettingsActivity extends AppCompatActivity {
     }
     
     public static boolean isHardwareAccelerationEnabled(android.content.Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        return prefs.getBoolean(KEY_HARDWARE_ACCELERATION, false);
+        ConfigManager config = ConfigManager.getInstance(context);
+        return config.isHardwareAccelerationEnabled();
     }
     
     public static boolean isMultithreadingEnabled(android.content.Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        return prefs.getBoolean(KEY_MULTITHREADING, true);
+        ConfigManager config = ConfigManager.getInstance(context);
+        return config.isMultithreadingEnabled();
     }
 }

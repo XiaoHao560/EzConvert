@@ -1,12 +1,15 @@
 package com.tech.ezconvert;
 
+import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.*;
@@ -20,6 +23,7 @@ import com.tech.ezconvert.processor.AudioProcessor;
 import com.tech.ezconvert.processor.VideoProcessor;
 import com.tech.ezconvert.ui.SettingsMainActivity;
 import com.tech.ezconvert.utils.AnimationUtils;
+import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.FFmpegUtil;
 import com.tech.ezconvert.utils.FileUtils;
 import com.tech.ezconvert.utils.PermissionManager;
@@ -63,6 +67,16 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
         
         // 初始化更新检查器
         updateChecker = new UpdateChecker(this);
+        
+        // 初始化配置管理器
+        ConfigManager configManager = ConfigManager.getInstance(this);
+        
+        // 检查是否需要迁移
+        SharedPreferences prefs = getSharedPreferences("EzConvertSettings", MODE_PRIVATE);
+        if (prefs.getAll().size() > 0) {
+            // 有旧设置，询问用户是否迁移
+            showMigrationDialog();
+        }
         
         setupActivityResultLaunchers();
         initializeViews();
@@ -833,5 +847,25 @@ public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpeg
                                 .getAbsolutePath() + File.separator + "简转";
         new File(dir).mkdir();
         return dir + File.separator + base + "_share_" + ts;
+    }
+
+    private void showMigrationDialog() {
+        new AlertDialog.Builder(this)
+            .setTitle("检测到旧版设置")
+            .setMessage("发现旧版本的设置数据，是否迁移到新的JSON配置文件？\n\n迁移后设置将保存在 downloads/简转/config/ 目录下。")
+            .setPositiveButton("迁移", (dialog, which) -> {
+                ConfigManager.getInstance(this).migrateOldSettings();
+                Toast.makeText(this, "设置迁移完成", Toast.LENGTH_SHORT).show();
+            })
+            .setNegativeButton("跳过", null)
+            .setNeutralButton("查看配置文件", (dialog, which) -> {
+                // 打开文件管理器显示配置文件
+                ConfigManager config = ConfigManager.getInstance(this);
+                File configDir = config.getConfigDirectory();
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.fromFile(configDir), "*/*");
+                startActivity(Intent.createChooser(intent, "打开配置文件夹"));
+            })
+            .show();
     }
 }

@@ -1,7 +1,6 @@
 package com.tech.ezconvert.utils;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.Log;
 import com.arthenica.ffmpegkit.FFmpegKit;
 import com.arthenica.ffmpegkit.FFmpegKitConfig;
@@ -26,8 +25,8 @@ public class FFmpegUtil {
     }
 
     public static void initLogging(Context context) {
-        SharedPreferences sp = context.getSharedPreferences("debug_settings", Context.MODE_PRIVATE);
-        verboseLogging = sp.getBoolean("log_verbose", true);
+        ConfigManager configManager = ConfigManager.getInstance(context);
+        verboseLogging = configManager.isVerboseLoggingEnabled();
         
         Log.d(TAG, "初始化日志设置，详细日志模式: " + verboseLogging);
         

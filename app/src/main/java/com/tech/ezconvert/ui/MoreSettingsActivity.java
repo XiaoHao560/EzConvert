@@ -12,14 +12,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
 import com.tech.ezconvert.R;
-import com.tech.ezconvert.utils.UpdateSettingsManager;
+import com.tech.ezconvert.utils.ConfigManager;
 
 public class MoreSettingsActivity extends AppCompatActivity {
     
     private com.google.android.material.materialswitch.MaterialSwitch autoUpdateSwitch;
     private Spinner frequencySpinner;
     private LinearLayout frequencyLayout;
-    private UpdateSettingsManager settingsManager;
+    private ConfigManager configManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,7 +28,7 @@ public class MoreSettingsActivity extends AppCompatActivity {
 
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 
-        settingsManager = new UpdateSettingsManager(this);
+        configManager = ConfigManager.getInstance(this);
         
         // 初始化视图
         initViews();
@@ -69,7 +69,7 @@ public class MoreSettingsActivity extends AppCompatActivity {
         autoUpdateSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                settingsManager.setAutoCheckEnabled(isChecked);
+                configManager.setAutoCheckUpdateEnabled(isChecked);
                 updateFrequencyLayoutVisibility(isChecked);
             }
         });
@@ -79,7 +79,7 @@ public class MoreSettingsActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 int frequency = mapPositionToFrequency(position);
-                settingsManager.setCheckFrequency(frequency);
+                configManager.setUpdateCheckFrequency(frequency);
             }
 
             @Override
@@ -91,8 +91,8 @@ public class MoreSettingsActivity extends AppCompatActivity {
 
     private void loadCurrentSettings() {
         // 加载当前设置
-        boolean autoCheckEnabled = settingsManager.isAutoCheckEnabled();
-        int currentFrequency = settingsManager.getCheckFrequency();
+        boolean autoCheckEnabled = configManager.isAutoCheckUpdateEnabled();
+        int currentFrequency = configManager.getUpdateCheckFrequency();
         
         // 更新开关状态
         autoUpdateSwitch.setChecked(autoCheckEnabled);
@@ -116,19 +116,19 @@ public class MoreSettingsActivity extends AppCompatActivity {
     private int mapPositionToFrequency(int position) {
         switch (position) {
             case 0: // 每24小时检测
-                return UpdateSettingsManager.FREQUENCY_EVERY_24_HOURS;
+                return 1; // FREQUENCY_EVERY_24_HOURS
             case 1: // 每次进入应用检测
-                return UpdateSettingsManager.FREQUENCY_EVERY_LAUNCH;
+                return 2; // FREQUENCY_EVERY_LAUNCH
             default:
-                return UpdateSettingsManager.FREQUENCY_EVERY_24_HOURS;
+                return 1;
         }
     }
 
     private int mapFrequencyToPosition(int frequency) {
         switch (frequency) {
-            case UpdateSettingsManager.FREQUENCY_EVERY_24_HOURS:
+            case 1: // FREQUENCY_EVERY_24_HOURS
                 return 0;
-            case UpdateSettingsManager.FREQUENCY_EVERY_LAUNCH:
+            case 2: // FREQUENCY_EVERY_LAUNCH
                 return 1;
             default:
                 return 0;

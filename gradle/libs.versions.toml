@@ -21,6 +21,8 @@ junit = "4.13.2"
 junit-android = "1.1.5"
 espresso = "3.5.1"
 
+gson = "2.10.1"
+
 # Build Tools
 gradle-plugin = "8.2.0"
 #kotlin = "1.9.0"
@@ -47,6 +49,8 @@ markwon-image = { group = "io.noties.markwon", name = "image", version.ref = "ma
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junit-android" }
 androidx-espresso = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
+
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 
 # Markwon bundle
 [bundles]
