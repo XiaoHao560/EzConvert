@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     android:layout_height="match_parent"
+     android:layout_width="match_parent"
+     android:gravity="center"
+     android:background="?android:attr/colorBackground"
+     android:padding="24dp"
+     android:orientation="vertical">
+
+    <ImageView
+         android:layout_height="80dp"
+         android:layout_width="80dp"
+         android:layout_marginBottom="24dp"
+         android:src="@drawable/ic_splash_logo"
+         android:contentDescription="@string/app_name" />
+
+    <TextView
+         android:layout_height="wrap_content"
+         android:layout_width="wrap_content"
+         android:layout_marginBottom="8dp"
+         android:textSize="28sp"
+         android:textColor="?android:attr/textColorPrimary"
+         android:text="简转"
+         android:textStyle="bold" />
+
+    <TextView
+         android:layout_height="wrap_content"
+         android:layout_width="wrap_content"
+         android:layout_marginBottom="32dp"
+         android:textSize="18sp"
+         android:textColor="?android:attr/textColorSecondary"
+         android:text="正在初始化..." />
+
+    <TextView
+         android:layout_height="wrap_content"
+         android:layout_width="wrap_content"
+         android:textSize="14sp"
+         android:textColor="?android:attr/textColorTertiary"
+         android:text="首次运行，正在准备配置文件" />
+
+</LinearLayout>

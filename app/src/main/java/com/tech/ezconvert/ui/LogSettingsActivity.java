@@ -9,34 +9,36 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.AnimationUtils;
+import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.FFmpegUtil;
 
 public class LogSettingsActivity extends AppCompatActivity {
 
-    private SharedPreferences sp;
     private RadioButton rbAll, rbError;
     private Button btnViewLog;
+    private ConfigManager configManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_log_settings);
 
-        sp = getSharedPreferences("debug_settings", MODE_PRIVATE);
+        configManager = ConfigManager.getInstance(this);
 
         rbAll   = findViewById(R.id.rb_log_all);
         rbError = findViewById(R.id.rb_log_error);
         btnViewLog = findViewById(R.id.btn_view_log);
 
-        boolean isAll = sp.getBoolean("log_verbose", true); // 默认开启详细日志
-        rbAll.setChecked(isAll);
-        rbError.setChecked(!isAll);
+        boolean isVerbose = configManager.isVerboseLoggingEnabled();
+        rbAll.setChecked(isVerbose);
+        rbError.setChecked(!isVerbose);
 
         RadioGroup rg = findViewById(R.id.rg_log_level);
         rg.setOnCheckedChangeListener((group, checkedId) -> {
             boolean verbose = checkedId == R.id.rb_log_all;
-            sp.edit().putBoolean("log_verbose", verbose).apply();
+            configManager.setVerboseLoggingEnabled(verbose);
             
+            // 重新初始化FFmpeg日志
             FFmpegUtil.initLogging(this);
             
             // 显示设置提示

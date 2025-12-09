@@ -1,47 +1,38 @@
 package com.tech.ezconvert.utils;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 
 public class UpdateSettingsManager {
     
-    private static final String PREF_NAME = "update_settings";
-    private static final String KEY_AUTO_CHECK_ENABLED = "auto_check_enabled";
-    private static final String KEY_CHECK_FREQUENCY = "check_frequency";
+    private final ConfigManager configManager;
     
     // 检查频率常量
     public static final int FREQUENCY_DISABLED = 0;
     public static final int FREQUENCY_EVERY_24_HOURS = 1;
     public static final int FREQUENCY_EVERY_LAUNCH = 2;
     
-    private final SharedPreferences preferences;
-    
     public UpdateSettingsManager(Context context) {
-        preferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        configManager = ConfigManager.getInstance(context);
     }
     
     // 获取自动检测更新是否启用
     public boolean isAutoCheckEnabled() {
-        return preferences.getBoolean(KEY_AUTO_CHECK_ENABLED, true); // 默认启用
+        return configManager.isAutoCheckUpdateEnabled();
     }
     
     // 设置自动检测更新是否启用
     public void setAutoCheckEnabled(boolean enabled) {
-        preferences.edit()
-            .putBoolean(KEY_AUTO_CHECK_ENABLED, enabled)
-            .apply();
+        configManager.setAutoCheckUpdateEnabled(enabled);
     }
     
     // 获取检测频率
     public int getCheckFrequency() {
-        return preferences.getInt(KEY_CHECK_FREQUENCY, FREQUENCY_EVERY_LAUNCH); // 默认每次启动应用检测更新
+        return configManager.getUpdateCheckFrequency();
     }
     
     // 设置检测频率
     public void setCheckFrequency(int frequency) {
-        preferences.edit()
-            .putInt(KEY_CHECK_FREQUENCY, frequency)
-            .apply();
+        configManager.setUpdateCheckFrequency(frequency);
     }
     
     // 获取频率对应的字符串
