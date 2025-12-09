@@ -6,7 +6,7 @@ on:
       - 'feat/**'
       - 'fix/**'
       - 'release/**'
-      - 'docs/**'
+
 
 jobs:
   create-pull-request:
@@ -19,13 +19,48 @@ jobs:
         with:
           fetch-depth: 0
           
+      - name: Extract new changelog entries
+        id: changelog
+        run: |
+          DESC_FILE="change_log/changelog.md"
+          
+          if [ ! -f "$DESC_FILE" ]; then
+            echo "pr_body=❌ 未找到 $DESC_FILE 文件" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          
+          NEW_ENTRIES=$(git diff origin/main...HEAD -- "$DESC_FILE" 2>/dev/null | grep "^+" | grep "^+- " || true)
+          
+          if [ -z "$NEW_ENTRIES" ]; then
+            {
+              echo 'pr_body<<EOF'
+              echo "## 自动创建 PR: \`${{ github.ref_name }}\`"
+              echo ""
+              echo "分支 \`${{ github.ref_name }}\` 的变更已自动创建 PR。"
+              echo ""
+              echo "**提交者:** @${{ github.actor }}"
+              echo ""
+              echo "本次 PR 没有新增的 changelog 条目"
+              echo 'EOF'
+            } >> "$GITHUB_OUTPUT"
+          else
+            {
+              echo 'pr_body<<EOF'
+              echo "## 变更内容"
+              echo ""
+              echo "$NEW_ENTRIES" | sed 's/^+-\s*/- /'
+              echo ""
+              echo "---"
+              echo "**提交者:** @${{ github.actor }} | **分支:** \`${{ github.ref_name }}\`"
+              echo 'EOF'
+            } >> "$GITHUB_OUTPUT"
+          fi
+          
       - uses: repo-sync/pull-request@v2
         with:
           source_branch: ${{ github.ref_name }}
           destination_branch: main
           github_token: ${{ secrets.GITHUB_TOKEN }}
           pr_title: "Auto PR: ${{ github.ref_name }}"
-          pr_body: |
-            分支 `${{ github.ref_name }}` 的变更已自动创建 PR。
-            提交者：${{ github.actor }}
+          pr_body: ${{ steps.changelog.outputs.pr_body }}
           pr_label: "automated-pr,needs-review"

@@ -106,9 +106,15 @@ EzConvert 是一款运行于安卓平台的转码与媒体内容提取工具，�
 
 ## 如何参与贡献
 
-1. Fork 本项目
-2. 提交 Pull Request 或 Issue
-3. 详细描述问题或建议，便于开发者定位与修复
+我们欢迎所有形式的贡献！请遵循以下步骤：
+
+1. **阅读贡献指南**：详细流程请查看 [CONTRIBUTING.md](CONTRIBUTING.md)
+2. **Fork 本项目** 并创建功能分支
+3. **提交 Pull Request**：修改代码后，按照 CONTRIBUTING.md 中的流程提交
+4. **提交 Issue**：遇到 Bug 或有功能建议，可通过 [GitHub Issues](https://github.com/XiaoHao560/EzConvert/issues) 反馈
+
+> [!NOTE]
+> **提示**：每次提交 PR 前，请在 `change_log/changelog.md` 中记录你的变更，PR 描述会自动生成。
 
 ## 许可证
 Copyright (C) 2024-2025 XiaoHao560  
