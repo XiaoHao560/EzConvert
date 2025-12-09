@@ -198,6 +198,7 @@ dependencies {
 preBuild {
     doFirst {
         println "Build Info: ${getGitVersionName()} (${getGitVersionCode()})"
-        println "Build type: ${gradle.startParameter.taskNames.find { it.contains('Release') } ? 'Release' : 'Debug'}"
+        def hasReleaseTask = gradle.taskGraph.allTasks.any { it.name.contains('Release') }
+        println "Build type: ${hasReleaseTask ? 'Release' : 'Debug'}"
     }
 }
