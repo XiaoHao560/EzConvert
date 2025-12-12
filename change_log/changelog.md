@@ -13,6 +13,7 @@
 ### 优化
 
 ### 变更
+- 将多 Activity 架构重构为单 Activity 多 Fragment, 引入 Navigation 组件
 
 ### 移除
 - 移除了 auto-pr 中 docs/ 分支

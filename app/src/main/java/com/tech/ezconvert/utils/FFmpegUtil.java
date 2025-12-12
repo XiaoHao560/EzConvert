@@ -9,7 +9,6 @@ import com.arthenica.ffmpegkit.FFmpegSessionCompleteCallback;
 import com.arthenica.ffmpegkit.Level;
 import com.arthenica.ffmpegkit.LogCallback;
 import com.arthenica.ffmpegkit.ReturnCode;
-import com.tech.ezconvert.ui.LogViewerActivity;
 
 public class FFmpegUtil {
 
@@ -66,7 +65,7 @@ public class FFmpegUtil {
                     
                     // 只在详细模式下记录所有日志到LogViewer
                     if (verboseLogging || level == Level.AV_LOG_ERROR || level == Level.AV_LOG_WARNING) {
-                        LogViewerActivity.appendLog(line);
+                        Log.d("FFmpegLog", line);
                     }
                 }
         });

@@ -1,16 +1,19 @@
 package com.tech.ezconvert.ui;
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.AnimationUtils;
 import com.tech.ezconvert.utils.ConfigManager;
 
-public class TranscodeSettingsActivity extends AppCompatActivity {
+public class TranscodeSettingsFragment extends BaseFragment {
     
     private MaterialSwitch hardwareAccelerationSwitch;
     private MaterialSwitch multithreadingSwitch;
@@ -18,14 +21,17 @@ public class TranscodeSettingsActivity extends AppCompatActivity {
     private ConfigManager configManager;
     
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings);
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_transcode_settings, container, false);
+    }
+    
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         
-        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
-        
-        configManager = ConfigManager.getInstance(this);
-        initializeViews();
+        configManager = ConfigManager.getInstance(requireContext());
+        initializeViews(view);
         loadSettings();
         
         saveSettingsBtn.setOnClickListener(v -> {
@@ -34,10 +40,10 @@ public class TranscodeSettingsActivity extends AppCompatActivity {
         });
     }
     
-    private void initializeViews() {
-        hardwareAccelerationSwitch = findViewById(R.id.hardware_acceleration_switch);
-        multithreadingSwitch = findViewById(R.id.multithreading_switch);
-        saveSettingsBtn = findViewById(R.id.save_settings_btn);
+    private void initializeViews(View view) {
+        hardwareAccelerationSwitch = view.findViewById(R.id.hardware_acceleration_switch);
+        multithreadingSwitch = view.findViewById(R.id.multithreading_switch);
+        saveSettingsBtn = view.findViewById(R.id.save_settings_btn);
     }
     
     private void loadSettings() {
@@ -52,14 +58,8 @@ public class TranscodeSettingsActivity extends AppCompatActivity {
         configManager.setHardwareAccelerationEnabled(hardwareAccelerationSwitch.isChecked());
         configManager.setMultithreadingEnabled(multithreadingSwitch.isChecked());
         
-        Toast.makeText(this, "设置已保存到配置文件", Toast.LENGTH_SHORT).show();
-        finish();
-    }
-    
-    @Override
-    public void finish() {
-        super.finish();
-        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+        Toast.makeText(requireContext(), "设置已保存到配置文件", Toast.LENGTH_SHORT).show();
+        navigateUp();
     }
     
     public static boolean isHardwareAccelerationEnabled(android.content.Context context) {

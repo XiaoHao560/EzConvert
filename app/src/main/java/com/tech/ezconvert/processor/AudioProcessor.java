@@ -2,7 +2,7 @@ package com.tech.ezconvert.processor;
 
 import android.content.Context;
 import android.util.Log;
-import com.tech.ezconvert.ui.TranscodeSettingsActivity;
+import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.FFmpegUtil;
 import java.util.ArrayList;
 
@@ -13,7 +13,7 @@ public class AudioProcessor {
                                    String format, int volume, FFmpegUtil.FFmpegCallback callback, Context context) {
         String outputFile = outputPath + "." + getAudioExtension(format);
         
-        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
+        boolean multithreading = ConfigManager.getInstance(context).isMultithreadingEnabled();
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
@@ -101,7 +101,7 @@ public class AudioProcessor {
                                            String format, int volume, FFmpegUtil.FFmpegCallback callback, Context context) {
         String outputFile = outputPath + "." + getAudioExtension(format);
         
-        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
+        boolean multithreading = ConfigManager.getInstance(context).isMultithreadingEnabled();
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
@@ -182,7 +182,7 @@ public class AudioProcessor {
     // 调整音频质量
     public static void adjustAudioQuality(String inputPath, String outputPath,
                                         int bitrate, FFmpegUtil.FFmpegCallback callback, Context context) {
-        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
+        boolean multithreading = ConfigManager.getInstance(context).isMultithreadingEnabled();
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
@@ -210,7 +210,7 @@ public class AudioProcessor {
     public static void cutAudio(String inputPath, String outputPath,
                                String startTime, String duration, int volume,
                                FFmpegUtil.FFmpegCallback callback, Context context) {
-        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
+        boolean multithreading = ConfigManager.getInstance(context).isMultithreadingEnabled();
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
@@ -247,7 +247,7 @@ public class AudioProcessor {
     public static void fadeAudio(String inputPath, String outputPath,
                                 String fadeIn, String fadeOut,
                                 FFmpegUtil.FFmpegCallback callback, Context context) {
-        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
+        boolean multithreading = ConfigManager.getInstance(context).isMultithreadingEnabled();
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");

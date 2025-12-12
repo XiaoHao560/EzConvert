@@ -160,6 +160,116 @@
                      android:orientation="horizontal"
                      android:paddingStart="16dp"
                      android:focusable="true"
+                     android:id="@+id/log_settings_item">
+
+                    <ImageView
+                         android:layout_height="32dp"
+                         android:layout_width="32dp"
+                         android:layout_marginEnd="16dp"
+                         android:src="@drawable/ic_log" />
+
+                    <LinearLayout
+                         android:layout_height="wrap_content"
+                         android:layout_width="0dp"
+                         android:orientation="vertical"
+                         android:layout_weight="1">
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="16sp"
+                             android:textColor="@color/text_primary"
+                             android:text="日志设置"
+                             android:textStyle="bold" />
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="14sp"
+                             android:textColor="@color/text_hint"
+                             android:text="日志级别、存储位置等设置" />
+
+                    </LinearLayout>
+
+                    <ImageView
+                         android:layout_height="24dp"
+                         android:layout_width="24dp"
+                         android:src="@drawable/ic_arrow_right"
+                         android:tint="#9E9E9E" />
+
+                </LinearLayout>
+
+                <View
+                     android:layout_height="1dp"
+                     android:layout_width="match_parent"
+                     android:background="#F0F0F0"
+                     android:layout_marginStart="64dp" />
+
+                <LinearLayout
+                     android:layout_height="72dp"
+                     android:layout_width="match_parent"
+                     android:paddingEnd="16dp"
+                     android:background="?android:attr/selectableItemBackground"
+                     android:gravity="center_vertical"
+                     android:clickable="true"
+                     android:orientation="horizontal"
+                     android:paddingStart="16dp"
+                     android:focusable="true"
+                     android:id="@+id/log_viewer_item">
+
+                    <ImageView
+                         android:layout_height="32dp"
+                         android:layout_width="32dp"
+                         android:layout_marginEnd="16dp"
+                         android:src="@drawable/ic_list" />
+
+                    <LinearLayout
+                         android:layout_height="wrap_content"
+                         android:layout_width="0dp"
+                         android:orientation="vertical"
+                         android:layout_weight="1">
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="16sp"
+                             android:textColor="@color/text_primary"
+                             android:text="运行日志"
+                             android:textStyle="bold" />
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="14sp"
+                             android:textColor="@color/text_hint"
+                             android:text="查看应用运行日志和错误信息" />
+
+                    </LinearLayout>
+
+                    <ImageView
+                         android:layout_height="24dp"
+                         android:layout_width="24dp"
+                         android:src="@drawable/ic_arrow_right"
+                         android:tint="#9E9E9E" />
+
+                </LinearLayout>
+
+                <View
+                     android:layout_height="1dp"
+                     android:layout_width="match_parent"
+                     android:background="#F0F0F0"
+                     android:layout_marginStart="64dp" />
+
+                <LinearLayout
+                     android:layout_height="72dp"
+                     android:layout_width="match_parent"
+                     android:paddingEnd="16dp"
+                     android:background="?android:attr/selectableItemBackground"
+                     android:gravity="center_vertical"
+                     android:clickable="true"
+                     android:orientation="horizontal"
+                     android:paddingStart="16dp"
+                     android:focusable="true"
                      android:id="@+id/about_item">
 
                     <ImageView
@@ -209,6 +319,7 @@
              android:gravity="center"
              android:textSize="12sp"
              android:textColor="@color/text_hint"
+             android:id="@+id/version_text"
              android:text="EzConvert v0.8.1" />
 
     </LinearLayout>

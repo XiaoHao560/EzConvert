@@ -1,5 +1,4 @@
 plugins {
-    // 不再需要指定版本，版本在 libs.versions.toml 中管理
     alias(libs.plugins.android.application)
 }
 
@@ -54,7 +53,6 @@ task checkSigningConfig {
 
 android {
     namespace 'com.tech.ezconvert'
-    // 从 libs.versions.toml 读取 SDK 版本
     compileSdk libs.versions.compileSdk.get().toInteger()
 
     defaultConfig {
@@ -82,9 +80,7 @@ android {
     
     // 签名配置
     signingConfigs {
-        
         release {
-            // GitHub Actions 环境
             if (isRunningOnGithub) {
                 println "GitHub Actions environment detected, using CI/CD signing configuration"
                 storeFile file(System.getenv("KEYSTORE_FILE") ?: "debug.keystore")
@@ -96,9 +92,7 @@ android {
                 enableV2Signing true
                 enableV3Signing true
                 enableV4Signing false
-            }
-            // 本地环境
-            else {
+            } else {
                 def localConfig = getLocalKeystoreConfig()
                 if (localConfig != null) {
                     println "Release build: use local key configuration"
@@ -112,11 +106,9 @@ android {
                     enableV3Signing true
                     enableV4Signing false
                 } else {
-                    // 如果没有配置本地密钥，就不配置release签名，构建会失败
                     println "Error: The local build Release requires the signing configuration in the key folder"
                     println "Please create key/keystore.properties and configure the signing information"
                     
-                    // 这里抛出异常，让构建失败
                     throw new GradleException("No local signing configuration found. Please create the key folder and configure keystore.properties")
                 }
             }
@@ -155,6 +147,10 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     
+    buildFeatures {
+        viewBinding true
+    }
+    
     externalNativeBuild {
         cmake {
             path file('src/main/cpp/CMakeLists.txt')
@@ -176,24 +172,22 @@ dependencies {
     implementation libs.androidx.constraintlayout
     implementation libs.androidx.core.splashscreen
     
+    // Navigation
+    implementation libs.androidx.navigation.fragment
+    implementation libs.androidx.navigation.ui
+    
     // FFmpeg
     implementation libs.ffmpeg.kit.full.gpl
     
     // Markwon bundle
     implementation libs.bundles.markwon.all
-    
-    // implementation libs.markwon.core
-    // implementation libs.markwon.ext.tables
-    // implementation libs.markwon.ext.strikethrough
-    // implementation libs.markwon.linkify
-    // implementation libs.markwon.html
-    // implementation libs.markwon.image
 
     // Testing
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso
     
+    // json
     implementation libs.gson
 }
 

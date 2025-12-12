@@ -9,6 +9,9 @@ appcompat = "1.6.1"
 material = "1.12.0"
 constraintlayout = "2.1.4"
 core-splashscreen = "1.0.1"
+# Navigation 组件
+navigation-fragment = "2.7.7"
+navigation-ui = "2.7.7"
 
 # FFmpeg
 ffmpeg-kit = "6.0-2"
@@ -25,7 +28,6 @@ gson = "2.10.1"
 
 # Build Tools
 gradle-plugin = "8.2.0"
-#kotlin = "1.9.0"
 
 [libraries]
 # AndroidX
@@ -33,6 +35,9 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 androidx-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
+# Navigation
+androidx-navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "navigation-fragment" }
+androidx-navigation-ui = { group = "androidx.navigation", name = "navigation-ui", version.ref = "navigation-ui" }
 
 # FFmpeg
 ffmpeg-kit-full-gpl = { group = "com.arthenica", name = "ffmpeg-kit-full-gpl", version.ref = "ffmpeg-kit" }

@@ -2,7 +2,7 @@ package com.tech.ezconvert.processor;
 
 import android.content.Context;
 import android.util.Log;
-import com.tech.ezconvert.ui.TranscodeSettingsActivity;
+import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.FFmpegUtil;
 import java.util.ArrayList;
 
@@ -13,8 +13,8 @@ public class VideoProcessor {
                                    String format, int volume, FFmpegUtil.FFmpegCallback callback, Context context) {
         String outputFile = outputPath + "." + getFileExtension(format);
         
-        boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
-        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
+        boolean hardwareAcceleration = ConfigManager.getInstance(context).isHardwareAccelerationEnabled();
+        boolean multithreading = ConfigManager.getInstance(context).isMultithreadingEnabled();
         
         Log.d("VideoProcessor", "硬件加速: " + hardwareAcceleration + ", 多线程: " + multithreading);
         
@@ -175,8 +175,8 @@ public class VideoProcessor {
         
         String outputFile = outputPath + "_compressed.mp4";
         
-        boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
-        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
+        boolean hardwareAcceleration = ConfigManager.getInstance(context).isHardwareAccelerationEnabled();
+        boolean multithreading = ConfigManager.getInstance(context).isMultithreadingEnabled();
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
@@ -223,8 +223,8 @@ public class VideoProcessor {
     public static void cutVideo(String inputPath, String outputPath,
                                String startTime, String duration, int volume,
                                FFmpegUtil.FFmpegCallback callback, Context context) {
-        boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
-        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
+        boolean hardwareAcceleration = ConfigManager.getInstance(context).isHardwareAccelerationEnabled();
+        boolean multithreading = ConfigManager.getInstance(context).isMultithreadingEnabled();
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
@@ -295,8 +295,8 @@ public class VideoProcessor {
                 overlay = "10:10";
         }
         
-        boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
-        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
+        boolean hardwareAcceleration = ConfigManager.getInstance(context).isHardwareAccelerationEnabled();
+        boolean multithreading = ConfigManager.getInstance(context).isMultithreadingEnabled();
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
@@ -339,8 +339,8 @@ public class VideoProcessor {
                                   int width, int height, FFmpegUtil.FFmpegCallback callback, Context context) {
         String scaleFilter = "scale=" + width + ":" + height + ":flags=lanczos";
         
-        boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
-        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
+        boolean hardwareAcceleration = ConfigManager.getInstance(context).isHardwareAccelerationEnabled();
+        boolean multithreading = ConfigManager.getInstance(context).isMultithreadingEnabled();
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
@@ -379,7 +379,7 @@ public class VideoProcessor {
     // 提取视频帧（截图）
     public static void extractFrame(String inputPath, String outputPath,
                                    String timestamp, FFmpegUtil.FFmpegCallback callback, Context context) {
-        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
+        boolean multithreading = ConfigManager.getInstance(context).isMultithreadingEnabled();
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
@@ -407,8 +407,8 @@ public class VideoProcessor {
     // 合并视频和音频
     public static void mergeVideoAudio(String videoPath, String audioPath,
                                       String outputPath, FFmpegUtil.FFmpegCallback callback, Context context) {
-        boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
-        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
+        boolean hardwareAcceleration = ConfigManager.getInstance(context).isHardwareAccelerationEnabled();
+        boolean multithreading = ConfigManager.getInstance(context).isMultithreadingEnabled();
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");

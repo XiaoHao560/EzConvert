@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <!-- 主页面 -->
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.tech.ezconvert.ui.HomeFragment"
+        android:label="EzConvert"
+        tools:layout="@layout/fragment_home">
+        
+        <action
+            android:id="@+id/action_home_to_settings"
+            app:destination="@id/settingsFragment" />
+    </fragment>
+
+    <!-- 设置主页面 -->
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.tech.ezconvert.ui.SettingsFragment"
+        android:label="设置"
+        tools:layout="@layout/fragment_settings">
+        
+        <action
+            android:id="@+id/action_settings_to_home"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/homeFragment"
+            app:popUpToInclusive="false" />
+            
+        <action
+            android:id="@+id/action_settings_to_transcode"
+            app:destination="@id/transcodeSettingsFragment" />
+            
+        <action
+            android:id="@+id/action_settings_to_log_settings"
+            app:destination="@id/logSettingsFragment" />
+            
+        <action
+            android:id="@+id/action_settings_to_more_settings"
+            app:destination="@id/moreSettingsFragment" />
+            
+        <action
+            android:id="@+id/action_settings_to_about"
+            app:destination="@id/aboutFragment" />
+    </fragment>
+
+    <!-- 转码设置 -->
+    <fragment
+        android:id="@+id/transcodeSettingsFragment"
+        android:name="com.tech.ezconvert.ui.TranscodeSettingsFragment"
+        android:label="转码设置"
+        tools:layout="@layout/fragment_transcode_settings">
+        
+        <action
+            android:id="@+id/action_transcode_to_settings"
+            app:destination="@id/settingsFragment"
+            app:popUpTo="@id/settingsFragment"
+            app:popUpToInclusive="false" />
+    </fragment>
+
+    <!-- 日志设置 -->
+    <fragment
+        android:id="@+id/logSettingsFragment"
+        android:name="com.tech.ezconvert.ui.LogSettingsFragment"
+        android:label="日志设置"
+        tools:layout="@layout/fragment_log_settings">
+        
+        <action
+            android:id="@+id/action_log_settings_to_settings"
+            app:destination="@id/settingsFragment"
+            app:popUpTo="@id/settingsFragment"
+            app:popUpToInclusive="false" />
+    </fragment>
+
+    <!-- 更多设置 -->
+    <fragment
+        android:id="@+id/moreSettingsFragment"
+        android:name="com.tech.ezconvert.ui.MoreSettingsFragment"
+        android:label="更多设置"
+        tools:layout="@layout/fragment_more_settings">
+        
+        <action
+            android:id="@+id/action_more_settings_to_settings"
+            app:destination="@id/settingsFragment"
+            app:popUpTo="@id/settingsFragment"
+            app:popUpToInclusive="false" />
+    </fragment>
+
+    <!-- 关于 -->
+    <fragment
+        android:id="@+id/aboutFragment"
+        android:name="com.tech.ezconvert.ui.AboutFragment"
+        android:label="关于"
+        tools:layout="@layout/fragment_about">
+        
+        <action
+            android:id="@+id/action_about_to_settings"
+            app:destination="@id/settingsFragment"
+            app:popUpTo="@id/settingsFragment"
+            app:popUpToInclusive="false" />
+    </fragment>
+
+    <!-- 日志查看器 -->
+    <fragment
+        android:id="@+id/logViewerFragment"
+        android:name="com.tech.ezconvert.ui.LogViewerFragment"
+        android:label="运行日志"
+        tools:layout="@layout/fragment_log_viewer">
+        
+        <action
+            android:id="@+id/action_log_viewer_to_settings"
+            app:destination="@id/settingsFragment"
+            app:popUpTo="@id/settingsFragment"
+            app:popUpToInclusive="false" />
+    </fragment>
+
+</navigation>

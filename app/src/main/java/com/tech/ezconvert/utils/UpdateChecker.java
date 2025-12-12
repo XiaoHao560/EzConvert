@@ -58,6 +58,46 @@ public class UpdateChecker {
     private boolean isPrereleaseFromGitHub;
     private String htmlUrlFromGitHub;
     
+    public interface UpdateCallback {
+        void onUpdateAvailable(String version, String changlog, String downloadUrl);
+        void onNoUpdate();
+        void onError(String error);
+    }
+    
+    public void checkUpdate(boolean showToast, UpdateCallback callback) {
+        setUpdateCheckListener(new UpdateCheckListener() {
+            @Override
+            public void onUpdateCheckComplete(int comparisonResult, String latestVersion,
+                                            String releaseName, boolean isPrerelease,
+                                            boolean isDevelopmentVersion, String htmlUrl) {
+                if (comparisonResult < 0) {
+                    // 有新版本
+                    callback.onUpdateAvailable(latestVersion, releaseNotesFromGitHub, htmlUrlFromGitHub);
+                } else if (comparisonResult == 0) {
+                    callback.onNoUpdate();
+                } else {
+                    // 当前版本更高 (开发版本)
+                    callback.onNoUpdate();
+                }
+            }
+            @Override
+            public void onUpdateCheckError(String errorMessage) {
+                callback.onError(errorMessage);
+            }
+            
+            @Override
+            public void onNoUpdateAvailable() {
+                callback.onNoUpdate();
+            }
+        });
+        
+        if (showToast) {
+            checkForManualUpdate();
+        } else {
+            checkForAutoUpdate();
+        }
+    }
+    
     public interface UpdateCheckListener {
         void onUpdateCheckComplete(int comparisonResult, String latestVersion, 
                                   String releaseName, boolean isPrerelease, 

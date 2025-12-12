@@ -33,8 +33,10 @@
                      android:paddingEnd="20dp"
                      android:gravity="center_vertical"
                      android:background="?attr/selectableItemBackground"
+                     android:clickable="true"
                      android:orientation="horizontal"
                      android:paddingStart="20dp"
+                     android:focusable="true"
                      android:id="@+id/item_run_log">
 
                     <ImageView
@@ -51,7 +53,7 @@
                          android:layout_marginStart="16dp"
                          android:layout_weight="1"
                          android:textStyle="bold"
-                         android:text="@string/run_log" />
+                         android:text="运行日志" />
 
                     <ImageView
                          android:layout_height="24dp"
@@ -180,7 +182,7 @@
                                  android:gravity="center_vertical"
                                  android:textSize="14sp"
                                  android:layout_weight="1"
-                                 android:text="@string/select_frequency" />
+                                 android:text="选择频率" />
 
                             <Spinner
                                  android:layout_height="40dp"
