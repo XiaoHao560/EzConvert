@@ -10,7 +10,17 @@ import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.AnimationUtils;
 import com.tech.ezconvert.utils.ConfigManager;
 
-public class TranscodeSettingsActivity extends AppCompatActivity {
+public class TranscodeSettingsActivity extends BaseActivity {
+
+    @Override
+    protected int getTitleContainerId() {
+        return R.id.title_container;
+    }
+    
+    @Override
+    protected int getScrollContentId() {
+        return R.id.scroll_content;
+    }
     
     private MaterialSwitch hardwareAccelerationSwitch;
     private MaterialSwitch multithreadingSwitch;
@@ -52,7 +62,7 @@ public class TranscodeSettingsActivity extends AppCompatActivity {
         configManager.setHardwareAccelerationEnabled(hardwareAccelerationSwitch.isChecked());
         configManager.setMultithreadingEnabled(multithreadingSwitch.isChecked());
         
-        Toast.makeText(this, "设置已保存到配置文件", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "设置已保存", Toast.LENGTH_SHORT).show();
         finish();
     }
     

@@ -11,7 +11,17 @@ import com.tech.ezconvert.R;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LogViewerActivity extends AppCompatActivity {
+public class LogViewerActivity extends BaseActivity {
+
+    @Override
+    protected int getTitleContainerId() {
+        return R.id.title_container;
+    }
+    
+    @Override
+    protected int getScrollContentId() {
+        return R.id.scroll_content;
+    }
 
     private static final List<String> logBuffer = new ArrayList<>();
     private static LogAdapter adapter;

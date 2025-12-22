@@ -11,84 +11,93 @@
          android:layout_height="wrap_content"
          android:layout_width="match_parent"
          android:padding="20dp"
-         android:orientation="vertical">
+         android:orientation="vertical"
+         android:id="@+id/scroll_content">
 
-        <androidx.cardview.widget.CardView
+        <LinearLayout
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:layout_marginBottom="24dp"
-             app:cardElevation="8dp"
-             app:cardUseCompatPadding="true"
-             app:cardBackgroundColor="@android:color/white"
-             app:cardCornerRadius="16dp"
-             android:id="@+id/log_level_card">
+             android:orientation="vertical"
+             android:id="@+id/title_container">
 
-            <LinearLayout
+            <androidx.cardview.widget.CardView
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
-                 android:padding="20dp"
-                 android:orientation="vertical">
+                 android:layout_marginBottom="24dp"
+                 app:cardElevation="8dp"
+                 app:cardUseCompatPadding="true"
+                 app:cardBackgroundColor="@android:color/white"
+                 app:cardCornerRadius="16dp"
+                 android:id="@+id/log_level_card">
 
-                <TextView
-                     android:layout_height="wrap_content"
-                     android:layout_width="wrap_content"
-                     android:layout_marginBottom="16dp"
-                     android:textSize="18sp"
-                     android:textColor="@color/text_primary"
-                     android:text="@string/log_level_title"
-                     android:textStyle="bold" />
-
-                <RadioGroup
+                <LinearLayout
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
-                     android:orientation="vertical"
-                     android:id="@+id/rg_log_level">
+                     android:padding="20dp"
+                     android:orientation="vertical">
 
-                    <androidx.appcompat.widget.AppCompatRadioButton
+                    <TextView
                          android:layout_height="wrap_content"
                          android:layout_width="wrap_content"
-                         android:paddingVertical="12dp"
-                         android:textSize="16sp"
+                         android:layout_marginBottom="16dp"
+                         android:textSize="18sp"
                          android:textColor="@color/text_primary"
-                         app:buttonTint="@drawable/radio_button_tint"
-                         android:id="@+id/rb_log_all"
-                         android:text="@string/log_level_verbose" />
+                         android:text="@string/log_level_title"
+                         android:textStyle="bold" />
 
-                    <androidx.appcompat.widget.AppCompatRadioButton
+                    <RadioGroup
                          android:layout_height="wrap_content"
-                         android:layout_width="wrap_content"
-                         android:paddingVertical="12dp"
-                         android:textSize="16sp"
-                         android:textColor="@color/text_primary"
-                         app:buttonTint="@drawable/radio_button_tint"
-                         android:id="@+id/rb_log_error"
-                         android:text="@string/log_level_error" />
+                         android:layout_width="match_parent"
+                         android:orientation="vertical"
+                         android:id="@+id/rg_log_level">
 
-                </RadioGroup>
+                        <androidx.appcompat.widget.AppCompatRadioButton
+                             android:layout_height="wrap_content"
+                             android:layout_width="wrap_content"
+                             android:paddingVertical="12dp"
+                             android:textSize="16sp"
+                             android:textColor="@color/text_primary"
+                             app:buttonTint="@drawable/radio_button_tint"
+                             android:id="@+id/rb_log_all"
+                             android:text="@string/log_level_verbose" />
 
-            </LinearLayout>
+                        <androidx.appcompat.widget.AppCompatRadioButton
+                             android:layout_height="wrap_content"
+                             android:layout_width="wrap_content"
+                             android:paddingVertical="12dp"
+                             android:textSize="16sp"
+                             android:textColor="@color/text_primary"
+                             app:buttonTint="@drawable/radio_button_tint"
+                             android:id="@+id/rb_log_error"
+                             android:text="@string/log_level_error" />
 
-        </androidx.cardview.widget.CardView>
+                    </RadioGroup>
 
-        <Button
-             android:layout_height="56dp"
-             android:layout_width="match_parent"
-             android:textSize="16sp"
-             android:backgroundTint="#2196F3"
-             android:textAllCaps="false"
-             android:textColor="@android:color/white"
-             android:id="@+id/btn_view_log"
-             android:text="@string/view_log" />
+                </LinearLayout>
 
-        <TextView
-             android:layout_height="wrap_content"
-             android:layout_width="match_parent"
-             android:gravity="center"
-             android:textSize="12sp"
-             android:textColor="@color/text_hint"
-             android:layout_marginTop="16dp"
-             android:lineSpacingExtra="4dp"
-             android:text="日志文件保存在应用数据目录中，可用于问题排查和调试" />
+            </androidx.cardview.widget.CardView>
+
+            <Button
+                 android:layout_height="56dp"
+                 android:layout_width="match_parent"
+                 android:textSize="16sp"
+                 android:backgroundTint="#2196F3"
+                 android:textAllCaps="false"
+                 android:textColor="@android:color/white"
+                 android:id="@+id/btn_view_log"
+                 android:text="@string/view_log" />
+
+            <TextView
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:gravity="center"
+                 android:textSize="12sp"
+                 android:textColor="@color/text_hint"
+                 android:layout_marginTop="16dp"
+                 android:lineSpacingExtra="4dp"
+                 android:text="日志文件保存在应用数据目录中，可用于问题排查和调试" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

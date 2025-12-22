@@ -14,7 +14,17 @@ import androidx.core.app.ActivityOptionsCompat;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.ConfigManager;
 
-public class MoreSettingsActivity extends AppCompatActivity {
+public class MoreSettingsActivity extends BaseActivity {
+
+    @Override
+    protected int getTitleContainerId() {
+        return R.id.title_container;
+    }
+    
+    @Override
+    protected int getScrollContentId() {
+        return R.id.scroll_content;
+    }
     
     private com.google.android.material.materialswitch.MaterialSwitch autoUpdateSwitch;
     private Spinner frequencySpinner;
