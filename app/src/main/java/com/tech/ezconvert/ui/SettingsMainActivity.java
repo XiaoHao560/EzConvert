@@ -1,15 +1,28 @@
 package com.tech.ezconvert.ui;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.ViewCompat;
 import com.tech.ezconvert.R;
 
-public class SettingsMainActivity extends AppCompatActivity {
+public class SettingsMainActivity extends BaseActivity {
+
+    @Override
+    protected int getTitleContainerId() {
+        return R.id.title_container;
+    }
+    
+    @Override
+    protected int getScrollContentId() {
+        return R.id.scroll_content;
+    }
     
     private LinearLayout transcodeSettingsItem;
     private LinearLayout generalSettingsItem;

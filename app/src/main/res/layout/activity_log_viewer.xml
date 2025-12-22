@@ -1,48 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<FrameLayout
      xmlns:android="http://schemas.android.com/apk/res/android"
      xmlns:app="http://schemas.android.com/apk/res-auto"
      android:layout_height="match_parent"
      android:layout_width="match_parent"
-     android:background="#F5F5F5"
-     android:padding="16dp">
+     android:background="@color/bg_light">
 
-    <androidx.recyclerview.widget.RecyclerView
+    <RelativeLayout
          android:layout_height="match_parent"
          android:layout_width="match_parent"
-         android:layout_above="@+id/bottom_buttons"
-         android:id="@+id/log_recycler_view" />
+         android:padding="16dp"
+         android:id="@+id/scroll_content">
 
-    <LinearLayout
-         android:layout_height="wrap_content"
-         android:layout_width="match_parent"
-         android:gravity="end"
-         android:orientation="horizontal"
-         android:layout_alignParentBottom="true"
-         android:id="@+id/bottom_buttons"
-         android:paddingTop="8dp">
+        <LinearLayout
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:orientation="vertical"
+             android:id="@+id/title_container">
 
-        <ImageButton
-             android:layout_height="48dp"
-             android:layout_width="48dp"
-             android:contentDescription="清空日志"
-             android:src="@drawable/ic_clear"
-             android:scaleType="centerInside"
-             android:background="@drawable/blue_rounded_bg"
-             android:padding="12dp"
-             android:id="@+id/btn_clear_log" />
+        </LinearLayout>
 
-        <ImageButton
-             android:layout_height="48dp"
-             android:layout_width="48dp"
-             android:contentDescription="复制日志"
-             android:src="@drawable/ic_copy"
-             android:scaleType="centerInside"
-             android:background="@drawable/blue_rounded_bg"
-             android:padding="12dp"
-             android:layout_marginStart="8dp"
-             android:id="@+id/btn_copy_log" />
+        <androidx.recyclerview.widget.RecyclerView
+             android:layout_height="match_parent"
+             android:layout_width="match_parent"
+             android:layout_above="@+id/bottom_buttons"
+             android:id="@+id/log_recycler_view" />
 
-    </LinearLayout>
+        <LinearLayout
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:gravity="end"
+             android:orientation="horizontal"
+             android:layout_alignParentBottom="true"
+             android:id="@+id/bottom_buttons"
+             android:paddingTop="8dp">
 
-</RelativeLayout>
+            <ImageButton
+                 android:layout_height="48dp"
+                 android:layout_width="48dp"
+                 android:contentDescription="清空日志"
+                 android:src="@drawable/ic_clear"
+                 android:scaleType="centerInside"
+                 android:background="@drawable/blue_rounded_bg"
+                 android:padding="12dp"
+                 android:id="@+id/btn_clear_log" />
+
+            <ImageButton
+                 android:layout_height="48dp"
+                 android:layout_width="48dp"
+                 android:contentDescription="复制日志"
+                 android:src="@drawable/ic_copy"
+                 android:scaleType="centerInside"
+                 android:background="@drawable/blue_rounded_bg"
+                 android:padding="12dp"
+                 android:layout_marginStart="8dp"
+                 android:id="@+id/btn_copy_log" />
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</FrameLayout>

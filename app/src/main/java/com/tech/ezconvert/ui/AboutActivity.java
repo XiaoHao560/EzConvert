@@ -24,7 +24,17 @@ import io.noties.markwon.ext.tables.TablePlugin;
 import io.noties.markwon.html.HtmlPlugin;
 import io.noties.markwon.linkify.LinkifyPlugin;
 
-public class AboutActivity extends AppCompatActivity implements UpdateChecker.UpdateCheckListener {
+public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateCheckListener {
+
+    @Override
+    protected int getTitleContainerId() {
+        return R.id.title_container;
+    }
+    
+    @Override
+    protected int getScrollContentId() {
+        return R.id.scroll_content;
+    }
     
     private static final String TAG = "AboutActivity";
     private TextView versionText;

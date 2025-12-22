@@ -3,6 +3,7 @@ package com.tech.ezconvert;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+//import android.graphics.Insets;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -12,6 +13,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
+//import android.view.WindowInsets;
 import android.widget.*;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -19,9 +22,14 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import com.tech.ezconvert.processor.AudioProcessor;
 import com.tech.ezconvert.processor.VideoProcessor;
 import com.tech.ezconvert.ui.SettingsMainActivity;
+import com.tech.ezconvert.ui.BaseActivity;
 import com.tech.ezconvert.utils.AnimationUtils;
 import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.FFmpegUtil;
@@ -36,7 +44,17 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class MainActivity extends AppCompatActivity implements FFmpegUtil.FFmpegCallback {
+public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallback {
+    
+    @Override
+    protected int getTitleContainerId() {
+        return R.id.title_container;
+    }
+    
+    @Override
+    protected int getScrollContentId() {
+        return R.id.scroll_content;
+    }
     
     private static final int PERMISSION_REQUEST_CODE = 100;
     private static final int MANAGE_STORAGE_REQUEST_CODE = 102;

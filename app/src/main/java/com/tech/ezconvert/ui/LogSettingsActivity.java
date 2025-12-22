@@ -12,7 +12,17 @@ import com.tech.ezconvert.utils.AnimationUtils;
 import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.FFmpegUtil;
 
-public class LogSettingsActivity extends AppCompatActivity {
+public class LogSettingsActivity extends BaseActivity {
+
+    @Override
+    protected int getTitleContainerId() {
+        return R.id.title_container;
+    }
+    
+    @Override
+    protected int getScrollContentId() {
+        return R.id.scroll_content;
+    }
 
     private RadioButton rbAll, rbError;
     private Button btnViewLog;

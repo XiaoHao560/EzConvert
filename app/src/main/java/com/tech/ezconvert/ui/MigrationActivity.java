@@ -16,7 +16,7 @@ import com.tech.ezconvert.utils.ConfigManager;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MigrationActivity extends AppCompatActivity {
+public class MigrationActivity extends BaseActivity {
     
     private AlertDialog progressDialog;
     private ExecutorService executorService;
