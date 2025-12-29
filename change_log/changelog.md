@@ -10,6 +10,10 @@
 - 代码相关优化: 
     1. 优化对 (colorPrimary,colorPrimaryContainer,colorOnPrimaryContainer) 的颜色引用并添加了相关颜色定义
     2. 移除了 (color/ ) 目录下的冗余代码文件
+    
+- ci 工作流相关优化: 
+    1. 添加 (refactor/ ref/) 分支触发自动 pr
+    2. 修改 changelog 解析，增加嵌套列表支持
 
 ### 修复
 - 修复在 github action 环境构建类型日志输出错误
