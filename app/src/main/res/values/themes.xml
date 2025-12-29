@@ -1,9 +1,9 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
   <!-- Base application theme. -->
   <style name="Base.AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
-    <item name="colorPrimary">@color/switch_thumb</item>
-    <item name="colorPrimaryContainer">@color/switch_track</item>
-    <item name="colorOnPrimaryContainer">@color/switch_thumb</item>
+    <item name="colorPrimary">@color/colorPrimary</item>
+    <item name="colorPrimaryContainer">@color/colorPrimaryContainer</item>
+    <item name="colorOnPrimaryContainer">@color/colorOnPrimaryContainer</item>
     <item name="colorSurface">@android:color/white</item>
     <item name="colorSurfaceVariant">#E0E0E0</item>
     <item name="colorOutline">@color/border_medium</item>

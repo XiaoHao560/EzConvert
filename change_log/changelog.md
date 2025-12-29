@@ -7,6 +7,9 @@
 - 同时在 Download/简转/config/ 目录下添加 README.md 说明
 - 新增 **应用配置文件** 迁移方法
 
+- 代码相关优化: 
+    1. 优化对 (colorPrimary,colorPrimaryContainer,colorOnPrimaryContainer) 的颜色引用并添加了相关颜色定义
+
 ### 修复
 - 修复在 github action 环境构建类型日志输出错误
 
