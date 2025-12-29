@@ -9,6 +9,7 @@
 
 - 代码相关优化: 
     1. 优化对 (colorPrimary,colorPrimaryContainer,colorOnPrimaryContainer) 的颜色引用并添加了相关颜色定义
+    2. 移除了 (color/ ) 目录下的冗余代码文件
 
 ### 修复
 - 修复在 github action 环境构建类型日志输出错误
