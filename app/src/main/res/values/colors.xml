@@ -3,6 +3,8 @@
     <color name="colorPrimary">#2196F3</color>
     <color name="colorPrimaryDark">#1976D2</color>
     <color name="colorPrimaryLight">#64B5F6</color>
+    <color name="colorPrimaryContainer">#90CAF9</color>
+    <color name="colorOnPrimaryContainer">#2196F3</color>
 
     <color name="bg_light">#F8F9FA</color>
     <color name="bg_card">#FFFFFF</color>
@@ -13,9 +15,6 @@
     
     <color name="border_light">#E0E0E0</color>
     <color name="border_medium">#BDBDBD</color>
-    
-    <color name="switch_thumb">#2196F3</color>
-    <color name="switch_track">#90CAF9</color>
 
     <color name="surface">#2196F3</color>
     <color name="surface_variant">#E0E0E0</color>
