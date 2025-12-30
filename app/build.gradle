@@ -193,6 +193,8 @@ dependencies {
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso
+    testImplementation libs.mockito.core
+    testImplementation libs.robolectric
     
     implementation libs.gson
 }
