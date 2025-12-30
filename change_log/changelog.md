@@ -7,6 +7,10 @@
 - 同时在 Download/简转/config/ 目录下添加 README.md 说明
 - 新增 **应用配置文件** 迁移方法
 
+- 构建相关优化: 
+    1. 添加 test 用于测试 (尚未完善)
+    > 用于测试 java 逻辑
+
 - 代码相关优化: 
     1. 优化对 (colorPrimary,colorPrimaryContainer,colorOnPrimaryContainer) 的颜色引用并添加了相关颜色定义
     2. 移除了 (color/ ) 目录下的冗余代码文件

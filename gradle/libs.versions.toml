@@ -20,7 +20,10 @@ markwon = "4.6.2"
 junit = "4.13.2"
 junit-android = "1.1.5"
 espresso = "3.5.1"
+mockito = "5.3.1"
+robolectric = "4.11.1"
 
+# json
 gson = "2.10.1"
 
 # Build Tools
@@ -49,7 +52,10 @@ markwon-image = { group = "io.noties.markwon", name = "image", version.ref = "ma
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junit-android" }
 androidx-espresso = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
+mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 
+# json
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 
 # Markwon bundle
