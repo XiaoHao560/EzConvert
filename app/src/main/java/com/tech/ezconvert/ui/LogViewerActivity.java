@@ -8,6 +8,7 @@ import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.*;
 import com.tech.ezconvert.R;
+import com.tech.ezconvert.utils.ToastUtils;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,14 +53,14 @@ public class LogViewerActivity extends BaseActivity {
         clearBtn.setOnClickListener(v -> {
             logBuffer.clear();
             adapter.notifyDataSetChanged();
-            Toast.makeText(this, "日志已清除", Toast.LENGTH_SHORT).show();
+            ToastUtils.show(this, "日志已清除");
         });
 
         copyBtn.setOnClickListener(v -> {
             ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
             ClipData clip = ClipData.newPlainText("FFmpegLog", String.join("\n", logBuffer));
             cm.setPrimaryClip(clip);
-            Toast.makeText(this, "日志已复制", Toast.LENGTH_SHORT).show();
+            ToastUtils.show(this, "日志已复制");
         });
     }
 

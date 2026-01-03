@@ -17,6 +17,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import com.tech.ezconvert.R;
+import com.tech.ezconvert.utils.ToastUtils;
 import com.tech.ezconvert.utils.UpdateChecker;
 import io.noties.markwon.Markwon;
 import io.noties.markwon.ext.strikethrough.StrikethroughPlugin;
@@ -96,7 +97,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                     Uri.parse("https://github.com/XiaoHao560/EzConvert"));
                 startActivity(intent);
             } catch (Exception e) {
-                Toast.makeText(this, "无法打开链接", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "无法打开链接");
             }
         });
         
@@ -108,14 +109,14 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                     Uri.parse("https://github.com/XiaoHao560/EzConvert/issues"));
                 startActivity(intent);
             } catch (Exception e) {
-                Toast.makeText(this, "无法打开链接", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "无法打开链接");
             }
         });
         
         // 检查更新
         LinearLayout checkUpdateItem = findViewById(R.id.check_update_item);
         checkUpdateItem.setOnClickListener(v -> {
-            Toast.makeText(this, "正在检查更新...", Toast.LENGTH_SHORT).show();
+            ToastUtils.show(this, "正在检查更新...");
             updateStatusText.setText("正在检查...");
             updateStatusText.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray));
             checkForUpdates();
@@ -124,7 +125,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
         // 开源许可证
         LinearLayout licenseItem = findViewById(R.id.license_item);
         licenseItem.setOnClickListener(v -> {
-            Toast.makeText(this, "EzConvert 使用 GPLv3 开源许可证", Toast.LENGTH_LONG).show();
+            ToastUtils.showLong(this, "EzConvert 使用 GPLv3 开源许可证");
         });
         
         // 测试更新
@@ -137,7 +138,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                     updateChecker.getHtmlUrlFromGitHub()
                 );
             } else {
-                Toast.makeText(this, "请先检查更新以获取版本信息", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "请先检查更新以获取版本信息");
             }
         });
     }
@@ -285,7 +286,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(htmlUrl));
                 startActivity(intent);
             } catch (Exception e) {
-                Toast.makeText(this, "无法打开链接", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "无法打开链接");
             }
         });
         
@@ -347,7 +348,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(htmlUrl));
                 startActivity(intent);
             } catch (Exception e) {
-                Toast.makeText(this, "无法打开链接", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "无法打开链接");
             }
         });
         

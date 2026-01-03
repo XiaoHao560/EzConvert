@@ -13,11 +13,7 @@
     <color name="text_secondary">#666666</color>
     <color name="text_hint">#9E9E9E</color>
     
-    <color name="border_light">#E0E0E0</color>
     <color name="border_medium">#BDBDBD</color>
-
-    <color name="surface">#2196F3</color>
-    <color name="surface_variant">#E0E0E0</color>
     
     <color name="radio_checked">#2196F3</color>
     <color name="radio_unchecked">#90CAF9</color>

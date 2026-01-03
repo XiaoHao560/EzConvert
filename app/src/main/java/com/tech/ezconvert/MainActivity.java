@@ -35,6 +35,7 @@ import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.FFmpegUtil;
 import com.tech.ezconvert.utils.FileUtils;
 import com.tech.ezconvert.utils.PermissionManager;
+import com.tech.ezconvert.utils.ToastUtils;
 import com.tech.ezconvert.utils.UpdateChecker;
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -139,10 +140,10 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                                 // 更新按键状态
                                 setFunctionButtonsEnabled(permissionsGranted);
                                 
-                                Toast.makeText(this, "已选择: " + fileName, Toast.LENGTH_SHORT).show();
+                                ToastUtils.show(this, "已选择: " + fileName);
                             } else {
                                 updateStatus("无法访问文件或文件不存在");
-                                Toast.makeText(this, "无法访问文件或文件不存在", Toast.LENGTH_SHORT).show();
+                                ToastUtils.show(this, "无法访问文件或文件不存在");
                                 currentInputPath = "";
                                 setFunctionButtonsEnabled(permissionsGranted);
                             }
@@ -321,7 +322,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             if (permissionsGranted) {
                 openFilePicker();
             } else {
-                Toast.makeText(this, "需要媒体访问权限才能选择文件", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "需要媒体访问权限才能选择文件");
                 PermissionManager.requestInitialPermissions(this, PERMISSION_REQUEST_CODE);
             }
         });
@@ -332,10 +333,10 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             if (permissionsGranted && !currentInputPath.isEmpty()) {
                 handleFunctionButtonClick(v.getId());
             } else if (!permissionsGranted) {
-                Toast.makeText(this, "请先授予权限并选择文件", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "请先授予权限并选择文件");
                 PermissionManager.requestInitialPermissions(this, PERMISSION_REQUEST_CODE);
             } else {
-                Toast.makeText(this, "请先选择文件", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "请先选择文件");
             }
         };
         
@@ -398,9 +399,8 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         selectFileBtn.setEnabled(false);
         selectFileBtn.setAlpha(0.5f);
         
-        Toast.makeText(this, 
-            "需要媒体访问权限才能选择和处理文件", 
-            Toast.LENGTH_LONG).show();
+        ToastUtils.showLong(this, 
+            "需要媒体访问权限才能选择和处理文件");
     }
     
     // 状态更新方法（PermissionManager调用）
@@ -436,7 +436,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     
     private void openFilePicker() {
         if (!permissionsGranted) {
-            Toast.makeText(this, "请先授予存储权限", Toast.LENGTH_SHORT).show();
+            ToastUtils.show(this, "请先授予存储权限");
             PermissionManager.requestInitialPermissions(this, PERMISSION_REQUEST_CODE);
             return;
         }
@@ -451,7 +451,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         try {
             filePickerLauncher.launch(Intent.createChooser(intent, "选择媒体文件"));
         } catch (Exception e) {
-            Toast.makeText(this, "无法打开文件选择器", Toast.LENGTH_SHORT).show();
+            ToastUtils.show(this, "无法打开文件选择器");
             Log.e("MainActivity", "打开文件选择器失败", e);
         }
     }
@@ -493,13 +493,13 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     
     private void startConversion() {
         if (!permissionsGranted) {
-            Toast.makeText(this, "请先授予存储权限", Toast.LENGTH_SHORT).show();
+            ToastUtils.show(this, "请先授予存储权限");
             PermissionManager.requestInitialPermissions(this, PERMISSION_REQUEST_CODE);
             return;
         }
         
         if (currentInputPath.isEmpty()) {
-            Toast.makeText(this, "请先选择文件", Toast.LENGTH_SHORT).show();
+            ToastUtils.show(this, "请先选择文件");
             return;
         }
         
@@ -512,13 +512,13 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     
     private void startCompression() {
         if (!permissionsGranted) {
-            Toast.makeText(this, "请先授予存储权限", Toast.LENGTH_SHORT).show();
+            ToastUtils.show(this, "请先授予存储权限");
             PermissionManager.requestInitialPermissions(this, PERMISSION_REQUEST_CODE);
             return;
         }
         
         if (currentInputPath.isEmpty()) {
-            Toast.makeText(this, "请先选择文件", Toast.LENGTH_SHORT).show();
+            ToastUtils.show(this, "请先选择文件");
             return;
         }
         
@@ -533,13 +533,13 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     
     private void extractAudio() {
         if (!permissionsGranted) {
-            Toast.makeText(this, "请先授予存储权限", Toast.LENGTH_SHORT).show();
+            ToastUtils.show(this, "请先授予存储权限");
             PermissionManager.requestInitialPermissions(this, PERMISSION_REQUEST_CODE);
             return;
         }
         
         if (currentInputPath.isEmpty()) {
-            Toast.makeText(this, "请先选择文件", Toast.LENGTH_SHORT).show();
+            ToastUtils.show(this, "请先选择文件");
             return;
         }
         
@@ -567,13 +567,13 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     
     private void convertAudio() {
         if (!permissionsGranted) {
-            Toast.makeText(this, "请先授予存储权限", Toast.LENGTH_SHORT).show();
+            ToastUtils.show(this, "请先授予存储权限");
             PermissionManager.requestInitialPermissions(this, PERMISSION_REQUEST_CODE);
             return;
         }
         
         if (currentInputPath.isEmpty()) {
-            Toast.makeText(this, "请先选择文件", Toast.LENGTH_SHORT).show();
+            ToastUtils.show(this, "请先选择文件");
             return;
         }
         
@@ -624,7 +624,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             String duration = durationInput.getText().toString();
             
             if (startTime.isEmpty() || duration.isEmpty()) {
-                Toast.makeText(this, "请输入开始时间和持续时间", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "请输入开始时间和持续时间");
                 return;
             }
             
@@ -670,7 +670,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             String timestamp = timestampInput.getText().toString();
             
             if (timestamp.isEmpty()) {
-                Toast.makeText(this, "请输入时间点", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "请输入时间点");
                 return;
             }
             
@@ -721,7 +721,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             String duration = durationInput.getText().toString();
             
             if (startTime.isEmpty() || duration.isEmpty()) {
-                Toast.makeText(this, "请输入开始时间和持续时间", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "请输入开始时间和持续时间");
                 return;
             }
             
@@ -776,12 +776,11 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             if (success) {
                 String outputFileName = new File(currentInputPath).getName();
                 updateStatus("处理完成: " + outputFileName);
-                Toast.makeText(MainActivity.this, 
-                    "处理完成！输出文件\n保存在: Download/简转/", 
-                    Toast.LENGTH_LONG).show();
+                ToastUtils.showLong(MainActivity.this, 
+                    "处理完成! 输出文件\n保存在: Download/简转/");
             } else {
                 updateStatus("处理失败: " + message);
-                Toast.makeText(MainActivity.this, "处理失败: " + message, Toast.LENGTH_LONG).show();
+                ToastUtils.show(MainActivity.this, "处理完成: " + message);
             }
             progressBar.setProgress(0);
             progressText.setText("进度: 0%");
@@ -792,7 +791,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     public void onError(String error) {
         runOnUiThread(() -> {
             updateStatus("错误: " + error);
-            Toast.makeText(MainActivity.this, "错误: " + error, Toast.LENGTH_LONG).show();
+            ToastUtils.showLong(MainActivity.this, "错误: " + error);
         });
     }
     
@@ -848,7 +847,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                         updateStatus("已接收分享：" + new File(path).getName());
                         setFunctionButtonsEnabled(permissionsGranted);
                     } else {
-                        Toast.makeText(this, "无法解析分享文件", Toast.LENGTH_SHORT).show();
+                        ToastUtils.show(this, "无法解析分享文件");
                     }
                 }
             }
@@ -873,7 +872,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             .setMessage("发现旧版本的设置数据，是否迁移到新的JSON配置文件？\n\n迁移后设置将保存在 downloads/简转/config/ 目录下。")
             .setPositiveButton("迁移", (dialog, which) -> {
                 ConfigManager.getInstance(this).migrateOldSettings();
-                Toast.makeText(this, "设置迁移完成", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "设置迁移完成");
             })
             .setNegativeButton("跳过", null)
             .setNeutralButton("查看配置文件", (dialog, which) -> {

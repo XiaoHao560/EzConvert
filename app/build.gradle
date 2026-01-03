@@ -9,7 +9,7 @@ apply from: '../gradle/versioning.gradle'
 def isRunningOnGithub = System.getenv('GITHUB_ACTIONS') == 'true'
 
 println "=== Build environmental information ==="
-println "运行在 GitHub Actions: $isRunningOnGithub"
+println "Running on GitHub Actions: $isRunningOnGithub"
 
 // 读取本地密钥配置
 def getLocalKeystoreConfig() {
