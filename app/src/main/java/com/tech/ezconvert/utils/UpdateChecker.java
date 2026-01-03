@@ -139,7 +139,7 @@ public class UpdateChecker {
     public void checkForManualUpdate() {
         if (!isNetworkAvailable()) {
             mainHandler.post(() -> {
-                Toast.makeText(context, "网络不可用，请检查网络连接", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(context, "网络不可用，请检查网络连接");
                 if (updateCheckListener != null) {
                     updateCheckListener.onUpdateCheckError("网络不可用");
                 }
@@ -296,7 +296,7 @@ public class UpdateChecker {
                         Log.d(TAG, "版本 " + latestVersion + " 已被用户忽略");
                         if (showToast && isManual) {
                             mainHandler.post(() -> 
-                                Toast.makeText(context, "已忽略此版本更新", Toast.LENGTH_SHORT).show());
+                                ToastUtils.show(context, "已忽略此版本更新"));
                         }
                     }
                 } else {
@@ -318,7 +318,7 @@ public class UpdateChecker {
                         }
                         final String finalToastMessage = toastMessage;
                         mainHandler.post(() -> 
-                            Toast.makeText(context, finalToastMessage, Toast.LENGTH_SHORT).show());
+                            ToastUtils.show(context, finalToastMessage));
                     }
                 }
                 
@@ -340,7 +340,7 @@ public class UpdateChecker {
         
         if (showToast) {
             mainHandler.post(() -> 
-                Toast.makeText(context, error, Toast.LENGTH_SHORT).show());
+                ToastUtils.show(context, error));
         }
         
         if (updateCheckListener != null) {
@@ -364,7 +364,7 @@ public class UpdateChecker {
             }
             final String finalMessage = message;
             mainHandler.post(() -> 
-                Toast.makeText(context, finalMessage, Toast.LENGTH_SHORT).show());
+                ToastUtils.show(context, finalMessage));
         }
     }
     
@@ -535,7 +535,7 @@ public class UpdateChecker {
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     activity.startActivity(intent);
                 } catch (Exception e) {
-                    Toast.makeText(activity, "无法打开链接", Toast.LENGTH_SHORT).show();
+                    ToastUtils.show(activity, "无法打开链接");
                 }
             });
             
@@ -548,7 +548,7 @@ public class UpdateChecker {
             
             builder.setNegativeButton("忽略此版本", (dialog, which) -> {
                 ignoreVersion(latestVersionFromGitHub);
-                Toast.makeText(activity, "已忽略此版本更新", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(activity, "已忽略此版本更新");
             });
             
             try {

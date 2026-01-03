@@ -13,6 +13,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.ConfigManager;
+import com.tech.ezconvert.utils.ToastUtils;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -98,7 +99,7 @@ public class MigrationActivity extends BaseActivity {
                 navigateToMainActivity();
             })
             .setNeutralButton("查看配置文件", (dialog, which) -> {
-                Toast.makeText(this, "配置文件位置: " + configPath, Toast.LENGTH_LONG).show();
+                ToastUtils.showLong(this, "配置文件位置: " + configPath);
                 navigateToMainActivity();
             })
             .setCancelable(false)

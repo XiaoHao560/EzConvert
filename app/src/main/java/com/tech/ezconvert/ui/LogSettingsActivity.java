@@ -11,6 +11,7 @@ import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.AnimationUtils;
 import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.FFmpegUtil;
+import com.tech.ezconvert.utils.ToastUtils;
 
 public class LogSettingsActivity extends BaseActivity {
 
@@ -53,7 +54,7 @@ public class LogSettingsActivity extends BaseActivity {
             
             // 显示设置提示
             String message = verbose ? "已启用详细日志模式" : "已启用仅错误日志模式";
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+            ToastUtils.show(this, message);
         });
 
         btnViewLog.setOnClickListener(v -> {

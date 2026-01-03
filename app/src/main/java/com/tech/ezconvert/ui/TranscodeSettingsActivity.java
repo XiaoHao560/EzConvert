@@ -9,6 +9,7 @@ import com.google.android.material.materialswitch.MaterialSwitch;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.AnimationUtils;
 import com.tech.ezconvert.utils.ConfigManager;
+import com.tech.ezconvert.utils.ToastUtils;
 
 public class TranscodeSettingsActivity extends BaseActivity {
 
@@ -62,7 +63,7 @@ public class TranscodeSettingsActivity extends BaseActivity {
         configManager.setHardwareAccelerationEnabled(hardwareAccelerationSwitch.isChecked());
         configManager.setMultithreadingEnabled(multithreadingSwitch.isChecked());
         
-        Toast.makeText(this, "设置已保存", Toast.LENGTH_SHORT).show();
+        ToastUtils.show(this, "设置已保存");
         finish();
     }
     
