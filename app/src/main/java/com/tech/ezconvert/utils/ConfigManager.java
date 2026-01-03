@@ -16,6 +16,8 @@ import com.google.gson.reflect.TypeToken;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
@@ -26,9 +28,10 @@ import java.util.Map;
 
 public class ConfigManager {
     private static final String TAG = "ConfigManager";
-    private static final String CONFIG_DIR = "简转/config";
+    private static final String CONFIG_DIR = "config";
     private static final String SETTINGS_FILE = "settings.json";
     private static final String README_FILE = "README.md";
+    private static final String OLD_CONFIG_RELATIVE_PATH = "简转/config";
     
     private static ConfigManager instance;
     private final Context context;
@@ -79,11 +82,19 @@ public class ConfigManager {
     
     private void initConfigDirectory() {
         try {
-            // 使用downloads目录
-            File downloadsDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DOWNLOADS);
-            configDir = new File(downloadsDir, CONFIG_DIR);
-            
+            // 使用应用的私有外部存储目录
+            // 路径: Android/data/com.tech.ezconvert/files/config/
+            File externalFilesDir = context.getExternalFilesDir(null);
+            if (externalFilesDir != null) {
+                configDir = new File(externalFilesDir, CONFIG_DIR);
+            } else {
+                // 如果外部存储不可用，则使用内部存储
+                configDir = new File(context.getFilesDir(), CONFIG_DIR);
+            }
+
+            // 检查并迁移旧配置
+            checkAndMigrateOldConfig();
+
             if (!configDir.exists()) {
                 boolean created = configDir.mkdirs();
                 if (created) {
@@ -100,11 +111,62 @@ public class ConfigManager {
             
         } catch (Exception e) {
             Log.e(TAG, "Failed to initialize config directory", e);
-            // 如果外部存储不可用，则使用内部存储
-            configDir = new File(context.getFilesDir(), "config");
+            // 备用方案：使用内部存储
+            configDir = new File(context.getFilesDir(), CONFIG_DIR);
             configDir.mkdirs();
             settingsFile = new File(configDir, SETTINGS_FILE);
             createDefaultConfig();
+        }
+    }
+
+    private void checkAndMigrateOldConfig() {
+        try {
+            // 检查旧配置是否存在 (Download/简转/config/settings.json)
+            File oldDownloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+            File oldConfigDir = new File(oldDownloadsDir, OLD_CONFIG_RELATIVE_PATH);
+            File oldSettingsFile = new File(oldConfigDir, SETTINGS_FILE);
+
+            if (oldSettingsFile.exists() && oldSettingsFile.canRead()) {
+                Log.i(TAG, "Found old config file, migrating to new location: " + configDir.getAbsolutePath());
+
+                // 创建新目录
+                if (!configDir.exists()) {
+                    configDir.mkdirs();
+                }
+
+                // 复制旧配置文件到新位置
+                File newSettingsFile = new File(configDir, SETTINGS_FILE);
+                if (copyFile(oldSettingsFile, newSettingsFile)) {
+                    Log.i(TAG, "Config file migrated successfully");
+
+                    // 迁移成功后，重命名旧配置文件作为备份
+                    File backupFile = new File(oldConfigDir, "settings.json.backup." + 
+                        new SimpleDateFormat("yyyyMMddHHmmss", Locale.CHINA).format(new Date()));
+                    if (oldSettingsFile.renameTo(backupFile)) {
+                        Log.i(TAG, "Old config file renamed to: " + backupFile.getName());
+                    }
+
+                    // 加载迁移后的配置
+                    loadSettings();
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to migrate old config", e);
+        }
+    }
+
+    private boolean copyFile(File src, File dest) {
+        try (FileInputStream in = new FileInputStream(src);
+             FileOutputStream out = new FileOutputStream(dest)) {
+            byte[] buffer = new byte[4096];
+            int length;
+            while ((length = in.read(buffer)) > 0) {
+                out.write(buffer, 0, length);
+            }
+            return true;
+        } catch (IOException e) {
+            Log.e(TAG, "File copy failed: " + src.getAbsolutePath() + " -> " + dest.getAbsolutePath(), e);
+            return false;
         }
     }
     
@@ -115,9 +177,12 @@ public class ConfigManager {
                     
                     "# 简转应用配置文件夹\n\n" +
                     "此文件夹用于存储简转应用的配置文件，请勿随意修改，否则可能导致应用功能异常。\n\n" +
+                    "## 存储位置\n\n" +
+                    "配置路径：`Android/data/com.tech.ezconvert/files/config/`\n\n" +
                     "## 文件说明\n\n" +
                     "1. **settings.json** - 应用的主要配置文件，包含所有用户设置\n" +
-                    "2. **README.md** - 本说明文件\n\n" +
+                    "2. **README.md** - 本说明文件\n" +
+                    "3. **settings.json.backup.*** - 自动备份的配置文件（如果有）\n\n" +
                     "## 配置项说明\n\n" +
                     "### 配置文件元数据 (app_info)\n" +
                     "- `config_version`: 配置文件结构版本\n" +
@@ -138,15 +203,16 @@ public class ConfigManager {
                     "## 注意事项\n\n" +
                     "- 请不要手动修改 `settings.json` 文件，除非你知道自己在做什么\n" +
                     "- 如需重置设置，可删除此文件，应用将重新创建默认配置\n" +
-                    "- 配置文件会在应用设置更改时自动更新\n\n" +
+                    "- 配置文件会在应用设置更改时自动更新\n" +
+                    "- 旧版本的配置文件（如果在 Download/简转/config/ 下）已自动迁移\n\n" +
                     "## 备份建议\n\n" +
-                    "如需备份设置，可复制整个config文件夹到安全位置。\n\n" +
+                    "如需备份设置，可复制整个config文件夹到安全位置，或使用手机系统备份功能。\n\n" +
                     "---\n" +
                     "简转应用 - 配置文件夹\n" +
                     "最后更新: " + new SimpleDateFormat("yyyy-MM-dd", Locale.CHINA).format(new Date());
                     
             writer.write(readmeContent);
-            Log.i(TAG, "README file created");
+            Log.i(TAG, "README file created at: " + readmeFile.getAbsolutePath());
         } catch (IOException e) {
             Log.e(TAG, "Failed to create README file", e);
         }
