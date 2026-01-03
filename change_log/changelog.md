@@ -6,6 +6,7 @@
 - 在 Download/简转/config/ 目录下添加 settings.json 用于存储应用设置
 - 同时在 Download/简转/config/ 目录下添加 README.md 说明
 - 新增 **应用配置文件** 迁移方法
+- 新增 Toast 自定义样式
 
 - 构建相关优化: 
     1. 添加 test 用于测试 (尚未完善)
@@ -23,9 +24,10 @@
 - 修复在 github action 环境构建类型日志输出错误
 
 ### 优化
-= 沉浸式 状态栏/导航条 适配
+- 沉浸式 状态栏/导航条 适配
 
 ### 变更
+- 改变配置文件 config/settings.json 存储位置为 android/data/com.tech.ezconvert/files/config/settings.json
 
 ### 移除
 - 移除了 auto-pr 中 docs/ 分支

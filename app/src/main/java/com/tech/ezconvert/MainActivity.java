@@ -869,19 +869,18 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     private void showMigrationDialog() {
         new AlertDialog.Builder(this)
             .setTitle("检测到旧版设置")
-            .setMessage("发现旧版本的设置数据，是否迁移到新的JSON配置文件？\n\n迁移后设置将保存在 downloads/简转/config/ 目录下。")
+            .setMessage("发现旧版本的设置数据，是否迁移到新的JSON配置文件？\n\n" +
+                       "新位置: Android/data/com.tech.ezconvert/files/config/\n\n" +
+                       "迁移后旧配置文件将自动备份，无需手动操作。")
             .setPositiveButton("迁移", (dialog, which) -> {
                 ConfigManager.getInstance(this).migrateOldSettings();
                 ToastUtils.show(this, "设置迁移完成");
             })
             .setNegativeButton("跳过", null)
-            .setNeutralButton("查看配置文件", (dialog, which) -> {
-                // 打开文件管理器显示配置文件
+            .setNeutralButton("查看配置文件路径", (dialog, which) -> {
                 ConfigManager config = ConfigManager.getInstance(this);
-                File configDir = config.getConfigDirectory();
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setDataAndType(Uri.fromFile(configDir), "*/*");
-                startActivity(Intent.createChooser(intent, "打开配置文件夹"));
+                String path = config.getConfigPath();
+                ToastUtils.showLong(this, "配置文件路径: " + path);
             })
             .show();
     }
