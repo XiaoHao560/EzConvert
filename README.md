@@ -117,7 +117,7 @@ EzConvert 是一款运行于安卓平台的转码与媒体内容提取工具，�
 > **提示**：每次提交 PR 前，请在 `change_log/changelog.md` 中记录你的变更，PR 描述会自动生成。
 
 ## 许可证
-Copyright (C) 2024-2025 XiaoHao560  
+Copyright (C) 2024-2026 XiaoHao560  
 本项目采用 [GNU General Public License v3.0](LICENSE) 开源许可证。
 
 > 注：因本项目使用了 FFmpegKit，任何包含本项目的二进制再分发必须遵守 GPL v3开源协议。
