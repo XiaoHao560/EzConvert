@@ -1,7 +1,6 @@
 package com.tech.ezconvert.processor;
 
 import android.content.Context;
-import android.os.Process;
 import android.util.Log;
 import com.tech.ezconvert.ui.TranscodeSettingsActivity;
 import com.tech.ezconvert.utils.FFmpegUtil;
@@ -41,7 +40,8 @@ public class VideoProcessor {
         ArrayList<String> step1Cmd = new ArrayList<>();
         step1Cmd.add("-i"); step1Cmd.add(inputPath);
         step1Cmd.add("-c:v"); step1Cmd.add("h264_mediacodec");
-        step1Cmd.add("-b:v"); step1Cmd.add("2000k");
+        int inputBitrate = getVideoBitrate(inputPath);
+        step1Cmd.add("-b:v"); step1Cmd.add(inputBitrate + "k");
         step1Cmd.add("-c:a"); step1Cmd.add("aac");
         step1Cmd.add("-b:a"); step1Cmd.add("128k");
         step1Cmd.add("-movflags"); step1Cmd.add("+faststart");
@@ -154,8 +154,9 @@ public class VideoProcessor {
                 if (hardwareAcceleration) {
                     commandList.add("-c:v");
                     commandList.add("h264_mediacodec");
+                    int inputBitrate = getVideoBitrate(inputPath);
                     commandList.add("-b:v");
-                    commandList.add("2000k");
+                    commandList.add(inputBitrate + "k");
                 } else {
                     commandList.add("-c:v");
                     commandList.add("libx264");
@@ -205,8 +206,9 @@ public class VideoProcessor {
                 if (hardwareAcceleration) {
                     commandList.add("-c:v");
                     commandList.add("h264_mediacodec");
+                    int inputBitrate = getVideoBitrate(inputPath);
                     commandList.add("-b:v");
-                    commandList.add("1500k");
+                    commandList.add(inputBitrate + "k");
                 } else {
                     commandList.add("-c:v");
                     commandList.add("mpeg4");
@@ -225,8 +227,9 @@ public class VideoProcessor {
                 if (hardwareAcceleration) {
                     commandList.add("-c:v");
                     commandList.add("h264_mediacodec");
+                    int inputBitrate = getVideoBitrate(inputPath);
                     commandList.add("-b:v");
-                    commandList.add("1500k");
+                    commandList.add(inputBitrate + "k");
                 } else {
                     commandList.add("-c:v");
                     commandList.add("libx264");
@@ -255,8 +258,9 @@ public class VideoProcessor {
                 if (hardwareAcceleration) {
                     commandList.add("-c:v");
                     commandList.add("h264_mediacodec");
+                    int inputBitrate = getVideoBitrate(inputPath);
                     commandList.add("-b:v");
-                    commandList.add("2000k");
+                    commandList.add(inputBitrate + "k");
                 } else {
                     commandList.add("-c:v");
                     commandList.add("libx264");
@@ -579,5 +583,37 @@ public class VideoProcessor {
         if (quality >= 90) return 4000; // 高质量
         if (quality >= 70) return 2000; // 中等质量
         return 1000; // 低质量
+    }
+
+    // 获取输入视频的码率 (kbps)
+    private static int getVideoBitrate(String inputPath) {
+        try {
+            // 使用 FFprobeKit 获取媒体信息
+            com.arthenica.ffmpegkit.FFprobeSession session = 
+                com.arthenica.ffmpegkit.FFprobeKit.execute("-v quiet -select_streams v:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 \"" + inputPath + "\"");
+            
+            if (session == null) {
+                Log.w("VideoProcessor", "无法创建 FFprobe 会话，使用默认码率");
+                return 2000;
+            }
+            
+            String output = session.getOutput();
+            if (output != null && !output.trim().isEmpty()) {
+                // 输出格式是纯数字
+                String bitrateStr = output.trim();
+                Log.d("VideoProcessor", "检测到输入文件码率: " + bitrateStr + " bps");
+                
+                // 转换为 kbps
+                int bitrateBps = Integer.parseInt(bitrateStr);
+                return Math.max(100, bitrateBps / 1000); // 确保至少 100k
+            } else {
+                Log.w("VideoProcessor", "FFprobe 未返回码率信息，使用默认码率");
+            }
+        } catch (Exception e) {
+            Log.e("VideoProcessor", "获取输入文件码率失败: " + e.getMessage(), e);
+        }
+        
+        // 如果获取失败，返回默认值
+        return 2000;
     }
 }
