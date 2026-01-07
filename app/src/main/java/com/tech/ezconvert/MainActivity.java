@@ -780,7 +780,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                     "处理完成! 输出文件\n保存在: Download/简转/");
             } else {
                 updateStatus("处理失败: " + message);
-                ToastUtils.show(MainActivity.this, "处理完成: " + message);
+                ToastUtils.show(MainActivity.this, "处理失败: " + message);
             }
             progressBar.setProgress(0);
             progressText.setText("进度: 0%");
