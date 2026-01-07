@@ -25,6 +25,13 @@
 
 ### 优化
 - 沉浸式 状态栏/导航条 适配
+- 优化 MKV 格式硬件加速
+> 将 "输入文件" 通过硬件加速转换为 mp4 
+> 再通过转封装的方式转换为 MKV
+> WebM 不适用此方法，WebM 需要转码
+- 优化 "转换视频" 时的码率设置
+> 通过获取 "输入文件" 码率来决定转换后 "输出文件" 的码率
+> 默认值为 2000 kbps
 
 ### 变更
 - 改变配置文件 config/settings.json 存储位置为 android/data/com.tech.ezconvert/files/config/settings.json
