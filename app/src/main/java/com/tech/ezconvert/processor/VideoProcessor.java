@@ -1,9 +1,11 @@
 package com.tech.ezconvert.processor;
 
 import android.content.Context;
+import android.os.Process;
 import android.util.Log;
 import com.tech.ezconvert.ui.TranscodeSettingsActivity;
 import com.tech.ezconvert.utils.FFmpegUtil;
+import java.io.File;
 import java.util.ArrayList;
 
 public class VideoProcessor {
@@ -11,6 +13,117 @@ public class VideoProcessor {
     // 视频转换
     public static void convertVideo(String inputPath, String outputPath, 
                                    String format, int volume, FFmpegUtil.FFmpegCallback callback, Context context) {
+        
+        boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
+        
+        /**
+         * 对 MKV 格式，启用硬件加速时采用两步转换方案
+         * 一：硬件加速生成 MP4 中间文件
+         * 二：转封装/转码为目标格式
+         */
+        if (hardwareAcceleration && (format.equalsIgnoreCase("mkv"))) {
+            convertVideoTwoStep(inputPath, outputPath, format, volume, callback, context);
+        } else {
+            convertVideoDirect(inputPath, outputPath, format, volume, callback, context);
+        }
+    }
+    
+    // 两步转换：硬件加速 MP4 -> 转封装 MKV 
+    // 用于 MKV 格式，解决 Android 平台缺少 MKV 硬件编码器的问题
+    private static void convertVideoTwoStep(String inputPath, String outputPath, 
+                                           String format, int volume, FFmpegUtil.FFmpegCallback callback, Context context) {
+        
+        // 生成临时 MP4 文件（硬件加速）
+        String tempMp4Path = context.getCacheDir() + "/temp_hw_" + System.currentTimeMillis() + ".mp4";
+        String finalOutputPath = outputPath + "." + format.toLowerCase();
+        
+        // 硬件加速转换为 h264_media/AAC 的 MP4
+        ArrayList<String> step1Cmd = new ArrayList<>();
+        step1Cmd.add("-i"); step1Cmd.add(inputPath);
+        step1Cmd.add("-c:v"); step1Cmd.add("h264_mediacodec");
+        step1Cmd.add("-b:v"); step1Cmd.add("2000k");
+        step1Cmd.add("-c:a"); step1Cmd.add("aac");
+        step1Cmd.add("-b:a"); step1Cmd.add("128k");
+        step1Cmd.add("-movflags"); step1Cmd.add("+faststart");
+        
+        if (TranscodeSettingsActivity.isMultithreadingEnabled(context)) {
+            step1Cmd.add("-threads"); step1Cmd.add("0");
+        }
+        if (volume != 100) {
+            step1Cmd.add("-af"); step1Cmd.add("volume=" + (volume / 100.0));
+        }
+        step1Cmd.add("-y"); step1Cmd.add(tempMp4Path);
+        
+        FFmpegUtil.executeCommand(step1Cmd.toArray(new String[0]), new FFmpegUtil.FFmpegCallback() {
+            @Override
+            public void onComplete(boolean success, String message) {
+                if (success) {
+                    // 从 MP4 转换到目标格式
+                    ArrayList<String> step2Cmd = new ArrayList<>();
+                    step2Cmd.add("-i"); step2Cmd.add(tempMp4Path);
+                    
+                    if (format.equalsIgnoreCase("mkv")) {
+                        step2Cmd.add("-c:v"); step2Cmd.add("copy");
+                        step2Cmd.add("-c:a"); step2Cmd.add("copy");
+                        step2Cmd.add("-f"); step2Cmd.add("matroska");
+                    }
+                    
+                    if (TranscodeSettingsActivity.isMultithreadingEnabled(context)) {
+                        step2Cmd.add("-threads"); step2Cmd.add("0");
+                    }
+                    step2Cmd.add("-y"); step2Cmd.add(finalOutputPath);
+                    
+                    FFmpegUtil.executeCommand(step2Cmd.toArray(new String[0]), new FFmpegUtil.FFmpegCallback() {
+                        @Override
+                        public void onComplete(boolean success, String message) {
+                            // 清理临时 MP4 文件
+                            new File(tempMp4Path).delete();
+                            
+                            if (success) {
+                                callback.onComplete(true, "转换成功: " + message);
+                            } else {
+                                callback.onComplete(false, "第二步封装失败: " + message);
+                            }
+                        }
+                        
+                        @Override
+                        public void onProgress(int progress, long time) {
+                            // 将第二步进度作为总进度的 50-100%
+                            callback.onProgress(50 + progress / 2, time);
+                        }
+                        
+                        @Override
+                        public void onError(String error) {
+                            new File(tempMp4Path).delete();
+                            callback.onError("第二步报错: " + error);
+                        }
+                    });
+                } else {
+                    callback.onComplete(false, "第一步硬件编码失败: " + message);
+                }
+            }
+            
+            @Override
+            public void onProgress(int progress, long time) {
+                // 将第一步进度作为总进度的 0-50%
+                callback.onProgress(progress / 2, time);
+            }
+            
+            @Override
+            public void onError(String error) {
+                new File(tempMp4Path).delete(); // 清理临时文件
+                callback.onError("第一步硬件编码报错: " + error);
+            }
+        });
+    }
+    
+    /**
+     * 直接转换方法
+     * 适用于 MP4/MOV/AVI/FLV/GIF 等格式，以及关闭硬件加速时的所有格式
+     */
+    private static void convertVideoDirect(String inputPath, String outputPath, 
+                                          String format, int volume, FFmpegUtil.FFmpegCallback callback, Context context) {
+        
         String outputFile = outputPath + "." + getFileExtension(format);
         
         boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
@@ -61,6 +174,7 @@ public class VideoProcessor {
                 
             case "mkv":
                 // mkv 目前只有软件解码方案 libx265
+                // 当硬件加速启用时，此方法不会被调用（由两步转换处理）
                 commandList.add("-c:v");
                 commandList.add("libx265");
                 commandList.add("-preset");
