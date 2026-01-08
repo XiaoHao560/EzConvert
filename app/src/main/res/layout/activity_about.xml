@@ -64,7 +64,7 @@
                              android:textColor="@color/text_hint"
                              android:layout_marginTop="4dp"
                              android:id="@+id/version_text"
-                             android:text="版本 0.8.1" />
+                             android:text="版本 0.9.0" />
 
                     </LinearLayout>
 

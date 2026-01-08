@@ -1,40 +1,11 @@
-## [changelog] 2025-0-0
+## [changelog] 2026-01-08
 
 ### 新增
-- auto-pr 在创建 PR 时读取 changelog.md 内容
-- 新增 **贡献指南** 并优化了 **README** 文档
-- 在 Download/简转/config/ 目录下添加 settings.json 用于存储应用设置
-- 同时在 Download/简转/config/ 目录下添加 README.md 说明
-- 新增 **应用配置文件** 迁移方法
-- 新增 Toast 自定义样式
-
-- 构建相关优化: 
-    1. 添加 test 用于测试 (尚未完善)
-    > 用于测试 java 逻辑
-
-- 代码相关优化: 
-    1. 优化对 (colorPrimary,colorPrimaryContainer,colorOnPrimaryContainer) 的颜色引用并添加了相关颜色定义
-    2. 移除了 (color/ ) 目录下的冗余代码文件
-    
-- ci 工作流相关优化: 
-    1. 添加 (refactor/ ref/) 分支触发自动 pr
-    2. 修改 changelog 解析，增加嵌套列表支持
 
 ### 修复
-- 修复在 github action 环境构建类型日志输出错误
 
 ### 优化
-- 沉浸式 状态栏/导航条 适配
-- 优化 MKV 格式硬件加速
-> 将 "输入文件" 通过硬件加速转换为 mp4 
-> 再通过转封装的方式转换为 MKV
-> WebM 不适用此方法，WebM 需要转码
-- 优化 "转换视频" 时的码率设置
-> 通过获取 "输入文件" 码率来决定转换后 "输出文件" 的码率
-> 默认值为 2000 kbps
 
 ### 变更
-- 改变配置文件 config/settings.json 存储位置为 android/data/com.tech.ezconvert/files/config/settings.json
 
 ### 移除
-- 移除了 auto-pr 中 docs/ 分支
