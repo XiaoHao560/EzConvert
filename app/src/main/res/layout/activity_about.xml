@@ -355,7 +355,7 @@
                              android:textSize="13sp"
                              android:textColor="@color/text_primary"
                              android:lineSpacingExtra="4dp"
-                             android:text="EzConvert 使用 GPLv3 许可证开源\n© 2025 XiaoHao. 保留所有权利。" />
+                             android:text="EzConvert 使用 GPLv3 许可证开源\n© 2026 XiaoHao. 保留所有权利。" />
 
                     </LinearLayout>
 
