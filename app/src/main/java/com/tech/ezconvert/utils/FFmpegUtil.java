@@ -16,7 +16,7 @@ public class FFmpegUtil {
     private static final String TAG = "FFmpegUtil";
     private static FFmpegSession currentSession = null;
     private static ProgressSimulator progressSimulator;
-    private static boolean verboseLogging = true; // 默认开启详细日志
+    private static LogManager logManager;
 
     public interface FFmpegCallback {
         void onProgress(int progress, long time);
@@ -26,7 +26,10 @@ public class FFmpegUtil {
 
     public static void initLogging(Context context) {
         ConfigManager configManager = ConfigManager.getInstance(context);
-        verboseLogging = configManager.isVerboseLoggingEnabled();
+        boolean verboseLogging = configManager.isVerboseLoggingEnabled();
+        
+        logManager = LogManager.getInstance(context);
+        logManager.updateLogLevel(verboseLogging);
         
         Log.d(TAG, "初始化日志设置，详细日志模式: " + verboseLogging);
         
@@ -38,10 +41,11 @@ public class FFmpegUtil {
                     Level level = log.getLevel();
                     
                     // 根据日志级别设置过滤日志
-                    if (!shouldLog(level)) {
+                    if (!shouldLog(level, verboseLogging)) {
                         return; // 不记录此日志
                     }
                     
+                    // 记录到Logcat
                     switch (level) {
                         case AV_LOG_ERROR:
                             Log.e("FFmpegLog", line);
@@ -64,25 +68,22 @@ public class FFmpegUtil {
                             break;
                     }
                     
-                    // 只在详细模式下记录所有日志到LogViewer
-                    if (verboseLogging || level == Level.AV_LOG_ERROR || level == Level.AV_LOG_WARNING) {
-                        LogViewerActivity.appendLog(line);
-                    }
+                    // 记录到日志管理器
+                    logManager.appendFfmpegLog(line, level);
                 }
         });
     }
 
     // 根据当前日志设置判断是否应该记录此日志
-    private static boolean shouldLog(Level level) {
-        if (!verboseLogging) {
-            // 不是详细模式下只记录错误和警告...等日志
-            return level == Level.AV_LOG_ERROR || 
-                   level == Level.AV_LOG_WARNING ||
-                   level == Level.AV_LOG_FATAL ||
-                   level == Level.AV_LOG_PANIC;
+    private static boolean shouldLog(Level level, boolean verboseLogging) {
+        if (verboseLogging) {
+            return true;
         }
-        // 详细模式下记录所有日志
-        return true;
+        // 不是详细模式下只记录错误和警告等
+        return level == Level.AV_LOG_ERROR || 
+               level == Level.AV_LOG_WARNING ||
+               level == Level.AV_LOG_FATAL ||
+               level == Level.AV_LOG_PANIC;
     }
 
     public static void executeCommand(String[] command, FFmpegCallback callback) {
@@ -107,6 +108,11 @@ public class FFmpegUtil {
         String commandString = commandBuilder.toString();
         Log.d(TAG, "转义后的命令: " + commandString);
         
+        // 记录开始执行日志
+        if (logManager != null) {
+            logManager.appendFfmpegLog("执行FFmpeg命令: " + commandString, Level.AV_LOG_INFO);
+        }
+        
         currentSession = FFmpegKit.executeAsync(commandString, new FFmpegSessionCompleteCallback() {
             @Override
             public void apply(FFmpegSession session) {
@@ -117,6 +123,9 @@ public class FFmpegUtil {
                 if (callback != null) {
                     if (ReturnCode.isSuccess(returnCode)) {
                         callback.onComplete(true, "处理完成");
+                        if (logManager != null) {
+                            logManager.appendFfmpegLog("FFmpeg命令执行成功", Level.AV_LOG_INFO);
+                        }
                     } else {
                         String errorMessage = "处理失败";
                         if (session.getFailStackTrace() != null) {
@@ -125,6 +134,9 @@ public class FFmpegUtil {
                             errorMessage += "，返回码: " + returnCode.getValue();
                         }
                         callback.onComplete(false, errorMessage);
+                        if (logManager != null) {
+                            logManager.appendFfmpegLog("FFmpeg命令执行失败: " + errorMessage, Level.AV_LOG_ERROR);
+                        }
                     }
                 }
                 currentSession = null;
@@ -134,6 +146,9 @@ public class FFmpegUtil {
         startProgressSimulation(callback);
         if (currentSession == null && callback != null) {
             callback.onError("命令执行失败，无法启动FFmpeg进程");
+            if (logManager != null) {
+                logManager.appendFfmpegLog("无法启动FFmpeg进程", Level.AV_LOG_FATAL);
+            }
         }
     }
 
@@ -173,6 +188,9 @@ public class FFmpegUtil {
     public static void cancelCurrentTask() {
         stopProgressSimulation();
         if (currentSession != null) {
+            if (logManager != null) {
+                logManager.appendFfmpegLog("取消当前FFmpeg任务", Level.AV_LOG_WARNING);
+            }
             FFmpegKit.cancel(currentSession.getSessionId());
             currentSession = null;
         }
@@ -202,7 +220,11 @@ public class FFmpegUtil {
     private static class ProgressSimulator implements Runnable {
         private volatile boolean running = true;
         private final FFmpegCallback callback;
-        ProgressSimulator(FFmpegCallback callback) { this.callback = callback; }
+        
+        ProgressSimulator(FFmpegCallback callback) { 
+            this.callback = callback; 
+        }
+        
         @Override public void run() {
             int progress = 0;
             long start = System.currentTimeMillis();
@@ -216,8 +238,13 @@ public class FFmpegUtil {
                     progress += (progress < 70 ? 5 : 2);
                     callback.onProgress(Math.min(progress, 95), System.currentTimeMillis() - start);
                 }
-            } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            } catch (InterruptedException e) { 
+                Thread.currentThread().interrupt(); 
+            }
         }
-        void stop() { running = false; }
+        
+        void stop() { 
+            running = false; 
+        }
     }
 }
