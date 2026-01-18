@@ -22,11 +22,11 @@
             <androidx.cardview.widget.CardView
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
-                 android:layout_marginBottom="24dp"
-                 app:cardElevation="8dp"
+                 android:layout_marginBottom="8dp"
+                 app:cardElevation="4dp"
                  app:cardUseCompatPadding="true"
                  app:cardBackgroundColor="@android:color/white"
-                 app:cardCornerRadius="16dp"
+                 app:cardCornerRadius="12dp"
                  android:id="@+id/settings_card">
 
                 <LinearLayout
