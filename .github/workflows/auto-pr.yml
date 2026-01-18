@@ -8,6 +8,7 @@ on:
       - 'release/**'
       - 'refactor/**'
       - 'ref/**'
+      - 'ui/**'
 
 jobs:
   create-pull-request:
