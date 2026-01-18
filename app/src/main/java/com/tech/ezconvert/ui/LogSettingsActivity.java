@@ -11,6 +11,7 @@ import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.AnimationUtils;
 import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.FFmpegUtil;
+import com.tech.ezconvert.utils.LogManager;
 import com.tech.ezconvert.utils.ToastUtils;
 
 public class LogSettingsActivity extends BaseActivity {
@@ -49,10 +50,13 @@ public class LogSettingsActivity extends BaseActivity {
             boolean verbose = checkedId == R.id.rb_log_all;
             configManager.setVerboseLoggingEnabled(verbose);
             
+            // 更新日志管理器的日志等级
+            LogManager.getInstance(this).updateLogLevel(verbose);
+            
             // 重新初始化FFmpeg日志
             FFmpegUtil.initLogging(this);
             
-            // 显示设置提示
+            // Toast
             String message = verbose ? "已启用详细日志模式" : "已启用仅错误日志模式";
             ToastUtils.show(this, message);
         });

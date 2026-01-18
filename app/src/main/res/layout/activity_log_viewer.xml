@@ -1,63 +1,214 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<LinearLayout
      xmlns:android="http://schemas.android.com/apk/res/android"
      xmlns:app="http://schemas.android.com/apk/res-auto"
      android:layout_height="match_parent"
      android:layout_width="match_parent"
-     android:background="@color/bg_light">
+     android:background="@color/bg_light"
+     android:orientation="vertical">
 
-    <RelativeLayout
-         android:layout_height="match_parent"
+    <LinearLayout
+         android:layout_height="wrap_content"
          android:layout_width="match_parent"
-         android:padding="16dp"
+         android:orientation="vertical"
+         android:id="@+id/title_container">
+
+    </LinearLayout>
+
+    <androidx.core.widget.NestedScrollView
+         android:layout_height="0dp"
+         android:layout_width="match_parent"
+         android:fillViewport="true"
+         android:paddingVertical="8dp"
+         android:clipChildren="false"
+         android:clipToPadding="false"
+         android:paddingHorizontal="16dp"
+         android:layout_weight="1"
          android:id="@+id/scroll_content">
 
         <LinearLayout
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:orientation="vertical"
-             android:id="@+id/title_container">
+             android:orientation="vertical">
+
+            <com.google.android.material.card.MaterialCardView
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="8dp"
+                 app:cardElevation="2dp"
+                 app:strokeWidth="0dp"
+                 app:cardCornerRadius="12dp"
+                 android:id="@+id/app_log_card">
+
+                <LinearLayout
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:orientation="vertical">
+
+                    <LinearLayout
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:gravity="center_vertical"
+                         android:background="?attr/selectableItemBackground"
+                         android:clickable="true"
+                         android:padding="12dp"
+                         android:orientation="horizontal"
+                         android:focusable="true"
+                         android:id="@+id/app_log_header">
+
+                        <LinearLayout
+                             android:layout_height="wrap_content"
+                             android:layout_width="0dp"
+                             android:orientation="vertical"
+                             android:layout_weight="1">
+
+                            <TextView
+                                 android:layout_height="wrap_content"
+                                 android:layout_width="wrap_content"
+                                 android:textSize="15sp"
+                                 android:textColor="@color/text_primary"
+                                 android:text="应用日志"
+                                 android:textStyle="bold" />
+
+                            <TextView
+                                 android:layout_height="wrap_content"
+                                 android:layout_width="wrap_content"
+                                 android:textSize="11sp"
+                                 android:textColor="@color/text_secondary"
+                                 android:layout_marginTop="2dp"
+                                 android:id="@+id/app_log_count_text"
+                                 android:text="共 0 条" />
+
+                        </LinearLayout>
+
+                        <ImageView
+                             android:layout_height="20dp"
+                             android:layout_width="20dp"
+                             android:src="@drawable/ic_arrow_down"
+                             android:rotation="0"
+                             android:id="@+id/app_log_expand_icon" />
+
+                    </LinearLayout>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:visibility="visible"
+                         android:maxHeight="350dp"
+                         android:minHeight="120dp"
+                         android:padding="6dp"
+                         android:id="@+id/app_log_recycler_view" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 app:cardElevation="2dp"
+                 app:strokeWidth="0dp"
+                 app:cardCornerRadius="12dp"
+                 android:id="@+id/ffmpeg_log_card">
+
+                <LinearLayout
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:orientation="vertical">
+
+                    <LinearLayout
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:gravity="center_vertical"
+                         android:background="?attr/selectableItemBackground"
+                         android:clickable="true"
+                         android:padding="12dp"
+                         android:orientation="horizontal"
+                         android:focusable="true"
+                         android:id="@+id/ffmpeg_log_header">
+
+                        <LinearLayout
+                             android:layout_height="wrap_content"
+                             android:layout_width="0dp"
+                             android:orientation="vertical"
+                             android:layout_weight="1">
+
+                            <TextView
+                                 android:layout_height="wrap_content"
+                                 android:layout_width="wrap_content"
+                                 android:textSize="15sp"
+                                 android:textColor="@color/text_primary"
+                                 android:text="FFmpeg日志"
+                                 android:textStyle="bold" />
+
+                            <TextView
+                                 android:layout_height="wrap_content"
+                                 android:layout_width="wrap_content"
+                                 android:textSize="11sp"
+                                 android:textColor="@color/text_secondary"
+                                 android:layout_marginTop="2dp"
+                                 android:id="@+id/ffmpeg_log_count_text"
+                                 android:text="共 0 条" />
+
+                        </LinearLayout>
+
+                        <ImageView
+                             android:layout_height="20dp"
+                             android:layout_width="20dp"
+                             android:src="@drawable/ic_arrow_down"
+                             android:rotation="0"
+                             android:id="@+id/ffmpeg_log_expand_icon" />
+
+                    </LinearLayout>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:visibility="visible"
+                         android:maxHeight="350dp"
+                         android:minHeight="120dp"
+                         android:padding="6dp"
+                         android:id="@+id/ffmpeg_log_recycler_view" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
 
-        <androidx.recyclerview.widget.RecyclerView
-             android:layout_height="match_parent"
-             android:layout_width="match_parent"
-             android:layout_above="@+id/bottom_buttons"
-             android:id="@+id/log_recycler_view" />
+    </androidx.core.widget.NestedScrollView>
 
-        <LinearLayout
-             android:layout_height="wrap_content"
-             android:layout_width="match_parent"
-             android:gravity="end"
-             android:orientation="horizontal"
-             android:layout_alignParentBottom="true"
-             android:id="@+id/bottom_buttons"
-             android:paddingTop="8dp">
+    <LinearLayout
+         android:layout_height="wrap_content"
+         android:layout_width="match_parent"
+         android:gravity="end"
+         android:background="@color/bg_light"
+         android:elevation="8dp"
+         android:padding="16dp"
+         android:orientation="horizontal"
+         android:id="@+id/bottom_buttons">
 
-            <ImageButton
-                 android:layout_height="48dp"
-                 android:layout_width="48dp"
-                 android:contentDescription="清空日志"
-                 android:src="@drawable/ic_clear"
-                 android:scaleType="centerInside"
-                 android:background="@drawable/blue_rounded_bg"
-                 android:padding="12dp"
-                 android:id="@+id/btn_clear_log" />
+        <ImageButton
+             android:layout_height="48dp"
+             android:layout_width="48dp"
+             android:contentDescription="清空日志"
+             android:src="@drawable/ic_clear"
+             android:scaleType="centerInside"
+             android:background="@drawable/blue_rounded_bg"
+             android:padding="12dp"
+             android:id="@+id/btn_clear_log" />
 
-            <ImageButton
-                 android:layout_height="48dp"
-                 android:layout_width="48dp"
-                 android:contentDescription="复制日志"
-                 android:src="@drawable/ic_copy"
-                 android:scaleType="centerInside"
-                 android:background="@drawable/blue_rounded_bg"
-                 android:padding="12dp"
-                 android:layout_marginStart="8dp"
-                 android:id="@+id/btn_copy_log" />
+        <ImageButton
+             android:layout_height="48dp"
+             android:layout_width="48dp"
+             android:contentDescription="复制日志"
+             android:src="@drawable/ic_copy"
+             android:scaleType="centerInside"
+             android:background="@drawable/blue_rounded_bg"
+             android:padding="12dp"
+             android:layout_marginStart="8dp"
+             android:id="@+id/btn_copy_log" />
 
-        </LinearLayout>
+    </LinearLayout>
 
-    </RelativeLayout>
-
-</FrameLayout>
+</LinearLayout>
