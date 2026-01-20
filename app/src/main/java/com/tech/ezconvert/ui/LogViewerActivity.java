@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
 import androidx.recyclerview.widget.*;
-import com.google.android.material.card.MaterialCardView;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.LogManager;
 import com.tech.ezconvert.utils.ToastUtils;
@@ -58,18 +57,41 @@ public class LogViewerActivity extends BaseActivity {
 
         logManager = LogManager.getInstance(this);
         
-        // 初始化视图
-        initViews();
+        initViews(); // 初始化视图
+        setupListeners(); // 设置监听器
+        refreshLogDisplay(); // 初始化加载日志 （此时RecyclerView是隐藏的）
         
-        // 设置监听器
-        setupListeners();
-        
-        // 初始加载日志（此时RecyclerView是隐藏的）
-        refreshLogDisplay();
+        logManager.addListener(new LogManager.LogListener() {
+            @Override
+            public void onLogAdded(LogManager.LogEntry entry) {
+                runOnUiThread(() -> {
+                    if ("FFmpegLog".equals(entry.tag)) {
+                        List<String> ffmpegLogs = logManager.getFfmpegLogsFromMemory();
+                        ffmpegLogAdapter.updateData(ffmpegLogs);
+                        ffmpegLogCountText.setText("共 " + ffmpegLogs.size() + " 条");
+                        if (isFfmpegLogExpanded) {
+                            ffmpegLogRecyclerView.scrollToPosition(ffmpegLogs.size() - 1);
+                        }
+                    } else {
+                        List<String> appLogs = logManager.getAppLogsFromMemory();
+                        appLogAdapter.updateData(appLogs);
+                        appLogCountText.setText("共 " + appLogs.size() + " 条");
+                        if (isAppLogExpanded) {
+                            appLogRecyclerView.scrollToPosition(appLogs.size() - 1);
+                        }
+                    }
+                });
+            }
+            
+            @Override
+            public void onLogsCleared() {
+                runOnUiThread(() -> refreshLogDisplay());
+            }
+        });
     }
 
+    // 应用日志
     private void initViews() {
-        // 应用日志
         appLogRecyclerView = findViewById(R.id.app_log_recycler_view);
         appLogExpandIcon = findViewById(R.id.app_log_expand_icon);
         appLogHeader = findViewById(R.id.app_log_header);
@@ -135,22 +157,22 @@ public class LogViewerActivity extends BaseActivity {
     }
 
     private void refreshLogDisplay() {
-        // 应用日志
-        List<String> appLogs = logManager.getAppLogs();
+        //应用日志
+        List<String> appLogs = logManager.getAppLogsFromMemory();
         appLogAdapter.updateData(appLogs);
-        appLogCountText.setText("共 " + appLogs.size() + " 条");
         
         // 只在展开状态下滚动
+        appLogCountText.setText("共 " + appLogs.size() + " 条");
         if (!appLogs.isEmpty() && isAppLogExpanded) {
             appLogRecyclerView.scrollToPosition(appLogs.size() - 1);
         }
 
         // FFmpeg日志
-        List<String> ffmpegLogs = logManager.getFfmpegLogs();
+        List<String> ffmpegLogs = logManager.getFfmpegLogsFromMemory();
         ffmpegLogAdapter.updateData(ffmpegLogs);
-        ffmpegLogCountText.setText("共 " + ffmpegLogs.size() + " 条");
         
         // 只在展开状态下滚动
+        ffmpegLogCountText.setText("共 " + ffmpegLogs.size() + " 条");
         if (!ffmpegLogs.isEmpty() && isFfmpegLogExpanded) {
             ffmpegLogRecyclerView.scrollToPosition(ffmpegLogs.size() - 1);
         }
@@ -177,11 +199,10 @@ public class LogViewerActivity extends BaseActivity {
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 
-    // 更新日志显示（供外部调用）
-    public void refreshLogs() {
-        runOnUiThread(() -> {
-            refreshLogDisplay();
-        });
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        logManager.removeListener(null);
     }
 
     private static class LogAdapter extends RecyclerView.Adapter<LogAdapter.Holder> {
