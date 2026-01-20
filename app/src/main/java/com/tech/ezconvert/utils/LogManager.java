@@ -129,6 +129,12 @@ public class LogManager {
     // 用于自定义Log类调用
     public void addAppLog(int level, String tag, String message, Throwable tr) {
         try {
+            
+            // 检查是否应该记录此日志
+            if (!shouldLog(level)) {
+                return;
+            }
+            
             LogEntry entry = new LogEntry(level, tag, message, tr);
             
             appLogMemoryCache.add(entry);
@@ -138,10 +144,7 @@ public class LogManager {
             
             Level ffmpegLevel = convertToFfmpegLevel(level);
             String formatted = entry.getFormattedMessage();
-            
-            if (shouldLog(ffmpegLevel)) {
-                writeToFile(appLogFile, formatted);
-            }
+            writeToFile(appLogFile, formatted);
             
             mainHandler.post(() -> {
                 for (LogListener listener : listeners) {
@@ -271,7 +274,16 @@ public class LogManager {
             default: return "VERBOSE";
         }
     }
+    
+    // 用于android日志级别过滤
+    private boolean shouldLog(int androidLevel) {
+        if (verboseLogging) return true;
+        
+        return androidLevel == android.util.Log.ERROR ||
+               androidLevel == android.util.Log.WARN;
+    }
 
+    // 用于FFmpeg日志级别过滤
     private boolean shouldLog(Level level) {
         if (verboseLogging) return true;
         
