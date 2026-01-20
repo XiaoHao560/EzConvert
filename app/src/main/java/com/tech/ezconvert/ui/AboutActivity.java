@@ -9,7 +9,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.method.LinkMovementMethod;
-import android.util.Log;
+import com.tech.ezconvert.utils.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;

@@ -1,7 +1,7 @@
 package com.tech.ezconvert.utils;
 
 import android.content.Context;
-import android.util.Log;
+import com.tech.ezconvert.utils.Log;
 import com.arthenica.ffmpegkit.FFmpegKit;
 import com.arthenica.ffmpegkit.FFmpegKitConfig;
 import com.arthenica.ffmpegkit.FFmpegSession;

@@ -15,7 +15,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.method.LinkMovementMethod;
-import android.util.Log;
+import com.tech.ezconvert.utils.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;

@@ -1,7 +1,7 @@
 package com.tech.ezconvert.processor;
 
 import android.content.Context;
-import android.util.Log;
+import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.ui.TranscodeSettingsActivity;
 import com.tech.ezconvert.utils.FFmpegUtil;
 import java.util.ArrayList;

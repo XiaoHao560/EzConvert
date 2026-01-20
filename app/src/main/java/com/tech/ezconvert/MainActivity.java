@@ -11,7 +11,8 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
+//import android.util.Log;
+import com.tech.ezconvert.utils.Log;
 import android.view.View;
 import android.view.Window;
 //import android.view.WindowInsets;
@@ -34,6 +35,7 @@ import com.tech.ezconvert.utils.AnimationUtils;
 import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.FFmpegUtil;
 import com.tech.ezconvert.utils.FileUtils;
+import com.tech.ezconvert.utils.LogManager;
 import com.tech.ezconvert.utils.PermissionManager;
 import com.tech.ezconvert.utils.ToastUtils;
 import com.tech.ezconvert.utils.UpdateChecker;
@@ -79,6 +81,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        LogManager.getInstance(this);
         androidx.core.splashscreen.SplashScreen.installSplashScreen(this);
         FFmpegUtil.initLogging(this);
         super.onCreate(savedInstanceState);
