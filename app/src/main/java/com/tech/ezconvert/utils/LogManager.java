@@ -128,6 +128,11 @@ public class LogManager {
 
     // 用于自定义Log类调用
     public void addAppLog(int level, String tag, String message, Throwable tr) {
+        
+        if ("FFmpegLog".equals(tag)) {
+            return;
+        }
+        
         try {
             
             // 检查是否应该记录此日志
