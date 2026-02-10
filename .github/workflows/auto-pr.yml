@@ -9,6 +9,7 @@ on:
       - 'refactor/**'
       - 'ref/**'
       - 'ui/**'
+      - 'dev'
 
 jobs:
   create-pull-request:
