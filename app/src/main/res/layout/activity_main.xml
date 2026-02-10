@@ -33,12 +33,13 @@
             <ImageButton
                  android:layout_height="48dp"
                  android:layout_width="48dp"
-                 android:contentDescription="设置"
-                 android:src="@drawable/ic_menu"
+                 android:contentDescription="菜单"
+                 android:src="@drawable/menu"
                  android:background="?attr/selectableItemBackgroundBorderless"
                  android:padding="10dp"
                  android:layout_alignParentEnd="true"
-                 android:id="@+id/settings_btn" />
+                 android:id="@+id/settings_btn"
+                 android:tint="#666" />
 
         </RelativeLayout>
 

@@ -47,7 +47,7 @@
                         <ImageView
                              android:layout_height="32dp"
                              android:layout_width="32dp"
-                             android:src="@drawable/ic_log_1"
+                             android:src="@drawable/bug_outline"
                              android:tint="#2196F3" />
 
                         <TextView
@@ -63,7 +63,7 @@
                         <ImageView
                              android:layout_height="24dp"
                              android:layout_width="24dp"
-                             android:src="@drawable/ic_arrow_right"
+                             android:src="@drawable/arrow_right"
                              android:tint="#9E9E9E" />
 
                     </LinearLayout>
