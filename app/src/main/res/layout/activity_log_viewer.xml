@@ -192,20 +192,22 @@
              android:layout_height="48dp"
              android:layout_width="48dp"
              android:contentDescription="清空日志"
-             android:src="@drawable/ic_clear"
+             android:src="@drawable/delete_outline"
              android:scaleType="centerInside"
              android:background="@drawable/blue_rounded_bg"
              android:padding="12dp"
+             android:tint="#90CAF9"
              android:id="@+id/btn_clear_log" />
 
         <ImageButton
              android:layout_height="48dp"
              android:layout_width="48dp"
              android:contentDescription="复制日志"
-             android:src="@drawable/ic_copy"
+             android:src="@drawable/vector_arrange_below"
              android:scaleType="centerInside"
              android:background="@drawable/blue_rounded_bg"
              android:padding="12dp"
+             android:tint="#90CAF9"
              android:layout_marginStart="8dp"
              android:id="@+id/btn_copy_log" />
 
