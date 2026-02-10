@@ -1,100 +1,106 @@
 name: release
 on:
-  push:
-    tags: [ 'v*' ]
+ push:
+   tags: [ 'v*' ]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: 检出代码
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+ build:
+   runs-on: ubuntu-latest
+   permissions:
+     contents: write
+   steps:
+     - name: 检出代码
+       uses: actions/checkout@v4
+       with:
+         fetch-depth: 0
 
-      - name: 配置 JDK 17
-        uses: actions/setup-java@v4
-        with: 
-          distribution: temurin
-          java-version: 17
-          
-      - name: 初始化 Gradle
-        uses: gradle/actions/setup-gradle@v4
+     - name: 配置 JDK 17
+       uses: actions/setup-java@v4
+       with: 
+         distribution: temurin
+         java-version: 17
+         
+     - name: 初始化 Gradle
+       uses: gradle/actions/setup-gradle@v4
 
-      - name: 提取标签并查找更新日志
-        id: changelog
-        run: |
-          TAG_NAME="${{ github.ref_name }}"
-          echo "Current tag: $TAG_NAME"
-          
-          CHANGELOG_FILE="change_log/${TAG_NAME}.md"
-          echo "Looking for changelog file: $CHANGELOG_FILE"
-          
-          if [ -f "$CHANGELOG_FILE" ]; then
-            echo "Changelog file found"
-            echo "changelog_exists=true" >> $GITHUB_OUTPUT
-            
-            cat "$CHANGELOG_FILE" > release_body.md
-          else
-            echo "Warning: Changelog file $CHANGELOG_FILE not found"
-            echo "changelog_exists=false" >> $GITHUB_OUTPUT
-            echo "## $TAG_NAME" > release_body.md
-            echo "" >> release_body.md
-            echo "> 自动构建版本，详情请查看项目文档。" >> release_body.md
-          fi
+     - name: 提取标签并查找更新日志
+       id: changelog
+       run: |
+         TAG_NAME="${{ github.ref_name }}"
+         echo "Current tag: $TAG_NAME"
+         
+         if [[ "$TAG_NAME" =~ ^(v[0-9]+)\. ]]; then
+           MAJOR="${BASH_REMATCH[1]}"
+           VERSION_DIR="${MAJOR}.0.0"
+         else
+           VERSION_DIR="v0.0.0"
+         fi
+         
+         CHANGELOG_FILE="change_log/${VERSION_DIR}/${TAG_NAME}.md"
+         echo "Looking for changelog file: $CHANGELOG_FILE"
+         
+         if [ -f "$CHANGELOG_FILE" ]; then
+           echo "Changelog file found"
+           echo "changelog_exists=true" >> $GITHUB_OUTPUT
+           cat "$CHANGELOG_FILE" > release_body.md
+         else
+           echo "Warning: Changelog file $CHANGELOG_FILE not found"
+           echo "changelog_exists=false" >> $GITHUB_OUTPUT
+           echo "## $TAG_NAME" > release_body.md
+           echo "" >> release_body.md
+           echo "> 自动构建版本，详情请查看项目文档。" >> release_body.md
+         fi
 
-      - name: 判断构建变体
-        id: variant
-        run: |
-          TAG_NAME="${{ github.ref_name }}"
-          echo "Checking tag: $TAG_NAME"
-          
-          if [[ "$TAG_NAME" == *"-alpha"* ]] || \
-             [[ "$TAG_NAME" == *"-beta"* ]] || \
-             [[ "$TAG_NAME" == *"-rc"* ]] || \
-             [[ "$TAG_NAME" == *"-debug"* ]] || \
-             [[ "$TAG_NAME" =~ -alpha\.[0-9]+$ ]] || \
-             [[ "$TAG_NAME" =~ -beta\.[0-9]+$ ]] || \
-             [[ "$TAG_NAME" =~ -rc\.[0-9]+$ ]]; then
-            echo "variant=release" >> $GITHUB_OUTPUT
-            echo "is_prerelease=true" >> $GITHUB_OUTPUT
-            echo "This is a pre-release version (using release build)"
-          else
-            echo "variant=release" >> $GITHUB_OUTPUT
-            echo "is_prerelease=false" >> $GITHUB_OUTPUT
-            echo "This is a release version"
-          fi
+     - name: 判断构建变体
+       id: variant
+       run: |
+         TAG_NAME="${{ github.ref_name }}"
+         echo "Checking tag: $TAG_NAME"
+         
+         if [[ "$TAG_NAME" == *"-alpha"* ]] || \
+            [[ "$TAG_NAME" == *"-beta"* ]] || \
+            [[ "$TAG_NAME" == *"-rc"* ]] || \
+            [[ "$TAG_NAME" == *"-debug"* ]] || \
+            [[ "$TAG_NAME" =~ -alpha\.[0-9]+$ ]] || \
+            [[ "$TAG_NAME" =~ -beta\.[0-9]+$ ]] || \
+            [[ "$TAG_NAME" =~ -rc\.[0-9]+$ ]]; then
+           echo "variant=release" >> $GITHUB_OUTPUT
+           echo "is_prerelease=true" >> $GITHUB_OUTPUT
+           echo "This is a pre-release version (using release build)"
+         else
+           echo "variant=release" >> $GITHUB_OUTPUT
+           echo "is_prerelease=false" >> $GITHUB_OUTPUT
+           echo "This is a release version"
+         fi
 
-      - name: 解码签名密钥
-        run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > xiaohao-app-key.keystore
-        shell: bash
+     - name: 解码签名密钥
+       run: |
+         echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > xiaohao-app-key.keystore
+       shell: bash
 
-      - name: 编译 APK
-        run: ./gradlew assemble${{ steps.variant.outputs.variant }}
-        env:
-          KEYSTORE_FILE: ${{ github.workspace }}/xiaohao-app-key.keystore
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          GITHUB_REF: ${{ github.ref }}
+     - name: 编译 APK
+       run: ./gradlew assemble${{ steps.variant.outputs.variant }}
+       env:
+         KEYSTORE_FILE: ${{ github.workspace }}/xiaohao-app-key.keystore
+         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+         GITHUB_REF: ${{ github.ref }}
 
-      - name: 检查 APK 是否生成
-        run: |
-          echo "检查APK生成路径..."
-          find app/build -name "*.apk" -type f | while read file; do
-            echo "找到APK文件: $file"
-            ls -la "$file"
-          done
+     - name: 检查 APK 是否生成
+       run: |
+         echo "检查APK生成路径..."
+         find app/build -name "*.apk" -type f | while read file; do
+           echo "找到APK文件: $file"
+           ls -la "$file"
+         done
 
-      - name: 上传至 Github Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: app/build/outputs/apk/${{ steps.variant.outputs.variant }}/*.apk
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
-          body_path: release_body.md
-          prerelease: ${{ steps.variant.outputs.is_prerelease }}
-          draft: false
+     - name: 上传至 Github Release
+       uses: softprops/action-gh-release@v2
+       with:
+         files: app/build/outputs/apk/${{ steps.variant.outputs.variant }}/*.apk
+         tag_name: ${{ github.ref_name }}
+         name: ${{ github.ref_name }}
+         body_path: release_body.md
+         prerelease: ${{ steps.variant.outputs.is_prerelease }}
+         draft: false
