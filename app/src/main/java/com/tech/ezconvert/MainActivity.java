@@ -81,6 +81,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d("TestLog", "Hello World!");
         LogManager.getInstance(this);
         androidx.core.splashscreen.SplashScreen.installSplashScreen(this);
         FFmpegUtil.initLogging(this);
