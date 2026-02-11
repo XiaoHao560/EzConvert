@@ -10,6 +10,7 @@ on:
       - 'ref/**'
       - 'ui/**'
       - 'dev'
+      - 'dev-*'
 
 jobs:
   create-pull-request:
