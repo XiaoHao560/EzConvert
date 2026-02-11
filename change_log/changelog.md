@@ -1,4 +1,4 @@
-## [changelog] 2026-02-10
+## [changelog] 2026-02-12
 
 ### 新增
 - 新增 输出日志功能
@@ -21,3 +21,6 @@
 - 修改 auto-pr 添加 dev 分支
 - 修改 change_log 分类 (按照版本号进行分类)
 - 修改 release.yml 支持新版 change_log 分类
+- 新增 构建 debug apk 时需要配置签名
+  /EzConver/key/目录下放置 keystore.properties 和 key.keystore
+  如果没有配置签名文件会默认使用 debug 签名 / release apk 则会报错

@@ -82,6 +82,26 @@ android {
     
     // 签名配置
     signingConfigs {
+    
+        debug {
+            if (isRunningOnGithub) {
+                storeFile file(System.getenv("KEYSTORE_FILE") ?: "debug.keystore")
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KEY_ALIAS")
+                keyPassword System.getenv("KEY_PASSWORD")
+            } else {
+                def localConfig = getLocalKeystoreConfig()
+                if (localConfig != null) {
+                    storeFile file(rootProject.file("key/${localConfig.fileName}"))
+                    storePassword localConfig.storePassword
+                    keyAlias localConfig.keyAlias
+                    keyPassword localConfig.keyPassword
+                } else {
+                        // 本地没有配置时默认使用 debug 签名
+                        println "Warning: No local signing config found for debug, using default debug.keystore"
+                }
+            }
+        }
         
         release {
             // GitHub Actions 环境
