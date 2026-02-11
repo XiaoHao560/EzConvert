@@ -1,6 +1,6 @@
 plugins {
-    // 不再需要指定版本，版本在 libs.versions.toml 中管理
-    alias(libs.plugins.android.application)
+   // 不再需要指定版本，版本在 libs.versions.toml 中管理
+   alias(libs.plugins.android.application)
 }
 
 // 版本号生成脚本
@@ -13,234 +13,208 @@ println "Running on GitHub Actions: $isRunningOnGithub"
 
 // 读取本地密钥配置
 def getLocalKeystoreConfig() {
-    def config = [:]
-    def keystorePropertiesFile = rootProject.file('key/keystore.properties')
-    
-    if (keystorePropertiesFile.exists()) {
-        try {
-            def properties = new Properties()
-            properties.load(new FileInputStream(keystorePropertiesFile))
-            
-            config.fileName = properties.getProperty('storeFile', '')
-            config.storePassword = properties.getProperty('storePassword', '')
-            config.keyAlias = properties.getProperty('keyAlias', '')
-            config.keyPassword = properties.getProperty('keyPassword', '')
-            
-            if (config.fileName && config.storePassword && config.keyAlias && config.keyPassword) {
-                def keystoreFile = rootProject.file("key/${config.fileName}")
-                config.fileExists = keystoreFile.exists()
-                if (config.fileExists) {
-                    println "✓ Local key configuration has been loaded"
-                    return config
-                }
-            }
-        } catch (Exception e) {
-            println "✗ Loading local key configuration failed: ${e.message}"
-        }
-    }
-    return null
+   def config = [:]
+   def keystorePropertiesFile = rootProject.file('key/keystore.properties')
+   
+   if (keystorePropertiesFile.exists()) {
+       try {
+           def properties = new Properties()
+           properties.load(new FileInputStream(keystorePropertiesFile))
+           
+           config.fileName = properties.getProperty('storeFile', '')
+           config.storePassword = properties.getProperty('storePassword', '')
+           config.keyAlias = properties.getProperty('keyAlias', '')
+           config.keyPassword = properties.getProperty('keyPassword', '')
+           
+           if (config.fileName && config.storePassword && config.keyAlias && config.keyPassword) {
+               def keystoreFile = rootProject.file("key/${config.fileName}")
+               config.fileExists = keystoreFile.exists()
+               if (config.fileExists) {
+                   println "✓ Local key configuration has been loaded"
+                   return config
+               }
+           }
+       } catch (Exception e) {
+           println "✗ Loading local key configuration failed: ${e.message}"
+       }
+   }
+   return null
 }
 
 task checkSigningConfig {
-    doLast {
-        println "=== Signature configuration check ==="
-        println "Current environment: ${isRunningOnGithub ? 'GitHub Actions' : 'local'}"
-        if (android.signingConfigs.hasProperty('release')) {
-            println "Release signature file: ${android.signingConfigs.release.storeFile}"
-            println "Release signature file exists: ${android.signingConfigs.release.storeFile.exists()}"
-        }
-    }
+   doLast {
+       println "=== Signature configuration check ==="
+       println "Current environment: ${isRunningOnGithub ? 'GitHub Actions' : 'local'}"
+       if (android.signingConfigs.hasProperty('release')) {
+           println "Release signature file: ${android.signingConfigs.release.storeFile}"
+           println "Release signature file exists: ${android.signingConfigs.release.storeFile.exists()}"
+       }
+   }
 }
 
 // 获取 Git commit hash 的方法
 ext.getGitCommit = {
-    def stdout = new ByteArrayOutputStream()
-    exec {
-        commandLine 'git', 'rev-parse', '--short', 'HEAD'
-        standardOutput = stdout
-    }
-    return stdout.toString().trim()
+   def stdout = new ByteArrayOutputStream()
+   exec {
+       commandLine 'git', 'rev-parse', '--short', 'HEAD'
+       standardOutput = stdout
+   }
+   return stdout.toString().trim()
 }
 
 android {
-    namespace 'com.tech.ezconvert'
-    // 从 libs.versions.toml 读取 SDK 版本
-    compileSdk libs.versions.compileSdk.get().toInteger()
+   namespace 'com.tech.ezconvert'
+   // 从 libs.versions.toml 读取 SDK 版本
+   compileSdk libs.versions.compileSdk.get().toInteger()
 
-    defaultConfig {
-        applicationId "com.tech.ezconvert"
-        minSdk libs.versions.minSdk.get().toInteger()
-        targetSdk libs.versions.targetSdk.get().toInteger()
-        
-        versionCode getGitVersionCode()
-        versionName getGitVersionName()
-        
-        // 获取 git commit hash 并写入 BuildConfig
-        buildConfigField "String", "GIT_COMMIT", "\"${getGitCommit()}\""
-        
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables.useSupportLibrary = true
-        
-        buildFeatures {
-            buildConfig true
-        }
-        
-        externalNativeBuild {
-            cmake {
-                cppFlags "-std=c++17"
-                arguments "-DANDROID_STL=c++_shared"
-            }
-        }
-        
-        ndk {
-            abiFilters 'arm64-v8a'
-        }
-    }
-    
-    // 签名配置
-    signingConfigs {
-    
-        debug {
-            if (isRunningOnGithub) {
-                storeFile file(System.getenv("KEYSTORE_FILE") ?: "debug.keystore")
-                storePassword System.getenv("KEYSTORE_PASSWORD")
-                keyAlias System.getenv("KEY_ALIAS")
-                keyPassword System.getenv("KEY_PASSWORD")
-            } else {
-                def localConfig = getLocalKeystoreConfig()
-                if (localConfig != null) {
-                    storeFile file(rootProject.file("key/${localConfig.fileName}"))
-                    storePassword localConfig.storePassword
-                    keyAlias localConfig.keyAlias
-                    keyPassword localConfig.keyPassword
-                } else {
-                        // 本地没有配置时默认使用 debug 签名
-                        println "Warning: No local signing config found for debug, using default debug.keystore"
-                }
-            }
-        }
-        
-        release {
-            // GitHub Actions 环境
-            if (isRunningOnGithub) {
-                println "GitHub Actions environment detected, using CI/CD signing configuration"
-                storeFile file(System.getenv("KEYSTORE_FILE") ?: "debug.keystore")
-                storePassword System.getenv("KEYSTORE_PASSWORD")
-                keyAlias System.getenv("KEY_ALIAS")
-                keyPassword System.getenv("KEY_PASSWORD")
-                
-                enableV1Signing true
-                enableV2Signing true
-                enableV3Signing true
-                enableV4Signing false
-            }
-            // 本地环境
-            else {
-                def localConfig = getLocalKeystoreConfig()
-                if (localConfig != null) {
-                    println "Release build: use local key configuration"
-                    storeFile file(rootProject.file("key/${localConfig.fileName}"))
-                    storePassword localConfig.storePassword
-                    keyAlias localConfig.keyAlias
-                    keyPassword localConfig.keyPassword
-                    
-                    enableV1Signing true
-                    enableV2Signing true
-                    enableV3Signing true
-                    enableV4Signing false
-                } else {
-                    // 如果没有配置本地密钥，就不配置release签名，构建会失败
-                    println "Error: The local build Release requires the signing configuration in the key folder"
-                    println "Please create key/keystore.properties and configure the signing information"
-                    
-                    // 这里抛出异常，让构建失败
-                    throw new GradleException("No local signing configuration found. Please create the key folder and configure keystore.properties")
-                }
-            }
-        }
-    }
-    
-    applicationVariants.all { variant ->
-        variant.outputs.all {
-            def appName = "EzConvert"
-            def buildType = variant.buildType.name
-            def versionName = variant.versionName
-            def versionCode = variant.versionCode
-            
-            def suffix = buildType == "debug" ? "-debug" : ""
-            
-            outputFileName = "${appName}${suffix}-v${versionName}(${versionCode}).apk"
-        }
-    }
-    
-    buildTypes {
-        release {
-            if (signingConfigs.hasProperty('release')) {
-                signingConfig signingConfigs.release
-            }
-            minifyEnabled true
-            shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-        debug {
-            minifyEnabled false
-        }
-    }
-    
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-    
-    externalNativeBuild {
-        cmake {
-            path file('src/main/cpp/CMakeLists.txt')
-            version "3.22.1"
-        }
-    }
-    
-    ndkVersion "24.0.8215888"
-    
-    packagingOptions {
-        pickFirst '**/libc++_shared.so'
-    }
+   defaultConfig {
+       applicationId "com.tech.ezconvert"
+       minSdk libs.versions.minSdk.get().toInteger()
+       targetSdk libs.versions.targetSdk.get().toInteger()
+       
+       versionCode getGitVersionCode()
+       versionName getGitVersionName()
+       
+       // 获取 git commit hash 并写入 BuildConfig
+       buildConfigField "String", "GIT_COMMIT", "\"${getGitCommit()}\""
+       
+       testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+       vectorDrawables.useSupportLibrary = true
+       
+       buildFeatures {
+           buildConfig true
+       }
+       
+       externalNativeBuild {
+           cmake {
+               cppFlags "-std=c++17"
+               arguments "-DANDROID_STL=c++_shared"
+           }
+       }
+       
+       ndk {
+           abiFilters 'arm64-v8a'
+       }
+   }
+   
+   // 签名配置
+   signingConfigs {
+       // CI用环境变量，本地用key目录
+       shared {
+           if (isRunningOnGithub) {
+               storeFile file(System.getenv("KEYSTORE_FILE"))
+               storePassword System.getenv("KEYSTORE_PASSWORD")
+               keyAlias System.getenv("KEY_ALIAS")
+               keyPassword System.getenv("KEY_PASSWORD")
+           } else {
+               def localConfig = getLocalKeystoreConfig()
+               if (localConfig == null) {
+                   throw new GradleException("Local signing config not found in key/keystore.properties")
+               }
+               storeFile file(rootProject.file("key/${localConfig.fileName}"))
+               storePassword localConfig.storePassword
+               keyAlias localConfig.keyAlias
+               keyPassword localConfig.keyPassword
+           }
+       }
+       
+       debug {
+           initWith signingConfigs.shared
+           enableV1Signing false
+           enableV2Signing true
+           enableV3Signing false
+           enableV4Signing false
+       }
+       
+       release {
+           initWith signingConfigs.shared
+           enableV1Signing true
+           enableV2Signing true
+           enableV3Signing true
+           enableV4Signing false
+       }
+   }
+   
+   applicationVariants.all { variant ->
+       variant.outputs.all {
+           def appName = "EzConvert"
+           def buildType = variant.buildType.name
+           def versionName = variant.versionName
+           def versionCode = variant.versionCode
+           
+           def suffix = buildType == "debug" ? "-debug" : ""
+           
+           outputFileName = "${appName}${suffix}-v${versionName}(${versionCode}).apk"
+       }
+   }
+   
+   buildTypes {
+       release {
+           signingConfig signingConfigs.release
+           minifyEnabled true
+           shrinkResources true
+           proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+       }
+       debug {
+           signingConfig signingConfigs.debug
+           minifyEnabled false
+       }
+   }
+   
+   compileOptions {
+       sourceCompatibility JavaVersion.VERSION_1_8
+       targetCompatibility JavaVersion.VERSION_1_8
+   }
+   
+   externalNativeBuild {
+       cmake {
+           path file('src/main/cpp/CMakeLists.txt')
+           version "3.22.1"
+       }
+   }
+   
+   ndkVersion "24.0.8215888"
+   
+   packagingOptions {
+       pickFirst '**/libc++_shared.so'
+   }
 }
 
 dependencies {
-    // AndroidX
-    implementation libs.androidx.appcompat
-    implementation libs.androidx.material
-    implementation libs.androidx.constraintlayout
-    implementation libs.androidx.core.splashscreen
-    
-    // FFmpeg
-    implementation libs.ffmpeg.kit.full.gpl
-    
-    // Markwon bundle
-    implementation libs.bundles.markwon.all
-    
-    // implementation libs.markwon.core
-    // implementation libs.markwon.ext.tables
-    // implementation libs.markwon.ext.strikethrough
-    // implementation libs.markwon.linkify
-    // implementation libs.markwon.html
-    // implementation libs.markwon.image
+   // AndroidX
+   implementation libs.androidx.appcompat
+   implementation libs.androidx.material
+   implementation libs.androidx.constraintlayout
+   implementation libs.androidx.core.splashscreen
+   
+   // FFmpeg
+   implementation libs.ffmpeg.kit.full.gpl
+   
+   // Markwon bundle
+   implementation libs.bundles.markwon.all
+   
+   // implementation libs.markwon.core
+   // implementation libs.markwon.ext.tables
+   // implementation libs.markwon.ext.strikethrough
+   // implementation libs.markwon.linkify
+   // implementation libs.markwon.html
+   // implementation libs.markwon.image
 
-    // Testing
-    testImplementation libs.junit
-    androidTestImplementation libs.androidx.junit
-    androidTestImplementation libs.androidx.espresso
-    testImplementation libs.mockito.core
-    testImplementation libs.robolectric
-    
-    implementation libs.gson
+   // Testing
+   testImplementation libs.junit
+   androidTestImplementation libs.androidx.junit
+   androidTestImplementation libs.androidx.espresso
+   testImplementation libs.mockito.core
+   testImplementation libs.robolectric
+   
+   implementation libs.gson
 }
 
 preBuild {
-    doFirst {
-        println "Build Info: ${getGitVersionName()} (${getGitVersionCode()})"
-        println "Git Commit: ${getGitCommit()}"
-        def hasReleaseTask = gradle.taskGraph.allTasks.any { it.name.contains('Release') }
-        println "Build type: ${hasReleaseTask ? 'Release' : 'Debug'}"
-    }
+   doFirst {
+       println "Build Info: ${getGitVersionName()} (${getGitVersionCode()})"
+       println "Git Commit: ${getGitCommit()}"
+       def hasReleaseTask = gradle.taskGraph.allTasks.any { it.name.contains('Release') }
+       println "Build type: ${hasReleaseTask ? 'Release' : 'Debug'}"
+   }
 }
