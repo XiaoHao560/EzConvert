@@ -52,6 +52,16 @@ task checkSigningConfig {
     }
 }
 
+// 获取 Git commit hash 的方法
+ext.getGitCommit = {
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'rev-parse', '--short', 'HEAD'
+        standardOutput = stdout
+    }
+    return stdout.toString().trim()
+}
+
 android {
     namespace 'com.tech.ezconvert'
     // 从 libs.versions.toml 读取 SDK 版本
@@ -65,8 +75,15 @@ android {
         versionCode getGitVersionCode()
         versionName getGitVersionName()
         
+        // 获取 git commit hash 并写入 BuildConfig
+        buildConfigField "String", "GIT_COMMIT", "\"${getGitCommit()}\""
+        
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+        
+        buildFeatures {
+            buildConfig true
+        }
         
         externalNativeBuild {
             cmake {
@@ -222,6 +239,7 @@ dependencies {
 preBuild {
     doFirst {
         println "Build Info: ${getGitVersionName()} (${getGitVersionCode()})"
+        println "Git Commit: ${getGitCommit()}"
         def hasReleaseTask = gradle.taskGraph.allTasks.any { it.name.contains('Release') }
         println "Build type: ${hasReleaseTask ? 'Release' : 'Debug'}"
     }
