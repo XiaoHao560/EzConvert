@@ -44,9 +44,17 @@ jobs:
       - name: 初始化 Gradle
         uses: gradle/actions/setup-gradle@v4
       
+      - name: 解码签名密钥
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > xiaohao-app-key.keystore
+      
       - name: 编译 Debug APK
         run: ./gradlew assembleDebug
         env:
+          KEYSTORE_FILE: ${{ github.workspace }}/xiaohao-app-key.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           GITHUB_REF: ${{ github.ref }}
       
       - name: 上传 APK
