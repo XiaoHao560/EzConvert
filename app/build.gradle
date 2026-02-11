@@ -99,64 +99,39 @@ android {
     
     // 签名配置
     signingConfigs {
-    
-        debug {
+        // CI用环境变量，本地用key目录
+        shared {
             if (isRunningOnGithub) {
-                storeFile file(System.getenv("KEYSTORE_FILE") ?: "debug.keystore")
+                storeFile file(System.getenv("KEYSTORE_FILE"))
                 storePassword System.getenv("KEYSTORE_PASSWORD")
                 keyAlias System.getenv("KEY_ALIAS")
                 keyPassword System.getenv("KEY_PASSWORD")
             } else {
                 def localConfig = getLocalKeystoreConfig()
-                if (localConfig != null) {
-                    storeFile file(rootProject.file("key/${localConfig.fileName}"))
-                    storePassword localConfig.storePassword
-                    keyAlias localConfig.keyAlias
-                    keyPassword localConfig.keyPassword
-                } else {
-                        // 本地没有配置时默认使用 debug 签名
-                        println "Warning: No local signing config found for debug, using default debug.keystore"
+                if (localConfig == null) {
+                    throw new GradleException("Local signing config not found in key/keystore.properties")
                 }
+                storeFile file(rootProject.file("key/${localConfig.fileName}"))
+                storePassword localConfig.storePassword
+                keyAlias localConfig.keyAlias
+                keyPassword localConfig.keyPassword
             }
         }
         
+        debug {
+            initWith signingConfigs.shared
+            enableV1Signing false
+            enableV2Signing true
+            enableV3Signing false
+            enableV4Signing false
+        }
+        
         release {
-            // GitHub Actions 环境
-            if (isRunningOnGithub) {
-                println "GitHub Actions environment detected, using CI/CD signing configuration"
-                storeFile file(System.getenv("KEYSTORE_FILE") ?: "debug.keystore")
-                storePassword System.getenv("KEYSTORE_PASSWORD")
-                keyAlias System.getenv("KEY_ALIAS")
-                keyPassword System.getenv("KEY_PASSWORD")
-                
-                enableV1Signing true
-                enableV2Signing true
-                enableV3Signing true
-                enableV4Signing false
-            }
-            // 本地环境
-            else {
-                def localConfig = getLocalKeystoreConfig()
-                if (localConfig != null) {
-                    println "Release build: use local key configuration"
-                    storeFile file(rootProject.file("key/${localConfig.fileName}"))
-                    storePassword localConfig.storePassword
-                    keyAlias localConfig.keyAlias
-                    keyPassword localConfig.keyPassword
-                    
-                    enableV1Signing true
-                    enableV2Signing true
-                    enableV3Signing true
-                    enableV4Signing false
-                } else {
-                    // 如果没有配置本地密钥，就不配置release签名，构建会失败
-                    println "Error: The local build Release requires the signing configuration in the key folder"
-                    println "Please create key/keystore.properties and configure the signing information"
-                    
-                    // 这里抛出异常，让构建失败
-                    throw new GradleException("No local signing configuration found. Please create the key folder and configure keystore.properties")
-                }
-            }
+            initWith signingConfigs.shared
+            enableV1Signing true
+            enableV2Signing true
+            enableV3Signing true
+            enableV4Signing false
         }
     }
     
@@ -175,14 +150,13 @@ android {
     
     buildTypes {
         release {
-            if (signingConfigs.hasProperty('release')) {
-                signingConfig signingConfigs.release
-            }
+            signingConfig signingConfigs.release
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
+            signingConfig signingConfigs.debug
             minifyEnabled false
         }
     }
