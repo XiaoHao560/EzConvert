@@ -2,7 +2,7 @@
 # Android SDK
 compileSdk = "34"
 minSdk = "24"
-targetSdk = "33"
+targetSdk = "34"
 
 # AndroidX
 appcompat = "1.6.1"
