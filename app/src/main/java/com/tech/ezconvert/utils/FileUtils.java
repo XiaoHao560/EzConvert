@@ -46,29 +46,43 @@ public class FileUtils {
                 final String id = DocumentsContract.getDocumentId(uri);
                 Log.d(TAG, "Download ID: " + id);
                 
-                // Android 10+ 处理 downloads 文档
+                // 尝试直接解析 raw: 路径
                 if (id.startsWith("raw:")) {
                     String path = id.replaceFirst("raw:", "");
                     Log.d(TAG, "Raw 路径: " + path);
                     return path;
                 }
                 
+                // 尝试 MediaStore Downloads 查询（Android 10+）
+                if (id.contains(":")) {
+                    String[] split = id.split(":");
+                    String actualId = split[1];
+                    Log.d(TAG, "尝试 MediaStore 查询, ID: " + actualId);
+                    
+                    String mediaPath = getDownloadPathFromMediaStore(context, actualId);
+                    if (mediaPath != null) {
+                        Log.d(TAG, "MediaStore 查询成功: " + mediaPath);
+                        return mediaPath;
+                    }
+                }
+                
+                // 回退到传统 content URI 查询
                 try {
                     final Uri contentUri = ContentUris.withAppendedId(
                         Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
-                    Log.d(TAG, "尝试解析 Downloads URI: " + contentUri);
+                    Log.d(TAG, "尝试传统 Downloads URI: " + contentUri);
                     String path = getDataColumn(context, contentUri, null, null);
                     if (path != null) {
-                        Log.d(TAG, "Downloads 路径解析成功: " + path);
+                        Log.d(TAG, "传统查询成功: " + path);
                         return path;
-                    } else {
-                        Log.w(TAG, "Downloads 路径解析失败，尝试复制到缓存");
                     }
                 } catch (NumberFormatException e) {
-                    Log.w(TAG, "Download ID 不是数字，尝试复制到缓存: " + id);
-                    // 某些系统返回的不是纯数字ID，尝试复制文件
-                    return copyUriToCache(context, uri);
+                    Log.w(TAG, "ID 不是数字: " + id);
                 }
+                
+                // 保底方案，将文件复制到缓存
+                Log.w(TAG, "所有查询失败，复制到缓存");
+                return copyUriToCache(context, uri);
             } else if (isMediaDocument(uri)) {
                 Log.d(TAG, "类型: MediaDocument");
                 final String docId = DocumentsContract.getDocumentId(uri);
@@ -135,6 +149,47 @@ public class FileUtils {
         }
         
         Log.e(TAG, "无法解析 URI: " + uri);
+        return null;
+    }
+    
+    // 从 MediaStore Downloads 获取路径
+    private static String getDownloadPathFromMediaStore(Context context, String downloadId) {
+        Cursor cursor = null;
+        try {
+            Uri uri = MediaStore.Downloads.EXTERNAL_CONTENT_URI;
+            String[] projection = {MediaStore.Downloads.DATA};
+            String selection = MediaStore.Downloads._ID + "=?";
+            String[] selectionArgs = {downloadId};
+            
+            Log.d(TAG, "查询 MediaStore.Downloads, URI: " + uri);
+            
+            cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int columnIndex = cursor.getColumnIndex(MediaStore.Downloads.DATA);
+                if (columnIndex >= 0) {
+                    String path = cursor.getString(columnIndex);
+                    if (path != null && !path.isEmpty()) {
+                        File file = new File(path);
+                        if (file.exists()) {
+                            Log.d(TAG, "MediaStore 路径有效: " + path);
+                            return path;
+                        } else {
+                            Log.w(TAG, "MediaStore 路径不存在: " + path);
+                        }
+                    } else {
+                        Log.w(TAG, "MediaStore 路径为空");
+                    }
+                } else {
+                    Log.w(TAG, "DATA 列不存在");
+                }
+            } else {
+                Log.w(TAG, "MediaStore 查询无结果");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "MediaStore 查询失败: " + e.getMessage());
+        } finally {
+            if (cursor != null) cursor.close();
+        }
         return null;
     }
     
