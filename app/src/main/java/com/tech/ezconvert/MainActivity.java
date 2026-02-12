@@ -818,6 +818,9 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         super.onDestroy();
         FFmpegUtil.cancelCurrentTask();
         
+        // 清理缓存文件
+        cleanupCacheFiles();
+        
         // 关闭 Executor
         if (!scheduler.isShutdown()) {
             scheduler.shutdown();
@@ -827,6 +830,46 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         if (updateChecker != null) {
             updateChecker.cleanup();
         }
+    }
+
+    private void cleanupCacheFiles() {
+        try {
+            File cacheDir = new File(getCacheDir(), "shared_files");
+            if (cacheDir.exists()) {
+                File[] files = cacheDir.listFiles();
+                if (files != null) {
+                    long now = System.currentTimeMillis();
+                    int deletedCount = 0;
+                    long freedBytes = 0;
+                    
+                    for (File file : files) {
+                        // 删除超过24小时的缓存
+                        if (now - file.lastModified() > 24 * 60 * 60 * 1000) {
+                            long fileSize = file.length();
+                            if (file.delete()) {
+                                deletedCount++;
+                                freedBytes += fileSize;
+                            }
+                        }
+                    }
+                    
+                    Log.d("MainActivity", "清理缓存成功: 删除 " + deletedCount + " 个文件，释放 " +
+                          formatFileSize(freedBytes) + " (" + freedBytes + " bytes)");
+                } else {
+                    Log.d("MainActivity", "缓存目录为空，无需清理");
+                }
+            } else {
+                Log.d("MainActivity", "缓存目录不存在，无需清理");
+            }
+        } catch (Exception e) {
+            Log.e("MainActivity", "清理缓存失败", e);
+        }
+    }
+
+    private String formatFileSize(long bytes) {
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1024 * 1024) return String.format("%.2f KB", bytes / 1024.0);
+        return String.format("%.2f MB", bytes / (1024.0 * 1024));
     }
 
     private void handleShareIntent(Intent intent) {
