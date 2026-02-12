@@ -10,6 +10,7 @@ import com.arthenica.ffmpegkit.Level;
 import com.arthenica.ffmpegkit.LogCallback;
 import com.arthenica.ffmpegkit.ReturnCode;
 import com.tech.ezconvert.ui.LogViewerActivity;
+import java.io.File;
 
 public class FFmpegUtil {
 
@@ -86,7 +87,7 @@ public class FFmpegUtil {
                level == Level.AV_LOG_PANIC;
     }
 
-    public static void executeCommand(String[] command, FFmpegCallback callback) {
+    public static void executeCommand(String[] command, FFmpegCallback callback, String tempInputPath) {
         Log.d(TAG, "执行命令: " + String.join(" ", command));
         stopProgressSimulation();
 
@@ -120,6 +121,12 @@ public class FFmpegUtil {
                 Log.d(TAG, "命令执行完成，返回码: " + (returnCode != null ? returnCode.getValue() : "null"));
                 
                 stopProgressSimulation();
+                
+                // 转换完成后删除临时文件
+                if (tempInputPath != null && tempInputPath.contains("/shared_files/")) {
+                    deleteTempFile(tempInputPath);
+                }
+                
                 if (callback != null) {
                     if (ReturnCode.isSuccess(returnCode)) {
                         callback.onComplete(true, "处理完成");
@@ -145,10 +152,25 @@ public class FFmpegUtil {
 
         startProgressSimulation(callback);
         if (currentSession == null && callback != null) {
+            // 启动失败也清理
+            if (tempInputPath != null && tempInputPath.contains("/shared_files/")) {
+                deleteTempFile(tempInputPath);
+            }
             callback.onError("命令执行失败，无法启动FFmpeg进程");
             if (logManager != null) {
                 logManager.appendFfmpegLog("无法启动FFmpeg进程", Level.AV_LOG_FATAL);
             }
+        }
+    }
+
+    private static void deleteTempFile(String path) {
+        try {
+            File file = new File(path);
+            if (file.exists() && file.delete()) {
+                Log.d(TAG, "已删除临时文件: " + path);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "删除临时文件失败: " + path, e);
         }
     }
 

@@ -93,7 +93,7 @@ public class AudioProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("AudioProcessor", "音频转换命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback);
+        FFmpegUtil.executeCommand(command, callback, inputPath);
     }
     
     // 音频提取（从视频）
@@ -176,7 +176,7 @@ public class AudioProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("AudioProcessor", "音频提取命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback);
+        FFmpegUtil.executeCommand(command, callback, inputPath);
     }
     
     // 调整音频质量
@@ -203,7 +203,7 @@ public class AudioProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("AudioProcessor", "调整音频质量命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback);
+        FFmpegUtil.executeCommand(command, callback, inputPath);
     }
     
     // 音频裁剪
@@ -240,7 +240,7 @@ public class AudioProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("AudioProcessor", "音频裁剪命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback);
+        FFmpegUtil.executeCommand(command, callback, inputPath);
     }
     
     // 音频淡入淡出
@@ -269,7 +269,7 @@ public class AudioProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("AudioProcessor", "音频淡入淡出命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback);
+        FFmpegUtil.executeCommand(command, callback, inputPath);
     }
     
     // 获取音频文件扩展名
