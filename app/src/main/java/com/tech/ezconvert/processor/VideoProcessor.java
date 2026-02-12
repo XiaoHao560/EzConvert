@@ -77,6 +77,11 @@ public class VideoProcessor {
                         @Override
                         public void onComplete(boolean success, String message) {
                             // 清理临时 MP4 文件
+                            if (new File(tempMp4Path).delete()) {
+                                Log.d("VideoProcessor", "已删除临时MP4: " + tempMp4Path);
+                            } else {
+                                Log.w("VideoProcessor", "删除临时MP4失败: " + tempMp4Path);
+                            }
                             new File(tempMp4Path).delete();
                             
                             if (success) {
@@ -97,7 +102,7 @@ public class VideoProcessor {
                             new File(tempMp4Path).delete();
                             callback.onError("第二步报错: " + error);
                         }
-                    });
+                    }, inputPath);
                 } else {
                     callback.onComplete(false, "第一步硬件编码失败: " + message);
                 }
@@ -114,7 +119,7 @@ public class VideoProcessor {
                 new File(tempMp4Path).delete(); // 清理临时文件
                 callback.onError("第一步硬件编码报错: " + error);
             }
-        });
+        }, inputPath);
     }
     
     /**
@@ -280,7 +285,7 @@ public class VideoProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("VideoProcessor", "转换命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback);
+        FFmpegUtil.executeCommand(command, callback, inputPath);
     }
     
     // 视频压缩
@@ -334,7 +339,7 @@ public class VideoProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("VideoProcessor", "压缩命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback);
+        FFmpegUtil.executeCommand(command, callback, inputPath);
     }
     
     // 视频裁剪
@@ -385,7 +390,7 @@ public class VideoProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("VideoProcessor", "裁剪命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback);
+        FFmpegUtil.executeCommand(command, callback, inputPath);
     }
     
     // 添加水印
@@ -449,7 +454,7 @@ public class VideoProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("VideoProcessor", "水印命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback);
+        FFmpegUtil.executeCommand(command, callback, inputPath);
     }
     
     // 调整视频分辨率
@@ -491,7 +496,7 @@ public class VideoProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("VideoProcessor", "调整分辨率命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback);
+        FFmpegUtil.executeCommand(command, callback, inputPath);
     }
     
     // 提取视频帧（截图）
@@ -519,7 +524,7 @@ public class VideoProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("VideoProcessor", "截图命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback);
+        FFmpegUtil.executeCommand(command, callback, inputPath);
     }
     
     // 合并视频和音频
@@ -561,7 +566,7 @@ public class VideoProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("VideoProcessor", "合并音视频命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback);
+        FFmpegUtil.executeCommand(command, callback, videoPath);
     }
     
     // 获取文件扩展名
