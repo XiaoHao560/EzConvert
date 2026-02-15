@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 //import android.graphics.Insets;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -184,11 +185,23 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         audioFormatSpinner = findViewById(R.id.audio_format_spinner);
         qualitySpinner = findViewById(R.id.quality_spinner);
         
+        // 获取版本号
+        setVersionText();
+        
         // 按钮点击
         setupButtonListeners(settingsBtn);
         
         // 卡片入场动画
         setupCardAnimations();
+    }
+
+    private void setVersionText() {
+        try {
+            String versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+            versionText.setText("EzConvert v" + versionName + " | FFmpegKit: 6.0-2");
+        } catch (PackageManager.NameNotFoundException e) {
+            versionText.setText("EzConvert v0.0.0 | FFmpegKit: 6.0-2");
+        }
     }
     
     private void setupCardAnimations() {
