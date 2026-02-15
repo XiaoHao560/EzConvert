@@ -5,7 +5,9 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import android.content.pm.PackageManager;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.core.view.WindowCompat;
@@ -24,6 +26,7 @@ public class SettingsMainActivity extends BaseActivity {
         return R.id.scroll_content;
     }
     
+    private TextView versionText;
     private LinearLayout transcodeSettingsItem;
     private LinearLayout generalSettingsItem;
     private LinearLayout aboutItem;
@@ -43,6 +46,18 @@ public class SettingsMainActivity extends BaseActivity {
         transcodeSettingsItem = findViewById(R.id.transcode_settings_item);
         generalSettingsItem = findViewById(R.id.general_settings_item);
         aboutItem = findViewById(R.id.about_item);
+        versionText = findViewById(R.id.version_text);
+        
+        setVersionText();
+    }
+    
+    private void setVersionText() {
+        try {
+            String versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+            versionText.setText("EzConvert v" + versionName);
+        } catch (PackageManager.NameNotFoundException e) {
+            versionText.setText("EzConvert v0.0.0");
+        }
     }
     
     private void setupClickListeners() {

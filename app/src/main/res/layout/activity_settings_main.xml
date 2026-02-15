@@ -218,7 +218,8 @@
                  android:gravity="center"
                  android:textSize="12sp"
                  android:textColor="@color/text_hint"
-                 android:text="EzConvert v0.9.0" />
+                 android:id="@+id/version_text"
+                 android:text="EzConvert v0.0.0" />
 
         </LinearLayout>
 
