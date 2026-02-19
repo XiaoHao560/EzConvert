@@ -244,7 +244,7 @@ public class ConfigManager {
         
         // 默认转码设置
         Map<String, Object> transcodeSettings = new HashMap<>();
-        transcodeSettings.put("hardware_acceleration", false);
+        transcodeSettings.put("hardware_acceleration", true);
         transcodeSettings.put("multithreading", true);
         settingsMap.put("transcode_settings", transcodeSettings);
         
@@ -412,7 +412,7 @@ public class ConfigManager {
     
     // 转码设置
     public boolean isHardwareAccelerationEnabled() {
-        return getSetting("transcode_settings", "hardware_acceleration", false);
+        return getSetting("transcode_settings", "hardware_acceleration", true);
     }
     
     public void setHardwareAccelerationEnabled(boolean enabled) {
