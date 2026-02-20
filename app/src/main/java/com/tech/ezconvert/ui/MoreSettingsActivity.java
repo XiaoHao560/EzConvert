@@ -2,17 +2,21 @@ package com.tech.ezconvert.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.ConfigManager;
+import com.tech.ezconvert.utils.NotificationHelper;
+import com.tech.ezconvert.utils.ToastUtils;
 
 public class MoreSettingsActivity extends BaseActivity {
 
@@ -27,9 +31,14 @@ public class MoreSettingsActivity extends BaseActivity {
     }
     
     private com.google.android.material.materialswitch.MaterialSwitch autoUpdateSwitch;
+    private com.google.android.material.materialswitch.MaterialSwitch notificationSwitch;
     private Spinner frequencySpinner;
     private LinearLayout frequencyLayout;
     private ConfigManager configManager;
+    // 标记是否正在处理开关变化，防止循环触发
+    private boolean isHandlingNotificationSwitch = false;
+    // 标记是否刚从权限设置返回，需要检查权限状态
+    private boolean needCheckPermissionOnResume = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +73,9 @@ public class MoreSettingsActivity extends BaseActivity {
         frequencySpinner = findViewById(R.id.frequency_spinner);
         frequencyLayout = findViewById(R.id.frequency_layout);
         
+        // 通知开关
+        notificationSwitch = findViewById(R.id.notification_switch);
+        
         // 设置Spinner适配器
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
             this,
@@ -81,6 +93,25 @@ public class MoreSettingsActivity extends BaseActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 configManager.setAutoCheckUpdateEnabled(isChecked);
                 updateFrequencyLayoutVisibility(isChecked);
+            }
+        });
+        
+        // 通知开关监听
+        notificationSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                // 防止循环触发
+                if (isHandlingNotificationSwitch) {
+                    return;
+                }
+                
+                if (isChecked) {
+                    // 开启通知，检查权限
+                    handleNotificationEnable();
+                } else {
+                    // 关闭通知，直接保存
+                    configManager.setNotificationEnabled(false);
+                }
             }
         });
         
@@ -103,9 +134,11 @@ public class MoreSettingsActivity extends BaseActivity {
         // 加载当前设置
         boolean autoCheckEnabled = configManager.isAutoCheckUpdateEnabled();
         int currentFrequency = configManager.getUpdateCheckFrequency();
+        boolean notificationEnabled = configManager.isNotificationEnabled();
         
         // 更新开关状态
         autoUpdateSwitch.setChecked(autoCheckEnabled);
+        notificationSwitch.setChecked(notificationEnabled);
         
         // 更新Spinner选择
         int spinnerPosition = mapFrequencyToPosition(currentFrequency);
@@ -142,6 +175,68 @@ public class MoreSettingsActivity extends BaseActivity {
                 return 1;
             default:
                 return 0;
+        }
+    }
+    
+    // 处理用户开启通知
+    private void handleNotificationEnable() {
+        // 创建通知渠道
+        NotificationHelper.createNotificationChannels(this);
+        
+        // 检查是否已有权限
+        if (NotificationHelper.areNotificationsEnabled(this)) {
+            // 已有权限，直接开启
+            configManager.setNotificationEnabled(true);
+        } else {
+            // 无权限，显示申请对话框
+            showNotificationPermissionDialog();
+        }
+    }
+    
+    // 显示通知权限申请对话框
+    private void showNotificationPermissionDialog() {
+        new AlertDialog.Builder(this)
+            .setTitle(R.string.notification_permission_title)
+            .setMessage(R.string.notification_permission_message)
+            .setPositiveButton(R.string.notification_permission_go_settings, (dialog, which) -> {
+                // 点击去开启，保存设置并标记需要检查权限
+                configManager.setNotificationEnabled(true);
+                needCheckPermissionOnResume = true;
+                Intent intent = new Intent();
+                intent.setAction(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+                intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+                startActivity(intent);
+            })
+            .setNegativeButton(R.string.notification_permission_later, (dialog, which) -> {
+                // 点击拒绝，关闭开关
+                isHandlingNotificationSwitch = true;
+                notificationSwitch.setChecked(false);
+                configManager.setNotificationEnabled(false);
+                isHandlingNotificationSwitch = false;
+                needCheckPermissionOnResume = false;
+            })
+            .setCancelable(false) // 禁止点击外部关闭对话框
+            .show();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        
+        // 如果从权限设置返回，检查权限状态
+        if (needCheckPermissionOnResume) {
+            needCheckPermissionOnResume = false;
+            
+            // 检查是否实际开启了权限
+            if (!NotificationHelper.areNotificationsEnabled(this)) {
+                // 没有开启权限，关闭开关并提示
+                isHandlingNotificationSwitch = true;
+                notificationSwitch.setChecked(false);
+                configManager.setNotificationEnabled(false);
+                isHandlingNotificationSwitch = false;
+                
+                ToastUtils.show(this, "未获得通知权限，已关闭通知功能");
+            }
         }
     }
 

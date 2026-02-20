@@ -49,6 +49,8 @@ public class ConfigManager {
     public static final String KEY_LOG_VERBOSE = "log_verbose";
     public static final String KEY_UPDATE_AUTO_CHECK = "update_auto_check_enabled";
     public static final String KEY_UPDATE_CHECK_FREQUENCY = "update_check_frequency";
+    public static final String KEY_NOTIFICATION_ENABLED = "notification_enabled";
+    public static final String KEY_NOTIFICATION_FIRST_REQUESTED = "notification_first_requested";
     
     private ConfigManager(Context context) {
         this.context = context.getApplicationContext();
@@ -199,7 +201,12 @@ public class ConfigManager {
                     "- `verbose`: 详细日志模式 (true/false)\n\n" +
                     "### 更新设置 (update_settings)\n" +
                     "- `auto_check_enabled`: 自动检查更新 (true/false)\n" +
-                    "- `check_frequency`: 检查频率 (0=关闭, 1=每24小时, 2=每次启动)\n\n" +
+                    "- `check_frequency`: 检查频率 (0=关闭, 1=每24小时, 2=每次启动)\n" +
+                    "- `notification_enabled`: 启用转换通知 (true/false)，默认false\n" +
+                    "- `notification_first_requested`: 是否首次申请过通知权限 (true/false)\n\n" +
+                    "### 通知设置说明\n" +
+                    "- `notification_enabled`: 控制是否显示转换进度和完成通知\n" +
+                    "- `notification_first_requested`: 记录是否已在\"更多设置\"页面首次提示过通知权限\n\n" +
                     "## 注意事项\n\n" +
                     "- 请不要手动修改 `settings.json` 文件，除非你知道自己在做什么\n" +
                     "- 如需重置设置，可删除此文件，应用将重新创建默认配置\n" +
@@ -257,6 +264,8 @@ public class ConfigManager {
         Map<String, Object> updateSettings = new HashMap<>();
         updateSettings.put("auto_check_enabled", true);
         updateSettings.put("check_frequency", 2); // 2 = 每次启动应用检测
+        updateSettings.put("notification_enabled", false); // 默认关闭通知
+        updateSettings.put("notification_first_requested", false); // 默认未申请过
         settingsMap.put("update_settings", updateSettings);
         
         saveSettings();
@@ -456,6 +465,23 @@ public class ConfigManager {
     
     public void setUpdateCheckFrequency(int frequency) {
         setSetting("update_settings", "check_frequency", frequency);
+    }
+    
+    // 通知设置
+    public boolean isNotificationEnabled() {
+        return getSetting("update_settings", "notification_enabled", false);
+    }
+    
+    public void setNotificationEnabled(boolean enabled) {
+        setSetting("update_settings", "notification_enabled", enabled);
+    }
+    
+    public boolean isNotificationFirstRequested() {
+        return getSetting("update_settings", "notification_first_requested", false);
+    }
+    
+    public void setNotificationFirstRequested(boolean requested) {
+        setSetting("update_settings", "notification_first_requested", requested);
     }
     
     // 迁移SharedPreferences设置

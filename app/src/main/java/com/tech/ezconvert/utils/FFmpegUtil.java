@@ -18,6 +18,8 @@ public class FFmpegUtil {
     private static FFmpegSession currentSession = null;
     private static ProgressSimulator progressSimulator;
     private static LogManager logManager;
+    private static Context appContext;
+    private static String currentFileName = "";
 
     public interface FFmpegCallback {
         void onProgress(int progress, long time);
@@ -26,6 +28,7 @@ public class FFmpegUtil {
     }
 
     public static void initLogging(Context context) {
+        appContext = context.getApplicationContext();
         ConfigManager configManager = ConfigManager.getInstance(context);
         boolean verboseLogging = configManager.isVerboseLoggingEnabled();
         
@@ -87,7 +90,14 @@ public class FFmpegUtil {
                level == Level.AV_LOG_PANIC;
     }
 
-    public static void executeCommand(String[] command, FFmpegCallback callback, String tempInputPath) {
+    public static void executeCommand(String[] command, FFmpegCallback callback, String tempInputPath, String fileName) {
+        currentFileName = fileName != null ? fileName : "未知文件";
+        
+        // 创建通知渠道（首次执行时）
+        if (appContext != null) {
+            NotificationHelper.createNotificationChannels(appContext);
+        }
+        
         Log.d(TAG, "执行命令: " + String.join(" ", command));
         stopProgressSimulation();
 
@@ -114,6 +124,11 @@ public class FFmpegUtil {
             logManager.appendFfmpegLog("执行FFmpeg命令: " + commandString, Level.AV_LOG_INFO);
         }
         
+        // 显示初始进度通知
+        if (appContext != null) {
+            NotificationHelper.showProgressNotification(appContext, currentFileName, 0);
+        }
+        
         currentSession = FFmpegKit.executeAsync(commandString, new FFmpegSessionCompleteCallback() {
             @Override
             public void apply(FFmpegSession session) {
@@ -130,6 +145,9 @@ public class FFmpegUtil {
                 if (callback != null) {
                     if (ReturnCode.isSuccess(returnCode)) {
                         callback.onComplete(true, "处理完成");
+                        if (appContext != null) {
+                            NotificationHelper.showCompleteNotification(appContext, currentFileName, true, "");
+                        }
                         if (logManager != null) {
                             logManager.appendFfmpegLog("FFmpeg命令执行成功", Level.AV_LOG_INFO);
                         }
@@ -141,12 +159,16 @@ public class FFmpegUtil {
                             errorMessage += "，返回码: " + returnCode.getValue();
                         }
                         callback.onComplete(false, errorMessage);
+                        if (appContext != null) {
+                            NotificationHelper.showCompleteNotification(appContext, currentFileName, false, errorMessage);
+                        }
                         if (logManager != null) {
                             logManager.appendFfmpegLog("FFmpeg命令执行失败: " + errorMessage, Level.AV_LOG_ERROR);
                         }
                     }
                 }
                 currentSession = null;
+                currentFileName = "";
             }
         });
 
@@ -157,6 +179,9 @@ public class FFmpegUtil {
                 deleteTempFile(tempInputPath);
             }
             callback.onError("命令执行失败，无法启动FFmpeg进程");
+            if (appContext != null) {
+                NotificationHelper.showCompleteNotification(appContext, currentFileName, false, "无法启动FFmpeg进程");
+            }
             if (logManager != null) {
                 logManager.appendFfmpegLog("无法启动FFmpeg进程", Level.AV_LOG_FATAL);
             }
@@ -216,6 +241,9 @@ public class FFmpegUtil {
             FFmpegKit.cancel(currentSession.getSessionId());
             currentSession = null;
         }
+        if (appContext != null) {
+            NotificationHelper.cancelProgressNotification(appContext);
+        }
     }
 
     private static String formatFileSize(long size) {
@@ -253,6 +281,12 @@ public class FFmpegUtil {
             try {
                 while (running && progress < 95) {
                     Thread.sleep(500);
+                    
+                    // 更新通知进度
+                    if (appContext != null && !currentFileName.isEmpty()) {
+                        NotificationHelper.showProgressNotification(appContext, currentFileName, progress);
+                    }
+                    
                     if (currentSession == null || currentSession.getState().equals(com.arthenica.ffmpegkit.SessionState.COMPLETED)) {
                         callback.onProgress(100, System.currentTimeMillis() - start);
                         break;

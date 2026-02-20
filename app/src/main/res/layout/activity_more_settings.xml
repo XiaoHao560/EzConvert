@@ -89,6 +89,88 @@
                  app:cardUseCompatPadding="true"
                  app:cardBackgroundColor="@android:color/white"
                  app:cardCornerRadius="12dp"
+                 android:id="@+id/notification_settings_card">
+
+                <LinearLayout
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:orientation="vertical">
+
+                    <LinearLayout
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:padding="16dp"
+                         android:orientation="vertical">
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:layout_marginBottom="16dp"
+                             android:textSize="16sp"
+                             android:textColor="@color/text_primary"
+                             android:text="通知设置"
+                             android:textStyle="bold" />
+
+                        <LinearLayout
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:gravity="center_vertical"
+                             android:orientation="horizontal">
+
+                            <LinearLayout
+                                 android:layout_height="wrap_content"
+                                 android:layout_width="0dp"
+                                 android:orientation="vertical"
+                                 android:layout_weight="1">
+
+                                <TextView
+                                     android:layout_height="wrap_content"
+                                     android:layout_width="match_parent"
+                                     android:textSize="14sp"
+                                     android:textColor="@color/text_primary"
+                                     android:text="启用通知"
+                                     android:textStyle="bold" />
+
+                                <TextView
+                                     android:layout_height="wrap_content"
+                                     android:layout_width="match_parent"
+                                     android:textSize="12sp"
+                                     android:textColor="@color/text_hint"
+                                     android:layout_marginTop="2dp"
+                                     android:text="显示转换进度和完成提示" />
+
+                            </LinearLayout>
+
+                            <com.google.android.material.materialswitch.MaterialSwitch
+                                 android:layout_height="wrap_content"
+                                 android:layout_width="wrap_content"
+                                 android:id="@+id/notification_switch" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <TextView
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:padding="16dp"
+                         android:textSize="12sp"
+                         android:textColor="@color/text_hint"
+                         android:lineSpacingExtra="2dp"
+                         android:text="开启后，转换过程中会显示进度通知，完成后会显示成功或失败提示。需要系统通知权限。" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="8dp"
+                 app:cardElevation="4dp"
+                 app:cardUseCompatPadding="true"
+                 app:cardBackgroundColor="@android:color/white"
+                 app:cardCornerRadius="12dp"
                  android:id="@+id/update_settings_card">
 
                 <LinearLayout
