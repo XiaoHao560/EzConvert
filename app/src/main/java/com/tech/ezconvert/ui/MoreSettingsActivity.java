@@ -9,10 +9,10 @@ import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.NotificationHelper;
@@ -195,10 +195,10 @@ public class MoreSettingsActivity extends BaseActivity {
     
     // 显示通知权限申请对话框
     private void showNotificationPermissionDialog() {
-        new AlertDialog.Builder(this)
-            .setTitle(R.string.notification_permission_title)
-            .setMessage(R.string.notification_permission_message)
-            .setPositiveButton(R.string.notification_permission_go_settings, (dialog, which) -> {
+        new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_MaterialAlertDialog)
+            .setTitle("启用通知")
+            .setMessage("允许简转发送通知，以便在转换过程中显示进度提醒和完成提示。")
+            .setPositiveButton("去开启", (dialog, which) -> {
                 // 点击去开启，保存设置并标记需要检查权限
                 configManager.setNotificationEnabled(true);
                 needCheckPermissionOnResume = true;
@@ -207,7 +207,7 @@ public class MoreSettingsActivity extends BaseActivity {
                 intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
                 startActivity(intent);
             })
-            .setNegativeButton(R.string.notification_permission_later, (dialog, which) -> {
+            .setNegativeButton("暂不", (dialog, which) -> {
                 // 点击拒绝，关闭开关
                 isHandlingNotificationSwitch = true;
                 notificationSwitch.setChecked(false);
