@@ -32,6 +32,8 @@ public class VideoProcessor {
     private static void convertVideoTwoStep(String inputPath, String outputPath, 
                                            String format, int volume, FFmpegUtil.FFmpegCallback callback, Context context) {
         
+        String fileName = new File(inputPath).getName();
+        
         // 生成临时 MP4 文件（硬件加速）
         String tempMp4Path = context.getCacheDir() + "/temp_hw_" + System.currentTimeMillis() + ".mp4";
         String finalOutputPath = outputPath + "." + format.toLowerCase();
@@ -102,7 +104,7 @@ public class VideoProcessor {
                             new File(tempMp4Path).delete();
                             callback.onError("第二步报错: " + error);
                         }
-                    }, inputPath);
+                    }, tempMp4Path, fileName);
                 } else {
                     callback.onComplete(false, "第一步硬件编码失败: " + message);
                 }
@@ -119,7 +121,7 @@ public class VideoProcessor {
                 new File(tempMp4Path).delete(); // 清理临时文件
                 callback.onError("第一步硬件编码报错: " + error);
             }
-        }, inputPath);
+        }, inputPath, fileName);
     }
     
     /**
@@ -129,6 +131,7 @@ public class VideoProcessor {
     private static void convertVideoDirect(String inputPath, String outputPath, 
                                           String format, int volume, FFmpegUtil.FFmpegCallback callback, Context context) {
         
+        String fileName = new File(inputPath).getName();
         String outputFile = outputPath + "." + getFileExtension(format);
         
         boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
@@ -285,12 +288,14 @@ public class VideoProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("VideoProcessor", "转换命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback, inputPath);
+        FFmpegUtil.executeCommand(command, callback, inputPath, fileName);
     }
     
     // 视频压缩
     public static void compressVideo(String inputPath, String outputPath, 
                                     int quality, int volume, FFmpegUtil.FFmpegCallback callback, Context context) {
+        String fileName = new File(inputPath).getName();
+        
         // quality: 0-100, 0最高质量
         int crf = 51 - (quality * 51 / 100);
         if (crf < 18) crf = 18;
@@ -339,13 +344,15 @@ public class VideoProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("VideoProcessor", "压缩命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback, inputPath);
+        FFmpegUtil.executeCommand(command, callback, inputPath, fileName);
     }
     
     // 视频裁剪
     public static void cutVideo(String inputPath, String outputPath,
                                String startTime, String duration, int volume,
                                FFmpegUtil.FFmpegCallback callback, Context context) {
+        String fileName = new File(inputPath).getName();
+        
         boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
         boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
         
@@ -390,13 +397,15 @@ public class VideoProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("VideoProcessor", "裁剪命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback, inputPath);
+        FFmpegUtil.executeCommand(command, callback, inputPath, fileName);
     }
     
     // 添加水印
     public static void addWatermark(String inputPath, String outputPath,
                                    String watermarkPath, String position,
                                    FFmpegUtil.FFmpegCallback callback, Context context) {
+        String fileName = new File(inputPath).getName();
+        
         String overlay;
         switch (position) {
             case "top-left":
@@ -454,12 +463,13 @@ public class VideoProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("VideoProcessor", "水印命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback, inputPath);
+        FFmpegUtil.executeCommand(command, callback, inputPath, fileName);
     }
     
     // 调整视频分辨率
     public static void resizeVideo(String inputPath, String outputPath,
                                   int width, int height, FFmpegUtil.FFmpegCallback callback, Context context) {
+        String fileName = new File(inputPath).getName();
         String scaleFilter = "scale=" + width + ":" + height + ":flags=lanczos";
         
         boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
@@ -496,12 +506,14 @@ public class VideoProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("VideoProcessor", "调整分辨率命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback, inputPath);
+        FFmpegUtil.executeCommand(command, callback, inputPath, fileName);
     }
     
     // 提取视频帧（截图）
     public static void extractFrame(String inputPath, String outputPath,
                                    String timestamp, FFmpegUtil.FFmpegCallback callback, Context context) {
+        String fileName = new File(inputPath).getName();
+        
         boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
         
         ArrayList<String> commandList = new ArrayList<>();
@@ -524,12 +536,14 @@ public class VideoProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("VideoProcessor", "截图命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback, inputPath);
+        FFmpegUtil.executeCommand(command, callback, inputPath, fileName);
     }
     
     // 合并视频和音频
     public static void mergeVideoAudio(String videoPath, String audioPath,
                                       String outputPath, FFmpegUtil.FFmpegCallback callback, Context context) {
+        String fileName = new File(videoPath).getName();
+        
         boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
         boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
         
@@ -566,7 +580,7 @@ public class VideoProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("VideoProcessor", "合并音视频命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback, videoPath);
+        FFmpegUtil.executeCommand(command, callback, videoPath, fileName);
     }
     
     // 获取文件扩展名
