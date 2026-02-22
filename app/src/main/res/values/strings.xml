@@ -14,8 +14,6 @@
     <string name="check_frequency">检测频率</string>
     <string name="select_frequency">选择频率</string>
 
-    <string name="notification_channel_progress">转换进度</string>
-    <string name="notification_channel_complete">转换完成</string>
     <string name="notification_permission_title">启用通知</string>
     <string name="notification_permission_message">是否允许简转发送通知？\n\n通知用于显示转换进度和完成提示。</string>
     <string name="notification_permission_go_settings">去开启</string>
