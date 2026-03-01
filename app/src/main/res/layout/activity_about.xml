@@ -316,6 +316,45 @@
 
                     </LinearLayout>
 
+                    <LinearLayout
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:visibility="gone"
+                         android:paddingEnd="16dp"
+                         android:orientation="vertical"
+                         android:paddingBottom="8dp"
+                         android:paddingStart="64dp"
+                         android:id="@+id/force_check_update_item"
+                         android:paddingTop="8dp">
+
+                        <LinearLayout
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:background="?android:attr/selectableItemBackground"
+                             android:clickable="true"
+                             android:orientation="vertical"
+                             android:focusable="true"
+                             android:id="@+id/force_check_update_click_area">
+
+                            <TextView
+                                 android:layout_height="wrap_content"
+                                 android:layout_width="match_parent"
+                                 android:textSize="14sp"
+                                 android:textColor="#2196F3"
+                                 android:text="强制检查更新" />
+
+                            <TextView
+                                 android:layout_height="wrap_content"
+                                 android:layout_width="match_parent"
+                                 android:textSize="10sp"
+                                 android:textColor="@color/text_hint"
+                                 android:layout_marginTop="2dp"
+                                 android:text="测试正式更新弹窗样式" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
