@@ -16,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.ToastUtils;
 import com.tech.ezconvert.utils.UpdateChecker;
@@ -258,7 +259,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
     
     private void showUpdateDialog(String releaseName, String releaseNotes, 
                                  boolean isPrerelease, String htmlUrl) {
-        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_MaterialAlertDialog);
         
         String title = isPrerelease ? "预发布版本: " + releaseName : "更新详情: " + releaseName;
         builder.setTitle(title);
@@ -266,7 +267,6 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
         TextView messageView = new TextView(this);
         messageView.setPadding(50, 30, 50, 30);
         messageView.setTextSize(14);
-        messageView.setTextColor(ContextCompat.getColor(this, android.R.color.black));
         messageView.setMovementMethod(LinkMovementMethod.getInstance());
         
         String markdownContent = releaseNotes;
@@ -318,7 +318,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
     
     private void showTestUpdateDialog(String releaseName, String releaseNotes, 
                                      boolean isPrerelease, String htmlUrl) {
-        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_MaterialAlertDialog);
         
         String title = "[测试] " + (isPrerelease ? "预发布版本: " + releaseName : "更新详情: " + releaseName);
         builder.setTitle(title);
@@ -326,7 +326,6 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
         TextView messageView = new TextView(this);
         messageView.setPadding(50, 30, 50, 30);
         messageView.setTextSize(14);
-        messageView.setTextColor(ContextCompat.getColor(this, android.R.color.black));
         messageView.setMovementMethod(LinkMovementMethod.getInstance());
         
         String markdownContent = releaseNotes;
