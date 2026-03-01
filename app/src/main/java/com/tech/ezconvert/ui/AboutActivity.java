@@ -43,6 +43,8 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
     private TextView updateStatusText;
     private LinearLayout testUpdateItem;
     private LinearLayout testUpdateClickArea;
+    private LinearLayout forceCheckUpdateItem;
+    private LinearLayout forceCheckUpdateClickArea;
     private boolean includePrereleases = true;
     private boolean isDevelopmentVersion = false;
     
@@ -87,6 +89,9 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
         updateStatusText = findViewById(R.id.update_status_text);
         testUpdateItem = findViewById(R.id.test_update_item);
         testUpdateClickArea = findViewById(R.id.test_update_click_area);
+        // 初始化强制检查更新视图
+        forceCheckUpdateItem = findViewById(R.id.force_check_update_item);
+        forceCheckUpdateClickArea = findViewById(R.id.force_check_update_click_area);
     }
     
     private void setupClickListeners() {
@@ -129,10 +134,25 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
             ToastUtils.showLong(this, "EzConvert 使用 GPLv3 开源许可证");
         });
         
-        // 测试更新
+        // 测试更新（强制拉取最新版）
         testUpdateClickArea.setOnClickListener(v -> {
             if (updateChecker.getLatestVersionFromGitHub() != null) {
                 showTestUpdateDialog(
+                    updateChecker.getReleaseNameFromGitHub(), 
+                    updateChecker.getReleaseNotesFromGitHub(), 
+                    updateChecker.isPrereleaseFromGitHub(), 
+                    updateChecker.getHtmlUrlFromGitHub()
+                );
+            } else {
+                ToastUtils.show(this, "请先检查更新以获取版本信息");
+            }
+        });
+        
+        // 强制检查更新 - 直接显示更新对话框用于测试
+        forceCheckUpdateClickArea.setOnClickListener(v -> {
+            if (updateChecker.getLatestVersionFromGitHub() != null) {
+                // 直接使用 showUpdateDialog 显示弹窗，用于测试样式
+                showUpdateDialog(
                     updateChecker.getReleaseNameFromGitHub(), 
                     updateChecker.getReleaseNotesFromGitHub(), 
                     updateChecker.isPrereleaseFromGitHub(), 
@@ -160,9 +180,25 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
             
             Log.d(TAG, "版本号: " + version + ", 是否为开发版本: " + isDevelopmentVersion);
             
+            // 根据是否是开发版本显示/隐藏测试按钮
+            updateTestItemsVisibility();
+            
         } catch (PackageManager.NameNotFoundException e) {
             versionText.setText("版本 0.0.0");
             isDevelopmentVersion = true;
+            updateTestItemsVisibility();
+        }
+    }
+    
+    // 更新测试按钮的可见性
+    private void updateTestItemsVisibility() {
+        if (isDevelopmentVersion) {
+            testUpdateItem.setVisibility(View.VISIBLE);
+            forceCheckUpdateItem.setVisibility(View.VISIBLE);
+            Log.d(TAG, "显示测试按钮（开发版本）");
+        } else {
+            testUpdateItem.setVisibility(View.GONE);
+            forceCheckUpdateItem.setVisibility(View.GONE);
         }
     }
     
@@ -195,8 +231,10 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                 // 如果是开发版本，显示测试选项
                 if (isDevelopmentVersion) {
                     testUpdateItem.setVisibility(View.VISIBLE);
+                    forceCheckUpdateItem.setVisibility(View.VISIBLE);
                 } else {
                     testUpdateItem.setVisibility(View.GONE);
+                    forceCheckUpdateItem.setVisibility(View.GONE);
                 }
             } else if (comparisonResult == 0) {
                 // 版本相同
@@ -211,9 +249,11 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                 // 是开发版本时则显示测试选项
                 if (isDevelopmentVersion) {
                     testUpdateItem.setVisibility(View.VISIBLE);
+                    forceCheckUpdateItem.setVisibility(View.VISIBLE);
                     Log.d(TAG, "显示测试更新按钮（开发版本）");
                 } else {
                     testUpdateItem.setVisibility(View.GONE);
+                    forceCheckUpdateItem.setVisibility(View.GONE);
                 }
             } else {
                 // 当前版本比找到的版本更新（本地版本 > GitHub版本，可能是开发版本）
@@ -224,8 +264,10 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                 // 显示测试更新选项
                 if (isDevelopmentVersion) {
                     testUpdateItem.setVisibility(View.VISIBLE);
+                    forceCheckUpdateItem.setVisibility(View.VISIBLE);
                 } else {
                     testUpdateItem.setVisibility(View.GONE);
+                    forceCheckUpdateItem.setVisibility(View.GONE);
                 }
             }
         });
@@ -238,6 +280,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
             updateStatusText.setTextColor(ContextCompat.getColor(this, android.R.color.holo_red_dark));
             updateStatusText.setOnClickListener(null);
             testUpdateItem.setVisibility(View.GONE);
+            forceCheckUpdateItem.setVisibility(View.GONE);
         });
     }
     
@@ -251,8 +294,10 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
             // 如果是开发版本，显示测试选项
             if (isDevelopmentVersion) {
                 testUpdateItem.setVisibility(View.VISIBLE);
+                forceCheckUpdateItem.setVisibility(View.VISIBLE);
             } else {
                 testUpdateItem.setVisibility(View.GONE);
+                forceCheckUpdateItem.setVisibility(View.GONE);
             }
         });
     }
@@ -298,6 +343,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                 }
                 updateStatusText.setText("正在检查...");
                 testUpdateItem.setVisibility(View.GONE);
+                forceCheckUpdateItem.setVisibility(View.GONE);
                 checkForUpdates();
             });
         }
