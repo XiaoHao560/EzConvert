@@ -76,5 +76,12 @@
             android:name=".ui.AboutActivity"
             android:exported="false"
             android:label="关于" />
+            
+        <activity 
+            android:name=".ui.DeveloperActivity"
+            android:parentActivityName=".ui.AboutActivity"
+            android:label="开发者选项"
+            android:screenOrientation="portrait" />
+
     </application>
 </manifest>
