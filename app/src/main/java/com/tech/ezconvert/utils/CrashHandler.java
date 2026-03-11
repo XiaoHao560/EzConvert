@@ -88,11 +88,6 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler, Applicatio
     private String buildCrashReport(Thread thread, Throwable ex) {
         StringBuilder sb = new StringBuilder();
         
-        // 报告头部
-        sb.append("╔══════════════════════════════════════════════════════════════╗\n");
-        sb.append("║                    应 用 崩 溃 报 告                         ║\n");
-        sb.append("╚══════════════════════════════════════════════════════════════╝\n\n");
-        
         // 基本信息
         sb.append("【基本信息】\n");
         sb.append("崩溃时间: ").append(formatTime(new Date())).append("\n");
@@ -148,9 +143,9 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler, Applicatio
         
         // 报告尾部
         sb.append("\n");
-        sb.append("═══════════════════════════════════════════════════════════════\n");
+        sb.append("════════════════════════════════════════════\n");
         sb.append("                     报告结束 ").append(formatTime(new Date())).append("\n");
-        sb.append("═══════════════════════════════════════════════════════════════\n\n\n");
+        sb.append("════════════════════════════════════════════\n\n\n");
         
         return sb.toString();
     }

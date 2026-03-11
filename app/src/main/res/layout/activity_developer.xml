@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     android:layout_height="match_parent"
+     android:layout_width="match_parent"
+     android:background="@color/bg_light"
+     android:fadeScrollbars="true">
+
+    <LinearLayout
+         android:layout_height="wrap_content"
+         android:layout_width="match_parent"
+         android:padding="20dp"
+         android:orientation="vertical"
+         android:id="@+id/scroll_content">
+
+        <LinearLayout
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:orientation="vertical"
+             android:id="@+id/title_container">
+
+            <com.google.android.material.card.MaterialCardView
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="16dp"
+                 app:cardMaxElevation="4dp"
+                 app:rippleColor="@color/colorPrimary"
+                 android:layout_marginHorizontal="4dp"
+                 app:cardElevation="2dp"
+                 app:strokeWidth="0dp"
+                 app:cardBackgroundColor="#FFFFFF"
+                 app:cardCornerRadius="12dp">
+
+                <LinearLayout
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:background="#FFFFFF"
+                     android:padding="24dp"
+                     android:orientation="vertical">
+
+                    <LinearLayout
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:gravity="center_vertical"
+                         android:background="#FFFFFF"
+                         android:orientation="horizontal">
+
+                        <ImageView
+                             android:layout_height="40dp"
+                             android:layout_width="40dp"
+                             android:layout_marginEnd="16dp"
+                             android:src="@drawable/bug_outline"
+                             android:tint="#FF9800" />
+
+                        <LinearLayout
+                             android:layout_height="wrap_content"
+                             android:layout_width="0dp"
+                             android:background="#FFFFFF"
+                             android:orientation="vertical"
+                             android:layout_weight="1">
+
+                            <TextView
+                                 android:layout_height="wrap_content"
+                                 android:layout_width="wrap_content"
+                                 android:textSize="20sp"
+                                 android:textColor="@color/text_primary"
+                                 android:text="开发者选项"
+                                 android:textStyle="bold" />
+
+                            <TextView
+                                 android:layout_height="wrap_content"
+                                 android:layout_width="wrap_content"
+                                 android:textSize="12sp"
+                                 android:textColor="@color/text_hint"
+                                 android:layout_marginTop="2dp"
+                                 android:text="调试与测试工具" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <TextView
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:textSize="13sp"
+                         android:textColor="@color/text_primary"
+                         android:layout_marginTop="16dp"
+                         android:lineSpacingExtra="4dp"
+                         android:text="⚠️ 警告：以下功能仅用于开发和测试目的，不当使用可能导致应用崩溃或数据丢失。" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="8dp"
+                 app:cardMaxElevation="4dp"
+                 android:layout_marginHorizontal="4dp"
+                 app:cardElevation="2dp"
+                 app:strokeWidth="0dp"
+                 app:cardBackgroundColor="#FFFFFF"
+                 app:cardCornerRadius="12dp">
+
+                <LinearLayout
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:background="#FFFFFF"
+                     android:padding="16dp"
+                     android:orientation="vertical">
+
+                    <TextView
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:layout_marginBottom="12dp"
+                         android:textSize="16sp"
+                         android:textColor="@color/text_primary"
+                         android:text="崩溃测试"
+                         android:textStyle="bold" />
+
+                    <com.google.android.material.card.MaterialCardView
+                         android:layout_height="72dp"
+                         android:layout_width="match_parent"
+                         app:rippleColor="#1FF44336"
+                         android:clickable="true"
+                         app:cardElevation="0dp"
+                         app:strokeWidth="0dp"
+                         app:cardBackgroundColor="#FFFFFF"
+                         app:cardCornerRadius="8dp"
+                         android:focusable="true"
+                         android:id="@+id/trigger_npe_item">
+
+                        <LinearLayout
+                             android:layout_height="match_parent"
+                             android:layout_width="match_parent"
+                             android:paddingEnd="16dp"
+                             android:gravity="center_vertical"
+                             android:background="#FFFFFF"
+                             android:orientation="horizontal"
+                             android:paddingStart="16dp">
+
+                            <ImageView
+                                 android:layout_height="32dp"
+                                 android:layout_width="32dp"
+                                 android:layout_marginEnd="16dp"
+                                 android:src="@drawable/alert_circle"
+                                 android:tint="#F44336" />
+
+                            <LinearLayout
+                                 android:layout_height="wrap_content"
+                                 android:layout_width="0dp"
+                                 android:background="#FFFFFF"
+                                 android:orientation="vertical"
+                                 android:layout_weight="1">
+
+                                <TextView
+                                     android:layout_height="wrap_content"
+                                     android:layout_width="match_parent"
+                                     android:textSize="16sp"
+                                     android:textColor="#F44336"
+                                     android:text="触发空指针异常" />
+
+                                <TextView
+                                     android:layout_height="wrap_content"
+                                     android:layout_width="match_parent"
+                                     android:textSize="12sp"
+                                     android:textColor="@color/text_hint"
+                                     android:text="测试 CrashHandler 崩溃捕获机制" />
+
+                            </LinearLayout>
+
+                            <ImageView
+                                 android:layout_height="24dp"
+                                 android:layout_width="24dp"
+                                 android:src="@drawable/arrow_right"
+                                 android:tint="#9E9E9E" />
+
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:gravity="center"
+                 android:textSize="12sp"
+                 android:textColor="@color/text_hint"
+                 android:layout_marginTop="16dp"
+                 android:text="EzConvert Developer Mode" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>
