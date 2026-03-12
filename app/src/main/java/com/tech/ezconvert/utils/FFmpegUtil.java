@@ -9,8 +9,12 @@ import com.arthenica.ffmpegkit.FFmpegSessionCompleteCallback;
 import com.arthenica.ffmpegkit.Level;
 import com.arthenica.ffmpegkit.LogCallback;
 import com.arthenica.ffmpegkit.ReturnCode;
-import com.tech.ezconvert.ui.LogViewerActivity;
+import com.arthenica.ffmpegkit.SessionState;
+
 import java.io.File;
+import java.lang.ref.PhantomReference;
+import java.lang.ref.ReferenceQueue;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 public class FFmpegUtil {
 
@@ -20,6 +24,43 @@ public class FFmpegUtil {
     private static LogManager logManager;
     private static Context appContext;
     private static String currentFileName = "";
+
+    // 资源清理机制
+    private static final ReferenceQueue<FFmpegSession> refQueue = new ReferenceQueue<>();
+    private static final CopyOnWriteArraySet<SessionPhantomRef> pendingRefs = new CopyOnWriteArraySet<>();
+    
+    static {
+        // 后台清理线程
+        Thread cleanupThread = new Thread(() -> {
+            while (true) {
+                try {
+                    SessionPhantomRef ref = (SessionPhantomRef) refQueue.remove();
+                    ref.cleanup();
+                    pendingRefs.remove(ref);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        }, "FFmpeg-Cleanup");
+        cleanupThread.setDaemon(true);
+        cleanupThread.start();
+    }
+    
+    private static class SessionPhantomRef extends PhantomReference<FFmpegSession> {
+        private final long sessionId;
+        
+        SessionPhantomRef(FFmpegSession referent) {
+            super(referent, refQueue);
+            this.sessionId = referent.getSessionId();
+            pendingRefs.add(this);
+        }
+        
+        void cleanup() {
+            Log.d(TAG, "Phantom cleanup for session: " + sessionId);
+            FFmpegKit.cancel(sessionId);
+        }
+    }
 
     public interface FFmpegCallback {
         void onProgress(int progress, long time);
@@ -129,6 +170,9 @@ public class FFmpegUtil {
             NotificationHelper.showProgressNotification(appContext, currentFileName, 0);
         }
         
+        // 确保取消之前的会话
+        cancelCurrentTask();
+
         currentSession = FFmpegKit.executeAsync(commandString, new FFmpegSessionCompleteCallback() {
             @Override
             public void apply(FFmpegSession session) {
@@ -167,24 +211,34 @@ public class FFmpegUtil {
                         }
                     }
                 }
+                
+                // 立即清理，不依赖 finalize
                 currentSession = null;
                 currentFileName = "";
+                // 主动清理所有已完成会话
+                FFmpegKitConfig.clearSessions();
             }
         });
 
-        startProgressSimulation(callback);
-        if (currentSession == null && callback != null) {
+        // 注册 PhantomReference 防止内存泄漏
+        if (currentSession != null) {
+            new SessionPhantomRef(currentSession);
+            startProgressSimulation(callback);
+        } else {
             // 启动失败也清理
             if (tempInputPath != null && tempInputPath.contains("/shared_files/")) {
                 deleteTempFile(tempInputPath);
             }
-            callback.onError("命令执行失败，无法启动FFmpeg进程");
+            if (callback != null) {
+                callback.onError("命令执行失败，无法启动FFmpeg进程");
+            }
             if (appContext != null) {
                 NotificationHelper.showCompleteNotification(appContext, currentFileName, false, "无法启动FFmpeg进程");
             }
             if (logManager != null) {
                 logManager.appendFfmpegLog("无法启动FFmpeg进程", Level.AV_LOG_FATAL);
             }
+            currentFileName = "";
         }
     }
 
@@ -235,10 +289,15 @@ public class FFmpegUtil {
     public static void cancelCurrentTask() {
         stopProgressSimulation();
         if (currentSession != null) {
-            if (logManager != null) {
-                logManager.appendFfmpegLog("取消当前FFmpeg任务", Level.AV_LOG_WARNING);
+            // 检查状态再取消，避免异常
+            SessionState state = currentSession.getState();
+            if (state == SessionState.RUNNING || state == SessionState.CREATED) {
+                Log.d(TAG, "Cancelling session: " + currentSession.getSessionId());
+                if (logManager != null) {
+                    logManager.appendFfmpegLog("取消当前FFmpeg任务", Level.AV_LOG_WARNING);
+                }
+                FFmpegKit.cancel(currentSession.getSessionId());
             }
-            FFmpegKit.cancel(currentSession.getSessionId());
             currentSession = null;
         }
         if (appContext != null) {
@@ -287,7 +346,7 @@ public class FFmpegUtil {
                         NotificationHelper.showProgressNotification(appContext, currentFileName, progress);
                     }
                     
-                    if (currentSession == null || currentSession.getState().equals(com.arthenica.ffmpegkit.SessionState.COMPLETED)) {
+                    if (currentSession == null || currentSession.getState().equals(SessionState.COMPLETED)) {
                         callback.onProgress(100, System.currentTimeMillis() - start);
                         break;
                     }
