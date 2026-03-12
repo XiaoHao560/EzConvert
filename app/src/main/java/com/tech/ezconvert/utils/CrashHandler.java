@@ -65,6 +65,9 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler, Applicatio
     
     @Override
     public void uncaughtException(Thread thread, Throwable ex) {
+    
+        // 先让 logcat 崩溃刷新
+        LogcatRecorder.getInstance().crashFlush();
         
         // 构建崩溃报告文本
         String crashReport = buildCrashReport(thread, ex);
