@@ -10,5 +10,9 @@ public class EzConvert extends Application {
         
         // 初始化崩溃捕获
         CrashHandler.getInstance().init(this);
+        
+        // 初始化logcat
+        LogcatRecorder.getInstance().init(this);
+        
     }
 }
