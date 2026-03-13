@@ -23,7 +23,7 @@ import java.util.Locale;
 public class CrashHandler implements Thread.UncaughtExceptionHandler, Application.ActivityLifecycleCallbacks {
     
     private static final String TAG = "CrashHandler";
-    private static final String FILE_NAME = "crash_log.txt";
+    private static final String FILE_NAME = "crash.log";
     private static CrashHandler instance;
     
     // 系统默认的异常处理器（备份，用于兜底）

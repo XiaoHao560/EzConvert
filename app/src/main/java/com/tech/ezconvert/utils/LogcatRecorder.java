@@ -28,7 +28,7 @@ public class LogcatRecorder implements Application.ActivityLifecycleCallbacks {
     
     private static final String TAG = "LogcatRecorder";
     private static final String LOG_DIR = "logs";
-    private static final String LOG_FILE = "logcat.txt";
+    private static final String LOG_FILE = "logcat.log";
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB 上限
     private static final int BUFFER_SIZE = 100; // 内存缓冲区行数
     
