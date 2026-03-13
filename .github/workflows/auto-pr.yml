@@ -9,6 +9,7 @@ on:
       - 'refactor/**'
       - 'ref/**'
       - 'perf/**'
+      - 'chore/**'
       - 'ui/**'
       - 'dev'
       - 'dev-*'
