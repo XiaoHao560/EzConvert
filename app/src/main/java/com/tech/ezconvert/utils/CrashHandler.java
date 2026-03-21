@@ -19,6 +19,7 @@ import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Stack;
 
 public class CrashHandler implements Thread.UncaughtExceptionHandler, Application.ActivityLifecycleCallbacks {
     
@@ -102,7 +103,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler, Applicatio
         sb.append("进程ID: ").append(Process.myPid()).append("\n");
         sb.append("线程名: ").append(thread.getName()).append("\n\n");
         
-        // 页面信息 (通过 ActivityLifecycleCallbacks 追踪)
+        // 页面信息
         sb.append("【页面信息】\n");
         sb.append("当前页面: ").append(currentActivity).append("\n");
         sb.append("页面路径: ").append(activityStack.isEmpty() ? currentActivity : activityStack).append("\n\n");
@@ -115,34 +116,70 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler, Applicatio
         // 精确定位出错位置
         sb.append("【出错位置】\n");
         StackTraceElement[] stackTrace = ex.getStackTrace();
-        StackTraceElement crashPoint = null;
         
-        // 遍历堆栈，找到应用包名内的第一行代码 (排除系统类)
-        for (StackTraceElement element : stackTrace) {
-            String className = element.getClassName();
-            if (className.startsWith(context.getPackageName())) {
-                crashPoint = element;
-                break;
-            }
-        }
-        
-        // 输出定位信息
-        if (crashPoint != null) {
-            sb.append("文件: ").append(crashPoint.getFileName()).append("\n");
-            sb.append("类: ").append(crashPoint.getClassName()).append("\n");
-            sb.append("方法: ").append(crashPoint.getMethodName()).append("\n");
-            sb.append("行号: ").append(crashPoint.getLineNumber()).append("\n");
-            sb.append("定位: ").append(crashPoint.getFileName()).append(":").append(crashPoint.getLineNumber()).append("\n");
+        if (stackTrace == null || stackTrace.length == 0) {
+            sb.append("⚠️ 无法获取堆栈信息\n\n");
         } else {
-            sb.append("未定位到应用代码\n");
+            // 获取包名 (用于判断哪些是应用代码)
+            String packageName = (context != null) ? context.getPackageName() : "";
+            
+            // 取堆栈第一行 (异常抛出的精确位置)
+            StackTraceElement firstElement = stackTrace[0];
+            sb.append("文件: ").append(firstElement.getFileName()).append("\n");
+            sb.append("类:   ").append(firstElement.getClassName()).append("\n");
+            sb.append("方法: ").append(firstElement.getMethodName()).append("\n");
+            sb.append("行号: ").append(firstElement.getLineNumber()).append("\n");
+            sb.append("定位: ").append(firstElement.getClassName())
+                              .append("(").append(firstElement.getFileName())
+                              .append(":").append(firstElement.getLineNumber()).append(")\n");
+            sb.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n");
+            
+            // 找到并标记应用代码位置
+            sb.append("【应用代码调用链】\n");
+            int appCodeCount = 0;
+            for (int i = 0; i < stackTrace.length && appCodeCount < 5; i++) {
+                StackTraceElement element = stackTrace[i];
+                String className = element.getClassName();
+                
+                // 判断是否是应用代码（支持 lambda 合成类）
+                boolean isAppCode = !packageName.isEmpty() && 
+                    (className.startsWith(packageName) || 
+                     className.contains("$$ExternalSynthetic")); // lambda 类
+                
+                if (isAppCode) {
+                    appCodeCount++;
+                    sb.append("  #").append(appCodeCount).append(" ");
+                    if (i == 0) sb.append("👉 "); // 标记崩溃点
+                    
+                    // 简化 lambda 方法名显示
+                    String methodName = element.getMethodName();
+                    if (methodName.contains("lambda$")) {
+                        methodName = methodName.replace("lambda$", "λ-")
+                                               .replace("$", "·");
+                    }
+                    
+                    sb.append(element.getFileName())
+                      .append(":").append(element.getLineNumber())
+                      .append("  ").append(methodName).append("()\n");
+                    
+                    // 如果是第一行，额外显示详细信息
+                    if (i == 0) {
+                        sb.append("     完整类名: ").append(className).append("\n");
+                    }
+                }
+            }
+            
+            if (appCodeCount == 0) {
+                sb.append("  （未找到应用代码，可能已被混淆或包名不匹配）\n");
+            }
+            sb.append("\n");
         }
-        sb.append("\n");
         
-        // 完整堆栈信息
+        // 完整堆栈
         sb.append("【完整堆栈】\n");
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
-        ex.printStackTrace(pw);  // 将异常堆栈写入字符串
+        ex.printStackTrace(pw);
         sb.append(sw.toString());
         
         // 报告尾部
