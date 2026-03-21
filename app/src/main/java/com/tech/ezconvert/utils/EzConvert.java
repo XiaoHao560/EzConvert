@@ -12,7 +12,7 @@ public class EzConvert extends Application {
         CrashHandler.getInstance().init(this);
         
         // 初始化logcat
-        LogcatRecorder.getInstance().init(this);
+//        LogcatRecorder.getInstance().init(this);
         
     }
 }

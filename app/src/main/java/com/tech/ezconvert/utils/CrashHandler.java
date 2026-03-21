@@ -23,7 +23,7 @@ import java.util.Locale;
 public class CrashHandler implements Thread.UncaughtExceptionHandler, Application.ActivityLifecycleCallbacks {
     
     private static final String TAG = "CrashHandler";
-    private static final String FILE_NAME = "crash.log";
+    private static final String FILE_NAME = "Crash.log";
     private static CrashHandler instance;
     
     // 系统默认的异常处理器（备份，用于兜底）
@@ -35,6 +35,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler, Applicatio
     
     // 页面跳转路径历史记录（例如：→MainActivity→SettingsActivity）
     private String activityStack = "";
+    
     private CrashHandler() {}
     
     public static CrashHandler getInstance() {
@@ -45,7 +46,6 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler, Applicatio
     }
     
     public void init(Context context) {
-        
         // 保存应用上下文
         this.context = context.getApplicationContext();
         
@@ -65,10 +65,6 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler, Applicatio
     
     @Override
     public void uncaughtException(Thread thread, Throwable ex) {
-    
-        // 先让 logcat 崩溃刷新
-        LogcatRecorder.getInstance().crashFlush();
-        
         // 构建崩溃报告文本
         String crashReport = buildCrashReport(thread, ex);
         
@@ -83,9 +79,14 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler, Applicatio
             e.printStackTrace();
         }
         
-        // 强制杀死进程，结束应用
-        Process.killProcess(Process.myPid());
-        System.exit(1);
+        // 调用系统默认处理器（让系统显示崩溃对话框或处理）
+        if (defaultHandler != null) {
+            defaultHandler.uncaughtException(thread, ex);
+        } else {
+            // 强制杀死进程，结束应用
+            Process.killProcess(Process.myPid());
+            System.exit(1);
+        }
     }
     
     private String buildCrashReport(Thread thread, Throwable ex) {
@@ -156,32 +157,12 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler, Applicatio
     private void saveToFile(String content) {
         if (content == null || context == null) return;
         
-        File dir = null;
+        File dir = getLogDir();
+        if (dir == null) return;
+        
         FileWriter writer = null;
         
         try {
-            // 获取外部存储目录: Android/data/包名/files/
-            File baseDir = context.getExternalFilesDir(null);
-            
-            if (baseDir != null) {
-                dir = new File(baseDir, "logs");
-                if (!dir.exists()) {
-                    dir.mkdirs();
-                }
-            }
-            
-            // 外部存储不可用，回退到内部存储
-            if (dir == null || !dir.exists()) {
-                dir = context.getFilesDir();
-                // 内部存储也尝试创建 logs 子目录
-                File logsDir = new File(dir, "logs");
-                if (!logsDir.exists()) {
-                    logsDir.mkdirs();
-                }
-                dir = logsDir;
-            }
-            
-            // 创建日志文件
             File file = new File(dir, FILE_NAME);
             
             writer = new FileWriter(file, true); // 追加模式
@@ -200,6 +181,35 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler, Applicatio
                 } catch (IOException ignored) {}
             }
         }
+    }
+    
+    /**
+     * 获取日志目录（外部存储优先，失败则回退到内部存储）
+     */
+    private File getLogDir() {
+        File dir = null;
+        
+        // 获取外部存储目录: Android/data/包名/files/
+        File baseDir = context.getExternalFilesDir(null);
+        
+        if (baseDir != null) {
+            dir = new File(baseDir, "logs");
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+        }
+        
+        // 外部存储不可用，回退到内部存储
+        if (dir == null || !dir.exists()) {
+            dir = context.getFilesDir();
+            File logsDir = new File(dir, "logs");
+            if (!logsDir.exists()) {
+                logsDir.mkdirs();
+            }
+            dir = logsDir;
+        }
+        
+        return dir;
     }
     
     // Activity 生命周期回调
