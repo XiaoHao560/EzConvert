@@ -362,4 +362,24 @@ public class FFmpegUtil {
             running = false; 
         }
     }
+
+    // 同步执行简单的 FFmpeg 查询命令 (用于获取版本，编解码器等信息)
+    // 要在后台线程调用，不要在主线程直接调用
+    public static String executeSimpleCommand(String command) {
+        try {
+            com.arthenica.ffmpegkit.Session session = FFmpegKit.execute(command);
+            ReturnCode returnCode = session.getReturnCode();
+            
+            if (ReturnCode.isSuccess(returnCode)) {
+                String output = session.getOutput();
+                return output != null ? output : "";
+            } else {
+                Log.e(TAG, "命令执行失败: " + command + ", 返回码: " + returnCode);
+                return null;
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "执行命令异常: " + command, e);
+            return null;
+        }
+    }
 }
