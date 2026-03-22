@@ -19,6 +19,17 @@
     <item name="android:windowContentTransitions">true</item>
     
     <item name="alertDialogTheme">@style/ThemeOverlay.App.MaterialAlertDialog</item>
+    
+    <item name="android:textColorHighlight">@color/colorPrimaryLight</item>
+    
+    <item name="colorControlActivated">@color/colorPrimary</item>
+    <item name="android:colorControlActivated">@color/colorPrimary</item>
+    
+    <item name="actionModeBackground">@color/colorPrimary</item>
+    <item name="android:actionModeBackground">@color/colorPrimary</item>
+    
+    <item name="actionMenuTextColor">@android:color/white</item>
+    <item name="android:actionMenuTextColor">@android:color/white</item>
   </style>
 
   <style name="AppTheme" parent="Base.AppTheme">

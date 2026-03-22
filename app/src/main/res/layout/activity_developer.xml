@@ -185,6 +185,98 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+            <com.google.android.material.card.MaterialCardView
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="8dp"
+                 app:cardMaxElevation="4dp"
+                 android:layout_marginHorizontal="4dp"
+                 app:cardElevation="2dp"
+                 app:strokeWidth="0dp"
+                 app:cardBackgroundColor="#FFFFFF"
+                 app:cardCornerRadius="12dp">
+
+                <LinearLayout
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:background="#FFFFFF"
+                     android:padding="16dp"
+                     android:orientation="vertical">
+
+                    <TextView
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:layout_marginBottom="12dp"
+                         android:textSize="16sp"
+                         android:textColor="@color/text_primary"
+                         android:text="编解码器检查"
+                         android:textStyle="bold" />
+
+                    <com.google.android.material.card.MaterialCardView
+                         android:layout_height="72dp"
+                         android:layout_width="match_parent"
+                         app:rippleColor="#1F2196F3"
+                         android:clickable="true"
+                         app:cardElevation="0dp"
+                         app:strokeWidth="0dp"
+                         app:cardBackgroundColor="#FFFFFF"
+                         app:cardCornerRadius="8dp"
+                         android:focusable="true"
+                         android:id="@+id/check_codecs_item">
+
+                        <LinearLayout
+                             android:layout_height="match_parent"
+                             android:layout_width="match_parent"
+                             android:paddingEnd="16dp"
+                             android:gravity="center_vertical"
+                             android:background="#FFFFFF"
+                             android:orientation="horizontal"
+                             android:paddingStart="16dp">
+
+                            <ImageView
+                                 android:layout_height="32dp"
+                                 android:layout_width="32dp"
+                                 android:layout_marginEnd="16dp"
+                                 android:src="@drawable/code_tags"
+                                 android:tint="@color/colorPrimary" />
+
+                            <LinearLayout
+                                 android:layout_height="wrap_content"
+                                 android:layout_width="0dp"
+                                 android:background="#FFFFFF"
+                                 android:orientation="vertical"
+                                 android:layout_weight="1">
+
+                                <TextView
+                                     android:layout_height="wrap_content"
+                                     android:layout_width="match_parent"
+                                     android:textSize="16sp"
+                                     android:textColor="@color/colorPrimary"
+                                     android:text="查看 FFmpeg 编解码器" />
+
+                                <TextView
+                                     android:layout_height="wrap_content"
+                                     android:layout_width="match_parent"
+                                     android:textSize="12sp"
+                                     android:textColor="@color/text_hint"
+                                     android:text="检查当前集成的音视频编解码器支持" />
+
+                            </LinearLayout>
+
+                            <ImageView
+                                 android:layout_height="24dp"
+                                 android:layout_width="24dp"
+                                 android:src="@drawable/arrow_right"
+                                 android:tint="#9E9E9E" />
+
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
             <TextView
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
