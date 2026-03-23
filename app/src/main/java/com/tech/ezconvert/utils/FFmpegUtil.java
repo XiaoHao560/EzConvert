@@ -15,6 +15,7 @@ import java.io.File;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
+import kotlin.jvm.Volatile;
 
 public class FFmpegUtil {
 
@@ -24,6 +25,7 @@ public class FFmpegUtil {
     private static LogManager logManager;
     private static Context appContext;
     private static String currentFileName = "";
+    private static volatile boolean isQueryCommand = false;
 
     // 资源清理机制
     private static final ReferenceQueue<FFmpegSession> refQueue = new ReferenceQueue<>();
@@ -121,6 +123,11 @@ public class FFmpegUtil {
 
     // 根据当前日志设置判断是否应该记录此日志
     private static boolean shouldLog(Level level, boolean verboseLogging) {
+        // 如果是查询命令，则跳过所有 ERROR 级别的日志
+        if (isQueryCommand && level == Level.AV_LOG_ERROR) {
+            return false;
+        }
+        
         if (verboseLogging) {
             return true;
         }
@@ -366,6 +373,7 @@ public class FFmpegUtil {
     // 同步执行简单的 FFmpeg 查询命令 (用于获取版本，编解码器等信息)
     // 要在后台线程调用，不要在主线程直接调用
     public static String executeSimpleCommand(String command) {
+        isQueryCommand = true; // 标记为查询命令
         try {
             com.arthenica.ffmpegkit.Session session = FFmpegKit.execute(command);
             ReturnCode returnCode = session.getReturnCode();
@@ -380,6 +388,8 @@ public class FFmpegUtil {
         } catch (Exception e) {
             Log.e(TAG, "执行命令异常: " + command, e);
             return null;
+        } finally {
+            isQueryCommand = false; // 删除查询命令标志
         }
     }
 }
