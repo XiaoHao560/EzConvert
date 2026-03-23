@@ -15,7 +15,6 @@ import java.io.File;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
-import kotlin.jvm.Volatile;
 
 public class FFmpegUtil {
 
