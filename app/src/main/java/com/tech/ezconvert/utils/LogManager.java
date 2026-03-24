@@ -7,11 +7,13 @@ import android.text.TextUtils;
 import android.util.Log;
 import com.arthenica.ffmpegkit.Level;
 import java.io.*;
+import java.lang.annotation.Native;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class LogManager {
+    
     private static final String TAG = "LogManager";
     private static LogManager instance;
     
@@ -113,9 +115,7 @@ public class LogManager {
     private void init() {
         try {
             File logDir = new File(context.getExternalFilesDir(null), "logs");
-            if (!logDir.exists()) {
-                logDir.mkdirs();
-            }
+            if (!logDir.exists()) logDir.mkdirs();
             
             appLogFile = new File(logDir, "EzConvert.log");
             ffmpegLogFile = new File(logDir, "FFmpeg.log");
@@ -126,36 +126,55 @@ public class LogManager {
         }
     }
 
-    // 用于自定义Log类调用
-    public void addAppLog(int level, String tag, String message, Throwable tr) {
+    // 获取堆栈
+    private String getFullStackTrack() {
+        StackTraceElement[] stack = new Throwable().getStackTrace();
+        StringBuilder sb = new StringBuilder();
         
-        if ("FFmpegLog".equals(tag)) {
-            return;
+        // 跳过前 3 层 (getFullStackTrack -> addAppLog -> Log.xxx)
+        for (int i = 3; i < stack.length; i++) {
+            StackTraceElement e = stack[i];
+            if (sb.length() > 0) sb.append(" <- ");
+            // 完整类名，不进行过滤
+            sb.append(e.getClassName())
+              .append(".")
+              .append(e.getMethodName())
+              .append(":")
+              .append(e.getLineNumber());
         }
         
+        return sb.toString();
+    }
+
+    // 用于自定义Log类调用
+    public void addAppLog(int level, String tag, String message, Throwable tr) {
+        if ("FFmpegLog".equals(tag)) return;
+        if (!shouldLog(level)) return;
+        
         try {
+            // 全量堆栈获取
+            String fullStack = getFullStackTrack();
+            String fullMessage = message + "\n    at " + fullStack;
             
-            // 检查是否应该记录此日志
-            if (!shouldLog(level)) {
-                return;
+            if (tr != null) {
+                fullMessage += "\n   Exception: " + android.util.Log.getStackTraceString(tr);
             }
             
+            // 内存缓存
             LogEntry entry = new LogEntry(level, tag, message, tr);
-            
             appLogMemoryCache.add(entry);
             if (appLogMemoryCache.size() > MAX_MEMORY_CACHE) {
                 appLogMemoryCache.remove(0);
             }
             
             Level ffmpegLevel = convertToFfmpegLevel(level);
-            String formatted = entry.getFormattedMessage();
-            writeToFile(appLogFile, formatted);
+            String simpleFormat = entry.getFormattedMessage();
+            writeToFile(appLogFile, simpleFormat);
             
-            mainHandler.post(() -> {
-                for (LogListener listener : listeners) {
-                    listener.onLogAdded(entry);
-                }
-            });
+            // 异步写入 C++ (mmap)
+            char levelChar = getLevelChar(level);
+            NativeLogWriter.write(levelChar, tag, fullMessage);
+            
         } catch (Throwable e) {
             android.util.Log.e(TAG, "addAppLog异常", e);
         }
@@ -296,5 +315,16 @@ public class LogManager {
                level == Level.AV_LOG_WARNING || 
                level == Level.AV_LOG_FATAL || 
                level == Level.AV_LOG_PANIC;
+    }
+
+    private char getLevelChar(int level) {
+        switch (level) {
+            case android.util.Log.VERBOSE: return 'V';
+            case android.util.Log.DEBUG: return 'D';
+            case android.util.Log.INFO: return 'I';
+            case android.util.Log.WARN: return 'W';
+            case android.util.Log.ERROR: return 'E';
+            default: return 'D';
+        }
     }
 }
