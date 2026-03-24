@@ -1,15 +1,16 @@
 cmake_minimum_required(VERSION 4.1.2)
 
-project("EzConvert")
+project(ezlog)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-add_library(ezconvert SHARED
-    native-lib.cpp
+add_library(
+    ezlog
+    SHARED
+    ezlog_mmap.cpp
 )
 
-target_link_libraries(ezconvert
-    android
-    log
+find_library(log-lib log)
+
+target_link_libraries(
+    ezlog
+    ${log-lib}
 )
