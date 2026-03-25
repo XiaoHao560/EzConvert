@@ -32,6 +32,7 @@ public class FFmpegUtil {
     private static Context appContext;
     private static String currentFileName = "";
     private static volatile boolean isQueryCommand = false;
+    
     // 资源清理机制
     private static final ReferenceQueue<FFmpegSession> refQueue = new ReferenceQueue<>(); 
     private static final CopyOnWriteArraySet<SessionPhantomRef> pendingRefs = new CopyOnWriteArraySet<>();
@@ -340,6 +341,7 @@ public class FFmpegUtil {
                     });
                 }
                 
+                // 立即清理，不依赖 finalize
                 currentSession = null;
                 currentFileName = "";
                 currentCallback = null;
@@ -354,6 +356,7 @@ public class FFmpegUtil {
         statistics -> {
             // 这个 lambda 是必需的，但实际逻辑在 enableStatisticsCallback 中处理
         });
+        
         // 注册 PhantomReference 防止内存泄漏
         if (currentSession != null) {
             new SessionPhantomRef(currentSession);
