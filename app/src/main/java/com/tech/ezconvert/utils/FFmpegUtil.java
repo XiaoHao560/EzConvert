@@ -1,5 +1,6 @@
 package com.tech.ezconvert.utils;
 
+import com.tech.ezconvert.utils.Log;
 import android.app.Notification;
 import android.content.Context;
 import android.os.Handler;
@@ -18,6 +19,9 @@ import com.arthenica.ffmpegkit.Statistics;
 import com.arthenica.ffmpegkit.StatisticsCallback;
 
 import java.io.File;
+import java.lang.ref.PhantomReference;
+import java.lang.ref.ReferenceQueue;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class FFmpegUtil {
@@ -28,8 +32,44 @@ public class FFmpegUtil {
     private static Context appContext;
     private static String currentFileName = "";
     private static volatile boolean isQueryCommand = false;
+    // 资源清理机制
+    private static final ReferenceQueue<FFmpegSession> refQueue = new ReferenceQueue<>(); 
+    private static final CopyOnWriteArraySet<SessionPhantomRef> pendingRefs = new CopyOnWriteArraySet<>();
     private static int lastNotificationProgress = -1;
     private static long lastNotificationTime = 0;
+    
+    static {
+        // 后台清理线程
+        Thread cleanupThread = new Thread(() -> {
+            while (true) {
+                try {
+                    SessionPhantomRef ref = (SessionPhantomRef) refQueue.remove();
+                    ref.cleanup();
+                    pendingRefs.remove(ref);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        }, "FFmpeg-Cleanup");
+        cleanupThread.setDaemon(true);
+        cleanupThread.start();
+    }
+    
+    private static class SessionPhantomRef extends PhantomReference<FFmpegSession> {
+        private final long sessionId;
+        
+        SessionPhantomRef(FFmpegSession referent) {
+            super(referent, refQueue);
+            this.sessionId = referent.getSessionId();
+            pendingRefs.add(this);
+        }
+        
+        void cleanup() {
+            Log.d(TAG, "Phantom cleanup for session: " + sessionId);
+            FFmpegKit.cancel(sessionId);
+        }
+    }
     
     // 存储每个会话的总时长（毫秒）
     private static final ConcurrentHashMap<Long, Long> sessionDurations = new ConcurrentHashMap<>();
@@ -51,7 +91,7 @@ public class FFmpegUtil {
         
         Log.d(TAG, "初始化日志设置，详细日志模式: " + verboseLogging);
         
-        // 日志回调
+        // 日志级别设置
         FFmpegKitConfig.enableLogCallback(new LogCallback() {
                 @Override
                 public void apply(com.arthenica.ffmpegkit.Log log) {
@@ -159,7 +199,7 @@ public class FFmpegUtil {
         
         Log.d(TAG, "执行命令: " + String.join(" ", command));
         
-        // 1. 先获取输入文件的总时长（用于计算进度百分比）
+        // 先获取输入文件的总时长（用于计算进度百分比）
         getVideoDuration(tempInputPath, new DurationCallback() {
             @Override
             public void onDurationRetrieved(long durationMs) {
@@ -301,6 +341,7 @@ public class FFmpegUtil {
                 }
                 
                 currentSession = null;
+                currentFileName = "";
                 currentCallback = null;
                 currentSessionId = -1;
                 // 主动清理所有已完成会话
@@ -313,8 +354,9 @@ public class FFmpegUtil {
         statistics -> {
             // 这个 lambda 是必需的，但实际逻辑在 enableStatisticsCallback 中处理
         });
-
+        // 注册 PhantomReference 防止内存泄漏
         if (currentSession != null) {
+            new SessionPhantomRef(currentSession);
             currentSessionId = currentSession.getSessionId();
             // 存储该会话的总时长，供 statistics callback 使用
             if (durationMs > 0) {
@@ -480,7 +522,8 @@ public class FFmpegUtil {
         int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
         return String.format("%.1f %s", size / Math.pow(1024, digitGroups), units[digitGroups]);
     }
-
+    // 同步执行简单的 FFmpeg 查询命令 (用于获取版本，编解码器等信息) 
+    // 要在后台线程调用，不要在主线程直接调用
     public static String executeSimpleCommand(String command) {
         isQueryCommand = true; // 标记为查询命令
         try {
