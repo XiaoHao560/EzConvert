@@ -28,6 +28,8 @@ public class FFmpegUtil {
     private static Context appContext;
     private static String currentFileName = "";
     private static volatile boolean isQueryCommand = false;
+    private static int lastNotificationProgress = -1;
+    private static long lastNotificationTime = 0;
     
     // 存储每个会话的总时长（毫秒）
     private static final ConcurrentHashMap<Long, Long> sessionDurations = new ConcurrentHashMap<>();
@@ -109,6 +111,19 @@ public class FFmpegUtil {
                             callback.onProgress(clampedProgress, timeInMs);
                         }
                     });
+                    
+                    // 更新通知 (限制频率: 每 5% 或者每 2 秒更新一次，避免卡顿)
+                    long currentTime = System.currentTimeMillis();
+                    if (appContext != null &&
+                        (Math.abs(clampedProgress - lastNotificationProgress) >= 5 ||
+                         currentTime - lastNotificationTime >= 2000 ||
+                          clampedProgress == 100)) {
+                              
+                        lastNotificationProgress = clampedProgress;
+                        lastNotificationTime = currentTime;
+                        
+                        NotificationHelper.showProgressNotification(appContext, currentFileName, clampedProgress);
+                    }
                 }
             }
         });
@@ -132,6 +147,9 @@ public class FFmpegUtil {
     }
 
     public static void executeCommand(String[] command, FFmpegCallback callback, String tempInputPath, String fileName) {
+        // 重置通知进度记录
+        lastNotificationProgress = -1;
+        lastNotificationTime = 0;
         currentFileName = fileName != null ? fileName : "未知文件";
         
         // 创建通知渠道（首次执行时）
