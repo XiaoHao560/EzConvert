@@ -58,6 +58,12 @@ public class VideoProcessor {
         
         FFmpegUtil.executeCommand(step1Cmd.toArray(new String[0]), new FFmpegUtil.FFmpegCallback() {
             @Override
+            public void onProgress(int progress, long time) {
+                // 第一步贡献 0-50% 的进度条
+                callback.onProgress(progress / 2, time);
+            }
+            
+            @Override
             public void onComplete(boolean success, String message) {
                 if (success) {
                     // 从 MP4 转换到目标格式
@@ -77,6 +83,12 @@ public class VideoProcessor {
                     
                     FFmpegUtil.executeCommand(step2Cmd.toArray(new String[0]), new FFmpegUtil.FFmpegCallback() {
                         @Override
+                        public void onProgress(int progress, long time) {
+                            // 第二步贡献 50-100% 的进度条
+                            callback.onProgress(50 + (progress / 2), time);
+                        }
+                        
+                        @Override
                         public void onComplete(boolean success, String message) {
                             // 清理临时 MP4 文件
                             if (new File(tempMp4Path).delete()) {
@@ -94,12 +106,6 @@ public class VideoProcessor {
                         }
                         
                         @Override
-                        public void onProgress(int progress, long time) {
-                            // 将第二步进度作为总进度的 50-100%
-                            callback.onProgress(50 + progress / 2, time);
-                        }
-                        
-                        @Override
                         public void onError(String error) {
                             new File(tempMp4Path).delete();
                             callback.onError("第二步报错: " + error);
@@ -108,12 +114,6 @@ public class VideoProcessor {
                 } else {
                     callback.onComplete(false, "第一步硬件编码失败: " + message);
                 }
-            }
-            
-            @Override
-            public void onProgress(int progress, long time) {
-                // 将第一步进度作为总进度的 0-50%
-                callback.onProgress(progress / 2, time);
             }
             
             @Override
