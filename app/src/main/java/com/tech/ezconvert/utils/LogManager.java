@@ -245,11 +245,26 @@ public class LogManager {
 
     // 清空所有日志
     public void clearAllLogs() {
+        // 清空内存缓存
         appLogMemoryCache.clear();
         ffmpegLogMemoryCache.clear();
         
-        clearFile(appLogFile);
-        clearFile(ffmpegLogFile);
+        // 删除 logs 目录下所有 .log 文件
+        File logDir = new File(context.getExternalFilesDir(null), "logs");
+        if (logDir.exists() && logDir.isDirectory()) {
+            File[] logFiles = logDir.listFiles((dir, name) -> name.endsWith(".log"));
+            if (logFiles != null && logFiles.length > 0) {
+                for (File file : logFiles) {
+                    boolean deleted = file.delete();
+                    Log.d(TAG, "清理日志文件: " + file.getName() + (deleted ? "成功" : "失败"));
+                }
+                Log.i(TAG, "共清理 " + logFiles.length + "个日志文件");
+            } else {
+                Log.d(TAG, "logs 目录下没有 .log 文件需要清理");
+            }
+        } else {
+            Log.w(TAG, "logs 目录不存在");
+        }
         
         mainHandler.post(() -> {
             for (LogListener listener : listeners) {
