@@ -5,15 +5,26 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.View;
 import android.widget.*;
 import androidx.recyclerview.widget.*;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.tech.ezconvert.BuildConfig;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.LogManager;
 import com.tech.ezconvert.utils.ToastUtils;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class LogViewerActivity extends BaseActivity {
 
@@ -227,6 +238,11 @@ public class LogViewerActivity extends BaseActivity {
         findViewById(R.id.btn_copy_log).setOnClickListener(v -> {
             copyAllLogs();
         });
+        
+        // 导出按钮
+        findViewById(R.id.btn_export_log).setOnClickListener(v -> {
+            exportLogsToZip();
+        });
     }
     
     // 切换设备信息卡片展开/收起
@@ -295,6 +311,153 @@ public class LogViewerActivity extends BaseActivity {
         ClipData clip = ClipData.newPlainText("AllLogs", sb.toString());
         cm.setPrimaryClip(clip);
         ToastUtils.show(this, "日志已复制到剪贴板");
+    }
+
+    // 显示导出确认对话框
+    private void exportLogsToZip() {
+        new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_MaterialAlertDialog)
+            .setTitle("导出日志")
+            .setMessage("此操作将把应用的所有日志文件（包括崩溃日志、运行日志、FFmpeg 日志等）压缩成一个 ZIP 文件，保存到手机的 Download/简转/logs/ 目录下。\n\n是否继续？")
+            .setPositiveButton("确认导出", (dialog, which) -> {
+                // 用户确认后执行导出
+                performExportLogs();
+            })
+            .setNegativeButton("取消", (dialog, which) -> {
+                // 用户取消，什么都不做
+                dialog.dismiss();
+            })
+            .setCancelable(true)
+            .show();
+    }
+
+    // 实际执行日志导出 (后台线程)
+    private void performExportLogs() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    // 源日志目录：Android/data/包名/files/logs/
+                    File logDir = new File(getExternalFilesDir(null), "logs");
+                    if (!logDir.exists() || !logDir.isDirectory()) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                ToastUtils.show(LogViewerActivity.this, "日志目录不存在");
+                            }
+                        });
+                        return;
+                    }
+
+                    // 目标目录：Download/简转/logs/
+                    File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                    File destDir = new File(downloadDir, "简转/logs");
+                    if (!destDir.exists()) {
+                        boolean created = destDir.mkdirs();
+                        if (!created) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    ToastUtils.show(LogViewerActivity.this, "无法创建目标目录");
+                                }
+                            });
+                            return;
+                        }
+                    }
+
+                    // 生成带时间戳的文件名
+                    String timeStamp = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss", Locale.getDefault()).format(new Date());
+                    final File zipFile = new File(destDir, "logs_" + timeStamp + ".zip");
+
+                    // 执行压缩（递归包含子目录）
+                    zipDirectory(logDir, zipFile);
+
+                    // 成功提示
+                    final String successPath = zipFile.getAbsolutePath();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ToastUtils.show(LogViewerActivity.this, "日志已导出到:\n" + successPath);
+                        }
+                    });
+                    
+                } catch (final Exception e) {
+                    e.printStackTrace();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ToastUtils.show(LogViewerActivity.this, "导出失败: " + e.getMessage());
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
+    // 压缩整个目录
+    private void zipDirectory(File sourceDir, File zipFile) throws IOException {
+        FileOutputStream fos = null;
+        ZipOutputStream zos = null;
+        try {
+            fos = new FileOutputStream(zipFile);
+            zos = new ZipOutputStream(fos);
+            zipFile(sourceDir, sourceDir.getName(), zos);
+        } finally {
+            if (zos != null) {
+                try {
+                    zos.close();
+                } catch (IOException ignored) {}
+            }
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException ignored) {}
+            }
+        }
+    }
+
+    // 递归压缩文件/目录
+    private void zipFile(File fileToZip, String fileName, ZipOutputStream zos) throws IOException {
+        // 跳过隐藏文件
+        if (fileToZip.isHidden()) {
+            return;
+        }
+        
+        // 如果是目录，递归处理
+        if (fileToZip.isDirectory()) {
+            // 目录条目需要以 "/" 结尾
+            String dirName = fileName.endsWith("/") ? fileName : fileName + "/";
+            zos.putNextEntry(new ZipEntry(dirName));
+            zos.closeEntry();
+            
+            File[] children = fileToZip.listFiles();
+            if (children != null) {
+                for (File childFile : children) {
+                    zipFile(childFile, fileName + "/" + childFile.getName(), zos);
+                }
+            }
+            return;
+        }
+        
+        // 压缩文件
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream(fileToZip);
+            ZipEntry zipEntry = new ZipEntry(fileName);
+            zos.putNextEntry(zipEntry);
+            
+            byte[] buffer = new byte[8192];
+            int length;
+            while ((length = fis.read(buffer)) >= 0) {
+                zos.write(buffer, 0, length);
+            }
+            zos.closeEntry();
+        } finally {
+            if (fis != null) {
+                try {
+                    fis.close();
+                } catch (IOException ignored) {}
+            }
+        }
     }
 
     @Override
