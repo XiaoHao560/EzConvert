@@ -78,7 +78,7 @@ jobs:
          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > xiaohao-app-key.keystore
        shell: bash
 
-     - name: 编译 APK
+     - name: 编译多 ABI APK
        run: ./gradlew assemble${{ steps.variant.outputs.variant }}
        env:
          KEYSTORE_FILE: ${{ github.workspace }}/xiaohao-app-key.keystore
@@ -87,12 +87,13 @@ jobs:
          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
          GITHUB_REF: ${{ github.ref }}
 
-     - name: 检查 APK 是否生成
+     - name: 检查 APK 生成情况
        run: |
-         echo "检查APK生成路径..."
-         find app/build -name "*.apk" -type f | while read file; do
-           echo "找到APK文件: $file"
-           ls -la "$file"
+         echo "检查生成的 APK 文件"
+         find app/build/outputs/apk/${{ steps.variant.outputs.variant }} -name "*.apk" -type f | while read file; do
+           echo "找到APK: $file"
+           ls -lh "$file"
+           unzip -l "$file" | grep "lib/" || echo "  无法读取ABI信息"
          done
 
      - name: 上传至 Github Release
