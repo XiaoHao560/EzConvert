@@ -9,6 +9,8 @@ import android.os.Looper;
 import android.os.Process;
 import android.os.SystemClock;
 
+import com.tech.ezconvert.utils.Log;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileDescriptor;
@@ -39,6 +41,7 @@ public class LogcatRecorder implements Application.ActivityLifecycleCallbacks {
     private Handler mainHandler;
     private AtomicBoolean isRunning = new AtomicBoolean(false);
     private volatile boolean isCrashing = false;
+    private volatile boolean isAvailable = false; // 功能是否可用
     
     private java.lang.Process logcatProcess;
     private BufferedReader reader;
@@ -63,11 +66,95 @@ public class LogcatRecorder implements Application.ActivityLifecycleCallbacks {
         return instance;
     }
     
+    /**
+     * 检测 Logcat 功能是否可用
+     * 检查项：
+     * 1. 能否执行 logcat 命令
+     * 2. 能否读取到日志数据
+     * 3. 能否写入文件
+     */
+    public static boolean checkAvailability(Context context) {
+        java.lang.Process process = null;
+        BufferedReader reader = null;
+        boolean canReadLog = false;
+        boolean canWriteFile = false;
+        
+        try {
+            // 1. 测试执行 logcat 命令（读取最近 5 条）
+            String[] cmd = { "logcat", "-d", "-t", "5" };
+            process = Runtime.getRuntime().exec(cmd);
+            
+            // 2. 检查能否读取到数据
+            reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            int lineCount = 0;
+            long startTime = System.currentTimeMillis();
+            
+            // 最多等待 3 秒读取
+            while ((line = reader.readLine()) != null && lineCount < 3) {
+                if (!line.trim().isEmpty()) {
+                    lineCount++;
+                }
+                if (System.currentTimeMillis() - startTime > 3000) {
+                    break;
+                }
+            }
+            
+            canReadLog = lineCount > 0;
+            
+            // 3. 检查能否写入文件
+            File dir = new File(context.getExternalFilesDir(null), LOG_DIR);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            
+            File testFile = new File(dir, ".test_write");
+            try (FileOutputStream fos = new FileOutputStream(testFile)) {
+                fos.write("test".getBytes());
+                fos.flush();
+                canWriteFile = true;
+            }
+            
+            // 清理测试文件
+            if (testFile.exists()) {
+                testFile.delete();
+            }
+            
+        } catch (Exception e) {
+            Log.w(TAG, "Logcat 可用性检测失败: " + e.getMessage());
+            canReadLog = false;
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (Exception ignored) {}
+            }
+            if (process != null) {
+                process.destroy();
+            }
+        }
+        
+        boolean available = canReadLog && canWriteFile;
+        Log.d(TAG, "Logcat 可用性检测结果: " + available + 
+            " (可读: " + canReadLog + ", 可写: " + canWriteFile + ")");
+        
+        return available;
+    }
+    
     // 初始化并开始记录
     public void init(Context context) {
         if (isRunning.get()) return;
         
         this.context = context.getApplicationContext();
+        
+        // 先检测可用性
+        if (!checkAvailability(context)) {
+            Log.w(TAG, "LogcatRecorder 不可用，跳过初始化");
+            this.isAvailable = false;
+            return;
+        }
+        
+        this.isAvailable = true;
         this.executor = Executors.newSingleThreadExecutor();
         this.mainHandler = new Handler(Looper.getMainLooper());
         
@@ -79,6 +166,11 @@ public class LogcatRecorder implements Application.ActivityLifecycleCallbacks {
         startRecording();
     }
     
+    // 是否可用 (上次检测的结果)
+    public boolean isAvailable() {
+        return isAvailable;
+    }
+    
     // 开始记录 Logcat
     private void startRecording() {
         if (!isRunning.compareAndSet(false, true)) return;
@@ -88,7 +180,7 @@ public class LogcatRecorder implements Application.ActivityLifecycleCallbacks {
                 // 准备日志文件
                 File logFile = prepareLogFile();
                 if (logFile == null) {
-                    android.util.Log.e(TAG, "无法创建日志文件");
+                    Log.e(TAG, "无法创建日志文件");
                     stopRecording();
                     return;
                 }
@@ -216,8 +308,10 @@ public class LogcatRecorder implements Application.ActivityLifecycleCallbacks {
         currentFile.renameTo(oldFile);
     }
     
-    // 崩溃时调用: 同步转储所有数据并强制落盘 
+    // 崩溃时调用: 同步转储所有数据并强制落盘
     public void crashFlush() {
+        if (!isAvailable) return; // 如果不可用，直接返回
+        
         isCrashing = true;
         
         try {
@@ -234,10 +328,10 @@ public class LogcatRecorder implements Application.ActivityLifecycleCallbacks {
                 fileOutputStream.getFD().sync(); // 确保数据写入物理存储
             }
             
-            android.util.Log.d(TAG, "崩溃时日志已强制落盘");
+            Log.d(TAG, "崩溃时日志已强制落盘");
             
         } catch (Exception e) {
-            android.util.Log.e(TAG, "Crash flush failed", e);
+            Log.e(TAG, "Crash flush failed", e);
         } finally {
             cleanup();
         }
@@ -253,7 +347,7 @@ public class LogcatRecorder implements Application.ActivityLifecycleCallbacks {
                     timeFormat.format(new Date()) + " ==========\n");
                 flushBuffer();
             } catch (Exception e) {
-                android.util.Log.e(TAG, "停止时写入失败", e);
+                Log.e(TAG, "停止时写入失败", e);
             } finally {
                 cleanup();
             }
@@ -302,17 +396,21 @@ public class LogcatRecorder implements Application.ActivityLifecycleCallbacks {
     
     // 普通刷新 (非崩溃)
     public void flush() {
+        if (!isAvailable) return; // 如果不可用，直接返回
+        
         executor.execute(() -> {
             try {
                 flushBuffer();
             } catch (Exception e) {
-                android.util.Log.e(TAG, "Flush failed", e);
+                Log.e(TAG, "Flush failed", e);
             }
         });
     }
     
     // 获取当前日志文件路径
     public String getLogFilePath() {
+        if (!isAvailable || context == null) return "";
+        
         File dir = new File(context.getExternalFilesDir(null), LOG_DIR);
         File file = new File(dir, LOG_FILE);
         return file.getAbsolutePath();
@@ -328,12 +426,16 @@ public class LogcatRecorder implements Application.ActivityLifecycleCallbacks {
     
     @Override
     public void onActivityResumed(Activity activity) {
-        flush();
+        if (isAvailable) {
+            flush();
+        }
     }
     
     @Override
     public void onActivityPaused(Activity activity) {
-        flush();
+        if (isAvailable) {
+            flush();
+        }
     }
     
     @Override
