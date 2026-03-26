@@ -73,6 +73,11 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler, Applicatio
         saveToFile(crashReport);
         Log.e(TAG, "应用崩溃:\n" + crashReport);
         
+        // 如果 LogcatRecorder 可用，强制刷新日志
+        if (LogcatRecorder.getInstance().isAvailable()) {
+            LogcatRecorder.getInstance().crashFlush();
+        }
+        
         // 延迟 2 秒，确保日志写入完成
         try {
             Thread.sleep(2000);
