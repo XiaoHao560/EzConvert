@@ -91,9 +91,14 @@ android {
                 arguments "-DANDROID_STL=c++_shared"
             }
         }
-        
-        ndk {
-            abiFilters 'arm64-v8a'
+    }
+    
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'arm64-v8a', 'armeabi-v7a'
+            universalApk false
         }
     }
     
@@ -161,15 +166,17 @@ android {
     }
     
     applicationVariants.all { variant ->
-        variant.outputs.all {
+        variant.outputs.all { variantOutput ->
             def appName = "EzConvert"
             def buildType = variant.buildType.name
             def versionName = variant.versionName
             def versionCode = variant.versionCode
             
+            def abiName = variantOutput.getFilter(com.android.build.OutputFile.ABI) ?: "universal"
+            
             def suffix = buildType == "debug" ? "-debug" : ""
             
-            outputFileName = "${appName}${suffix}-v${versionName}(${versionCode}).apk"
+            variantOutput.outputFileName = "${appName}-${abiName}${suffix}-v${versionName}(${versionCode}).apk"
         }
     }
     
