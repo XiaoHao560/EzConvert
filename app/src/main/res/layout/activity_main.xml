@@ -35,11 +35,12 @@
                  android:layout_width="48dp"
                  android:contentDescription="菜单"
                  android:src="@drawable/menu"
+                 android:tooltipText="菜单"
                  android:background="?attr/selectableItemBackgroundBorderless"
                  android:padding="10dp"
                  android:layout_alignParentEnd="true"
-                 android:id="@+id/settings_btn"
-                 android:tint="#666" />
+                 android:tint="#666"
+                 android:id="@+id/settings_btn" />
 
         </RelativeLayout>
 
