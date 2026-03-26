@@ -348,7 +348,6 @@
     <LinearLayout
          android:layout_height="wrap_content"
          android:layout_width="match_parent"
-         android:gravity="end"
          android:background="@color/bg_light"
          android:elevation="8dp"
          android:padding="16dp"
@@ -358,25 +357,48 @@
         <ImageButton
              android:layout_height="48dp"
              android:layout_width="48dp"
-             android:contentDescription="清空日志"
-             android:src="@drawable/delete_outline"
+             android:contentDescription="导出日志"
+             android:src="@drawable/backup"
              android:scaleType="centerInside"
              android:background="@drawable/blue_rounded_bg"
              android:padding="12dp"
              android:tint="#90CAF9"
-             android:id="@+id/btn_clear_log" />
+             android:id="@+id/btn_export_log" />
 
-        <ImageButton
-             android:layout_height="48dp"
-             android:layout_width="48dp"
-             android:contentDescription="复制日志"
-             android:src="@drawable/vector_arrange_below"
-             android:scaleType="centerInside"
-             android:background="@drawable/blue_rounded_bg"
-             android:padding="12dp"
-             android:tint="#90CAF9"
-             android:layout_marginStart="8dp"
-             android:id="@+id/btn_copy_log" />
+        <View
+             android:layout_height="0dp"
+             android:layout_width="0dp"
+             android:layout_weight="1" />
+
+        <LinearLayout
+             android:layout_height="wrap_content"
+             android:layout_width="wrap_content"
+             android:orientation="horizontal">
+
+            <ImageButton
+                 android:layout_height="48dp"
+                 android:layout_width="48dp"
+                 android:contentDescription="清空日志"
+                 android:src="@drawable/delete_outline"
+                 android:scaleType="centerInside"
+                 android:background="@drawable/blue_rounded_bg"
+                 android:padding="12dp"
+                 android:tint="#90CAF9"
+                 android:id="@+id/btn_clear_log" />
+
+            <ImageButton
+                 android:layout_height="48dp"
+                 android:layout_width="48dp"
+                 android:contentDescription="复制日志"
+                 android:src="@drawable/vector_arrange_below"
+                 android:scaleType="centerInside"
+                 android:background="@drawable/blue_rounded_bg"
+                 android:padding="12dp"
+                 android:tint="#90CAF9"
+                 android:layout_marginStart="8dp"
+                 android:id="@+id/btn_copy_log" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
