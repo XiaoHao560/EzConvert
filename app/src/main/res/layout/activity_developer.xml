@@ -237,7 +237,7 @@
                                  android:layout_height="32dp"
                                  android:layout_width="32dp"
                                  android:layout_marginEnd="16dp"
-                                 android:src="@drawable/code_tags"
+                                 android:src="@drawable/round_code"
                                  android:tint="@color/colorPrimary" />
 
                             <LinearLayout

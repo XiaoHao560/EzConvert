@@ -34,7 +34,7 @@
                  android:layout_height="48dp"
                  android:layout_width="48dp"
                  android:contentDescription="菜单"
-                 android:src="@drawable/menu"
+                 android:src="@drawable/round_menu"
                  android:tooltipText="菜单"
                  android:background="?attr/selectableItemBackgroundBorderless"
                  android:padding="10dp"
