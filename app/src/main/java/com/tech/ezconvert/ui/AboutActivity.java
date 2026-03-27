@@ -229,6 +229,8 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                                      boolean isPrerelease,
                                      boolean isDevelopmentVersion, String htmlUrl) {
         runOnUiThread(() -> {
+            this.isDevelopmentVersion = isDevelopmentVersion;
+            
             if (comparisonResult < 0) {
                 // 有新版本可用 - 显示弹窗
                 showUpdateDialog(releaseName, ReleaseNotes, isPrerelease, htmlUrl);
