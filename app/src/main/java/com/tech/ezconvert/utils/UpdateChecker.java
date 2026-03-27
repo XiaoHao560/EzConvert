@@ -60,7 +60,8 @@ public class UpdateChecker {
     
     public interface UpdateCheckListener {
         void onUpdateCheckComplete(int comparisonResult, String latestVersion, 
-                                  String releaseName, boolean isPrerelease, 
+                                  String releaseName, String releaseNotes,
+                                  boolean isPrerelease,
                                   boolean isDevelopmentVersion, String htmlUrl);
         void onUpdateCheckError(String errorMessage);
         void onNoUpdateAvailable();
@@ -289,9 +290,14 @@ public class UpdateChecker {
                 if (comparison < 0) {
                     // 有新版本可用
                     if (!isVersionIgnored(latestVersion)) {
-                        mainHandler.post(() -> 
-                            showUpdateDialog(finalReleaseName, finalReleaseNotes, 
-                                           finalIsPrerelease, finalHtmlUrl));
+                        // 不显示弹窗，而是通知回调
+                        if (updateCheckListener != null) {
+                            mainHandler.post(() ->
+                                updateCheckListener.onUpdateCheckComplete(
+                                    finalComparison, finalLatestVersion, finalReleaseName,
+                                    finalReleaseNotes,
+                                    finalIsPrerelease, finalIsDevelopmentVersion, finalHtmlUrl));
+                        }
                     } else {
                         Log.d(TAG, "版本 " + latestVersion + " 已被用户忽略");
                         if (showToast && isManual) {
@@ -304,7 +310,8 @@ public class UpdateChecker {
                     if (updateCheckListener != null) {
                         mainHandler.post(() -> 
                             updateCheckListener.onUpdateCheckComplete(
-                                finalComparison, finalLatestVersion, finalReleaseName, 
+                                finalComparison, finalLatestVersion, finalReleaseName,
+                                finalReleaseNotes,
                                 finalIsPrerelease, finalIsDevelopmentVersion, finalHtmlUrl));
                     }
                     

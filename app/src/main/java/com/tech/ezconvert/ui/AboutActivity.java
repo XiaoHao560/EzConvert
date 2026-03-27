@@ -225,11 +225,15 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
     // UpdateCheckListener 实现
     @Override
     public void onUpdateCheckComplete(int comparisonResult, String latestVersion, 
-                                     String releaseName, boolean isPrerelease, 
+                                     String releaseName, String ReleaseNotes,
+                                     boolean isPrerelease,
                                      boolean isDevelopmentVersion, String htmlUrl) {
         runOnUiThread(() -> {
             if (comparisonResult < 0) {
-                // 有新版本可用
+                // 有新版本可用 - 显示弹窗
+                showUpdateDialog(releaseName, ReleaseNotes, isPrerelease, htmlUrl);
+                
+                // 更新状态文本
                 String statusText = "有新版本 " + latestVersion;
                 if (isPrerelease) {
                     statusText += " (预发布)";
@@ -290,6 +294,9 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                     developerItem.setVisibility(View.GONE);
                 }
             }
+            
+            // 更新测试按钮和开发者入口的可见性
+            updateTestItemsVisibility();
         });
     }
     
