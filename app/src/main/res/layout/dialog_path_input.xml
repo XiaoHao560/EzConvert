@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     android:layout_height="wrap_content"
+     android:layout_width="match_parent"
+     android:padding="24dp"
+     android:orientation="vertical">
+
+    <com.google.android.material.textfield.TextInputLayout
+         android:layout_height="wrap_content"
+         android:layout_width="match_parent"
+         app:endIconMode="custom"
+         app:hintEnabled="true"
+         app:endIconDrawable="@drawable/folder"
+         app:boxStrokeColor="@color/colorPrimary"
+         app:hintTextColor="@color/colorPrimary"
+         style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+         android:id="@+id/text_input_layout">
+
+        <com.google.android.material.textfield.TextInputEditText
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:hint="点击选择保存目录"
+             android:clickable="true"
+             android:ellipsize="middle"
+             android:textSize="14sp"
+             android:maxLines="2"
+             android:focusable="false"
+             android:id="@+id/path_edit_text" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+         android:layout_height="wrap_content"
+         android:layout_width="match_parent"
+         android:textSize="12sp"
+         android:textColor="@color/text_secondary"
+         android:layout_marginTop="8dp"
+         android:text="文件将保存为 logs_时间戳.zip 格式" />
+
+</LinearLayout>
