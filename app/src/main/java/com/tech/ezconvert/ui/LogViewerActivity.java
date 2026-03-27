@@ -3,21 +3,35 @@ package com.tech.ezconvert.ui;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.DocumentsContract;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.*;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.recyclerview.widget.*;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.tech.ezconvert.BuildConfig;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.LogManager;
 import com.tech.ezconvert.utils.ToastUtils;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,6 +41,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class LogViewerActivity extends BaseActivity {
+
+    private static final String PREFS_NAME = "LogExportPrefs";
+    private static final String KEY_EXPORT_URI = "export_tree_uri";
 
     @Override
     protected int getTitleContainerId() {
@@ -71,6 +88,12 @@ public class LogViewerActivity extends BaseActivity {
     private TextView ffmpegLogCountText;
     private boolean isFfmpegLogExpanded = false;  // 默认收起
 
+    // SAF 相关
+    private ActivityResultLauncher<Uri> openDocumentTreeLauncher;
+    private TextInputEditText pathEditText;
+    private Uri selectedTreeUri;
+    private SharedPreferences prefs;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,6 +107,10 @@ public class LogViewerActivity extends BaseActivity {
         }
 
         logManager = LogManager.getInstance(this);
+        prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        
+        // 初始化 SAF 启动器
+        initOpenDocumentTreeLauncher();
         
         initViews(); // 初始化视图
         setupListeners(); // 设置监听器
@@ -117,6 +144,104 @@ public class LogViewerActivity extends BaseActivity {
                 runOnUiThread(() -> refreshLogDisplay());
             }
         });
+    }
+
+    // 初始化目录选择启动器
+    private void initOpenDocumentTreeLauncher() {
+        openDocumentTreeLauncher = registerForActivityResult(
+            new ActivityResultContracts.OpenDocumentTree(),
+            uri -> {
+                if (uri != null && pathEditText != null) {
+                    selectedTreeUri = uri;
+                    // 获取持久化权限
+                    getContentResolver().takePersistableUriPermission(
+                        uri, 
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION | 
+                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    );
+                    // 转换为可读路径显示
+                    String readablePath = getReadablePathFromUri(uri);
+                    pathEditText.setText(readablePath);
+                }
+            }
+        );
+    }
+
+    // 将 URI 转换为可读路径
+    private String getReadablePathFromUri(Uri uri) {
+        String path = getPathFromUri(uri);
+        if (path != null && !path.isEmpty()) {
+            return path;
+        }
+        
+        // 备用方案: 使用 DocumentFile 名称
+        DocumentFile docFile = DocumentFile.fromTreeUri(this, uri);
+        if (docFile != null) {
+            String displayName = docFile.getName();
+            if (displayName != null) {
+                // 尝试判断存储位置
+                String uriString = uri.toString();
+                if (uriString.contains("primary")) {
+                    return "内部存储/" + displayName;
+                } else {
+                    // 尝试提取 SD 卡名称
+                    String volumeName = extractVolumeName(uriString);
+                    return volumeName + "/" + displayName;
+                }
+            }
+        }
+        
+        return uri.toString();
+    }
+
+    // 通过 DocumentsContract 查询真实路径
+    private String getPathFromUri(Uri uri) {
+        if (DocumentsContract.isTreeUri(uri)) {
+            String documentId = DocumentsContract.getTreeDocumentId(uri);
+            // documentId 格式如 "primary:Download/简转" 或 "1234-5678:logs"
+            
+            if (documentId.contains(":")) {
+                String[] parts = documentId.split(":", 2);
+                String volumeId = parts[0];  // "primary" 或 "1234-5678"
+                String relativePath = parts.length > 1 ? parts[1] : "";  // "Download/简转"
+                
+                // 转换为可读格式
+                if ("primary".equals(volumeId)) {
+                    return "storage/emulated/0/" + relativePath;
+                } else {
+                    // SD 卡或其他存储
+                    return "storage/" + volumeId + "/" + relativePath;
+                }
+            }
+        }
+        return null;
+    }
+
+    // 从 URI 字符串提取卷标名称
+    private String extractVolumeName(String uriString) {
+        // 尝试从 URI 提取 volume ID
+        if (uriString.contains("/tree/")) {
+            String[] parts = uriString.split("/tree/");
+            if (parts.length > 1) {
+                String treePart = parts[1];
+                if (treePart.contains("%3A")) {  // %3A 是 : 的 URL 编码
+                    String volumeId = treePart.split("%3A")[0];
+                    // 解码
+                    try {
+                        volumeId = URLDecoder.decode(volumeId, "UTF-8");
+                    } catch (Exception e) {
+                        // 忽略解码错误
+                    }
+                    
+                    if ("primary".equals(volumeId)) {
+                        return "内部存储";
+                    } else {
+                        return "SD卡(" + volumeId + ")";
+                    }
+                }
+            }
+        }
+        return "外部存储";
     }
 
     // 应用日志
@@ -267,7 +392,7 @@ public class LogViewerActivity extends BaseActivity {
     }
 
     private void refreshLogDisplay() {
-        //应用日志
+        // 应用日志
         List<String> appLogs = logManager.getAppLogsFromMemory();
         appLogAdapter.updateData(appLogs);
         
@@ -291,7 +416,6 @@ public class LogViewerActivity extends BaseActivity {
     private void copyAllLogs() {
         StringBuilder sb = new StringBuilder();
         
-        // 添加设备信息
         sb.append("=== 设备信息 ===\n");
         sb.append(deviceNameText.getText().toString()).append("\n");
         sb.append(deviceModelText.getText().toString()).append("\n");
@@ -313,110 +437,170 @@ public class LogViewerActivity extends BaseActivity {
         ToastUtils.show(this, "日志已复制到剪贴板");
     }
 
-    // 显示导出确认对话框
+    // 根据是否已保存路径决定显示哪个对话框
     private void exportLogsToZip() {
-        new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_MaterialAlertDialog)
-            .setTitle("导出日志")
-            .setMessage("此操作将把应用的所有日志文件（包括崩溃日志、运行日志、FFmpeg 日志等）压缩成一个 ZIP 文件，保存到手机的 Download/简转/logs/ 目录下。\n\n是否继续？")
-            .setPositiveButton("确认导出", (dialog, which) -> {
-                // 用户确认后执行导出
-                performExportLogs();
-            })
-            .setNegativeButton("取消", (dialog, which) -> {
-                // 用户取消，什么都不做
-                dialog.dismiss();
-            })
-            .setCancelable(true)
-            .show();
-    }
-
-    // 实际执行日志导出 (后台线程)
-    private void performExportLogs() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    // 源日志目录：Android/data/包名/files/logs/
-                    File logDir = new File(getExternalFilesDir(null), "logs");
-                    if (!logDir.exists() || !logDir.isDirectory()) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                ToastUtils.show(LogViewerActivity.this, "日志目录不存在");
-                            }
-                        });
-                        return;
-                    }
-
-                    // 目标目录：Download/简转/logs/
-                    File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-                    File destDir = new File(downloadDir, "简转/logs");
-                    if (!destDir.exists()) {
-                        boolean created = destDir.mkdirs();
-                        if (!created) {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    ToastUtils.show(LogViewerActivity.this, "无法创建目标目录");
-                                }
-                            });
-                            return;
-                        }
-                    }
-
-                    // 生成带时间戳的文件名
-                    String timeStamp = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss", Locale.getDefault()).format(new Date());
-                    final File zipFile = new File(destDir, "logs_" + timeStamp + ".zip");
-
-                    // 执行压缩（递归包含子目录）
-                    zipDirectory(logDir, zipFile);
-
-                    // 成功提示
-                    final String successPath = zipFile.getAbsolutePath();
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ToastUtils.show(LogViewerActivity.this, "日志已导出到:\n" + successPath);
-                        }
-                    });
-                    
-                } catch (final Exception e) {
-                    e.printStackTrace();
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ToastUtils.show(LogViewerActivity.this, "导出失败: " + e.getMessage());
-                        }
-                    });
-                }
-            }
-        }).start();
-    }
-
-    // 压缩整个目录
-    private void zipDirectory(File sourceDir, File zipFile) throws IOException {
-        FileOutputStream fos = null;
-        ZipOutputStream zos = null;
-        try {
-            fos = new FileOutputStream(zipFile);
-            zos = new ZipOutputStream(fos);
-            zipFile(sourceDir, sourceDir.getName(), zos);
-        } finally {
-            if (zos != null) {
-                try {
-                    zos.close();
-                } catch (IOException ignored) {}
-            }
-            if (fos != null) {
-                try {
-                    fos.close();
-                } catch (IOException ignored) {}
+        String savedUriString = prefs.getString(KEY_EXPORT_URI, null);
+        
+        if (savedUriString == null) {
+            // 第一次使用，显示路径选择对话框
+            showPathSelectionDialog();
+        } else {
+            // 已有保存路径，显示确认对话框
+            Uri savedUri = Uri.parse(savedUriString);
+            // 验证权限是否仍然有效
+            if (isUriPermissionValid(savedUri)) {
+                showExportConfirmDialog(savedUri);
+            } else {
+                // 权限失效，重新选择
+                prefs.edit().remove(KEY_EXPORT_URI).apply();
+                showPathSelectionDialog();
             }
         }
     }
 
-    // 递归压缩文件/目录
-    private void zipFile(File fileToZip, String fileName, ZipOutputStream zos) throws IOException {
+    // 检查 URI 权限是否有效
+    private boolean isUriPermissionValid(Uri uri) {
+        try {
+            DocumentFile docFile = DocumentFile.fromTreeUri(this, uri);
+            return docFile != null && docFile.canWrite();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    // 显示路径选择对话框（首次使用或点击修改路径）
+    private void showPathSelectionDialog() {
+        selectedTreeUri = null;
+        
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_path_input, null);
+        TextInputLayout textInputLayout = dialogView.findViewById(R.id.text_input_layout);
+        pathEditText = dialogView.findViewById(R.id.path_edit_text);
+        
+        textInputLayout.setHint("保存路径");
+        pathEditText.setText("点击选择保存目录");
+        pathEditText.setFocusable(false);
+        pathEditText.setClickable(true);
+        
+        pathEditText.setOnClickListener(v -> {
+            openDocumentTreeLauncher.launch(null);
+        });
+        
+        textInputLayout.setEndIconMode(TextInputLayout.END_ICON_CUSTOM);
+        textInputLayout.setEndIconOnClickListener(v -> {
+            openDocumentTreeLauncher.launch(null);
+        });
+
+        MaterialAlertDialogBuilder dialogBuilder = new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_MaterialAlertDialog)
+            .setTitle("导出日志")
+            .setMessage("请选择保存日志文件的目录")
+            .setView(dialogView)
+            .setPositiveButton("保存", (dialog, which) -> {
+                if (selectedTreeUri == null) {
+                    ToastUtils.show(this, "请先选择保存目录");
+                    return;
+                }
+                // 保存路径到 SharedPreferences
+                prefs.edit().putString(KEY_EXPORT_URI, selectedTreeUri.toString()).apply();
+                performExportToTreeUri(selectedTreeUri);
+            })
+            .setNegativeButton("取消", null);
+            
+        AlertDialog dialog = dialogBuilder.create();
+        dialog.show();
+        
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+        
+        pathEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                boolean hasPath = s != null && !s.toString().equals("点击选择保存目录");
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(hasPath);
+            }
+            
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+
+    // 显示导出确认对话框（已有路径时）
+    private void showExportConfirmDialog(Uri savedUri) {
+        String readablePath = getReadablePathFromUri(savedUri);
+        
+        new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_MaterialAlertDialog)
+            .setTitle("导出日志")
+            .setMessage("日志将导出到以下目录：\n\n" + readablePath + "\n\n文件格式：logs_时间戳.zip")
+            .setPositiveButton("确认导出", (dialog, which) -> {
+                performExportToTreeUri(savedUri);
+            })
+            .setNegativeButton("取消", null)
+            .setNeutralButton("修改路径", (dialog, which) -> {
+                // 清除保存的路径并显示选择对话框
+                prefs.edit().remove(KEY_EXPORT_URI).apply();
+                showPathSelectionDialog();
+            })
+            .show();
+    }
+
+    // 执行实际导出到指定树 URI
+    private void performExportToTreeUri(Uri treeUri) {
+        new Thread(() -> {
+            try {
+                // 源日志目录：Android/data/包名/files/logs/
+                File logDir = new File(getExternalFilesDir(null), "logs");
+                if (!logDir.exists() || !logDir.isDirectory()) {
+                    runOnUiThread(() -> ToastUtils.show(this, "日志目录不存在"));
+                    return;
+                }
+
+                DocumentFile pickedDir = DocumentFile.fromTreeUri(this, treeUri);
+                if (pickedDir == null || !pickedDir.canWrite()) {
+                    runOnUiThread(() -> ToastUtils.show(this, "无法访问所选目录"));
+                    return;
+                }
+
+                // 生成带时间戳的文件名
+                String timeStamp = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss", Locale.getDefault()).format(new Date());
+                String fileName = "logs_" + timeStamp + ".zip";
+
+                DocumentFile newFile = pickedDir.createFile("application/zip", fileName);
+                if (newFile == null) {
+                    runOnUiThread(() -> ToastUtils.show(this, "无法创建文件"));
+                    return;
+                }
+
+                // 打开输出流并写入
+                try (OutputStream os = getContentResolver().openOutputStream(newFile.getUri())) {
+                    if (os == null) {
+                        runOnUiThread(() -> ToastUtils.show(this, "无法打开文件输出流"));
+                        return;
+                    }
+                    
+                    // 压缩日志目录到输出流
+                    zipDirectoryToStream(logDir, os);
+                }
+
+                final String successPath = pickedDir.getName() + "/" + fileName;
+                runOnUiThread(() -> ToastUtils.show(this, "日志已导出到:\n" + successPath));
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(() -> ToastUtils.show(this, "导出失败: " + e.getMessage()));
+            }
+        }).start();
+    }
+
+    // 压缩目录到输出流（用于 SAF）
+    private void zipDirectoryToStream(File sourceDir, OutputStream outputStream) throws IOException {
+        try (ZipOutputStream zos = new ZipOutputStream(outputStream)) {
+            zipFileToStream(sourceDir, sourceDir.getName(), zos);
+        }
+    }
+
+    // 递归压缩文件到流
+    private void zipFileToStream(File fileToZip, String fileName, ZipOutputStream zos) throws IOException {
         // 跳过隐藏文件
         if (fileToZip.isHidden()) {
             return;
@@ -432,16 +616,14 @@ public class LogViewerActivity extends BaseActivity {
             File[] children = fileToZip.listFiles();
             if (children != null) {
                 for (File childFile : children) {
-                    zipFile(childFile, fileName + "/" + childFile.getName(), zos);
+                    zipFileToStream(childFile, fileName + "/" + childFile.getName(), zos);
                 }
             }
             return;
         }
         
         // 压缩文件
-        FileInputStream fis = null;
-        try {
-            fis = new FileInputStream(fileToZip);
+        try (FileInputStream fis = new FileInputStream(fileToZip)) {
             ZipEntry zipEntry = new ZipEntry(fileName);
             zos.putNextEntry(zipEntry);
             
@@ -451,12 +633,6 @@ public class LogViewerActivity extends BaseActivity {
                 zos.write(buffer, 0, length);
             }
             zos.closeEntry();
-        } finally {
-            if (fis != null) {
-                try {
-                    fis.close();
-                } catch (IOException ignored) {}
-            }
         }
     }
 
