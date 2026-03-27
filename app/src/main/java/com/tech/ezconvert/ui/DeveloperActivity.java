@@ -149,7 +149,7 @@ public class DeveloperActivity extends BaseActivity {
         
         // 构建对话框
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_MaterialAlertDialog)
-            .setIcon(R.drawable.code_tags)
+            .setIcon(R.drawable.round_code)
             .setTitle("FFmpeg 编解码器信息")
             .setView(scrollView)
             .setPositiveButton("关闭", null)
