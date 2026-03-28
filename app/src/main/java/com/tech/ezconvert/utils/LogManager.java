@@ -6,6 +6,7 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 import com.arthenica.ffmpegkit.Level;
+import org.json.JSONObject;
 import java.io.*;
 import java.lang.annotation.Native;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class LogManager {
     
     private static final String TAG = "LogManager";
+    private static final String CONFIG_FILE = "config/settings.json"; // 配置文件路径
     private static LogManager instance;
     
     private Context context;
@@ -109,7 +111,41 @@ public class LogManager {
 
     private LogManager(Context context) {
         this.context = context.getApplicationContext();
+        // 在初始化文件之前先读取配置（避免记录启动时的 debug 日志）
+        loadLogLevelFromConfig();
         init();
+    }
+
+    // 直接从 JSON 配置文件读取日志级别，避免依赖 ConfigManager
+    private void loadLogLevelFromConfig() {
+        try {
+            File configFile = new File(context.getExternalFilesDir(null), CONFIG_FILE);
+            if (!configFile.exists()) {
+                // 尝试内部存储
+                configFile = new File(context.getFilesDir(), CONFIG_FILE);
+            }
+            
+            if (configFile.exists()) {
+                StringBuilder jsonBuilder = new StringBuilder();
+                BufferedReader reader = new BufferedReader(new FileReader(configFile));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    jsonBuilder.append(line);
+                }
+                reader.close();
+                
+                JSONObject json = new JSONObject(jsonBuilder.toString());
+                if (json.has("log_settings")) {
+                    JSONObject logSettings = json.getJSONObject("log_settings");
+                    if (logSettings.has("verbose")) {
+                        verboseLogging = logSettings.getBoolean("verbose");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // 读取失败时使用默认值（详细模式）
+            verboseLogging = true;
+        }
     }
 
     private void init() {
@@ -120,7 +156,10 @@ public class LogManager {
             appLogFile = new File(logDir, "EzConvert.log");
             ffmpegLogFile = new File(logDir, "FFmpeg.log");
             
-            android.util.Log.d(TAG, "日志管理器初始化完成");
+            // 只在详细模式下输出这行初始化日志
+            if (verboseLogging) {
+                android.util.Log.d(TAG, "日志管理器初始化完成");
+            }
         } catch (Throwable e) {
             android.util.Log.e(TAG, "LogManager 初始化失败", e);
         }
