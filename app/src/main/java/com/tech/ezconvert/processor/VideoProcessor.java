@@ -1,6 +1,7 @@
 package com.tech.ezconvert.processor;
 
 import android.content.Context;
+import com.tech.ezconvert.utils.CacheManager;
 import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.ui.TranscodeSettingsActivity;
 import com.tech.ezconvert.utils.FFmpegUtil;
@@ -9,9 +10,46 @@ import java.util.ArrayList;
 
 public class VideoProcessor {
     
+    // 包装回调，确保缓存文件被清理
+    private static FFmpegUtil.FFmpegCallback wrapCallback(final FFmpegUtil.FFmpegCallback original, 
+                                                         final String cachePath, 
+                                                         final boolean isFromCache) {
+        if (!isFromCache || original == null) return original;
+        
+        return new FFmpegUtil.FFmpegCallback() {
+            @Override
+            public void onProgress(int progress, long time) {
+                original.onProgress(progress, time);
+            }
+            
+            @Override
+            public void onComplete(boolean success, String message) {
+                CacheManager.releaseCacheFile(cachePath);
+                original.onComplete(success, message);
+            }
+            
+            @Override
+            public void onError(String error) {
+                CacheManager.releaseCacheFile(cachePath);
+                original.onError(error);
+            }
+        };
+    }
+    
     // 视频转换
     public static void convertVideo(String inputPath, String outputPath, 
                                    String format, int volume, FFmpegUtil.FFmpegCallback callback, Context context) {
+        
+        // 检查并准备文件路径
+        CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath);
+        if (accessResult == null) {
+            callback.onError("无法访问输入文件，可能已被删除或无权限");
+            return;
+        }
+        
+        final String usablePath = accessResult.usablePath;
+        final boolean isFromCache = accessResult.isFromCache;
+        FFmpegUtil.FFmpegCallback wrappedCallback = wrapCallback(callback, usablePath, isFromCache);
         
         boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
         
@@ -21,9 +59,9 @@ public class VideoProcessor {
          * 二：转封装/转码为目标格式
          */
         if (hardwareAcceleration && (format.equalsIgnoreCase("mkv"))) {
-            convertVideoTwoStep(inputPath, outputPath, format, volume, callback, context);
+            convertVideoTwoStep(usablePath, outputPath, format, volume, wrappedCallback, context);
         } else {
-            convertVideoDirect(inputPath, outputPath, format, volume, callback, context);
+            convertVideoDirect(usablePath, outputPath, format, volume, wrappedCallback, context);
         }
     }
     
@@ -294,6 +332,19 @@ public class VideoProcessor {
     // 视频压缩
     public static void compressVideo(String inputPath, String outputPath, 
                                     int quality, int volume, FFmpegUtil.FFmpegCallback callback, Context context) {
+        
+        // 检查并准备文件路径
+        CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath);
+        if (accessResult == null) {
+            callback.onError("无法访问输入文件");
+            return;
+        }
+        
+        final String usablePath = accessResult.usablePath;
+        final boolean isFromCache = accessResult.isFromCache;
+        FFmpegUtil.FFmpegCallback wrappedCallback = wrapCallback(callback, usablePath, isFromCache);
+        
+        // 从原始路径获取文件名用于日志
         String fileName = new File(inputPath).getName();
         
         // quality: 0-100, 0最高质量
@@ -308,7 +359,7 @@ public class VideoProcessor {
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
-        commandList.add(inputPath);
+        commandList.add(usablePath);
         
         if (multithreading) {
             commandList.add("-threads");
@@ -344,13 +395,25 @@ public class VideoProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("VideoProcessor", "压缩命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback, inputPath, fileName);
+        FFmpegUtil.executeCommand(command, wrappedCallback, usablePath, fileName);
     }
     
     // 视频裁剪
     public static void cutVideo(String inputPath, String outputPath,
                                String startTime, String duration, int volume,
                                FFmpegUtil.FFmpegCallback callback, Context context) {
+        
+        // 检查并准备文件路径
+        CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath);
+        if (accessResult == null) {
+            callback.onError("无法访问输入文件");
+            return;
+        }
+        
+        final String usablePath = accessResult.usablePath;
+        final boolean isFromCache = accessResult.isFromCache;
+        FFmpegUtil.FFmpegCallback wrappedCallback = wrapCallback(callback, usablePath, isFromCache);
+        
         String fileName = new File(inputPath).getName();
         
         boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
@@ -358,7 +421,7 @@ public class VideoProcessor {
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
-        commandList.add(inputPath);
+        commandList.add(usablePath);
         
         if (multithreading) {
             commandList.add("-threads");
@@ -397,13 +460,51 @@ public class VideoProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("VideoProcessor", "裁剪命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback, inputPath, fileName);
+        FFmpegUtil.executeCommand(command, wrappedCallback, usablePath, fileName);
     }
     
     // 添加水印
     public static void addWatermark(String inputPath, String outputPath,
                                    String watermarkPath, String position,
                                    FFmpegUtil.FFmpegCallback callback, Context context) {
+        
+        // 检查并准备主视频文件路径
+        CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath);
+        if (accessResult == null) {
+            callback.onError("无法访问输入视频文件");
+            return;
+        }
+        
+        final String usablePath = accessResult.usablePath;
+        final boolean isFromCache = accessResult.isFromCache;
+        
+        // 检查水印文件路径（水印也需要可访问）
+        CacheManager.AccessResult watermarkResult = CacheManager.prepareFileForProcessing(context, watermarkPath);
+        final String usableWatermarkPath = (watermarkResult != null) ? watermarkResult.usablePath : watermarkPath;
+        final boolean watermarkFromCache = (watermarkResult != null) && watermarkResult.isFromCache;
+        
+        // 包装回调，清理两个可能的缓存
+        FFmpegUtil.FFmpegCallback wrappedCallback = new FFmpegUtil.FFmpegCallback() {
+            @Override
+            public void onProgress(int progress, long time) {
+                callback.onProgress(progress, time);
+            }
+            
+            @Override
+            public void onComplete(boolean success, String message) {
+                if (isFromCache) CacheManager.releaseCacheFile(usablePath);
+                if (watermarkFromCache) CacheManager.releaseCacheFile(usableWatermarkPath);
+                callback.onComplete(success, message);
+            }
+            
+            @Override
+            public void onError(String error) {
+                if (isFromCache) CacheManager.releaseCacheFile(usablePath);
+                if (watermarkFromCache) CacheManager.releaseCacheFile(usableWatermarkPath);
+                callback.onError(error);
+            }
+        };
+        
         String fileName = new File(inputPath).getName();
         
         String overlay;
@@ -432,9 +533,9 @@ public class VideoProcessor {
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
-        commandList.add(inputPath);
+        commandList.add(usablePath);
         commandList.add("-i");
-        commandList.add(watermarkPath);
+        commandList.add(usableWatermarkPath);
         
         if (multithreading) {
             commandList.add("-threads");
@@ -463,12 +564,24 @@ public class VideoProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("VideoProcessor", "水印命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback, inputPath, fileName);
+        FFmpegUtil.executeCommand(command, wrappedCallback, usablePath, fileName);
     }
     
     // 调整视频分辨率
     public static void resizeVideo(String inputPath, String outputPath,
                                   int width, int height, FFmpegUtil.FFmpegCallback callback, Context context) {
+        
+        // 检查并准备文件路径
+        CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath);
+        if (accessResult == null) {
+            callback.onError("无法访问输入文件");
+            return;
+        }
+        
+        final String usablePath = accessResult.usablePath;
+        final boolean isFromCache = accessResult.isFromCache;
+        FFmpegUtil.FFmpegCallback wrappedCallback = wrapCallback(callback, usablePath, isFromCache);
+        
         String fileName = new File(inputPath).getName();
         String scaleFilter = "scale=" + width + ":" + height + ":flags=lanczos";
         
@@ -477,7 +590,7 @@ public class VideoProcessor {
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
-        commandList.add(inputPath);
+        commandList.add(usablePath);
         
         if (multithreading) {
             commandList.add("-threads");
@@ -506,19 +619,31 @@ public class VideoProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("VideoProcessor", "调整分辨率命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback, inputPath, fileName);
+        FFmpegUtil.executeCommand(command, wrappedCallback, usablePath, fileName);
     }
     
     // 提取视频帧（截图）
     public static void extractFrame(String inputPath, String outputPath,
                                    String timestamp, FFmpegUtil.FFmpegCallback callback, Context context) {
+        
+        // 检查并准备文件路径
+        CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath);
+        if (accessResult == null) {
+            callback.onError("无法访问输入文件");
+            return;
+        }
+        
+        final String usablePath = accessResult.usablePath;
+        final boolean isFromCache = accessResult.isFromCache;
+        FFmpegUtil.FFmpegCallback wrappedCallback = wrapCallback(callback, usablePath, isFromCache);
+        
         String fileName = new File(inputPath).getName();
         
         boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
-        commandList.add(inputPath);
+        commandList.add(usablePath);
         
         if (multithreading) {
             commandList.add("-threads");
@@ -536,12 +661,54 @@ public class VideoProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("VideoProcessor", "截图命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback, inputPath, fileName);
+        FFmpegUtil.executeCommand(command, wrappedCallback, usablePath, fileName);
     }
     
     // 合并视频和音频
     public static void mergeVideoAudio(String videoPath, String audioPath,
                                       String outputPath, FFmpegUtil.FFmpegCallback callback, Context context) {
+        
+        // 检查并准备视频文件路径
+        CacheManager.AccessResult videoResult = CacheManager.prepareFileForProcessing(context, videoPath);
+        if (videoResult == null) {
+            callback.onError("无法访问视频文件");
+            return;
+        }
+        
+        // 检查并准备音频文件路径
+        CacheManager.AccessResult audioResult = CacheManager.prepareFileForProcessing(context, audioPath);
+        if (audioResult == null) {
+            callback.onError("无法访问音频文件");
+            return;
+        }
+        
+        final String usableVideoPath = videoResult.usablePath;
+        final String usableAudioPath = audioResult.usablePath;
+        final boolean videoFromCache = videoResult.isFromCache;
+        final boolean audioFromCache = audioResult.isFromCache;
+        
+        // 包装回调，清理两个可能的缓存
+        FFmpegUtil.FFmpegCallback wrappedCallback = new FFmpegUtil.FFmpegCallback() {
+            @Override
+            public void onProgress(int progress, long time) {
+                callback.onProgress(progress, time);
+            }
+            
+            @Override
+            public void onComplete(boolean success, String message) {
+                if (videoFromCache) CacheManager.releaseCacheFile(usableVideoPath);
+                if (audioFromCache) CacheManager.releaseCacheFile(usableAudioPath);
+                callback.onComplete(success, message);
+            }
+            
+            @Override
+            public void onError(String error) {
+                if (videoFromCache) CacheManager.releaseCacheFile(usableVideoPath);
+                if (audioFromCache) CacheManager.releaseCacheFile(usableAudioPath);
+                callback.onError(error);
+            }
+        };
+        
         String fileName = new File(videoPath).getName();
         
         boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
@@ -549,9 +716,9 @@ public class VideoProcessor {
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
-        commandList.add(videoPath);
+        commandList.add(usableVideoPath);
         commandList.add("-i");
-        commandList.add(audioPath);
+        commandList.add(usableAudioPath);
         
         if (multithreading) {
             commandList.add("-threads");
@@ -580,7 +747,7 @@ public class VideoProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("VideoProcessor", "合并音视频命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback, videoPath, fileName);
+        FFmpegUtil.executeCommand(command, wrappedCallback, usableVideoPath, fileName);
     }
     
     // 获取文件扩展名

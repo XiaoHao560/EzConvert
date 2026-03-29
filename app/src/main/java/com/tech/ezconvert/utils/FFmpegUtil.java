@@ -308,6 +308,9 @@ public class FFmpegUtil {
                 // 清理存储的时长
                 sessionDurations.remove(session.getSessionId());
                 
+                // 清理临时文件
+                cleanupTempFiles(tempInputPath);
+                
                 // 转换完成后删除临时文件
                 if (tempInputPath != null && tempInputPath.contains("/shared_files/")) {
                     deleteTempFile(tempInputPath);
@@ -381,6 +384,15 @@ public class FFmpegUtil {
                 logManager.appendFfmpegLog("无法启动FFmpeg进程", Level.AV_LOG_FATAL);
             }
             currentFileName = "";
+        }
+    }
+    
+    private static void cleanupTempFiles(String tempInputPath) {
+        if (tempInputPath == null) return;
+        
+        // 清理 FileUtils 创建的 shared_files 缓存
+        if (tempInputPath.contains("/shared_files/")) {
+            deleteTempFile(tempInputPath);
         }
     }
 

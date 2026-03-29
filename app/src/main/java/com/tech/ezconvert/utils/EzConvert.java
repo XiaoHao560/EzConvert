@@ -19,6 +19,11 @@ public class EzConvert extends Application {
         // 初始化崩溃捕获
         CrashHandler.getInstance().init(this);
         
+        // 清理可能残留的处理缓存 (后台线程)
+        new Thread(() -> {
+            CacheManager.cleanupAllCache(this);
+        }).start();
+        
         // 初始化 mmap 日志（4MB 缓冲区，单文件 50MB 滚动）
         File logDir = new File(getExternalFilesDir(null), "logs");
         NativeLogWriter.init(logDir.getAbsolutePath(), 50);

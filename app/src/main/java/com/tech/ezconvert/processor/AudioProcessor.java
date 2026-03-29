@@ -1,6 +1,7 @@
 package com.tech.ezconvert.processor;
 
 import android.content.Context;
+import com.tech.ezconvert.utils.CacheManager;
 import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.ui.TranscodeSettingsActivity;
 import com.tech.ezconvert.utils.FFmpegUtil;
@@ -9,9 +10,47 @@ import java.util.ArrayList;
 
 public class AudioProcessor {
     
+    // 包装回调，确保缓存文件被清理
+    private static FFmpegUtil.FFmpegCallback wrapCallback(final FFmpegUtil.FFmpegCallback original, 
+                                                         final String cachePath, 
+                                                         final boolean isFromCache) {
+        if (!isFromCache || original == null) return original;
+        
+        return new FFmpegUtil.FFmpegCallback() {
+            @Override
+            public void onProgress(int progress, long time) {
+                original.onProgress(progress, time);
+            }
+            
+            @Override
+            public void onComplete(boolean success, String message) {
+                CacheManager.releaseCacheFile(cachePath);
+                original.onComplete(success, message);
+            }
+            
+            @Override
+            public void onError(String error) {
+                CacheManager.releaseCacheFile(cachePath);
+                original.onError(error);
+            }
+        };
+    }
+    
     // 音频转换
     public static void convertAudio(String inputPath, String outputPath,
                                    String format, int volume, FFmpegUtil.FFmpegCallback callback, Context context) {
+        
+        // 检查并准备文件路径
+        CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath);
+        if (accessResult == null) {
+            callback.onError("无法访问输入文件");
+            return;
+        }
+        
+        final String usablePath = accessResult.usablePath;
+        final boolean isFromCache = accessResult.isFromCache;
+        FFmpegUtil.FFmpegCallback wrappedCallback = wrapCallback(callback, usablePath, isFromCache);
+        
         String fileName = new File(inputPath).getName();
         String outputFile = outputPath + "." + getAudioExtension(format);
         
@@ -19,7 +58,7 @@ public class AudioProcessor {
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
-        commandList.add(inputPath);
+        commandList.add(usablePath);
         
         if (multithreading) {
             commandList.add("-threads");
@@ -95,12 +134,24 @@ public class AudioProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("AudioProcessor", "音频转换命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback, inputPath, fileName);
+        FFmpegUtil.executeCommand(command, wrappedCallback, usablePath, fileName);
     }
     
     // 音频提取（从视频）
     public static void extractAudioFromVideo(String inputPath, String outputPath,
                                            String format, int volume, FFmpegUtil.FFmpegCallback callback, Context context) {
+        
+        // 检查并准备文件路径
+        CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath);
+        if (accessResult == null) {
+            callback.onError("无法访问输入文件");
+            return;
+        }
+        
+        final String usablePath = accessResult.usablePath;
+        final boolean isFromCache = accessResult.isFromCache;
+        FFmpegUtil.FFmpegCallback wrappedCallback = wrapCallback(callback, usablePath, isFromCache);
+        
         String fileName = new File(inputPath).getName();
         String outputFile = outputPath + "." + getAudioExtension(format);
         
@@ -108,7 +159,7 @@ public class AudioProcessor {
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
-        commandList.add(inputPath);
+        commandList.add(usablePath);
         
         if (multithreading) {
             commandList.add("-threads");
@@ -179,19 +230,31 @@ public class AudioProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("AudioProcessor", "音频提取命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback, inputPath, fileName);
+        FFmpegUtil.executeCommand(command, wrappedCallback, usablePath, fileName);
     }
     
     // 调整音频质量
     public static void adjustAudioQuality(String inputPath, String outputPath,
                                         int bitrate, FFmpegUtil.FFmpegCallback callback, Context context) {
+        
+        // 检查并准备文件路径
+        CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath);
+        if (accessResult == null) {
+            callback.onError("无法访问输入文件");
+            return;
+        }
+        
+        final String usablePath = accessResult.usablePath;
+        final boolean isFromCache = accessResult.isFromCache;
+        FFmpegUtil.FFmpegCallback wrappedCallback = wrapCallback(callback, usablePath, isFromCache);
+        
         String fileName = new File(inputPath).getName();
         
         boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
-        commandList.add(inputPath);
+        commandList.add(usablePath);
         
         if (multithreading) {
             commandList.add("-threads");
@@ -208,20 +271,32 @@ public class AudioProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("AudioProcessor", "调整音频质量命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback, inputPath, fileName);
+        FFmpegUtil.executeCommand(command, wrappedCallback, usablePath, fileName);
     }
     
     // 音频裁剪
     public static void cutAudio(String inputPath, String outputPath,
                                String startTime, String duration, int volume,
                                FFmpegUtil.FFmpegCallback callback, Context context) {
+        
+        // 检查并准备文件路径
+        CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath);
+        if (accessResult == null) {
+            callback.onError("无法访问输入文件");
+            return;
+        }
+        
+        final String usablePath = accessResult.usablePath;
+        final boolean isFromCache = accessResult.isFromCache;
+        FFmpegUtil.FFmpegCallback wrappedCallback = wrapCallback(callback, usablePath, isFromCache);
+        
         String fileName = new File(inputPath).getName();
         
         boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
-        commandList.add(inputPath);
+        commandList.add(usablePath);
         
         if (multithreading) {
             commandList.add("-threads");
@@ -247,20 +322,32 @@ public class AudioProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("AudioProcessor", "音频裁剪命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback, inputPath, fileName);
+        FFmpegUtil.executeCommand(command, wrappedCallback, usablePath, fileName);
     }
     
     // 音频淡入淡出
     public static void fadeAudio(String inputPath, String outputPath,
                                 String fadeIn, String fadeOut,
                                 FFmpegUtil.FFmpegCallback callback, Context context) {
+        
+        // 检查并准备文件路径
+        CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath);
+        if (accessResult == null) {
+            callback.onError("无法访问输入文件");
+            return;
+        }
+        
+        final String usablePath = accessResult.usablePath;
+        final boolean isFromCache = accessResult.isFromCache;
+        FFmpegUtil.FFmpegCallback wrappedCallback = wrapCallback(callback, usablePath, isFromCache);
+        
         String fileName = new File(inputPath).getName();
         
         boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
-        commandList.add(inputPath);
+        commandList.add(usablePath);
         
         if (multithreading) {
             commandList.add("-threads");
@@ -278,7 +365,7 @@ public class AudioProcessor {
         
         String[] command = commandList.toArray(new String[0]);
         Log.d("AudioProcessor", "音频淡入淡出命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback, inputPath, fileName);
+        FFmpegUtil.executeCommand(command, wrappedCallback, usablePath, fileName);
     }
     
     // 获取音频文件扩展名
