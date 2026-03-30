@@ -99,6 +99,35 @@ public class NotificationHelper {
         NotificationManagerCompat.from(context).notify(completeNotificationId++, builder.build());
     }
     
+    // 显示取消通知
+    public static void showCancelledNotification(Context context, String fileName) {
+        if (!ConfigManager.getInstance(context).isNotificationEnabled()) return;
+        
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+            context, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+        
+        String title = "操作已取消";
+        String content = (fileName != null && !fileName.isEmpty() ? fileName : "文件") + " 的处理已取消";
+        
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID_COMPLETE)
+            .setSmallIcon(R.drawable.ic_splash_logo)
+            .setContentTitle(title)
+            .setContentText(content)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true);
+        
+        // 取消进度通知
+        NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID_PROGRESS);
+        
+        // 显示取消通知（使用递增ID避免覆盖）
+        NotificationManagerCompat.from(context).notify(completeNotificationId++, builder.build());
+    }
+    
     public static void cancelProgressNotification(Context context) {
         NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID_PROGRESS);
     }

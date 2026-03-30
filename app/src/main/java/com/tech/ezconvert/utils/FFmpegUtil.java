@@ -32,6 +32,7 @@ public class FFmpegUtil {
     private static Context appContext;
     private static String currentFileName = "";
     private static volatile boolean isQueryCommand = false;
+    private static volatile boolean isCancelled = false;
     
     // 资源清理机制
     private static final ReferenceQueue<FFmpegSession> refQueue = new ReferenceQueue<>(); 
@@ -193,6 +194,8 @@ public class FFmpegUtil {
         lastNotificationTime = 0;
         currentFileName = fileName != null ? fileName : "未知文件";
         
+        isCancelled = false;
+        
         // 创建通知渠道（首次执行时）
         if (appContext != null) {
             NotificationHelper.createNotificationChannels(appContext);
@@ -318,7 +321,17 @@ public class FFmpegUtil {
                 
                 if (callback != null) {
                     mainHandler.post(() -> {
-                        if (ReturnCode.isSuccess(returnCode)) {
+                        // 检查是否是取消操作
+                        if (isCancelled) {
+                            callback.onComplete(false, "操作已取消");
+                            if (appContext != null) {
+                                // 显示取消通知
+                                NotificationHelper.showCancelledNotification(appContext, currentFileName);
+                            }
+                            if (logManager != null) {
+                                logManager.appendFfmpegLog("FFmpeg命令已取消", Level.AV_LOG_WARNING);
+                            }
+                        } else if (ReturnCode.isSuccess(returnCode)) {
                             callback.onComplete(true, "处理完成");
                             if (appContext != null) {
                                 NotificationHelper.showCompleteNotification(appContext, currentFileName, true, "");
@@ -463,7 +476,7 @@ public class FFmpegUtil {
         // 延迟启动检查 (给 FFmpeg 一点启动时间创建输出文件)
         progressHandler.postDelayed(checkProgress, 500);
         
-        // 当 onComplete 被调用时， currentSession 会被设为 null，定时器自动停止
+        // 当 onComplete 被调用时，currentSession 会被设为 null，定时器自动停止
     }
 
     private static void deleteTempFile(String path) {
@@ -516,6 +529,7 @@ public class FFmpegUtil {
             SessionState state = currentSession.getState();
             if (state == SessionState.RUNNING || state == SessionState.CREATED) {
                 Log.d(TAG, "Cancelling session: " + currentSession.getSessionId());
+                isCancelled = true;
                 if (logManager != null) {
                     logManager.appendFfmpegLog("取消当前FFmpeg任务", Level.AV_LOG_WARNING);
                 }
@@ -537,6 +551,7 @@ public class FFmpegUtil {
         int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
         return String.format("%.1f %s", size / Math.pow(1024, digitGroups), units[digitGroups]);
     }
+    
     // 同步执行简单的 FFmpeg 查询命令 (用于获取版本，编解码器等信息) 
     // 要在后台线程调用，不要在主线程直接调用
     public static String executeSimpleCommand(String command) {
