@@ -67,17 +67,18 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     private ProgressBar progressBar;
     private Button selectFileBtn, convertBtn, compressBtn, extractAudioBtn;
     private Button cutVideoBtn, screenshotBtn, convertAudioBtn, cutAudioBtn;
+    private Button cancelBtn;
     private Spinner videoFormatSpinner, audioFormatSpinner, qualitySpinner, volumeSpinner;
     private SeekBar volumeSeekBar;
     private LinearLayout customVolumeLayout;
     private String currentInputPath = "";
     private String currentOutputPath = "";
+    private String currentOutputFile = "";
     private boolean permissionsGranted = false;
     private int currentVolume = 100;
-    
+    private volatile boolean isTaskRunning = false;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private UpdateChecker updateChecker;
-    
     private ActivityResultLauncher<Intent> filePickerLauncher;
     
     @Override
@@ -165,6 +166,8 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         progressBar = findViewById(R.id.progress_bar);
         versionText = findViewById(R.id.version_text);
         
+        cancelBtn = findViewById(R.id.cancel_btn);
+        
         volumeSpinner = findViewById(R.id.volume_spinner);
         volumeSeekBar = findViewById(R.id.volume_seekbar);
         volumePercentText = findViewById(R.id.volume_percent_text);
@@ -191,8 +194,125 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         // 按钮点击
         setupButtonListeners(settingsBtn);
         
+        // 取消按钮点击监听
+        setupCancelButtonListener();
+        
         // 卡片入场动画
         setupCardAnimations();
+    }
+    
+    // 取消按钮监听器
+    private void setupCancelButtonListener() {
+        cancelBtn.setOnClickListener(v -> {
+            AnimationUtils.animateButtonClick(v);
+            
+            new com.google.android.material.dialog.MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_MaterialAlertDialog)
+                .setIcon(R.drawable.round_warning)
+                .setTitle("确认取消?")
+                .setMessage("确定要取消当前操作吗？\n\n已生成的临时文件将被删除。")
+                .setPositiveButton("确定取消", (dialog, which) -> {
+                    dialog.dismiss();
+                    
+                    progressBar.clearAnimation();
+                    progressBar.setProgress(0);
+                    progressText.setText("进度: 0%");
+                    performCancelAndCleanup();
+                })
+                .setNegativeButton("继续处理", null)
+                .setCancelable(true)
+                .show();
+        });
+    }
+    
+    // 执行取消和清理操作
+    private void performCancelAndCleanup() {
+        // 先取消 FFmpeg 任务
+        FFmpegUtil.cancelCurrentTask();
+        isTaskRunning = false;
+        hideCancelButton();
+        
+        // 在后台线程删除已生成的文件
+        new Thread(() -> {
+            // 删除当前正在输出的文件（如果存在）
+            if (currentOutputFile != null && !currentOutputFile.isEmpty()) {
+                deleteFileIfExists(currentOutputFile);
+            }
+            
+            // 同时尝试删除可能生成的临时文件（处理多步骤转换的情况）
+            cleanupPartialFiles();
+            
+            runOnUiThread(() -> {
+                updateStatus("操作已取消");
+                ToastUtils.show(this, "操作已取消");
+                
+                // 重置进度显示
+                progressBar.clearAnimation();
+                progressBar.setProgress(0);
+                progressText.setText("进度: 0%");
+                
+                // 恢复功能按钮可用状态
+                setFunctionButtonsEnabled(permissionsGranted);
+            });
+        }).start();
+    }
+    
+    // 删除指定文件
+    private void deleteFileIfExists(String filePath) {
+        try {
+            File file = new File(filePath);
+            if (file.exists() && file.isFile()) {
+                boolean deleted = file.delete();
+                Log.d("MainActivity", "删除文件 " + filePath + ": " + (deleted ? "成功" : "失败"));
+            }
+        } catch (Exception e) {
+            Log.e("MainActivity", "删除文件失败: " + filePath, e);
+            ToastUtils.show(this, "删除临时文件失败\n请前往手动删除");
+        }
+    }
+    
+    // 清理可能的部分输出文件
+    private void cleanupPartialFiles() {
+        try {
+            // 获取输出目录
+            String outputDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + File.separator + "简转";
+            
+            File dir = new File(outputDir);
+            if (!dir.exists() || !dir.isDirectory()) return;
+            
+            // 列出最近 1 分钟内修改的文件（可能是当前任务生成的临时文件）
+            long now = System.currentTimeMillis();
+            File[] files = dir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    // 删除最近 60 秒内创建或修改的临时文件
+                    if (now - file.lastModified() < 60000) {
+                        if (file.delete()) {
+                            Log.d("MainActivity", "清理临时文件: " + file.getName());
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.e("MainActivity", "清理部分文件失败", e);
+            ToastUtils.show(this, "删除临时文件失败\n请前往手动删除");
+        }
+    }
+    
+    // 显示取消按钮
+    private void showCancelButton() {
+        cancelBtn.setVisibility(View.VISIBLE);
+        // 禁用功能按钮，防止同时执行多个任务
+        setFunctionButtonsEnabled(false);
+        isTaskRunning = true;
+    }
+    
+    // 隐藏取消按钮
+    private void hideCancelButton() {
+        cancelBtn.setVisibility(View.GONE);
+        isTaskRunning = false;
+        // 恢复功能按钮状态（如果有文件选中）
+        setFunctionButtonsEnabled(permissionsGranted && !currentInputPath.isEmpty());
     }
 
     private void setVersionText() {
@@ -431,6 +551,11 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     }
     
     private void setFunctionButtonsEnabled(boolean enabled) {
+        // 如果有任务正在运行，强制禁用所有功能按钮
+        if (isTaskRunning) {
+            enabled = false;
+        }
+        
         boolean hasFileSelected = !currentInputPath.isEmpty();
         
         convertBtn.setEnabled(enabled && hasFileSelected);
@@ -441,14 +566,14 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         convertAudioBtn.setEnabled(enabled && hasFileSelected);
         cutAudioBtn.setEnabled(enabled && hasFileSelected);
         
-        float alpha = enabled && hasFileSelected ? 1.0f : 0.5f;
-        convertBtn.setAlpha(enabled && hasFileSelected ? 1.0f : 0.5f);
-        compressBtn.setAlpha(enabled && hasFileSelected ? 1.0f : 0.5f);
-        extractAudioBtn.setAlpha(enabled && hasFileSelected ? 1.0f : 0.5f);
-        cutVideoBtn.setAlpha(enabled && hasFileSelected ? 1.0f : 0.5f);
-        screenshotBtn.setAlpha(enabled && hasFileSelected ? 1.0f : 0.5f);
-        convertAudioBtn.setAlpha(enabled && hasFileSelected ? 1.0f : 0.5f);
-        cutAudioBtn.setAlpha(enabled && hasFileSelected ? 1.0f : 0.5f);
+        float alpha = (enabled && hasFileSelected) ? 1.0f : 0.5f;
+        convertBtn.setAlpha(alpha);
+        compressBtn.setAlpha(alpha);
+        extractAudioBtn.setAlpha(alpha);
+        cutVideoBtn.setAlpha(alpha);
+        screenshotBtn.setAlpha(alpha);
+        convertAudioBtn.setAlpha(alpha);
+        cutAudioBtn.setAlpha(alpha);
     }
     
     private void openFilePicker() {
@@ -508,6 +633,33 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         Log.d("GeneratePath", "输出路径基础: " + currentOutputPath);
     }
     
+    // 辅助方法获取视频扩展名
+    private String getVideoExtension(String format) {
+        switch (format.toLowerCase()) {
+            case "mp4": return "mp4";
+            case "mov": return "mov";
+            case "mkv": return "mkv";
+            case "webm": return "webm";
+            case "avi": return "avi";
+            case "flv": return "flv";
+            case "gif": return "gif";
+            default: return "mp4";
+        }
+    }
+    
+    // 辅助方法获取音频扩展名
+    private String getAudioExtension(String format) {
+        switch (format.toLowerCase()) {
+            case "mp3": return "mp3";
+            case "wav": return "wav";
+            case "aac": return "aac";
+            case "flac": return "flac";
+            case "ogg": return "ogg";
+            case "m4a": return "m4a";
+            default: return "mp3";
+        }
+    }
+    
     private void startConversion() {
         if (!permissionsGranted) {
             ToastUtils.show(this, "请先授予存储权限");
@@ -523,7 +675,12 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         String format = videoFormatSpinner.getSelectedItem().toString();
         generateOutputPath(); // 生成基础路径
         
+        // 记录输出文件路径（带扩展名）
+        currentOutputFile = currentOutputPath + "." + getVideoExtension(format);
+        
         updateStatus("开始转换视频到 " + format + " 格式...");
+        // 显示取消按钮
+        showCancelButton();
         VideoProcessor.convertVideo(currentInputPath, currentOutputPath, format, currentVolume, this, this);
     }
     
@@ -544,7 +701,12 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         
         generateOutputPath(); // 生成基础路径
         
+        // 记录输出文件路径
+        currentOutputFile = currentOutputPath + "_compressed.mp4";
+        
         updateStatus("开始压缩视频 (" + qualityStr + ")...");
+        // 显示取消按钮
+        showCancelButton();
         VideoProcessor.compressVideo(currentInputPath, currentOutputPath, quality, currentVolume, this, this);
     }
     
@@ -578,7 +740,12 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         currentOutputPath = outputDir + File.separator + baseName + "_audio_" + timestamp;
         
+        // 记录输出文件路径
+        currentOutputFile = currentOutputPath + ".mp3";
+        
         updateStatus("开始提取音频...");
+        // 显示取消按钮
+        showCancelButton();
         AudioProcessor.extractAudioFromVideo(currentInputPath, currentOutputPath, "mp3", currentVolume, this, this);
     }
     
@@ -614,7 +781,12 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         currentOutputPath = outputDir + File.separator + baseName + "_converted_" + timestamp;
         
+        // 记录输出文件路径
+        currentOutputFile = currentOutputPath + "." + getAudioExtension(format);
+        
         updateStatus("开始转换音频到 " + format + " 格式...");
+        // 显示取消按钮
+        showCancelButton();
         AudioProcessor.convertAudio(currentInputPath, currentOutputPath, format, currentVolume, this, this);
     }
     
@@ -661,7 +833,12 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
             currentOutputPath = outputDir + File.separator + baseName + "_cut_" + timestamp + ".mp4";
             
+            // 记录输出文件路径
+            currentOutputFile = currentOutputPath;
+            
             updateStatus("开始裁剪视频...");
+            // 显示取消按钮
+            showCancelButton();
             VideoProcessor.cutVideo(currentInputPath, currentOutputPath, startTime, duration, currentVolume, this, this);
         });
         
@@ -707,7 +884,12 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             String fileTimestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
             currentOutputPath = outputDir + File.separator + baseName + "_screenshot_" + fileTimestamp + ".jpg";
             
+            // 记录输出文件路径
+            currentOutputFile = currentOutputPath;
+            
             updateStatus("开始截图...");
+            // 显示取消按钮
+            showCancelButton();
             VideoProcessor.extractFrame(currentInputPath, currentOutputPath, timestamp, this, this);
         });
         
@@ -758,7 +940,12 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
             currentOutputPath = outputDir + File.separator + baseName + "_cut_" + timestamp + ".mp3";
             
+            // 记录输出文件路径
+            currentOutputFile = currentOutputPath;
+            
             updateStatus("开始裁剪音频...");
+            // 显示取消按钮
+            showCancelButton();
             AudioProcessor.cutAudio(currentInputPath, currentOutputPath, startTime, duration, currentVolume, this, this);
         });
         
@@ -784,21 +971,43 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             
             // 为进度文本添加微动画
             AnimationUtils.animateStatusUpdate(progressText);
+            
+            // 确保取消按钮可见（处理从对话框启动的任务）
+            if (isTaskRunning && cancelBtn.getVisibility() != View.VISIBLE) {
+                cancelBtn.setVisibility(View.VISIBLE);
+            }
         });
     }
     
     @Override
     public void onComplete(boolean success, String message) {
         runOnUiThread(() -> {
+            // 隐藏取消按钮并重置任务状态
+            hideCancelButton();
+            
+            // 检查是否是取消操作（通过特定消息标识）
+            if (message != null && message.equals("操作已取消")) {
+                updateStatus("操作已取消");
+                ToastUtils.show(this, "已取消操作");
+                progressBar.clearAnimation();
+                progressBar.setProgress(0);
+                progressText.setText("进度: 0%");
+                currentOutputFile = ""; // 清空路径
+                return;
+            }
+            
             if (success) {
                 String outputFileName = new File(currentInputPath).getName();
                 updateStatus("处理完成: " + outputFileName);
                 ToastUtils.showLong(MainActivity.this, 
                     "处理完成! 输出文件\n保存在: Download/简转/");
+                currentOutputFile = ""; // 成功后清空路径，防止误删
             } else {
                 updateStatus("处理失败: " + message);
                 ToastUtils.show(MainActivity.this, "处理失败: " + message);
+                // 失败时不清空路径，允许用户手动清理或重试
             }
+            progressBar.clearAnimation();
             progressBar.setProgress(0);
             progressText.setText("进度: 0%");
         });
@@ -807,8 +1016,16 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     @Override
     public void onError(String error) {
         runOnUiThread(() -> {
+            // 隐藏取消按钮并重置任务状态
+            hideCancelButton();
+            
             updateStatus("错误: " + error);
             ToastUtils.showLong(MainActivity.this, "错误: " + error);
+            
+            // 清除动画并重置进度
+            progressBar.clearAnimation();
+            progressBar.setProgress(0);
+            progressText.setText("进度: 0%");
         });
     }
     

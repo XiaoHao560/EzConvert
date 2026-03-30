@@ -96,6 +96,17 @@
                      android:id="@+id/progress_text"
                      android:text="进度: 0%" />
 
+                <Button
+                     android:layout_height="40dp"
+                     android:layout_width="match_parent"
+                     android:visibility="gone"
+                     android:textSize="14sp"
+                     android:backgroundTint="#F44336"
+                     android:textColor="@android:color/white"
+                     android:layout_marginTop="8dp"
+                     android:id="@+id/cancel_btn"
+                     android:text="取消操作" />
+
             </LinearLayout>
 
         </androidx.cardview.widget.CardView>
