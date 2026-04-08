@@ -25,6 +25,7 @@
              app:titleCentered="true"
              app:titleTextColor="?attr/colorPrimary"
              app:navigationIcon="@drawable/round_menu"
+             app:navigationContentDescription="@string/tooltip_menu"
              style="@style/Widget.Material3.Toolbar.Surface"
              android:id="@+id/title_container">
 

@@ -18,6 +18,9 @@
     <string name="notification_permission_message">是否允许简转发送通知？\n\n通知用于显示转换进度和完成提示。</string>
     <string name="notification_permission_go_settings">去开启</string>
     <string name="notification_permission_later">暂不</string>
+
+    <string name="tooltip_back">返回</string>
+    <string name="tooltip_menu">菜单</string>
     
     <string-array name="update_frequency_options">
         <item>每24小时检测</item>
