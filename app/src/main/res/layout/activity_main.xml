@@ -4,63 +4,52 @@
      xmlns:app="http://schemas.android.com/apk/res-auto"
      android:layout_height="match_parent"
      android:layout_width="match_parent"
-     android:background="@color/bg_light"
+     android:background="?attr/colorSurfaceContainerLowest"
+     android:scrollbarStyle="outsideOverlay"
      android:fadeScrollbars="true">
 
     <LinearLayout
          android:layout_height="wrap_content"
          android:layout_width="match_parent"
-         android:padding="12dp"
+         android:padding="16dp"
          android:orientation="vertical"
          android:id="@+id/scroll_content">
 
-        <RelativeLayout
+        <com.google.android.material.appbar.MaterialToolbar
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:layout_marginBottom="12dp"
-             android:id="@+id/title_container"
-             android:paddingTop="0dp">
+             android:layout_marginBottom="16dp"
+             android:background="@android:color/transparent"
+             app:navigationIconTint="?attr/colorOnSurfaceVariant"
+             app:title="EzConvert 媒体转换器"
+             app:titleCentered="true"
+             app:titleTextColor="?attr/colorPrimary"
+             app:navigationIcon="@drawable/round_menu"
+             style="@style/Widget.Material3.Toolbar.Surface"
+             android:id="@+id/title_container">
 
-            <TextView
-                 android:layout_height="wrap_content"
-                 android:layout_width="wrap_content"
-                 android:layout_centerHorizontal="true"
-                 android:textSize="24sp"
-                 android:textColor="#2196F3"
-                 android:text="EzConvert 媒体转换器"
-                 android:textStyle="bold" />
-
-            <ImageButton
-                 android:layout_height="48dp"
-                 android:layout_width="48dp"
-                 android:contentDescription="菜单"
-                 android:src="@drawable/round_menu"
-                 android:tooltipText="菜单"
-                 android:background="?attr/selectableItemBackgroundBorderless"
-                 android:padding="10dp"
-                 android:layout_alignParentEnd="true"
-                 android:tint="#666"
-                 android:id="@+id/settings_btn" />
-
-        </RelativeLayout>
+        </com.google.android.material.appbar.MaterialToolbar>
 
         <TextView
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:layout_marginBottom="16dp"
+             android:layout_marginBottom="24dp"
              android:gravity="center"
              android:textSize="12sp"
-             android:textColor="#666"
+             android:fontFamily="?attr/textAppearanceLabelMedium"
+             android:textColor="?attr/colorOnSurfaceVariant"
              android:id="@+id/version_text"
              android:text="EzConvert v0.0.0 | FFmpegKit: 6.0-2" />
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:layout_marginBottom="8dp"
-             app:cardElevation="4dp"
-             app:cardUseCompatPadding="true"
-             app:cardBackgroundColor="@android:color/white"
+             android:layout_marginBottom="12dp"
+             app:strokeColor="?attr/colorOutline"
+             app:cardElevation="0dp"
+             app:strokeWidth="1dp"
+             app:cardBackgroundColor="@android:color/transparent"
+             style="@style/Widget.Material3.CardView.Outlined"
              app:cardCornerRadius="12dp"
              android:id="@+id/status_card">
 
@@ -73,51 +62,60 @@
                 <TextView
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
-                     android:layout_marginBottom="8dp"
+                     android:layout_marginBottom="16dp"
                      android:textSize="16sp"
+                     android:fontFamily="?attr/textAppearanceTitleMedium"
+                     android:textColor="?attr/colorOnSurface"
                      android:id="@+id/status_text"
                      android:text="请选择要处理的媒体文件" />
 
-                <ProgressBar
-                     android:layout_height="6dp"
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                     android:layout_height="wrap_content"
                      android:layout_width="match_parent"
-                     android:progressBackgroundTint="#E3F2FD"
-                     android:progressTint="#2196F3"
-                     style="?android:attr/progressBarStyleHorizontal"
+                     android:layout_marginBottom="8dp"
+                     app:trackColor="?attr/colorSurfaceContainerHighest"
+                     app:trackCornerRadius="2dp"
+                     style="@style/Widget.Material3.LinearProgressIndicator"
                      android:progress="0"
-                     android:id="@+id/progress_bar" />
+                     app:trackThickness="4dp"
+                     android:id="@+id/progress_bar"
+                     app:indicatorColor="?attr/colorPrimary" />
 
                 <TextView
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
                      android:gravity="center"
                      android:textSize="12sp"
-                     android:textColor="#666"
+                     android:fontFamily="?attr/textAppearanceLabelSmall"
+                     android:textColor="?attr/colorOnSurfaceVariant"
                      android:id="@+id/progress_text"
                      android:text="进度: 0%" />
 
                 <Button
-                     android:layout_height="40dp"
+                     android:layout_height="48dp"
                      android:layout_width="match_parent"
                      android:visibility="gone"
-                     android:textSize="14sp"
-                     android:backgroundTint="#F44336"
-                     android:textColor="@android:color/white"
-                     android:layout_marginTop="8dp"
+                     app:icon="@drawable/round_close"
+                     android:backgroundTint="?attr/colorErrorContainer"
+                     style="@style/Widget.Material3.Button.TonalButton.Icon"
+                     android:layout_marginTop="16dp"
                      android:id="@+id/cancel_btn"
-                     android:text="取消操作" />
+                     android:text="取消操作"
+                     app:iconGravity="textStart" />
 
             </LinearLayout>
 
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:layout_marginBottom="8dp"
-             app:cardElevation="2dp"
-             app:cardUseCompatPadding="true"
-             app:cardBackgroundColor="@android:color/white"
+             android:layout_marginBottom="12dp"
+             app:strokeColor="?attr/colorOutline"
+             app:cardElevation="0dp"
+             app:strokeWidth="1dp"
+             app:cardBackgroundColor="@android:color/transparent"
+             style="@style/Widget.Material3.CardView.Outlined"
              app:cardCornerRadius="12dp"
              android:id="@+id/file_selection_card">
 
@@ -130,31 +128,34 @@
                 <TextView
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
-                     android:layout_marginBottom="12dp"
+                     android:layout_marginBottom="16dp"
                      android:textSize="16sp"
-                     android:text="文件选择"
-                     android:textStyle="bold" />
+                     android:fontFamily="?attr/textAppearanceTitleMedium"
+                     android:textColor="?attr/colorOnSurface"
+                     android:text="文件选择" />
 
                 <Button
-                     android:layout_height="44dp"
+                     android:layout_height="48dp"
                      android:layout_width="match_parent"
-                     android:textSize="14sp"
-                     android:backgroundTint="#2196F3"
-                     android:textColor="@android:color/white"
+                     app:icon="@drawable/round_folder"
+                     style="@style/Widget.Material3.Button.Icon"
                      android:id="@+id/select_file_btn"
-                     android:text="选择媒体文件" />
+                     android:text="选择媒体文件"
+                     app:iconGravity="textStart" />
 
             </LinearLayout>
 
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:layout_marginBottom="8dp"
-             app:cardElevation="2dp"
-             app:cardUseCompatPadding="true"
-             app:cardBackgroundColor="@android:color/white"
+             android:layout_marginBottom="12dp"
+             app:strokeColor="?attr/colorOutline"
+             app:cardElevation="0dp"
+             app:strokeWidth="1dp"
+             app:cardBackgroundColor="@android:color/transparent"
+             style="@style/Widget.Material3.CardView.Outlined"
              app:cardCornerRadius="12dp"
              android:id="@+id/options_card">
 
@@ -167,62 +168,45 @@
                 <TextView
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
-                     android:layout_marginBottom="12dp"
+                     android:layout_marginBottom="16dp"
                      android:textSize="16sp"
-                     android:text="转换选项"
-                     android:textStyle="bold" />
+                     android:fontFamily="?attr/textAppearanceTitleMedium"
+                     android:textColor="?attr/colorOnSurface"
+                     android:text="转换选项" />
 
                 <LinearLayout
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
-                     android:layout_marginBottom="8dp"
-                     android:gravity="center_vertical"
-                     android:orientation="horizontal">
+                     android:layout_marginBottom="12dp"
+                     android:orientation="vertical">
 
                     <TextView
                          android:layout_height="wrap_content"
-                         android:layout_width="0dp"
-                         android:gravity="center_vertical"
-                         android:textSize="14sp"
-                         android:layout_weight="1"
-                         android:text="视频格式:" />
+                         android:layout_width="match_parent"
+                         android:layout_marginBottom="4dp"
+                         android:textSize="12sp"
+                         android:textColor="?attr/colorOnSurfaceVariant"
+                         android:text="视频格式" />
 
-                    <Spinner
-                         android:layout_height="40dp"
-                         android:layout_width="0dp"
-                         android:background="@drawable/spinner_background"
-                         android:popupBackground="@drawable/card_background_enhanced"
-                         android:layout_weight="1"
-                         android:id="@+id/video_format_spinner">
-
-                    </Spinner>
-
-                </LinearLayout>
-
-                <LinearLayout
-                     android:layout_height="wrap_content"
-                     android:layout_width="match_parent"
-                     android:layout_marginBottom="8dp"
-                     android:gravity="center_vertical"
-                     android:orientation="horizontal">
-
-                    <TextView
+                    <com.google.android.material.textfield.TextInputLayout
                          android:layout_height="wrap_content"
-                         android:layout_width="0dp"
-                         android:gravity="center_vertical"
-                         android:textSize="14sp"
-                         android:layout_weight="1"
-                         android:text="音频格式:" />
+                         android:layout_width="match_parent"
+                         app:hintEnabled="false"
+                         app:boxStrokeColor="?attr/colorOutline"
+                         app:boxStrokeWidthFocused="2dp"
+                         app:boxBackgroundColor="?attr/colorSurface"
+                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                         app:boxStrokeWidth="1dp">
 
-                    <Spinner
-                         android:layout_height="40dp"
-                         android:layout_width="0dp"
-                         android:background="@drawable/spinner_background"
-                         android:popupBackground="@drawable/card_background_enhanced"
-                         android:layout_weight="1"
-                         android:id="@+id/audio_format_spinner">
+                        <AutoCompleteTextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:paddingVertical="12dp"
+                             android:textColor="?attr/colorOnSurface"
+                             android:inputType="none"
+                             android:id="@+id/video_format_spinner" />
 
-                    </Spinner>
+                    </com.google.android.material.textfield.TextInputLayout>
 
                 </LinearLayout>
 
@@ -230,59 +214,114 @@
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
                      android:layout_marginBottom="12dp"
-                     android:gravity="center_vertical"
-                     android:orientation="horizontal">
+                     android:orientation="vertical">
 
                     <TextView
                          android:layout_height="wrap_content"
-                         android:layout_width="0dp"
-                         android:gravity="center_vertical"
-                         android:textSize="14sp"
-                         android:layout_weight="1"
-                         android:text="质量设置:" />
+                         android:layout_width="match_parent"
+                         android:layout_marginBottom="4dp"
+                         android:textSize="12sp"
+                         android:textColor="?attr/colorOnSurfaceVariant"
+                         android:text="音频格式" />
 
-                    <Spinner
-                         android:layout_height="40dp"
-                         android:layout_width="0dp"
-                         android:background="@drawable/spinner_background"
-                         android:popupBackground="@drawable/card_background_enhanced"
-                         android:layout_weight="1"
-                         android:id="@+id/quality_spinner">
+                    <com.google.android.material.textfield.TextInputLayout
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         app:hintEnabled="false"
+                         app:boxStrokeColor="?attr/colorOutline"
+                         app:boxStrokeWidthFocused="2dp"
+                         app:boxBackgroundColor="?attr/colorSurface"
+                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                         app:boxStrokeWidth="1dp">
 
-                    </Spinner>
+                        <AutoCompleteTextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:paddingVertical="12dp"
+                             android:textColor="?attr/colorOnSurface"
+                             android:inputType="none"
+                             android:id="@+id/audio_format_spinner" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
 
                 </LinearLayout>
 
-                <View
-                     android:layout_height="1dp"
+                <LinearLayout
+                     android:layout_height="wrap_content"
                      android:layout_width="match_parent"
-                     android:layout_marginBottom="12dp"
-                     android:background="#E0E0E0" />
+                     android:layout_marginBottom="16dp"
+                     android:orientation="vertical">
+
+                    <TextView
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:layout_marginBottom="4dp"
+                         android:textSize="12sp"
+                         android:textColor="?attr/colorOnSurfaceVariant"
+                         android:text="质量设置" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         app:hintEnabled="false"
+                         app:boxStrokeColor="?attr/colorOutline"
+                         app:boxStrokeWidthFocused="2dp"
+                         app:boxBackgroundColor="?attr/colorSurface"
+                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                         app:boxStrokeWidth="1dp">
+
+                        <AutoCompleteTextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:paddingVertical="12dp"
+                             android:textColor="?attr/colorOnSurface"
+                             android:inputType="none"
+                             android:id="@+id/quality_spinner" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                </LinearLayout>
+
+                <com.google.android.material.divider.MaterialDivider
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:layout_marginBottom="16dp"
+                     app:dividerColor="?attr/colorOutlineVariant"
+                     app:dividerThickness="1dp" />
 
                 <LinearLayout
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
                      android:layout_marginBottom="8dp"
-                     android:gravity="center_vertical"
-                     android:orientation="horizontal">
+                     android:orientation="vertical">
 
                     <TextView
                          android:layout_height="wrap_content"
-                         android:layout_width="0dp"
-                         android:gravity="center_vertical"
-                         android:textSize="14sp"
-                         android:layout_weight="1"
+                         android:layout_width="match_parent"
+                         android:layout_marginBottom="4dp"
+                         android:textSize="12sp"
+                         android:textColor="?attr/colorOnSurfaceVariant"
                          android:text="@string/volume_setting" />
 
-                    <Spinner
-                         android:layout_height="40dp"
-                         android:layout_width="0dp"
-                         android:background="@drawable/spinner_background"
-                         android:popupBackground="@drawable/card_background_enhanced"
-                         android:layout_weight="1"
-                         android:id="@+id/volume_spinner">
+                    <com.google.android.material.textfield.TextInputLayout
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         app:hintEnabled="false"
+                         app:boxStrokeColor="?attr/colorOutline"
+                         app:boxStrokeWidthFocused="2dp"
+                         app:boxBackgroundColor="?attr/colorSurface"
+                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                         app:boxStrokeWidth="1dp">
 
-                    </Spinner>
+                        <AutoCompleteTextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:paddingVertical="12dp"
+                             android:textColor="?attr/colorOnSurface"
+                             android:inputType="none"
+                             android:id="@+id/volume_spinner" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
 
                 </LinearLayout>
 
@@ -297,6 +336,7 @@
                     <LinearLayout
                          android:layout_height="wrap_content"
                          android:layout_width="match_parent"
+                         android:layout_marginBottom="8dp"
                          android:gravity="center_vertical"
                          android:orientation="horizontal">
 
@@ -305,42 +345,51 @@
                              android:layout_width="0dp"
                              android:gravity="center_vertical"
                              android:textSize="14sp"
+                             android:fontFamily="?attr/textAppearanceLabelMedium"
+                             android:textColor="?attr/colorOnSurfaceVariant"
                              android:layout_weight="1"
                              android:text="音量大小" />
 
                         <TextView
                              android:layout_height="wrap_content"
                              android:layout_width="wrap_content"
-                             android:textColor="#2196F3"
+                             android:fontFamily="?attr/textAppearanceLabelLarge"
+                             android:textColor="?attr/colorPrimary"
                              android:id="@+id/volume_percent_text"
                              android:text="100%"
                              android:textStyle="bold" />
 
                     </LinearLayout>
 
-                    <SeekBar
+                    <com.google.android.material.slider.Slider
                          android:layout_height="wrap_content"
                          android:layout_width="match_parent"
-                         android:max="200"
-                         android:progressBackgroundTint="#E3F2FD"
-                         android:thumbTint="#2196F3"
-                         android:progressTint="#2196F3"
-                         android:progress="100"
+                         app:thumbColor="?attr/colorPrimary"
+                         app:haloColor="?attr/colorPrimaryContainer"
+                         app:tickVisible="false"
+                         android:valueTo="200"
+                         app:trackColorActive="?attr/colorPrimary"
+                         android:value="100"
+                         app:trackColorInactive="?attr/colorSurfaceContainerHighest"
+                         android:valueFrom="0"
+                         app:trackHeight="4dp"
                          android:id="@+id/volume_seekbar" />
 
                 </LinearLayout>
 
             </LinearLayout>
 
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:layout_marginBottom="8dp"
-             app:cardElevation="2dp"
-             app:cardUseCompatPadding="true"
-             app:cardBackgroundColor="@android:color/white"
+             android:layout_marginBottom="12dp"
+             app:strokeColor="?attr/colorOutline"
+             app:cardElevation="0dp"
+             app:strokeWidth="1dp"
+             app:cardBackgroundColor="@android:color/transparent"
+             style="@style/Widget.Material3.CardView.Outlined"
              app:cardCornerRadius="12dp"
              android:id="@+id/video_processing_card">
 
@@ -353,72 +402,74 @@
                 <TextView
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
-                     android:layout_marginBottom="12dp"
+                     android:layout_marginBottom="16dp"
                      android:textSize="16sp"
-                     android:text="视频处理"
-                     android:textStyle="bold" />
+                     android:fontFamily="?attr/textAppearanceTitleMedium"
+                     android:textColor="?attr/colorOnSurface"
+                     android:text="视频处理" />
 
                 <Button
-                     android:layout_height="40dp"
+                     android:layout_height="48dp"
                      android:layout_width="match_parent"
-                     android:layout_marginBottom="6dp"
-                     android:textSize="14sp"
-                     android:backgroundTint="#4CAF50"
-                     android:textColor="@android:color/white"
+                     android:layout_marginBottom="8dp"
+                     app:icon="@drawable/round_transform"
+                     style="@style/Widget.Material3.Button.Icon"
                      android:id="@+id/convert_btn"
-                     android:text="转换格式" />
+                     android:text="转换格式"
+                     app:iconGravity="textStart" />
 
                 <Button
-                     android:layout_height="40dp"
+                     android:layout_height="48dp"
                      android:layout_width="match_parent"
-                     android:layout_marginBottom="6dp"
-                     android:textSize="14sp"
-                     android:backgroundTint="#FF9800"
-                     android:textColor="@android:color/white"
+                     android:layout_marginBottom="8dp"
+                     app:icon="@drawable/compress"
+                     style="@style/Widget.Material3.Button.TonalButton.Icon"
                      android:id="@+id/compress_btn"
-                     android:text="压缩视频" />
+                     android:text="压缩视频"
+                     app:iconGravity="textStart" />
 
                 <Button
-                     android:layout_height="40dp"
+                     android:layout_height="48dp"
                      android:layout_width="match_parent"
-                     android:layout_marginBottom="6dp"
-                     android:textSize="14sp"
-                     android:backgroundTint="#9C27B0"
-                     android:textColor="@android:color/white"
+                     android:layout_marginBottom="8dp"
+                     app:icon="@drawable/round_audiotrack"
+                     style="@style/Widget.Material3.Button.TonalButton.Icon"
                      android:id="@+id/extract_audio_btn"
-                     android:text="提取音频" />
+                     android:text="提取音频"
+                     app:iconGravity="textStart" />
 
                 <Button
-                     android:layout_height="40dp"
+                     android:layout_height="48dp"
                      android:layout_width="match_parent"
-                     android:layout_marginBottom="6dp"
-                     android:textSize="14sp"
-                     android:backgroundTint="#795548"
-                     android:textColor="@android:color/white"
+                     android:layout_marginBottom="8dp"
+                     app:icon="@drawable/round_content_cut"
+                     style="@style/Widget.Material3.Button.OutlinedButton.Icon"
                      android:id="@+id/cut_video_btn"
-                     android:text="裁剪视频" />
+                     android:text="裁剪视频"
+                     app:iconGravity="textStart" />
 
                 <Button
-                     android:layout_height="40dp"
+                     android:layout_height="48dp"
                      android:layout_width="match_parent"
-                     android:layout_marginBottom="6dp"
-                     android:textSize="14sp"
-                     android:backgroundTint="#607D8B"
-                     android:textColor="@android:color/white"
+                     app:icon="@drawable/round_camera_alt"
+                     style="@style/Widget.Material3.Button.OutlinedButton.Icon"
                      android:id="@+id/screenshot_btn"
-                     android:text="视频截图" />
+                     android:text="视频截图"
+                     app:iconGravity="textStart" />
 
             </LinearLayout>
 
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:layout_marginBottom="8dp"
-             app:cardElevation="2dp"
-             app:cardUseCompatPadding="true"
-             app:cardBackgroundColor="@android:color/white"
+             android:layout_marginBottom="12dp"
+             app:strokeColor="?attr/colorOutline"
+             app:cardElevation="0dp"
+             app:strokeWidth="1dp"
+             app:cardBackgroundColor="@android:color/transparent"
+             style="@style/Widget.Material3.CardView.Outlined"
              app:cardCornerRadius="12dp"
              android:id="@+id/audio_processing_card">
 
@@ -431,41 +482,42 @@
                 <TextView
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
-                     android:layout_marginBottom="12dp"
+                     android:layout_marginBottom="16dp"
                      android:textSize="16sp"
-                     android:text="音频处理"
-                     android:textStyle="bold" />
+                     android:fontFamily="?attr/textAppearanceTitleMedium"
+                     android:textColor="?attr/colorOnSurface"
+                     android:text="音频处理" />
 
                 <Button
-                     android:layout_height="40dp"
+                     android:layout_height="48dp"
                      android:layout_width="match_parent"
-                     android:layout_marginBottom="6dp"
-                     android:textSize="14sp"
-                     android:backgroundTint="#E91E63"
-                     android:textColor="@android:color/white"
+                     android:layout_marginBottom="8dp"
+                     app:icon="@drawable/round_audiotrack"
+                     style="@style/Widget.Material3.Button.Icon"
                      android:id="@+id/convert_audio_btn"
-                     android:text="转换音频格式" />
+                     android:text="转换音频格式"
+                     app:iconGravity="textStart" />
 
                 <Button
-                     android:layout_height="40dp"
+                     android:layout_height="48dp"
                      android:layout_width="match_parent"
-                     android:layout_marginBottom="6dp"
-                     android:textSize="14sp"
-                     android:backgroundTint="#3F51B5"
-                     android:textColor="@android:color/white"
+                     app:icon="@drawable/round_audiotrack"
+                     style="@style/Widget.Material3.Button.OutlinedButton.Icon"
                      android:id="@+id/cut_audio_btn"
-                     android:text="裁剪音频" />
+                     android:text="裁剪音频"
+                     app:iconGravity="textStart" />
 
             </LinearLayout>
 
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
         <TextView
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
              android:gravity="center"
              android:textSize="12sp"
-             android:textColor="#666"
+             android:fontFamily="?attr/textAppearanceLabelSmall"
+             android:textColor="?attr/colorOnSurfaceVariant"
              android:layout_marginTop="8dp"
              android:text="提示: 输出文件将保存在下载文件夹中" />
 

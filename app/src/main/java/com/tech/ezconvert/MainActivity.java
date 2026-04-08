@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 //import android.graphics.Insets;
 import android.content.pm.PackageManager;
+import android.widget.AutoCompleteTextView;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -68,8 +69,8 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     private Button selectFileBtn, convertBtn, compressBtn, extractAudioBtn;
     private Button cutVideoBtn, screenshotBtn, convertAudioBtn, cutAudioBtn;
     private Button cancelBtn;
-    private Spinner videoFormatSpinner, audioFormatSpinner, qualitySpinner, volumeSpinner;
-    private SeekBar volumeSeekBar;
+    private AutoCompleteTextView videoFormatSpinner, audioFormatSpinner, qualitySpinner, volumeSpinner;
+    private com.google.android.material.slider.Slider volumeSeekBar;
     private LinearLayout customVolumeLayout;
     private String currentInputPath = "";
     private String currentOutputPath = "";
@@ -182,7 +183,23 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         convertAudioBtn = findViewById(R.id.convert_audio_btn);
         cutAudioBtn = findViewById(R.id.cut_audio_btn);
         
-        ImageButton settingsBtn = findViewById(R.id.settings_btn);
+        com.google.android.material.appbar.MaterialToolbar toolbar = findViewById(R.id.title_container);
+        toolbar.setNavigationOnClickListener(v -> {
+            AnimationUtils.animateButtonClick(v);
+            v.animate().rotationBy(180).setDuration(300).start();
+            
+            scheduler.schedule(() -> {
+                runOnUiThread(() -> {
+                    Intent settingsIntent = new Intent(MainActivity.this, SettingsMainActivity.class);
+                    ActivityOptionsCompat options = ActivityOptionsCompat.makeCustomAnimation(
+                        MainActivity.this,
+                        R.anim.slide_in_right,
+                        R.anim.slide_out_left
+                    );
+                    ActivityCompat.startActivity(MainActivity.this, settingsIntent, options.toBundle());
+                });
+            }, 150, TimeUnit.MILLISECONDS);
+        });
         
         videoFormatSpinner = findViewById(R.id.video_format_spinner);
         audioFormatSpinner = findViewById(R.id.audio_format_spinner);
@@ -192,7 +209,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         setVersionText();
         
         // 按钮点击
-        setupButtonListeners(settingsBtn);
+        setupButtonListeners();
         
         // 取消按钮点击监听
         setupCancelButtonListener();
@@ -342,116 +359,79 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     
     private void setupSpinners() {
         // 视频格式
-        ArrayAdapter<CharSequence> videoAdapter = ArrayAdapter.createFromResource(
-            this,
-            R.array.video_formats,
-            android.R.layout.simple_spinner_item
-        );
-        videoAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        videoFormatSpinner.setAdapter(videoAdapter);
+        String[] videoFormats = getResources().getStringArray(R.array.video_formats);
+        ArrayAdapter<String> videoAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown, videoFormats);
+        videoAdapter.setDropDownViewResource(R.layout.item_dropdown_popup);
+        AutoCompleteTextView videoSpinner = (AutoCompleteTextView) videoFormatSpinner;
+        videoSpinner.setAdapter(videoAdapter);
+        videoSpinner.setText(videoFormats[0], false);
+        // 强制白色背景
+        videoSpinner.setDropDownBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0xFFFFFFFF));
         
         // 音频格式
-        ArrayAdapter<CharSequence> audioAdapter = ArrayAdapter.createFromResource(
-            this,
-            R.array.audio_formats,
-            android.R.layout.simple_spinner_item
-        );
-        audioAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        audioFormatSpinner.setAdapter(audioAdapter);
+        String[] audioFormats = getResources().getStringArray(R.array.audio_formats);
+        ArrayAdapter<String> audioAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown, audioFormats);
+        audioAdapter.setDropDownViewResource(R.layout.item_dropdown_popup);
+        AutoCompleteTextView audioSpinner = (AutoCompleteTextView) audioFormatSpinner;
+        audioSpinner.setAdapter(audioAdapter);
+        audioSpinner.setText(audioFormats[0], false);
+        audioSpinner.setDropDownBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0xFFFFFFFF));
         
         // 质量
-        ArrayAdapter<CharSequence> qualityAdapter = ArrayAdapter.createFromResource(
-            this,
-            R.array.quality_options,
-            android.R.layout.simple_spinner_item
-        );
-        qualityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        qualitySpinner.setAdapter(qualityAdapter);
+        String[] qualityOptions = getResources().getStringArray(R.array.quality_options);
+        ArrayAdapter<String> qualityAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown, qualityOptions);
+        qualityAdapter.setDropDownViewResource(R.layout.item_dropdown_popup);
+        AutoCompleteTextView qualitySpinnerView = (AutoCompleteTextView) qualitySpinner;
+        qualitySpinnerView.setAdapter(qualityAdapter);
+        qualitySpinnerView.setText(qualityOptions[1], false);
+        qualitySpinnerView.setDropDownBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0xFFFFFFFF));
         
         // 音量设置
-        ArrayAdapter<CharSequence> volumeAdapter = ArrayAdapter.createFromResource(
-            this,
-            R.array.volume_options,
-            android.R.layout.simple_spinner_item
-        );
-        volumeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        volumeSpinner.setAdapter(volumeAdapter);
-        volumeSpinner.setSelection(0); //默认正常音量
+        String[] volumeOptions = getResources().getStringArray(R.array.volume_options);
+        ArrayAdapter<String> volumeAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown, volumeOptions);
+        volumeAdapter.setDropDownViewResource(R.layout.item_dropdown_popup);
+        AutoCompleteTextView volumeSpinnerView = (AutoCompleteTextView) volumeSpinner;
+        volumeSpinnerView.setAdapter(volumeAdapter);
+        volumeSpinnerView.setText(volumeOptions[0], false);
+        volumeSpinnerView.setDropDownBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0xFFFFFFFF));
         
         // 音量滑动条监听
-        volumeSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-          @Override
-          public void onProgressChanged(SeekBar seekbar, int progress, boolean fromUser) {
-              currentVolume = progress;
-              volumePercentText.setText(progress + "%");
-              
-              // 更新spinner显示为"自定义"
-              if (fromUser) {
-                  volumeSpinner.setSelection(3); // 自定义
-              }
-          }
-          
-          @Override
-          public void onStartTrackingTouch(SeekBar seekbar) {}
-          
-          @Override
-          public void onStopTrackingTouch(SeekBar seekbar) {}
+        volumeSeekBar.addOnChangeListener((slider, value, fromUser) -> {
+            currentVolume = (int) value;
+            volumePercentText.setText(currentVolume + "%");
+            
+            if (fromUser) {
+                volumeSpinnerView.setText(volumeOptions[3], false);
+            }
         });
         
-        volumeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                switch (position) {
-                    case 0: // 正常
-                        currentVolume = 100;
-                        volumeSeekBar.setProgress(100);
-                        customVolumeLayout.setVisibility(View.GONE);
-                        break;
-                    case 1: // 较低
-                        currentVolume = 50;
-                        volumeSeekBar.setProgress(50);
-                        customVolumeLayout.setVisibility(View.GONE);
-                        break;
-                    case 2: //较高
-                        currentVolume = 150;
-                        volumeSeekBar.setProgress(150);
-                        customVolumeLayout.setVisibility(View.GONE);
-                        break;
-                    case 3: // 自定义
+        // 音量选择监听
+        volumeSpinnerView.setOnItemClickListener((parent, view, position, id) -> {
+            switch (position) {
+                case 0: // 正常（100%）
+                    currentVolume = 100;
+                    volumeSeekBar.setValue(100f);
+                    customVolumeLayout.setVisibility(View.GONE);
+                    break;
+                case 1: // 较低（50%）
+                    currentVolume = 50;
+                    volumeSeekBar.setValue(50f);
+                    customVolumeLayout.setVisibility(View.GONE);
+                    break;
+                case 2: // 较高（150%）
+                    currentVolume = 150;
+                    volumeSeekBar.setValue(150f);
+                    customVolumeLayout.setVisibility(View.GONE);
+                    break;
+                case 3: // 自定义
                     customVolumeLayout.setVisibility(View.VISIBLE);
                     break;
-                }
-                volumePercentText.setText(currentVolume + "%");
             }
-            
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
+            volumePercentText.setText(currentVolume + "%");
         });
-        
-        // 默认选择
-        videoFormatSpinner.setSelection(0); // MP4
-        audioFormatSpinner.setSelection(0); // MP3
-        qualitySpinner.setSelection(1); // 中等
     }
     
-    private void setupButtonListeners(ImageButton settingsBtn) {
-        // 设置按钮添加旋转动画
-        settingsBtn.setOnClickListener(v -> {
-            AnimationUtils.animateButtonClick(v);
-            v.animate().rotationBy(180).setDuration(300).start();
-            
-            scheduler.schedule(() -> {
-                runOnUiThread(() -> {
-                    Intent settingsIntent = new Intent(MainActivity.this, SettingsMainActivity.class);
-                    ActivityOptionsCompat options = ActivityOptionsCompat.makeCustomAnimation(
-                        MainActivity.this,
-                        R.anim.slide_in_right,
-                        R.anim.slide_out_left
-                    );
-                    ActivityCompat.startActivity(MainActivity.this, settingsIntent, options.toBundle());
-                });
-            }, 150, TimeUnit.MILLISECONDS);
-        });
+    private void setupButtonListeners() {
         
         // 文件选择按钮
         selectFileBtn.setOnClickListener(v -> {
@@ -672,7 +652,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             return;
         }
         
-        String format = videoFormatSpinner.getSelectedItem().toString();
+        String format = videoFormatSpinner.getText().toString();
         generateOutputPath(); // 生成基础路径
         
         // 记录输出文件路径（带扩展名）
@@ -696,7 +676,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             return;
         }
         
-        String qualityStr = qualitySpinner.getSelectedItem().toString();
+        String qualityStr = qualitySpinner.getText().toString();
         int quality = getQualityValue(qualityStr);
         
         generateOutputPath(); // 生成基础路径
@@ -761,7 +741,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             return;
         }
         
-        String format = audioFormatSpinner.getSelectedItem().toString();
+        String format = audioFormatSpinner.getText().toString();
         
         File inputFile = new File(currentInputPath);
         String fileName = inputFile.getName();
