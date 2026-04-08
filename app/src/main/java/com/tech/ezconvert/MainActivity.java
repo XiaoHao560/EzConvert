@@ -14,6 +14,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 //import android.util.Log;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.tech.ezconvert.utils.Log;
 import android.view.View;
 import android.view.Window;
@@ -184,6 +185,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         cutAudioBtn = findViewById(R.id.cut_audio_btn);
         
         com.google.android.material.appbar.MaterialToolbar toolbar = findViewById(R.id.title_container);
+        toolbar.setNavigationContentDescription("菜单");
         toolbar.setNavigationOnClickListener(v -> {
             AnimationUtils.animateButtonClick(v);
             v.animate().rotationBy(180).setDuration(300).start();
