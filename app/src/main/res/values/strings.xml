@@ -19,7 +19,7 @@
     <string name="notification_permission_go_settings">去开启</string>
     <string name="notification_permission_later">暂不</string>
 
-    <string name="tooltip_back">返回</string>
+    <string name="tooltip_back">返回上一层级</string>
     <string name="tooltip_menu">菜单</string>
     
     <string-array name="update_frequency_options">

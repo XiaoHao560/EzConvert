@@ -4,224 +4,266 @@
      xmlns:app="http://schemas.android.com/apk/res-auto"
      android:layout_height="match_parent"
      android:layout_width="match_parent"
-     android:background="@color/bg_light"
-     android:padding="20dp">
+     android:background="?attr/colorSurfaceContainerLowest"
+     android:scrollbarStyle="outsideOverlay"
+     android:fadeScrollbars="true">
 
     <LinearLayout
          android:layout_height="wrap_content"
          android:layout_width="match_parent"
+         android:padding="16dp"
          android:orientation="vertical"
          android:id="@+id/scroll_content">
 
-        <LinearLayout
+        <com.google.android.material.appbar.MaterialToolbar
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:orientation="vertical"
+             android:layout_marginBottom="16dp"
+             android:background="@android:color/transparent"
+             app:navigationIconTint="?attr/colorOnSurfaceVariant"
+             app:title="应用设置"
+             app:titleCentered="true"
+             app:titleTextColor="?attr/colorPrimary"
+             app:navigationIcon="@drawable/round_arrow_back"
+             style="@style/Widget.Material3.Toolbar.Surface"
+             app:navigationContentDescription="@string/tooltip_back"
              android:id="@+id/title_container">
 
-            <androidx.cardview.widget.CardView
+        </com.google.android.material.appbar.MaterialToolbar>
+
+        <TextView
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:layout_marginBottom="24dp"
+             android:gravity="center"
+             android:textSize="12sp"
+             android:fontFamily="?attr/textAppearanceLabelMedium"
+             android:textColor="?attr/colorOnSurfaceVariant"
+             android:id="@+id/version_text"
+             android:text="EzConvert v0.0.0" />
+
+        <com.google.android.material.card.MaterialCardView
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:layout_marginBottom="12dp"
+             app:strokeColor="?attr/colorOutline"
+             app:cardElevation="0dp"
+             app:strokeWidth="1dp"
+             app:cardBackgroundColor="@android:color/transparent"
+             style="@style/Widget.Material3.CardView.Outlined"
+             app:cardCornerRadius="12dp"
+             android:id="@+id/settings_card">
+
+            <LinearLayout
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
-                 android:layout_marginBottom="8dp"
-                 app:cardElevation="4dp"
-                 app:cardUseCompatPadding="true"
-                 app:cardBackgroundColor="@android:color/white"
-                 app:cardCornerRadius="12dp"
-                 android:id="@+id/settings_card">
+                 android:padding="8dp"
+                 android:orientation="vertical">
 
                 <LinearLayout
-                     android:layout_height="wrap_content"
+                     android:layout_height="72dp"
                      android:layout_width="match_parent"
-                     android:padding="8dp"
-                     android:orientation="vertical">
+                     android:paddingEnd="16dp"
+                     android:background="?attr/selectableItemBackground"
+                     android:gravity="center_vertical"
+                     android:clickable="true"
+                     android:orientation="horizontal"
+                     android:paddingStart="16dp"
+                     android:focusable="true"
+                     android:id="@+id/transcode_settings_item">
 
-                    <TextView
-                         android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:layout_marginBottom="8dp"
-                         android:textSize="20sp"
-                         android:textColor="@color/text_primary"
-                         android:layout_marginTop="16dp"
-                         android:layout_marginStart="16dp"
-                         android:text="应用设置"
-                         android:textStyle="bold" />
-
-                    <LinearLayout
-                         android:layout_height="72dp"
-                         android:layout_width="match_parent"
-                         android:paddingEnd="16dp"
-                         android:background="?android:attr/selectableItemBackground"
-                         android:gravity="center_vertical"
-                         android:clickable="true"
-                         android:orientation="horizontal"
-                         android:paddingStart="16dp"
-                         android:focusable="true"
-                         android:id="@+id/transcode_settings_item">
+                    <FrameLayout
+                         android:layout_height="40dp"
+                         android:layout_width="40dp"
+                         android:layout_marginEnd="16dp"
+                         android:background="@drawable/circle_background_primary_container">
 
                         <ImageView
-                             android:layout_height="32dp"
-                             android:layout_width="32dp"
-                             android:layout_marginEnd="16dp"
+                             android:layout_height="24dp"
+                             android:layout_width="24dp"
                              android:src="@drawable/play_outline"
-                             android:tint="#2196F3" />
+                             app:tint="?attr/colorPrimary"
+                             android:layout_gravity="center" />
 
-                        <LinearLayout
-                             android:layout_height="wrap_content"
-                             android:layout_width="0dp"
-                             android:orientation="vertical"
-                             android:layout_weight="1">
-
-                            <TextView
-                                 android:layout_height="wrap_content"
-                                 android:layout_width="match_parent"
-                                 android:textSize="16sp"
-                                 android:textColor="@color/text_primary"
-                                 android:text="转码设置"
-                                 android:textStyle="bold" />
-
-                            <TextView
-                                 android:layout_height="wrap_content"
-                                 android:layout_width="match_parent"
-                                 android:textSize="14sp"
-                                 android:textColor="@color/text_hint"
-                                 android:text="硬件加速、多线程优化等性能设置" />
-
-                        </LinearLayout>
-
-                        <ImageView
-                             android:layout_height="24dp"
-                             android:layout_width="24dp"
-                             android:src="@drawable/arrow_right"
-                             android:tint="#9E9E9E" />
-
-                    </LinearLayout>
-
-                    <View
-                         android:layout_height="1dp"
-                         android:layout_width="match_parent"
-                         android:background="#F0F0F0"
-                         android:layout_marginStart="64dp" />
+                    </FrameLayout>
 
                     <LinearLayout
-                         android:layout_height="72dp"
-                         android:layout_width="match_parent"
-                         android:paddingEnd="16dp"
-                         android:background="?android:attr/selectableItemBackground"
-                         android:gravity="center_vertical"
-                         android:clickable="true"
-                         android:orientation="horizontal"
-                         android:paddingStart="16dp"
-                         android:focusable="true"
-                         android:id="@+id/general_settings_item">
+                         android:layout_height="wrap_content"
+                         android:layout_width="0dp"
+                         android:orientation="vertical"
+                         android:layout_weight="1">
 
-                        <ImageView
-                             android:layout_height="32dp"
-                             android:layout_width="32dp"
-                             android:layout_marginEnd="16dp"
-                             android:src="@drawable/cog_outline"
-                             android:tint="#2196F3" />
-
-                        <LinearLayout
+                        <TextView
                              android:layout_height="wrap_content"
-                             android:layout_width="0dp"
-                             android:orientation="vertical"
-                             android:layout_weight="1">
+                             android:layout_width="match_parent"
+                             android:textSize="16sp"
+                             android:fontFamily="?attr/textAppearanceTitleMedium"
+                             android:textColor="?attr/colorOnSurface"
+                             android:text="转码设置" />
 
-                            <TextView
-                                 android:layout_height="wrap_content"
-                                 android:layout_width="match_parent"
-                                 android:textSize="16sp"
-                                 android:textColor="@color/text_primary"
-                                 android:text="通用设置"
-                                 android:textStyle="bold" />
-
-                            <TextView
-                                 android:layout_height="wrap_content"
-                                 android:layout_width="match_parent"
-                                 android:textSize="14sp"
-                                 android:textColor="@color/text_hint"
-                                 android:text="界面、语言、通知等通用设置" />
-
-                        </LinearLayout>
-
-                        <ImageView
-                             android:layout_height="24dp"
-                             android:layout_width="24dp"
-                             android:src="@drawable/arrow_right"
-                             android:tint="#9E9E9E" />
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="14sp"
+                             android:fontFamily="?attr/textAppearanceBodyMedium"
+                             android:textColor="?attr/colorOnSurfaceVariant"
+                             android:text="硬件加速、多线程优化等性能设置" />
 
                     </LinearLayout>
 
-                    <View
-                         android:layout_height="1dp"
-                         android:layout_width="match_parent"
-                         android:background="#F0F0F0"
-                         android:layout_marginStart="64dp" />
-
-                    <LinearLayout
-                         android:layout_height="72dp"
-                         android:layout_width="match_parent"
-                         android:paddingEnd="16dp"
-                         android:background="?android:attr/selectableItemBackground"
-                         android:gravity="center_vertical"
-                         android:clickable="true"
-                         android:orientation="horizontal"
-                         android:paddingStart="16dp"
-                         android:focusable="true"
-                         android:id="@+id/about_item">
-
-                        <ImageView
-                             android:layout_height="32dp"
-                             android:layout_width="32dp"
-                             android:layout_marginEnd="16dp"
-                             android:src="@drawable/information_outline"
-                             android:tint="#2196F3" />
-
-                        <LinearLayout
-                             android:layout_height="wrap_content"
-                             android:layout_width="0dp"
-                             android:orientation="vertical"
-                             android:layout_weight="1">
-
-                            <TextView
-                                 android:layout_height="wrap_content"
-                                 android:layout_width="match_parent"
-                                 android:textSize="16sp"
-                                 android:textColor="@color/text_primary"
-                                 android:text="关于"
-                                 android:textStyle="bold" />
-
-                            <TextView
-                                 android:layout_height="wrap_content"
-                                 android:layout_width="match_parent"
-                                 android:textSize="14sp"
-                                 android:textColor="@color/text_hint"
-                                 android:text="版本信息、帮助和支持" />
-
-                        </LinearLayout>
-
-                        <ImageView
-                             android:layout_height="24dp"
-                             android:layout_width="24dp"
-                             android:src="@drawable/arrow_right"
-                             android:tint="#9E9E9E" />
-
-                    </LinearLayout>
+                    <ImageView
+                         android:layout_height="24dp"
+                         android:layout_width="24dp"
+                         android:src="@drawable/arrow_right"
+                         app:tint="?attr/colorOnSurfaceVariant" />
 
                 </LinearLayout>
 
-            </androidx.cardview.widget.CardView>
+                <com.google.android.material.divider.MaterialDivider
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     app:dividerColor="?attr/colorOutlineVariant"
+                     app:dividerThickness="1dp"
+                     android:layout_marginStart="72dp" />
 
-            <TextView
-                 android:layout_height="wrap_content"
-                 android:layout_width="match_parent"
-                 android:gravity="center"
-                 android:textSize="12sp"
-                 android:textColor="@color/text_hint"
-                 android:id="@+id/version_text"
-                 android:text="EzConvert v0.0.0" />
+                <LinearLayout
+                     android:layout_height="72dp"
+                     android:layout_width="match_parent"
+                     android:paddingEnd="16dp"
+                     android:background="?attr/selectableItemBackground"
+                     android:gravity="center_vertical"
+                     android:clickable="true"
+                     android:orientation="horizontal"
+                     android:paddingStart="16dp"
+                     android:focusable="true"
+                     android:id="@+id/general_settings_item">
 
-        </LinearLayout>
+                    <FrameLayout
+                         android:layout_height="40dp"
+                         android:layout_width="40dp"
+                         android:layout_marginEnd="16dp"
+                         android:background="@drawable/circle_background_primary_container">
+
+                        <ImageView
+                             android:layout_height="24dp"
+                             android:layout_width="24dp"
+                             android:src="@drawable/cog_outline"
+                             app:tint="?attr/colorPrimary"
+                             android:layout_gravity="center" />
+
+                    </FrameLayout>
+
+                    <LinearLayout
+                         android:layout_height="wrap_content"
+                         android:layout_width="0dp"
+                         android:orientation="vertical"
+                         android:layout_weight="1">
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="16sp"
+                             android:fontFamily="?attr/textAppearanceTitleMedium"
+                             android:textColor="?attr/colorOnSurface"
+                             android:text="通用设置" />
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="14sp"
+                             android:fontFamily="?attr/textAppearanceBodyMedium"
+                             android:textColor="?attr/colorOnSurfaceVariant"
+                             android:text="界面、语言、通知等通用设置" />
+
+                    </LinearLayout>
+
+                    <ImageView
+                         android:layout_height="24dp"
+                         android:layout_width="24dp"
+                         android:src="@drawable/arrow_right"
+                         app:tint="?attr/colorOnSurfaceVariant" />
+
+                </LinearLayout>
+
+                <com.google.android.material.divider.MaterialDivider
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     app:dividerColor="?attr/colorOutlineVariant"
+                     app:dividerThickness="1dp"
+                     android:layout_marginStart="72dp" />
+
+                <LinearLayout
+                     android:layout_height="72dp"
+                     android:layout_width="match_parent"
+                     android:paddingEnd="16dp"
+                     android:background="?attr/selectableItemBackground"
+                     android:gravity="center_vertical"
+                     android:clickable="true"
+                     android:orientation="horizontal"
+                     android:paddingStart="16dp"
+                     android:focusable="true"
+                     android:id="@+id/about_item">
+
+                    <FrameLayout
+                         android:layout_height="40dp"
+                         android:layout_width="40dp"
+                         android:layout_marginEnd="16dp"
+                         android:background="@drawable/circle_background_primary_container">
+
+                        <ImageView
+                             android:layout_height="24dp"
+                             android:layout_width="24dp"
+                             android:src="@drawable/information_outline"
+                             app:tint="?attr/colorPrimary"
+                             android:layout_gravity="center" />
+
+                    </FrameLayout>
+
+                    <LinearLayout
+                         android:layout_height="wrap_content"
+                         android:layout_width="0dp"
+                         android:orientation="vertical"
+                         android:layout_weight="1">
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="16sp"
+                             android:fontFamily="?attr/textAppearanceTitleMedium"
+                             android:textColor="?attr/colorOnSurface"
+                             android:text="关于" />
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="14sp"
+                             android:fontFamily="?attr/textAppearanceBodyMedium"
+                             android:textColor="?attr/colorOnSurfaceVariant"
+                             android:text="版本信息、帮助和支持" />
+
+                    </LinearLayout>
+
+                    <ImageView
+                         android:layout_height="24dp"
+                         android:layout_width="24dp"
+                         android:src="@drawable/arrow_right"
+                         app:tint="?attr/colorOnSurfaceVariant" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:gravity="center"
+             android:textSize="12sp"
+             android:fontFamily="?attr/textAppearanceLabelSmall"
+             android:textColor="?attr/colorOnSurfaceVariant"
+             android:layout_marginTop="8dp"
+             android:text="EzConvert Settings Mode" />
 
     </LinearLayout>
 
