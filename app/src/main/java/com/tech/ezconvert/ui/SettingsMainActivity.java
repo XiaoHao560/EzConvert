@@ -1,17 +1,14 @@
 package com.tech.ezconvert.ui;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import androidx.appcompat.app.AppCompatActivity;
-import android.content.pm.PackageManager;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
-import androidx.core.view.WindowCompat;
-import androidx.core.view.ViewCompat;
+import android.content.pm.PackageManager;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.tech.ezconvert.R;
 
 public class SettingsMainActivity extends BaseActivity {
@@ -30,27 +27,33 @@ public class SettingsMainActivity extends BaseActivity {
     private LinearLayout transcodeSettingsItem;
     private LinearLayout generalSettingsItem;
     private LinearLayout aboutItem;
+    private MaterialToolbar toolbar;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings_main);
         
+        // 设置进入动画
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         
         initializeViews();
         setupClickListeners();
+        setupToolbar();
     }
     
+    // 初始化视图组件
     private void initializeViews() {
         transcodeSettingsItem = findViewById(R.id.transcode_settings_item);
         generalSettingsItem = findViewById(R.id.general_settings_item);
         aboutItem = findViewById(R.id.about_item);
         versionText = findViewById(R.id.version_text);
+        toolbar = findViewById(R.id.title_container);
         
         setVersionText();
     }
     
+    // 设置版本号文本
     private void setVersionText() {
         try {
             String versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
@@ -60,11 +63,20 @@ public class SettingsMainActivity extends BaseActivity {
         }
     }
     
+    // 设置 Toolbar 返回按钮
+    private void setupToolbar() {
+        // 设置导航按钮点击事件 - 返回上一界面
+        toolbar.setNavigationOnClickListener(v -> {
+            finish();
+        });
+    }
+    
+    // 设置点击监听器
     private void setupClickListeners() {
+        // 打开转码设置界面
         transcodeSettingsItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // 打开转码设置界面
                 Intent intent = new Intent(SettingsMainActivity.this, TranscodeSettingsActivity.class);
                 ActivityOptionsCompat options = ActivityOptionsCompat.makeCustomAnimation(
                     SettingsMainActivity.this,
@@ -101,6 +113,7 @@ public class SettingsMainActivity extends BaseActivity {
     @Override
     public void finish() {
         super.finish();
+        // 设置退出动画
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 }
