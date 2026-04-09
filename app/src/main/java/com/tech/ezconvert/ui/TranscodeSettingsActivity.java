@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.AnimationUtils;
@@ -26,6 +27,7 @@ public class TranscodeSettingsActivity extends BaseActivity {
     private MaterialSwitch hardwareAccelerationSwitch;
     private MaterialSwitch multithreadingSwitch;
     private Button saveSettingsBtn;
+    private MaterialToolbar toolbar;
     private ConfigManager configManager;
     
     @Override
@@ -33,11 +35,13 @@ public class TranscodeSettingsActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
         
+        // 设置进入动画
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         
         configManager = ConfigManager.getInstance(this);
         initializeViews();
         loadSettings();
+        setupToolbar();
         
         saveSettingsBtn.setOnClickListener(v -> {
             AnimationUtils.animateButtonClick(v);
@@ -45,10 +49,20 @@ public class TranscodeSettingsActivity extends BaseActivity {
         });
     }
     
+    // 初始化视图组件
     private void initializeViews() {
         hardwareAccelerationSwitch = findViewById(R.id.hardware_acceleration_switch);
         multithreadingSwitch = findViewById(R.id.multithreading_switch);
         saveSettingsBtn = findViewById(R.id.save_settings_btn);
+        toolbar = findViewById(R.id.title_container);
+    }
+    
+    // 设置 Toolbar 返回按钮
+    private void setupToolbar() {
+        // 设置导航按钮点击事件 - 返回上一界面
+        toolbar.setNavigationOnClickListener(v -> {
+            finish();
+        });
     }
     
     private void loadSettings() {
@@ -70,6 +84,7 @@ public class TranscodeSettingsActivity extends BaseActivity {
     @Override
     public void finish() {
         super.finish();
+        // 设置退出动画
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
     

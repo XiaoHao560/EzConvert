@@ -1,212 +1,237 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
-     xmlns:android="http://schemas.android.com/apk/res/android"
-     xmlns:app="http://schemas.android.com/apk/res-auto"
-     android:layout_height="match_parent"
-     android:layout_width="match_parent"
-     android:background="@color/bg_light"
-     android:padding="12dp">
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:background="?attr/colorSurfaceContainerLowest"
+    android:scrollbarStyle="outsideOverlay"
+    android:fadeScrollbars="true">
 
     <LinearLayout
-         android:layout_height="wrap_content"
-         android:layout_width="match_parent"
-         android:orientation="vertical"
-         android:id="@+id/scroll_content">
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:padding="16dp"
+        android:orientation="vertical"
+        android:id="@+id/scroll_content">
 
-        <LinearLayout
-             android:layout_height="wrap_content"
-             android:layout_width="match_parent"
-             android:orientation="vertical"
-             android:id="@+id/title_container">
+        <com.google.android.material.appbar.MaterialToolbar
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_marginBottom="16dp"
+            android:background="@android:color/transparent"
+            app:navigationIconTint="?attr/colorOnSurfaceVariant"
+            app:title="转码设置"
+            app:titleCentered="true"
+            app:titleTextColor="?attr/colorPrimary"
+            app:navigationIcon="@drawable/round_arrow_back"
+            app:navigationContentDescription="@string/tooltip_back"
+            style="@style/Widget.Material3.Toolbar.Surface"
+            android:id="@+id/title_container" />
 
-            <androidx.cardview.widget.CardView
-                 android:layout_height="wrap_content"
-                 android:layout_width="match_parent"
-                 android:layout_marginBottom="8dp"
-                 app:cardElevation="4dp"
-                 app:cardUseCompatPadding="true"
-                 app:cardBackgroundColor="@android:color/white"
-                 app:cardCornerRadius="12dp"
-                 android:id="@+id/performance_card">
+        <com.google.android.material.card.MaterialCardView
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_marginBottom="12dp"
+            app:strokeColor="?attr/colorOutline"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:cardBackgroundColor="@android:color/transparent"
+            style="@style/Widget.Material3.CardView.Outlined"
+            app:cardCornerRadius="12dp"
+            android:id="@+id/performance_card">
+
+            <LinearLayout
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:padding="16dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_marginBottom="16dp"
+                    android:textSize="16sp"
+                    android:fontFamily="?attr/textAppearanceTitleMedium"
+                    android:textColor="?attr/colorOnSurface"
+                    android:text="性能优化选项" />
 
                 <LinearLayout
-                     android:layout_height="wrap_content"
-                     android:layout_width="match_parent"
-                     android:padding="16dp"
-                     android:orientation="vertical">
-
-                    <TextView
-                         android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:layout_marginBottom="16dp"
-                         android:textSize="16sp"
-                         android:textColor="@color/text_primary"
-                         android:text="性能优化选项"
-                         android:textStyle="bold" />
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <LinearLayout
-                         android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:layout_marginBottom="12dp"
-                         android:gravity="center_vertical"
-                         android:orientation="horizontal">
+                        android:layout_height="wrap_content"
+                        android:layout_width="0dp"
+                        android:orientation="vertical"
+                        android:layout_weight="1">
 
-                        <LinearLayout
-                             android:layout_height="wrap_content"
-                             android:layout_width="0dp"
-                             android:orientation="vertical"
-                             android:layout_weight="1">
+                        <TextView
+                            android:layout_height="wrap_content"
+                            android:layout_width="match_parent"
+                            android:textSize="14sp"
+                            android:fontFamily="?attr/textAppearanceTitleSmall"
+                            android:textColor="?attr/colorOnSurface"
+                            android:text="硬件编解码" />
 
-                            <TextView
-                                 android:layout_height="wrap_content"
-                                 android:layout_width="match_parent"
-                                 android:textSize="14sp"
-                                 android:textColor="@color/text_primary"
-                                 android:text="硬件编解码"
-                                 android:textStyle="bold" />
-
-                            <TextView
-                                 android:layout_height="wrap_content"
-                                 android:layout_width="match_parent"
-                                 android:textSize="12sp"
-                                 android:textColor="@color/text_hint"
-                                 android:layout_marginTop="2dp"
-                                 android:text="使用GPU加速视频处理" />
-
-                        </LinearLayout>
-
-                        <com.google.android.material.materialswitch.MaterialSwitch
-                             android:layout_height="wrap_content"
-                             android:layout_width="wrap_content"
-                             android:id="@+id/hardware_acceleration_switch" />
+                        <TextView
+                            android:layout_height="wrap_content"
+                            android:layout_width="match_parent"
+                            android:textSize="12sp"
+                            android:fontFamily="?attr/textAppearanceBodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:layout_marginTop="2dp"
+                            android:text="使用GPU加速视频处理" />
 
                     </LinearLayout>
 
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:layout_height="wrap_content"
+                        android:layout_width="wrap_content"
+                        android:id="@+id/hardware_acceleration_switch" />
+
+                </LinearLayout>
+
+                <com.google.android.material.divider.MaterialDivider
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    app:dividerColor="?attr/colorOutlineVariant"
+                    app:dividerThickness="1dp"
+                    android:layout_marginBottom="16dp" />
+
+                <LinearLayout
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
                     <LinearLayout
-                         android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:gravity="center_vertical"
-                         android:orientation="horizontal">
+                        android:layout_height="wrap_content"
+                        android:layout_width="0dp"
+                        android:orientation="vertical"
+                        android:layout_weight="1">
 
-                        <LinearLayout
-                             android:layout_height="wrap_content"
-                             android:layout_width="0dp"
-                             android:orientation="vertical"
-                             android:layout_weight="1">
+                        <TextView
+                            android:layout_height="wrap_content"
+                            android:layout_width="match_parent"
+                            android:textSize="14sp"
+                            android:fontFamily="?attr/textAppearanceTitleSmall"
+                            android:textColor="?attr/colorOnSurface"
+                            android:text="多线程优化" />
 
-                            <TextView
-                                 android:layout_height="wrap_content"
-                                 android:layout_width="match_parent"
-                                 android:textSize="14sp"
-                                 android:textColor="@color/text_primary"
-                                 android:text="多线程优化"
-                                 android:textStyle="bold" />
-
-                            <TextView
-                                 android:layout_height="wrap_content"
-                                 android:layout_width="match_parent"
-                                 android:textSize="12sp"
-                                 android:textColor="@color/text_hint"
-                                 android:layout_marginTop="2dp"
-                                 android:text="使用多核CPU并行处理" />
-
-                        </LinearLayout>
-
-                        <com.google.android.material.materialswitch.MaterialSwitch
-                             android:layout_height="wrap_content"
-                             android:layout_width="wrap_content"
-                             android:id="@+id/multithreading_switch" />
+                        <TextView
+                            android:layout_height="wrap_content"
+                            android:layout_width="match_parent"
+                            android:textSize="12sp"
+                            android:fontFamily="?attr/textAppearanceBodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:layout_marginTop="2dp"
+                            android:text="使用多核CPU并行处理" />
 
                     </LinearLayout>
 
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-
-            <androidx.cardview.widget.CardView
-                 android:layout_height="wrap_content"
-                 android:layout_width="match_parent"
-                 android:layout_marginBottom="8dp"
-                 app:cardElevation="2dp"
-                 app:cardUseCompatPadding="true"
-                 app:cardBackgroundColor="@android:color/white"
-                 app:cardCornerRadius="10dp"
-                 android:id="@+id/explanation_card_1">
-
-                <LinearLayout
-                     android:layout_height="wrap_content"
-                     android:layout_width="match_parent"
-                     android:padding="12dp"
-                     android:orientation="vertical">
-
-                    <TextView
-                         android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:layout_marginBottom="6dp"
-                         android:textSize="14sp"
-                         android:textColor="@color/text_primary"
-                         android:text="硬件编解码说明"
-                         android:textStyle="bold" />
-
-                    <TextView
-                         android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:textSize="12sp"
-                         android:textColor="@color/text_secondary"
-                         android:lineSpacingExtra="2dp"
-                         android:text="使用GPU进行视频编解码，可以显著提升转换速度，但可能在某些设备上存在兼容性问题。如果遇到转换失败，请关闭此选项。" />
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:layout_height="wrap_content"
+                        android:layout_width="wrap_content"
+                        android:id="@+id/multithreading_switch" />
 
                 </LinearLayout>
 
-            </androidx.cardview.widget.CardView>
+            </LinearLayout>
 
-            <androidx.cardview.widget.CardView
-                 android:layout_height="wrap_content"
-                 android:layout_width="match_parent"
-                 android:layout_marginBottom="16dp"
-                 app:cardElevation="2dp"
-                 app:cardUseCompatPadding="true"
-                 app:cardBackgroundColor="@android:color/white"
-                 app:cardCornerRadius="10dp"
-                 android:id="@+id/explanation_card_2">
+        </com.google.android.material.card.MaterialCardView>
 
-                <LinearLayout
-                     android:layout_height="wrap_content"
-                     android:layout_width="match_parent"
-                     android:padding="12dp"
-                     android:orientation="vertical">
+        <com.google.android.material.card.MaterialCardView
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_marginBottom="12dp"
+            app:strokeColor="?attr/colorOutline"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:cardBackgroundColor="?attr/colorSurfaceContainer"
+            style="@style/Widget.Material3.CardView.Outlined"
+            app:cardCornerRadius="12dp"
+            android:id="@+id/explanation_card_1">
 
-                    <TextView
-                         android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:layout_marginBottom="6dp"
-                         android:textSize="14sp"
-                         android:textColor="@color/text_primary"
-                         android:text="多线程优化说明"
-                         android:textStyle="bold" />
+            <LinearLayout
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:padding="16dp"
+                android:orientation="vertical">
 
-                    <TextView
-                         android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:textSize="12sp"
-                         android:textColor="@color/text_secondary"
-                         android:lineSpacingExtra="2dp"
-                         android:text="使用多核CPU并行处理视频，可以提升转换速度，但会增加CPU使用率和电池消耗。" />
+                <TextView
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_marginBottom="8dp"
+                    android:textSize="14sp"
+                    android:fontFamily="?attr/textAppearanceTitleSmall"
+                    android:textColor="?attr/colorOnSurface"
+                    android:text="硬件编解码说明" />
 
-                </LinearLayout>
+                <TextView
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:textSize="12sp"
+                    android:fontFamily="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:lineSpacingExtra="2dp"
+                    android:text="使用GPU进行视频编解码，可以显著提升转换速度，但可能在某些设备上存在兼容性问题。如果遇到转换失败，请关闭此选项。" />
 
-            </androidx.cardview.widget.CardView>
+            </LinearLayout>
 
-            <Button
-                 android:layout_height="48dp"
-                 android:layout_width="match_parent"
-                 android:textSize="14sp"
-                 android:backgroundTint="#2196F3"
-                 android:textColor="@android:color/white"
-                 android:id="@+id/save_settings_btn"
-                 android:text="保存设置" />
+        </com.google.android.material.card.MaterialCardView>
 
-        </LinearLayout>
+        <com.google.android.material.card.MaterialCardView
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_marginBottom="16dp"
+            app:strokeColor="?attr/colorOutline"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:cardBackgroundColor="?attr/colorSurfaceContainer"
+            style="@style/Widget.Material3.CardView.Outlined"
+            app:cardCornerRadius="12dp"
+            android:id="@+id/explanation_card_2">
+
+            <LinearLayout
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:padding="16dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_marginBottom="8dp"
+                    android:textSize="14sp"
+                    android:fontFamily="?attr/textAppearanceTitleSmall"
+                    android:textColor="?attr/colorOnSurface"
+                    android:text="多线程优化说明" />
+
+                <TextView
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:textSize="12sp"
+                    android:fontFamily="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:lineSpacingExtra="2dp"
+                    android:text="使用多核CPU并行处理视频，可以提升转换速度，但会增加CPU使用率和电池消耗。" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <Button
+            android:layout_height="48dp"
+            android:layout_width="match_parent"
+            app:icon="@drawable/round_save"
+            style="@style/Widget.Material3.Button.Icon"
+            android:id="@+id/save_settings_btn"
+            android:text="保存设置"
+            app:iconGravity="textStart" />
 
     </LinearLayout>
 
