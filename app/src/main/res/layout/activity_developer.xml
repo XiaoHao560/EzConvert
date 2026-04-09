@@ -174,7 +174,7 @@
                             <ImageView
                                  android:layout_height="24dp"
                                  android:layout_width="24dp"
-                                 android:src="@drawable/arrow_right"
+                                 android:src="@drawable/round_arrow_forward"
                                  android:tint="#9E9E9E" />
 
                         </LinearLayout>
@@ -266,7 +266,7 @@
                             <ImageView
                                  android:layout_height="24dp"
                                  android:layout_width="24dp"
-                                 android:src="@drawable/arrow_right"
+                                 android:src="@drawable/round_arrow_forward"
                                  android:tint="#9E9E9E" />
 
                         </LinearLayout>
