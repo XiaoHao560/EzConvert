@@ -9,15 +9,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.method.LinkMovementMethod;
-import com.tech.ezconvert.utils.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.tech.ezconvert.R;
+import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.utils.ToastUtils;
 import com.tech.ezconvert.utils.UpdateChecker;
 import io.noties.markwon.Markwon;
@@ -46,6 +45,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
     private LinearLayout forceCheckUpdateItem;
     private LinearLayout forceCheckUpdateClickArea;
     private LinearLayout developerItem;
+    private MaterialToolbar toolbar;
     private boolean includePrereleases = true;
     private boolean isDevelopmentVersion = false;
     
@@ -64,6 +64,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         
         initializeViews();
+        setupToolbar();
         setupClickListeners();
         loadVersionInfo();
         
@@ -78,22 +79,27 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
     
     private void initMarkwon() {
         markwon = Markwon.builder(this)
-            .usePlugin(LinkifyPlugin.create())
-            .usePlugin(StrikethroughPlugin.create())
-            .usePlugin(TablePlugin.create(this))
-            .usePlugin(HtmlPlugin.create())
+            .usePlugin(io.noties.markwon.linkify.LinkifyPlugin.create())
+            .usePlugin(io.noties.markwon.ext.strikethrough.StrikethroughPlugin.create())
+            .usePlugin(io.noties.markwon.ext.tables.TablePlugin.create(this))
+            .usePlugin(io.noties.markwon.html.HtmlPlugin.create())
             .build();
     }
     
     private void initializeViews() {
+        toolbar = findViewById(R.id.title_container);
         versionText = findViewById(R.id.version_text);
         updateStatusText = findViewById(R.id.update_status_text);
         testUpdateItem = findViewById(R.id.test_update_item);
         testUpdateClickArea = findViewById(R.id.test_update_click_area);
-        // 初始化强制检查更新视图
         forceCheckUpdateItem = findViewById(R.id.force_check_update_item);
         forceCheckUpdateClickArea = findViewById(R.id.force_check_update_click_area);
         developerItem = findViewById(R.id.developer_item);
+    }
+    
+    // 设置 Toolbar 返回按钮
+    private void setupToolbar() {
+        toolbar.setNavigationOnClickListener(v -> finish());
     }
     
     private void setupClickListeners() {
