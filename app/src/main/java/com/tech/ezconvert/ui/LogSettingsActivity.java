@@ -1,18 +1,20 @@
 package com.tech.ezconvert.ui;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.widget.*;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.app.ActivityOptionsCompat;
+import android.widget.Button;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.radiobutton.MaterialRadioButton;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.AnimationUtils;
 import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.FFmpegUtil;
 import com.tech.ezconvert.utils.LogManager;
 import com.tech.ezconvert.utils.ToastUtils;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.ActivityOptionsCompat;
 
 public class LogSettingsActivity extends BaseActivity {
 
@@ -26,8 +28,9 @@ public class LogSettingsActivity extends BaseActivity {
         return R.id.scroll_content;
     }
 
-    private RadioButton rbAll, rbError;
+    private MaterialRadioButton rbAll, rbError;
     private Button btnViewLog;
+    private MaterialToolbar toolbar;
     private ConfigManager configManager;
 
     @Override
@@ -35,16 +38,38 @@ public class LogSettingsActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_log_settings);
 
+        // 初始化配置管理器
         configManager = ConfigManager.getInstance(this);
 
-        rbAll   = findViewById(R.id.rb_log_all);
+        // 初始化视图
+        initViews();
+        setupToolbar();
+        loadSettings();
+        setupListeners();
+    }
+    
+    // 初始化视图组件
+    private void initViews() {
+        toolbar = findViewById(R.id.title_container);
+        rbAll = findViewById(R.id.rb_log_all);
         rbError = findViewById(R.id.rb_log_error);
         btnViewLog = findViewById(R.id.btn_view_log);
-
+    }
+    
+    // 设置 Toolbar 返回按钮
+    private void setupToolbar() {
+        toolbar.setNavigationOnClickListener(v -> finish());
+    }
+    
+    // 加载当前设置
+    private void loadSettings() {
         boolean isVerbose = configManager.isVerboseLoggingEnabled();
         rbAll.setChecked(isVerbose);
         rbError.setChecked(!isVerbose);
-
+    }
+    
+    // 设置监听器
+    private void setupListeners() {
         RadioGroup rg = findViewById(R.id.rg_log_level);
         rg.setOnCheckedChangeListener((group, checkedId) -> {
             boolean verbose = checkedId == R.id.rb_log_all;
@@ -79,6 +104,7 @@ public class LogSettingsActivity extends BaseActivity {
     @Override
     public void finish() {
         super.finish();
+        // 设置退出动画
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 }
