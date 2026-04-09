@@ -1,18 +1,20 @@
 package com.tech.ezconvert.ui;
 
 import android.content.Intent;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
-import android.widget.Spinner;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.NotificationHelper;
@@ -30,11 +32,13 @@ public class MoreSettingsActivity extends BaseActivity {
         return R.id.scroll_content;
     }
     
-    private com.google.android.material.materialswitch.MaterialSwitch autoUpdateSwitch;
-    private com.google.android.material.materialswitch.MaterialSwitch notificationSwitch;
-    private Spinner frequencySpinner;
+    private MaterialSwitch autoUpdateSwitch;
+    private MaterialSwitch notificationSwitch;
+    private AutoCompleteTextView frequencySpinner;
     private LinearLayout frequencyLayout;
+    private MaterialToolbar toolbar;
     private ConfigManager configManager;
+    
     // 标记是否正在处理开关变化，防止循环触发
     private boolean isHandlingNotificationSwitch = false;
     // 标记是否刚从权限设置返回，需要检查权限状态
@@ -45,6 +49,7 @@ public class MoreSettingsActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_more_settings);
 
+        // 设置进入动画
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 
         configManager = ConfigManager.getInstance(this);
@@ -55,8 +60,12 @@ public class MoreSettingsActivity extends BaseActivity {
         loadCurrentSettings();
     }
 
+    // 初始化视图组件
     private void initViews() {
-        // 运行日志
+        // 初始化 Toolbar
+        toolbar = findViewById(R.id.title_container);
+        
+        // 运行日志入口
         LinearLayout logEntry = findViewById(R.id.item_run_log);
         logEntry.setOnClickListener(v -> {
             Intent intent = new Intent(this, LogSettingsActivity.class);
@@ -76,16 +85,30 @@ public class MoreSettingsActivity extends BaseActivity {
         // 通知开关
         notificationSwitch = findViewById(R.id.notification_switch);
         
-        // 设置Spinner适配器
+        // 设置下拉菜单适配器
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
             this,
             R.array.update_frequency_options,
-            android.R.layout.simple_spinner_item
+            android.R.layout.simple_dropdown_item_1line
         );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         frequencySpinner.setAdapter(adapter);
+        
+        // 设置下拉菜单背景为白色
+        frequencySpinner.setDropDownBackgroundDrawable(new ColorDrawable(getResources().getColor(android.R.color.white)));
+        
+        // 设置 Toolbar
+        setupToolbar();
+    }
+    
+    // 设置 Toolbar 返回按钮
+    private void setupToolbar() {
+        // 设置导航按钮点击事件 - 返回上一界面
+        toolbar.setNavigationOnClickListener(v -> {
+            finish();
+        });
     }
 
+    // 设置点击监听器
     private void setupClickListeners() {
         // 自动更新开关监听
         autoUpdateSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -116,17 +139,9 @@ public class MoreSettingsActivity extends BaseActivity {
         });
         
         // 频率选择监听
-        frequencySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                int frequency = mapPositionToFrequency(position);
-                configManager.setUpdateCheckFrequency(frequency);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                
-            }
+        frequencySpinner.setOnItemClickListener((parent, view, position, id) -> {
+            int frequency = mapPositionToFrequency(position);
+            configManager.setUpdateCheckFrequency(frequency);
         });
     }
 
@@ -142,12 +157,13 @@ public class MoreSettingsActivity extends BaseActivity {
         
         // 更新Spinner选择
         int spinnerPosition = mapFrequencyToPosition(currentFrequency);
-        frequencySpinner.setSelection(spinnerPosition);
+        frequencySpinner.setText(frequencySpinner.getAdapter().getItem(spinnerPosition).toString(), false);
         
         // 更新布局可见性
         updateFrequencyLayoutVisibility(autoCheckEnabled);
     }
 
+    // 更新频率选择区域的可见性
     private void updateFrequencyLayoutVisibility(boolean enabled) {
         if (frequencyLayout != null) {
             frequencyLayout.setEnabled(enabled);
@@ -156,6 +172,7 @@ public class MoreSettingsActivity extends BaseActivity {
         }
     }
 
+    // 将下拉菜单位置映射为频率值
     private int mapPositionToFrequency(int position) {
         switch (position) {
             case 0: // 每24小时检测
@@ -167,6 +184,7 @@ public class MoreSettingsActivity extends BaseActivity {
         }
     }
 
+    // 将频率值映射为下拉菜单位置
     private int mapFrequencyToPosition(int frequency) {
         switch (frequency) {
             case 1: // FREQUENCY_EVERY_24_HOURS
@@ -243,6 +261,7 @@ public class MoreSettingsActivity extends BaseActivity {
     @Override
     public void finish() {
         super.finish();
+        // 设置退出动画
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 }
