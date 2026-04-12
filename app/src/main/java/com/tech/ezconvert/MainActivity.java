@@ -261,7 +261,6 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             
             runOnUiThread(() -> {
                 updateStatus("操作已取消");
-                ToastUtils.show(this, "操作已取消");
                 
                 // 重置进度显示
                 progressBar.clearAnimation();
