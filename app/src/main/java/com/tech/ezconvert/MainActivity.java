@@ -256,9 +256,6 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                 deleteFileIfExists(currentOutputFile);
             }
             
-            // 同时尝试删除可能生成的临时文件（处理多步骤转换的情况）
-            cleanupPartialFiles();
-            
             runOnUiThread(() -> {
                 updateStatus("操作已取消");
                 
@@ -283,35 +280,6 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             }
         } catch (Exception e) {
             Log.e("MainActivity", "删除文件失败: " + filePath, e);
-            ToastUtils.show(this, "删除临时文件失败\n请前往手动删除");
-        }
-    }
-    
-    // 清理可能的部分输出文件
-    private void cleanupPartialFiles() {
-        try {
-            // 获取输出目录
-            String outputDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + File.separator + "简转";
-            
-            File dir = new File(outputDir);
-            if (!dir.exists() || !dir.isDirectory()) return;
-            
-            // 列出最近 1 分钟内修改的文件（可能是当前任务生成的临时文件）
-            long now = System.currentTimeMillis();
-            File[] files = dir.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    // 删除最近 60 秒内创建或修改的临时文件
-                    if (now - file.lastModified() < 60000) {
-                        if (file.delete()) {
-                            Log.d("MainActivity", "清理临时文件: " + file.getName());
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            Log.e("MainActivity", "清理部分文件失败", e);
             ToastUtils.show(this, "删除临时文件失败\n请前往手动删除");
         }
     }
