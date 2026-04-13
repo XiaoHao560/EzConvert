@@ -424,7 +424,7 @@
                      android:layout_width="match_parent"
                      android:layout_marginBottom="8dp"
                      app:icon="@drawable/compress"
-                     style="@style/Widget.Material3.Button.TonalButton.Icon"
+                     style="@style/Widget.Material3.Button.OutlinedButton.Icon"
                      android:id="@+id/compress_btn"
                      android:text="压缩视频"
                      app:iconGravity="textStart" />
@@ -434,7 +434,7 @@
                      android:layout_width="match_parent"
                      android:layout_marginBottom="8dp"
                      app:icon="@drawable/round_audiotrack"
-                     style="@style/Widget.Material3.Button.TonalButton.Icon"
+                     style="@style/Widget.Material3.Button.OutlinedButton.Icon"
                      android:id="@+id/extract_audio_btn"
                      android:text="提取音频"
                      app:iconGravity="textStart" />
