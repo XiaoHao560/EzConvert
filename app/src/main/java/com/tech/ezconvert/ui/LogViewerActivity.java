@@ -5,13 +5,19 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.text.Editable;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
 import android.text.TextWatcher;
+import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.*;
@@ -37,6 +43,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -656,6 +664,8 @@ public class LogViewerActivity extends BaseActivity {
 
     private static class LogAdapter extends RecyclerView.Adapter<LogAdapter.Holder> {
         private List<String> list;
+        // 正则匹配日志级别标签
+        private static final Pattern LEVEL_PATTERN = Pattern.compile("\\[(ERROR|WARN|INFO|DEBUG|VERBOSE)\\]");
         
         LogAdapter(List<String> list) { 
             this.list = new ArrayList<>(list); 
@@ -670,44 +680,106 @@ public class LogViewerActivity extends BaseActivity {
             TextView tv = new TextView(p.getContext());
             tv.setPadding(16, 12, 16, 12);
             tv.setTextSize(12);
+            // 默认颜色，实际会在 onBindViewHolder 中动态设置
             tv.setTextColor(p.getContext().getResources().getColor(R.color.text_primary));
             return new Holder(tv);
         }
         
-        @Override public void onBindViewHolder(Holder h, int i) { 
+        @Override public void onBindViewHolder(Holder h, int i) {
             String logEntry = list.get(i);
             TextView textView = (TextView) h.itemView;
-            textView.setText(logEntry);
             
-            // 解析日志级别并设置对应颜色
-            int textColor = parseLogLevelColor(logEntry, textView.getContext());
-            textView.setTextColor(textColor);
+            // 应用带整行颜色+标签背景的富文本
+            textView.setText(createStyledLog(logEntry, textView.getContext()));
         }
         
         @Override public int getItemCount() { return list.size(); }
         
-        // 解析日志级别并返回对应的颜色值
-        private int parseLogLevelColor(String logLine, Context context) {
-            // 默认使用 onSurface 颜色 (INFO)
-            int defaultColor = getThemeColor(context, com.google.android.material.R.attr.colorOnSurface);
+        private SpannableStringBuilder createStyledLog(String logLine, Context context) {
+            SpannableStringBuilder ssb = new SpannableStringBuilder(logLine);
             
             if (logLine == null || logLine.isEmpty()) {
-                return defaultColor;
+                return ssb;
             }
             
-            // 匹配日志级别标识
+            // 确定并应用整行文字颜色
+            int lineColor = getLineColorByLevel(logLine, context);
+            ssb.setSpan(
+                new ForegroundColorSpan(lineColor), 
+                0, logLine.length(), 
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            );
+            
+            // 为日志级别标签添加圆角背景（会覆盖标签区域的整行颜色）
+            Matcher matcher = LEVEL_PATTERN.matcher(logLine);
+            while (matcher.find()) {
+                String levelTag = matcher.group(1);
+                int start = matcher.start();
+                int end = matcher.end();
+                
+                LevelStyle style = getLevelTagStyle(levelTag, context);
+                
+                // RoundedBackgroundSpan 会自己绘制背景和文字，覆盖该区域之前的 ForegroundColorSpan
+                ssb.setSpan(
+                    new RoundedBackgroundSpan(
+                        style.backgroundColor,
+                        style.textColor,
+                        context.getResources().getDisplayMetrics().density
+                    ),
+                    start, end, 
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                );
+            }
+            
+            return ssb;
+        }
+        
+        // 获取整行文字颜色
+        private int getLineColorByLevel(String logLine, Context context) {
             if (logLine.contains("[ERROR]")) {
                 return getThemeColor(context, com.google.android.material.R.attr.colorError);
-            } else if (logLine.contains("[WRAN]")) {
-                // 使用橙色作为警告色
+            } else if (logLine.contains("[WARN]")) {
                 return android.graphics.Color.parseColor("#FF9800");
             } else if (logLine.contains("[INFO]")) {
-                return defaultColor;
-            } else if (logLine.contains("[DEBUG]") || logLine.contains("VERBOSE")) {
+                return getThemeColor(context, com.google.android.material.R.attr.colorOnSurface);
+            } else if (logLine.contains("[DEBUG]") || logLine.contains("[VERBOSE]")) {
                 return getThemeColor(context, com.google.android.material.R.attr.colorOnSurfaceVariant);
             }
-            
-            return defaultColor;
+            return getThemeColor(context, com.google.android.material.R.attr.colorOnSurface);
+        }
+        
+        // 获取日志级别标签的样式 (背景色 + 标签内文字色)
+        // 使用 MD3 Container/OnContainer 配色确保对比度
+        private LevelStyle getLevelTagStyle(String level, Context context) {
+            switch (level) {
+                case "ERROR":
+                    return new LevelStyle(
+                        getThemeColor(context, com.google.android.material.R.attr.colorErrorContainer),
+                        getThemeColor(context, com.google.android.material.R.attr.colorOnErrorContainer)
+                    );
+                case "WARN":
+                    // 使用琥珀色配色，确保与 ERROR 的红色区分
+                    return new LevelStyle(
+                        android.graphics.Color.parseColor("#FFECB3"), // 浅琥珀背景
+                        android.graphics.Color.parseColor("#BF360C")  // 深琥珀文字
+                    );
+                case "INFO":
+                    return new LevelStyle(
+                        getThemeColor(context, com.google.android.material.R.attr.colorPrimaryContainer),
+                        getThemeColor(context, com.google.android.material.R.attr.colorOnPrimaryContainer)
+                    );
+                case "DEBUG":
+                case "VERBOSE":
+                    return new LevelStyle(
+                        getThemeColor(context, com.google.android.material.R.attr.colorSurfaceVariant),
+                        getThemeColor(context, com.google.android.material.R.attr.colorOnSurfaceVariant)
+                    );
+                default:
+                    return new LevelStyle(
+                        getThemeColor(context, com.google.android.material.R.attr.colorSurfaceVariant),
+                        getThemeColor(context, com.google.android.material.R.attr.colorOnSurface)
+                    );
+            }
         }
         
         // 安全获取主题属性颜色值
@@ -715,13 +787,95 @@ public class LogViewerActivity extends BaseActivity {
             android.util.TypedValue typedValue = new android.util.TypedValue();
             android.content.res.Resources.Theme theme = context.getTheme();
             if (theme.resolveAttribute(attrResId, typedValue, true)) {
-                if (typedValue.type >= android.util.TypedValue.TYPE_FIRST_COLOR_INT
+                if (typedValue.type >= android.util.TypedValue.TYPE_FIRST_COLOR_INT 
                         && typedValue.type <= android.util.TypedValue.TYPE_LAST_COLOR_INT) {
                     return typedValue.data;
                 }
             }
-            // 获取失败时返回默认黑色
-            return android.graphics.Color.BLACK;
+            return android.graphics.Color.GRAY;
+        }
+        
+        // 样式数据类: 背景色 + 文字色
+        private static class LevelStyle {
+            final int backgroundColor;
+            final int textColor;
+            
+            LevelStyle(int backgroundColor, int textColor) {
+                this.backgroundColor = backgroundColor;
+                this.textColor = textColor;
+            }
+        }
+        
+        // 自定义 Span: 绘制圆角背景 + 垂直水平居中文字
+        private static class RoundedBackgroundSpan extends android.text.style.ReplacementSpan {
+            private final int backgroundColor;
+            private final int textColor;
+            private final float cornerRadius;
+            private final float paddingHorizontal;
+            private final float paddingVertical;
+            
+            RoundedBackgroundSpan(int backgroundColor, int textColor, float density) {
+                this.backgroundColor = backgroundColor;
+                this.textColor = textColor;
+                this.cornerRadius = 4 * density;      // 4dp 圆角
+                this.paddingHorizontal = 8 * density; // 8dp 水平内边距
+                this.paddingVertical = 3 * density;   // 3dp 垂直内边距
+            }
+            
+            @Override
+            public int getSize(Paint paint, CharSequence text, int start, int end, 
+                             Paint.FontMetricsInt fm) {
+                float textWidth = paint.measureText(text, start, end);
+                return (int) (textWidth + paddingHorizontal * 2);
+            }
+            
+            @Override
+            public void draw(Canvas canvas, CharSequence text, int start, int end, 
+                           float x, int top, int y, int bottom, Paint paint) {
+                // 测量文字宽度
+                float textWidth = paint.measureText(text, start, end);
+                
+                // 定义背景矩形（相对于整行的 top/bottom，加上垂直内边距）
+                float bgLeft = x;
+                float bgRight = x + textWidth + paddingHorizontal * 2;
+                float bgTop = top + paddingVertical;
+                float bgBottom = bottom - paddingVertical;
+                
+                RectF rect = new RectF(bgLeft, bgTop, bgRight, bgBottom);
+                
+                // 保存原始状态
+                int previousColor = paint.getColor();
+                Paint.Style previousStyle = paint.getStyle();
+                boolean previousAntiAlias = paint.isAntiAlias();
+                
+                // 绘制圆角背景
+                paint.setColor(backgroundColor);
+                paint.setStyle(Paint.Style.FILL);
+                paint.setAntiAlias(true);
+                canvas.drawRoundRect(rect, cornerRadius, cornerRadius, paint);
+                
+                // 计算文字垂直居中位置
+                // 获取字体度量信息
+                Paint.FontMetrics fontMetrics = paint.getFontMetrics();
+                // 计算文字实际高度
+                float textHeight = fontMetrics.descent - fontMetrics.ascent;
+                // 计算背景高度
+                float bgHeight = bgBottom - bgTop;
+                // 计算垂直偏移量，使文字在背景中居中
+                // 公式：背景中心 + (文字高度的一半 - descent) 的微调
+                float textCenterY = (bgTop + bgBottom) / 2;
+                float textBaselineOffset = (textHeight / 2) - fontMetrics.descent;
+                float finalY = textCenterY + textBaselineOffset;
+                
+                // 绘制文字（水平方向：x + 左内边距，垂直方向：finalY）
+                paint.setColor(textColor);
+                paint.setStyle(previousStyle);
+                canvas.drawText(text, start, end, x + paddingHorizontal, finalY, paint);
+                
+                // 恢复画笔状态
+                paint.setColor(previousColor);
+                paint.setAntiAlias(previousAntiAlias);
+            }
         }
         
         static class Holder extends RecyclerView.ViewHolder { 
