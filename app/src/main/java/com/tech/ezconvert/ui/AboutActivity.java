@@ -237,8 +237,31 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
         runOnUiThread(() -> {
             this.isDevelopmentVersion = isDevelopmentVersion;
             
+            // 首先处理开发者版本的状态显示
+            if (isDevelopmentVersion) {
+                // 开发者版本始终显示"当前为开发版本"
+                String statusText = "当前是开发版本";
+                
+                updateStatusText.setText(statusText);
+                updateStatusText.setTextColor(ContextCompat.getColor(this, android.R.color.holo_blue_dark));
+                updateStatusText.setOnClickListener(null);
+                
+                // 开发版本显示测试选项和开发者入口
+                testUpdateItem.setVisibility(View.VISIBLE);
+                forceCheckUpdateItem.setVisibility(View.VISIBLE);
+                developerItem.setVisibility(View.VISIBLE);
+                Log.d(TAG, "开发版本: 显示测试按钮和开发者入口");
+                
+                // 如果是开发版本，在有新版本时同样弹出更新对话框
+                if (comparisonResult < 0) {
+                    showUpdateDialog(releaseName, ReleaseNotes, isPrerelease, htmlUrl);
+                }
+                return;
+            }
+            
+            // 非开发版本 (正式版)
             if (comparisonResult < 0) {
-                // 有新版本可用 - 显示弹窗
+                // 有新版本可用 -显示弹窗
                 showUpdateDialog(releaseName, ReleaseNotes, isPrerelease, htmlUrl);
                 
                 // 更新状态文本
@@ -254,16 +277,10 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                     showUpdateDialog(releaseName, "", isPrerelease, htmlUrl);
                 });
                 
-                // 如果是开发版本，显示测试选项和开发者入口
-                if (isDevelopmentVersion) {
-                    testUpdateItem.setVisibility(View.VISIBLE);
-                    forceCheckUpdateItem.setVisibility(View.VISIBLE);
-                    developerItem.setVisibility(View.VISIBLE);
-                } else {
-                    testUpdateItem.setVisibility(View.GONE);
-                    forceCheckUpdateItem.setVisibility(View.GONE);
-                    developerItem.setVisibility(View.GONE);
-                }
+                // 正式版隐藏测试选项
+                testUpdateItem.setVisibility(View.GONE);
+                forceCheckUpdateItem.setVisibility(View.GONE);
+                developerItem.setVisibility(View.GONE);
             } else if (comparisonResult == 0) {
                 // 版本相同
                 String statusText = "已是最新版本";
@@ -274,33 +291,20 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                 updateStatusText.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray));
                 updateStatusText.setOnClickListener(null);
                 
-                // 是开发版本时则显示测试选项和开发者入口
-                if (isDevelopmentVersion) {
-                    testUpdateItem.setVisibility(View.VISIBLE);
-                    forceCheckUpdateItem.setVisibility(View.VISIBLE);
-                    developerItem.setVisibility(View.VISIBLE);
-                    Log.d(TAG, "显示测试更新按钮和开发者入口（开发版本）");
-                } else {
-                    testUpdateItem.setVisibility(View.GONE);
-                    forceCheckUpdateItem.setVisibility(View.GONE);
-                    developerItem.setVisibility(View.GONE);
-                }
+                // 正式版隐藏测试选项
+                testUpdateItem.setVisibility(View.GONE);
+                forceCheckUpdateItem.setVisibility(View.GONE);
+                developerItem.setVisibility(View.GONE);
             } else {
-                // 当前版本比找到的版本更新（本地版本 > GitHub版本，可能是开发版本）
-                updateStatusText.setText("当前为开发版本");
-                updateStatusText.setTextColor(ContextCompat.getColor(this, android.R.color.holo_blue_dark));
+                // 当前版本比找到的版本更新
+                updateStatusText.setText("当前版本比 github 上更新?");
+                updateStatusText.setTextColor(ContextCompat.getColor(this, android.R.color.holo_red_light));
                 updateStatusText.setOnClickListener(null);
                 
-                // 显示测试更新选项和开发者入口
-                if (isDevelopmentVersion) {
-                    testUpdateItem.setVisibility(View.VISIBLE);
-                    forceCheckUpdateItem.setVisibility(View.VISIBLE);
-                    developerItem.setVisibility(View.VISIBLE);
-                } else {
-                    testUpdateItem.setVisibility(View.GONE);
-                    forceCheckUpdateItem.setVisibility(View.GONE);
-                    developerItem.setVisibility(View.GONE);
-                }
+                // 正式版隐藏测试选项
+                testUpdateItem.setVisibility(View.GONE);
+                forceCheckUpdateItem.setVisibility(View.GONE);
+                developerItem.setVisibility(View.GONE);
             }
             
             // 更新测试按钮和开发者入口的可见性

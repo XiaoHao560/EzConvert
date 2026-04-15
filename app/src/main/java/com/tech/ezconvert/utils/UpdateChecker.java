@@ -316,16 +316,24 @@ public class UpdateChecker {
                     }
                     
                     if (showToast && isManual) {
-                        String toastMessage;
-                        if (finalComparison == 0) {
+                        String toastMessage = null;
+                        // 优先判断是否为开发版本
+                        if (finalIsDevelopmentVersion) {
+                            toastMessage = "当前是开发版本";
+                        } else if (finalComparison == 0) {
                             toastMessage = finalIsPrerelease ? 
                                 "已是最新版本 (预发布)" : "已是最新版本";
+                        } else if (finalComparison > 0) {
+                            toastMessage = "当前版本比 github 上更新?";
                         } else {
-                            toastMessage = "当前为开发版本";
+                            // finalComparison < 0
+                            toastMessage = "发现新版本";
                         }
-                        final String finalToastMessage = toastMessage;
-                        mainHandler.post(() -> 
-                            ToastUtils.show(context, finalToastMessage));
+                        if (toastMessage != null) {
+                            final String finalToastMessage = toastMessage;
+                            mainHandler.post(() -> 
+                                ToastUtils.show(context, finalToastMessage));
+                        }
                     }
                 }
                 
@@ -393,80 +401,18 @@ public class UpdateChecker {
     }
     
     public boolean isDevelopmentVersion(String version) {
-        String cleanVersion = version.replaceFirst("^[vV]", "").toLowerCase();
-        
-        // 检查是否为预发布版本
-        String[] versionParts = cleanVersion.split("\\.");
-        boolean isStandardPrerelease = false;
-        
-        if (versionParts.length > 0) {
-            String lastPart = versionParts[versionParts.length - 1].toLowerCase();
-            if (lastPart.matches("alpha|beta|rc[0-9]*|preview|pre-release")) {
-                isStandardPrerelease = true;
-            }
-            
-            for (String part : versionParts) {
-                if (part.contains("-")) {
-                    String[] subParts = part.split("-");
-                    if (subParts.length >= 2) {
-                        String prereleasePart = subParts[1].toLowerCase();
-                        if (prereleasePart.matches("alpha|beta|rc[0-9]*|preview|pre-release")) {
-                            isStandardPrerelease = true;
-                        }
-                    }
-                }
-            }
-        }
-        
-        if (isStandardPrerelease) {
-            if (cleanVersion.matches(".*(feat|fix|hotfix|chore|docs|style|refactor|test)[\\-/].*")) {
-                return true;
-            }
-            
-            if (cleanVersion.contains("-")) {
-                String[] dashParts = cleanVersion.split("-");
-                if (dashParts.length > 2) {
-                    return true;
-                }
-                
-                if (dashParts.length == 2) {
-                    String secondPart = dashParts[1].toLowerCase();
-                    if (secondPart.matches(".*(feat|fix|hotfix|chore|docs|style|refactor|test|dev|local|feature|branch).*")) {
-                        return true;
-                    }
-                }
-            }
-            
-            return false;
-        }
-        
-        if (cleanVersion.matches(".*(feat|fix|hotfix|chore|docs|style|refactor|test)[\\-/].*")) {
+        try {
+            PackageManager pm = context.getPackageManager();
+            android.content.pm.ApplicationInfo appInfo = pm.getApplicationInfo(
+                context.getPackageName(), 0);
+            boolean isDebuggable = (appInfo.flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+            Log.d(TAG, "应用构建类型: " + (isDebuggable ? "Debug (开发版本)" : "Release (正式版本)"));
+            return isDebuggable;
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.e(TAG, "获取应用信息失败，默认为开发版本", e);
+            // 异常时默认视为开发版本
             return true;
         }
-        
-        if (cleanVersion.contains("dev") || 
-            cleanVersion.contains("nightly") ||
-            cleanVersion.contains("local") ||
-            cleanVersion.contains("feature") ||
-            cleanVersion.contains("branch")) {
-            return true;
-        }
-        
-        if (cleanVersion.matches(".*\\d+-g[0-9a-f]+$")) {
-            return true;
-        }
-        
-        if (cleanVersion.contains("snapshot")) {
-            return true;
-        }
-        
-        String baseVersion = cleanVersion.split("-")[0];
-        String[] parts = baseVersion.split("\\.");
-        if (parts.length > 3) {
-            return true;
-        }
-        
-        return false;
     }
     
     private boolean isNetworkAvailable() {
