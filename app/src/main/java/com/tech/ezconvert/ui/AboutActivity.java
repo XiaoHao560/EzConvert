@@ -261,7 +261,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
             
             // 非开发版本 (正式版)
             if (comparisonResult < 0) {
-                // 有新版本可用 -显示弹窗
+                // 有新版本可用 - 显示弹窗
                 showUpdateDialog(releaseName, ReleaseNotes, isPrerelease, htmlUrl);
                 
                 // 更新状态文本
