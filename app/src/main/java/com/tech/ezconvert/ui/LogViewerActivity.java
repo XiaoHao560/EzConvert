@@ -675,10 +675,54 @@ public class LogViewerActivity extends BaseActivity {
         }
         
         @Override public void onBindViewHolder(Holder h, int i) { 
-            ((TextView) h.itemView).setText(list.get(i)); 
+            String logEntry = list.get(i);
+            TextView textView = (TextView) h.itemView;
+            textView.setText(logEntry);
+            
+            // 解析日志级别并设置对应颜色
+            int textColor = parseLogLevelColor(logEntry, textView.getContext());
+            textView.setTextColor(textColor);
         }
         
         @Override public int getItemCount() { return list.size(); }
+        
+        // 解析日志级别并返回对应的颜色值
+        private int parseLogLevelColor(String logLine, Context context) {
+            // 默认使用 onSurface 颜色 (INFO)
+            int defaultColor = getThemeColor(context, com.google.android.material.R.attr.colorOnSurface);
+            
+            if (logLine == null || logLine.isEmpty()) {
+                return defaultColor;
+            }
+            
+            // 匹配日志级别标识
+            if (logLine.contains("[ERROR]")) {
+                return getThemeColor(context, com.google.android.material.R.attr.colorError);
+            } else if (logLine.contains("[WRAN]")) {
+                // 使用橙色作为警告色
+                return android.graphics.Color.parseColor("#FF9800");
+            } else if (logLine.contains("[INFO]")) {
+                return defaultColor;
+            } else if (logLine.contains("[DEBUG]") || logLine.contains("VERBOSE")) {
+                return getThemeColor(context, com.google.android.material.R.attr.colorOnSurfaceVariant);
+            }
+            
+            return defaultColor;
+        }
+        
+        // 安全获取主题属性颜色值
+        private int getThemeColor(Context context, int attrResId) {
+            android.util.TypedValue typedValue = new android.util.TypedValue();
+            android.content.res.Resources.Theme theme = context.getTheme();
+            if (theme.resolveAttribute(attrResId, typedValue, true)) {
+                if (typedValue.type >= android.util.TypedValue.TYPE_FIRST_COLOR_INT
+                        && typedValue.type <= android.util.TypedValue.TYPE_LAST_COLOR_INT) {
+                    return typedValue.data;
+                }
+            }
+            // 获取失败时返回默认黑色
+            return android.graphics.Color.BLACK;
+        }
         
         static class Holder extends RecyclerView.ViewHolder { 
             Holder(android.view.View v) { super(v); } 
