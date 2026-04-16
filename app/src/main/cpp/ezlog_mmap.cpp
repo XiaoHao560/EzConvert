@@ -13,7 +13,7 @@
 #include <android/log.h>
 
 #define LOG_TAG "EzLogNative"
-#define BUFFER_SIZE (4 * 1024 * 1024)  // 4MB mmap 缓冲区
+#define BUFFER_SIZE (1 * 1024 * 1024)  // 1MB mmap 缓冲区
 
 struct LogPacket {
     char level;
@@ -39,7 +39,7 @@ private:
     
     // 文件索引（滚动用）
     int fileIndex = 0;
-    const long MAX_FILE_SIZE = 50 * 1024 * 1024; // 单个文件 50MB
+    const long MAX_FILE_SIZE = 1 * 1024 * 1024; // 单个文件 1MB
     
 public:
     void init(const std::string& path) {
