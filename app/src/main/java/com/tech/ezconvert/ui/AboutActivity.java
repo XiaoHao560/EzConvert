@@ -66,12 +66,13 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
         initializeViews();
         setupToolbar();
         setupClickListeners();
-        loadVersionInfo();
         
         // 初始化更新检查器
         updateChecker = new UpdateChecker(this);
         updateChecker.setUpdateCheckListener(this);
         updateChecker.setIncludePrereleases(includePrereleases);
+        
+        loadVersionInfo();
         
         // 初始化检查更新
         checkForUpdates();
