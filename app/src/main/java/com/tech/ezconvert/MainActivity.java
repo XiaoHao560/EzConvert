@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 //import android.graphics.Insets;
 import android.content.pm.PackageManager;
-import android.widget.AutoCompleteTextView;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -14,12 +13,11 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 //import android.util.Log;
-import com.google.android.material.appbar.MaterialToolbar;
-import com.tech.ezconvert.utils.Log;
 import android.view.View;
 import android.view.Window;
 //import android.view.WindowInsets;
 import android.widget.*;
+import android.widget.AutoCompleteTextView;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -30,14 +28,18 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.tech.ezconvert.processor.AudioProcessor;
 import com.tech.ezconvert.processor.VideoProcessor;
-import com.tech.ezconvert.ui.SettingsMainActivity;
 import com.tech.ezconvert.ui.BaseActivity;
+import com.tech.ezconvert.ui.EzPopupMenu;
+import com.tech.ezconvert.ui.PreviewActivity;
+import com.tech.ezconvert.ui.SettingsMainActivity;
 import com.tech.ezconvert.utils.AnimationUtils;
 import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.FFmpegUtil;
 import com.tech.ezconvert.utils.FileUtils;
+import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.utils.LogManager;
 import com.tech.ezconvert.utils.PermissionManager;
 import com.tech.ezconvert.utils.ToastUtils;
@@ -189,17 +191,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             AnimationUtils.animateButtonClick(v);
             v.animate().rotationBy(180).setDuration(300).start();
             
-            scheduler.schedule(() -> {
-                runOnUiThread(() -> {
-                    Intent settingsIntent = new Intent(MainActivity.this, SettingsMainActivity.class);
-                    ActivityOptionsCompat options = ActivityOptionsCompat.makeCustomAnimation(
-                        MainActivity.this,
-                        R.anim.slide_in_right,
-                        R.anim.slide_out_left
-                    );
-                    ActivityCompat.startActivity(MainActivity.this, settingsIntent, options.toBundle());
-                });
-            }, 150, TimeUnit.MILLISECONDS);
+            showNavigationMenu(v);
         });
         
         videoFormatSpinner = findViewById(R.id.video_format_spinner);
@@ -217,6 +209,46 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         
         // 卡片入场动画
         setupCardAnimations();
+    }
+    
+    // 显示导航菜单
+    private void showNavigationMenu(View anchorView) {
+        new EzPopupMenu(anchorView, new EzPopupMenu.OnMenuItemClickListener() {
+            @Override
+            public void onPreviewClick() {
+            	Intent previewIntent = new Intent(MainActivity.this, PreviewActivity.class);
+                if (!currentInputPath.isEmpty()) {
+                    previewIntent.putExtra("file_path", currentInputPath);
+                }
+                ActivityOptionsCompat options = ActivityOptionsCompat.makeCustomAnimation(
+                        MainActivity.this,
+                        R.anim.slide_in_right,
+                        R.anim.slide_out_left
+                );
+                ActivityCompat.startActivity(MainActivity.this, previewIntent, options.toBundle());
+            }
+            
+            @Override
+            public void onSettingsClick() {
+            	// 延迟 100ms 后跳转
+                scheduler.schedule(() -> {
+                    runOnUiThread(() -> {
+                        Intent settingsIntent = new Intent(MainActivity.this, SettingsMainActivity.class);
+                        ActivityOptionsCompat options = ActivityOptionsCompat.makeCustomAnimation(
+                                MainActivity.this,
+                                R.anim.slide_in_right,
+                                R.anim.slide_out_left
+                        );
+                        ActivityCompat.startActivity(MainActivity.this, settingsIntent, options.toBundle());
+                    });
+                }, 100, TimeUnit.MILLISECONDS);
+            }
+        },
+        // 关闭回调 - 取消动画并复位旋转角度
+        () -> {
+            anchorView.animate().cancel();
+            anchorView.setRotation(0);
+        }).show(anchorView);
     }
     
     // 取消按钮监听器

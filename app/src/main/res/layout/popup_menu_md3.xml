@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     android:layout_height="wrap_content"
+     android:layout_width="wrap_content"
+     android:layout_margin="8dp"
+     app:cardElevation="8dp"
+     app:strokeWidth="0dp"
+     app:cardBackgroundColor="?attr/colorSurface"
+     app:cardCornerRadius="12dp">
+
+    <LinearLayout
+         android:layout_height="wrap_content"
+         android:layout_width="wrap_content"
+         android:padding="8dp"
+         android:orientation="vertical">
+
+        <com.google.android.material.button.MaterialButton
+             android:layout_height="wrap_content"
+             android:layout_width="wrap_content"
+             app:iconTint="?attr/colorPrimary"
+             android:textColor="?attr/colorOnSurface"
+             android:minWidth="0dp"
+             app:icon="@drawable/round_play_circle"
+             android:gravity="start|center_vertical"
+             android:minHeight="0dp"
+             style="@style/Widget.Material3.Button.TextButton"
+             android:paddingHorizontal="12dp"
+             android:id="@+id/action_preview"
+             android:text="预览"
+             app:iconGravity="textStart" />
+
+        <com.google.android.material.divider.MaterialDivider
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:layout_marginVertical="4dp"
+             app:dividerColor="?attr/colorOutlineVariant"
+             app:dividerThickness="1dp" />
+
+        <com.google.android.material.button.MaterialButton
+             android:layout_height="wrap_content"
+             android:layout_width="wrap_content"
+             app:iconTint="?attr/colorPrimary"
+             android:textColor="?attr/colorOnSurface"
+             android:minWidth="0dp"
+             app:icon="@drawable/cog_outline"
+             android:gravity="start|center_vertical"
+             android:minHeight="0dp"
+             style="@style/Widget.Material3.Button.TextButton"
+             android:paddingHorizontal="12dp"
+             android:id="@+id/action_settings"
+             android:text="设置"
+             app:iconGravity="textStart" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>
