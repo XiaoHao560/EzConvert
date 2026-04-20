@@ -82,6 +82,11 @@
             android:parentActivityName=".ui.AboutActivity"
             android:label="开发者选项"
             android:screenOrientation="portrait" />
-
+            
+        <activity
+            android:name=".ui.PreviewActivity"
+            android:exported="false"
+            android:label="预览"
+            android:configChanges="orientation|screenSize|smallestScreenSize|keyboardHidden" />
     </application>
 </manifest>

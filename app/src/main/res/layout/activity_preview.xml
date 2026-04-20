@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     android:layout_height="match_parent"
+     android:layout_width="match_parent"
+     android:background="?attr/colorSurface"
+     android:id="@+id/scroll_content">
+
+    <FrameLayout
+         android:layout_height="match_parent"
+         android:layout_width="match_parent"
+         android:visibility="gone"
+         android:background="?attr/colorSurfaceContainerHighest"
+         android:id="@+id/player_container">
+
+        <androidx.media3.ui.PlayerView
+             android:layout_height="match_parent"
+             android:layout_width="match_parent"
+             app:use_controller="false"
+             android:background="@android:color/transparent"
+             app:show_buffering="never"
+             app:resize_mode="fit"
+             android:id="@+id/player_view" />
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+             android:layout_height="48dp"
+             android:layout_width="48dp"
+             android:visibility="gone"
+             app:trackColor="?attr/colorSurfaceContainerHighest"
+             android:id="@+id/loading_indicator"
+             android:layout_gravity="center"
+             app:indicatorColor="?attr/colorPrimary" />
+
+        <ImageButton
+             android:layout_height="80dp"
+             android:layout_width="80dp"
+             android:visibility="gone"
+             android:src="@drawable/round_play_arrow"
+             android:background="@drawable/circle_background_primary_container"
+             app:tint="?attr/colorOnPrimaryContainer"
+             android:id="@+id/center_play_btn"
+             android:layout_gravity="center" />
+
+        <ImageButton
+             android:layout_height="80dp"
+             android:layout_width="80dp"
+             android:visibility="gone"
+             android:src="@drawable/round_replay"
+             android:background="@drawable/circle_background_primary_container"
+             app:tint="?attr/colorOnPrimaryContainer"
+             android:id="@+id/center_replay_btn"
+             android:layout_gravity="center" />
+
+        <TextView
+             android:layout_height="wrap_content"
+             android:layout_width="wrap_content"
+             android:visibility="gone"
+             android:textSize="12sp"
+             android:textColor="@android:color/white"
+             android:layout_gravity="start|top"
+             android:layout_margin="12dp"
+             android:shadowRadius="4"
+             android:fontFamily="monospace"
+             android:shadowColor="#CC000000"
+             android:shadowDx="0"
+             android:shadowDy="1"
+             android:lineSpacingMultiplier="1.2"
+             android:id="@+id/media_info_text" />
+
+        <TextView
+             android:layout_height="wrap_content"
+             android:layout_width="wrap_content"
+             android:visibility="gone"
+             android:textSize="12sp"
+             android:textColor="@android:color/white"
+             android:layout_gravity="end|top"
+             android:layout_margin="12dp"
+             android:shadowRadius="4"
+             android:fontFamily="monospace"
+             android:shadowColor="#CC000000"
+             android:shadowDx="0"
+             android:shadowDy="1"
+             android:lineSpacingMultiplier="1.2"
+             android:id="@+id/realtime_info_text" />
+
+        <com.google.android.material.appbar.MaterialToolbar
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:background="?attr/colorSurfaceContainer"
+             app:navigationIconTint="?attr/colorOnSurface"
+             android:elevation="0dp"
+             app:titleTextAppearance="?attr/textAppearanceTitleMedium"
+             app:navigationIcon="@drawable/round_arrow_back"
+             app:titleTextColor="?attr/colorOnSurface"
+             android:id="@+id/title_container">
+
+        </com.google.android.material.appbar.MaterialToolbar>
+
+        <LinearLayout
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:background="?attr/colorSurfaceContainer"
+             android:orientation="vertical"
+             android:paddingBottom="16dp"
+             android:paddingHorizontal="16dp"
+             android:id="@+id/bottom_controls"
+             android:layout_gravity="bottom"
+             android:paddingTop="12dp">
+
+            <com.google.android.material.slider.Slider
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:valueTo="1000"
+                 android:valueFrom="0"
+                 android:layout_marginBottom="8dp"
+                 app:haloColor="?attr/colorPrimaryContainer"
+                 app:thumbColor="?attr/colorPrimary"
+                 app:tickVisible="false"
+                 app:thumbWidth="16dp"
+                 app:trackColorActive="?attr/colorPrimary"
+                 app:thumbHeight="16dp"
+                 android:value="0"
+                 app:trackColorInactive="?attr/colorSurfaceContainerHighest"
+                 app:labelBehavior="gone"
+                 app:trackHeight="4dp"
+                 android:id="@+id/progress_slider" />
+
+            <LinearLayout
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:gravity="center_vertical"
+                 android:orientation="horizontal">
+
+                <TextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="wrap_content"
+                     android:textAppearance="?attr/textAppearanceLabelMedium"
+                     android:textColor="?attr/colorOnSurface"
+                     android:id="@+id/current_time_text"
+                     android:text="00:00" />
+
+                <View
+                     android:layout_height="0dp"
+                     android:layout_width="0dp"
+                     android:layout_weight="1" />
+
+                <ImageButton
+                     android:layout_height="48dp"
+                     android:layout_width="48dp"
+                     android:layout_marginEnd="8dp"
+                     android:src="@drawable/round_play_arrow"
+                     android:background="?attr/selectableItemBackgroundBorderless"
+                     android:padding="12dp"
+                     app:tint="?attr/colorOnSurface"
+                     android:id="@+id/play_pause_btn" />
+
+                <ImageButton
+                     android:layout_height="40dp"
+                     android:layout_width="40dp"
+                     android:layout_marginEnd="8dp"
+                     android:src="@drawable/round_info"
+                     android:background="?attr/selectableItemBackgroundBorderless"
+                     android:padding="8dp"
+                     app:tint="?attr/colorOnSurfaceVariant"
+                     android:id="@+id/media_info_btn" />
+
+                <TextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="wrap_content"
+                     android:layout_marginEnd="16dp"
+                     android:textAppearance="?attr/textAppearanceLabelMedium"
+                     android:textColor="?attr/colorOnSurfaceVariant"
+                     android:id="@+id/total_time_text"
+                     android:text="00:00" />
+
+                <ImageButton
+                     android:layout_height="40dp"
+                     android:layout_width="40dp"
+                     android:layout_marginEnd="8dp"
+                     android:src="@drawable/round_folder"
+                     android:background="?attr/selectableItemBackgroundBorderless"
+                     android:padding="8dp"
+                     app:tint="?attr/colorOnSurfaceVariant"
+                     android:id="@+id/change_file_btn" />
+
+                <ImageButton
+                     android:layout_height="40dp"
+                     android:layout_width="40dp"
+                     android:src="@drawable/round_fullscreen"
+                     android:background="?attr/selectableItemBackgroundBorderless"
+                     android:padding="8dp"
+                     app:tint="?attr/colorOnSurfaceVariant"
+                     android:id="@+id/fullscreen_btn" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <com.google.android.material.card.MaterialCardView
+         android:layout_height="wrap_content"
+         android:layout_width="match_parent"
+         app:strokeColor="?attr/colorOutline"
+         android:layout_margin="32dp"
+         app:cardElevation="0dp"
+         app:strokeWidth="1dp"
+         app:cardBackgroundColor="@android:color/transparent"
+         style="@style/Widget.Material3.CardView.Outlined"
+         app:cardCornerRadius="16dp"
+         android:id="@+id/empty_state_card"
+         android:layout_gravity="center">
+
+        <LinearLayout
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:gravity="center"
+             android:padding="32dp"
+             android:orientation="vertical">
+
+            <ImageView
+                 android:layout_height="80dp"
+                 android:layout_width="80dp"
+                 android:layout_marginBottom="16dp"
+                 android:src="@drawable/round_play_circle"
+                 app:tint="?attr/colorPrimary" />
+
+            <TextView
+                 android:layout_height="wrap_content"
+                 android:layout_width="wrap_content"
+                 android:layout_marginBottom="8dp"
+                 android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                 android:textColor="?attr/colorOnSurface"
+                 android:text="选择媒体文件" />
+
+            <TextView
+                 android:layout_height="wrap_content"
+                 android:layout_width="wrap_content"
+                 android:layout_marginBottom="24dp"
+                 android:gravity="center"
+                 android:textAppearance="?attr/textAppearanceBodyMedium"
+                 android:textColor="?attr/colorOnSurfaceVariant"
+                 android:text="选择视频或音频文件进行预览播放" />
+
+            <com.google.android.material.button.MaterialButton
+                 android:layout_height="56dp"
+                 android:layout_width="wrap_content"
+                 app:icon="@drawable/round_folder"
+                 style="@style/Widget.Material3.Button.Icon"
+                 android:id="@+id/select_file_btn"
+                 android:text="选择文件"
+                 app:iconGravity="textStart" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</FrameLayout>
