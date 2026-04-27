@@ -1,7 +1,9 @@
 package com.tech.ezconvert.utils;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import com.tech.ezconvert.utils.Log;
@@ -11,6 +13,7 @@ public class EzConvert extends Application {
     
     private static final String PREFS_NAME = "ezconvert_prefs";
     private static final String KEY_LOGCAT_AVAILABLE = "logcat_available";
+    private int activityResumedCount = 0;
     
     @Override
     public void onCreate() {
@@ -18,6 +21,30 @@ public class EzConvert extends Application {
         
         // 初始化崩溃捕获
         CrashHandler.getInstance().init(this);
+        
+        registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
+            @Override
+            public void onActivityResumed(Activity activity) {
+            	activityResumedCount++;
+                // 只要有一个 Activity 处于 Resumed 状态，默认为前台
+                ToastUtils.setForeground(true);
+            }
+            
+            @Override
+            public void onActivityPaused(Activity activity) {
+            	activityResumedCount--;
+                // 当所有 Activity 都暂停，才认为进入后台
+                if (activityResumedCount == 0) {
+                    ToastUtils.setForeground(false);
+                }
+            }
+            
+            @Override public void onActivityCreated(Activity a, Bundle b) {}
+            @Override public void onActivityStarted(Activity a) {}
+            @Override public void onActivityStopped(Activity a) {}
+            @Override public void onActivitySaveInstanceState(Activity a, Bundle b) {}
+            @Override public void onActivityDestroyed(Activity a) {}
+        });
         
         // 清理可能残留的处理缓存 (后台线程)
         new Thread(() -> {
