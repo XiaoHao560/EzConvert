@@ -81,6 +81,7 @@ jobs:
      - name: 编译多 ABI APK
        run: ./gradlew assemble${{ steps.variant.outputs.variant }}
        env:
+         GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=512m"
          KEYSTORE_FILE: ${{ github.workspace }}/xiaohao-app-key.keystore
          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}

@@ -51,6 +51,7 @@ jobs:
       - name: 编译 Debug APK
         run: ./gradlew assembleDebug
         env:
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=512m"
           KEYSTORE_FILE: ${{ github.workspace }}/xiaohao-app-key.keystore
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
