@@ -35,7 +35,39 @@ public class ToastUtils {
     public static void showLong(Context context, String message) {
         showToast(context, message, Toast.LENGTH_LONG);
     }
+    
+    public static void showCustom(Context context, String message) {
+    	showCustomToast(context, message, Toast.LENGTH_SHORT);
+    }
+    
+    public static void showCustomLong(Context context, String message) {
+    	showCustomToast(context, message, Toast.LENGTH_LONG);
+    }
 
+    /**
+     * 使用自定义 Toast - 不做前后台判断
+     */
+    private static void showCustomToast(Context context, String message, int duration) {
+        // 取消前一个 Toast
+        if (currentToast != null) {
+            currentToast.cancel();
+        }
+        
+        Context appContext = context.getApplicationContext();
+        View layout = LayoutInflater.from(appContext)
+                .inflate(R.layout.layout_custom_toast, null);
+        TextView textView = layout.findViewById(R.id.toast_text);
+        textView.setText(message);
+        
+        currentToast = new Toast(appContext);
+        currentToast.setDuration(duration);
+        currentToast.setView(layout);
+        currentToast.show();
+    }
+
+    /**
+     * 使用自定义 Toast - 根据前后台状态选择使用自定义 Toast 或者使用系统 Toast
+     */
     private static void showToast(Context context, String message, int duration) {
         // 取消上一个 Toast (任何类型)
         if (currentToast != null) {

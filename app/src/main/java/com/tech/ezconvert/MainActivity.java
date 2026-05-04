@@ -150,10 +150,12 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                                 // 更新按键状态
                                 setFunctionButtonsEnabled(permissionsGranted);
                                 
-                                ToastUtils.show(this, "已选择: " + fileName);
+                                // ToastUtils.show(this, "已选择: " + fileName);
+                                ToastUtils.showCustom(this, "已选择: " + fileName);
                             } else {
                                 updateStatus("无法访问文件或文件不存在");
-                                ToastUtils.show(this, "无法访问文件或文件不存在");
+                                // ToastUtils.show(this, "无法访问文件或文件不存在");
+                                ToastUtils.showCustom(this, "无法访问文件或文件不存在");
                                 currentInputPath = "";
                                 setFunctionButtonsEnabled(permissionsGranted);
                             }
