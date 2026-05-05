@@ -81,9 +81,11 @@ lint/generated/
 lint/outputs/
 lint/tmp/
 # lint/reports/
+
 .androidide/
 .acside/
 *.keystore
 keystore.properties
 keystore.txt
 key/
+TODO
