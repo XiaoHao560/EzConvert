@@ -155,7 +155,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                     updateChecker.getHtmlUrlFromGitHub()
                 );
             } else {
-                ToastUtils.show(this, "无法获取最后一个版本信息");
+                ToastUtils.show(this, "无法获取最后一个版本信息\n最后一个版本是测试版本，请打开相关设置");
             }
         });
         
@@ -170,7 +170,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                     updateChecker.getHtmlUrlFromGitHub()
                 );
             } else {
-                ToastUtils.show(this, "无法获取最后一个版本信息");
+                ToastUtils.show(this, "无法获取最后一个版本信息\n最后一个版本是测试版本，请打开相关设置");
             }
         });
         
