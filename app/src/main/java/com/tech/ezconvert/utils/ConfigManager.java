@@ -49,6 +49,7 @@ public class ConfigManager {
     public static final String KEY_LOG_VERBOSE = "log_verbose";
     public static final String KEY_UPDATE_AUTO_CHECK = "update_auto_check_enabled";
     public static final String KEY_UPDATE_CHECK_FREQUENCY = "update_check_frequency";
+    public static final String KEY_UPDATE_INCLUDE_PRERELEASES = "update_include_prereleases";
     public static final String KEY_NOTIFICATION_ENABLED = "notification_enabled";
     public static final String KEY_NOTIFICATION_FIRST_REQUESTED = "notification_first_requested";
     
@@ -260,12 +261,16 @@ public class ConfigManager {
         logSettings.put("verbose", true);
         settingsMap.put("log_settings", logSettings);
         
+        // 默认通知设置
+        Map<String, Object> notificationSettings = new HashMap<>();
+        notificationSettings.put("notification_enabled", false);
+        notificationSettings.put("notification_first_requested", false);
+        settingsMap.put("notification_settings", notificationSettings);
+        
         // 默认更新设置
         Map<String, Object> updateSettings = new HashMap<>();
         updateSettings.put("auto_check_enabled", true);
         updateSettings.put("check_frequency", 2); // 2 = 每次启动应用检测
-        updateSettings.put("notification_enabled", false); // 默认关闭通知
-        updateSettings.put("notification_first_requested", false); // 默认未申请过
         settingsMap.put("update_settings", updateSettings);
         
         saveSettings();
@@ -469,19 +474,19 @@ public class ConfigManager {
     
     // 通知设置
     public boolean isNotificationEnabled() {
-        return getSetting("update_settings", "notification_enabled", false);
+        return getSetting("notification_settings", "notification_enabled", false);
     }
     
     public void setNotificationEnabled(boolean enabled) {
-        setSetting("update_settings", "notification_enabled", enabled);
+        setSetting("notification_settings", "notification_enabled", enabled);
     }
     
     public boolean isNotificationFirstRequested() {
-        return getSetting("update_settings", "notification_first_requested", false);
+        return getSetting("notification_settings", "notification_first_requested", false);
     }
     
     public void setNotificationFirstRequested(boolean requested) {
-        setSetting("update_settings", "notification_first_requested", requested);
+        setSetting("notification_settings", "notification_first_requested", requested);
     }
     
     // 迁移SharedPreferences设置
