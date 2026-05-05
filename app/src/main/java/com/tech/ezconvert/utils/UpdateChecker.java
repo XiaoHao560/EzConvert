@@ -46,7 +46,7 @@ public class UpdateChecker {
     private final Handler mainHandler;
     private Markwon markwon;
     
-    private boolean includePrereleases = true;
+    private boolean includePrerelease = true;
     private boolean isChecking = false;
     private UpdateCheckListener updateCheckListener;
     private UpdateSettingsManager settingsManager;
@@ -72,6 +72,7 @@ public class UpdateChecker {
         this.executorService = Executors.newSingleThreadExecutor();
         this.mainHandler = new Handler(Looper.getMainLooper());
         this.settingsManager = new UpdateSettingsManager(context);
+        this.includePrerelease = settingsManager.isIncludePrerelease();
         initMarkwon();
     }
     
@@ -245,7 +246,7 @@ public class UpdateChecker {
                     boolean isDraft = release.getBoolean("draft");
                     
                     if (isDraft) continue;
-                    if (!includePrereleases && currentIsPrerelease) continue;
+                    if (!includePrerelease && currentIsPrerelease) continue;
                     
                     String tagName = release.getString("tag_name");
                     
@@ -494,7 +495,8 @@ public class UpdateChecker {
             
             if (finalIsPrerelease) {
                 builder.setNeutralButton("仅检查正式版", (dialog, which) -> {
-                    includePrereleases = false;
+                    includePrerelease = false;
+                    settingsManager.setIncludePrerelease(false);
                     checkForManualUpdate();
                 });
             }
@@ -619,8 +621,9 @@ public class UpdateChecker {
         }
     }
     
-    public void setIncludePrereleases(boolean include) {
-        this.includePrereleases = include;
+    public void setIncludePrerelease(boolean include) {
+        this.includePrerelease = include;
+        settingsManager.setIncludePrerelease(include);
     }
     
     public void cleanup() {

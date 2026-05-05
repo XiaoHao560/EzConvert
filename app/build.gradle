@@ -74,6 +74,7 @@ android {
         
         versionCode getGitVersionCode()
         versionName getGitVersionName()
+        // versionName = "0.1.0-alpha"
         
         // 获取 git commit hash 并写入 BuildConfig
         buildConfigField "String", "GIT_COMMIT", "\"${getGitCommit()}\""

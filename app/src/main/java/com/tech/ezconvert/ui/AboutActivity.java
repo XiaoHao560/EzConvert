@@ -19,6 +19,7 @@ import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.utils.ToastUtils;
 import com.tech.ezconvert.utils.UpdateChecker;
+import com.tech.ezconvert.utils.UpdateSettingsManager;
 import io.noties.markwon.Markwon;
 import io.noties.markwon.ext.strikethrough.StrikethroughPlugin;
 import io.noties.markwon.ext.tables.TablePlugin;
@@ -46,11 +47,11 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
     private LinearLayout forceCheckUpdateClickArea;
     private LinearLayout developerItem;
     private MaterialToolbar toolbar;
-    private boolean includePrereleases = true;
     private boolean isDevelopmentVersion = false;
     
     private Markwon markwon;
     private UpdateChecker updateChecker;
+    private UpdateSettingsManager settingsManager;
     
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     
@@ -70,7 +71,8 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
         // 初始化更新检查器
         updateChecker = new UpdateChecker(this);
         updateChecker.setUpdateCheckListener(this);
-        updateChecker.setIncludePrereleases(includePrereleases);
+        
+        settingsManager = new UpdateSettingsManager(this);
         
         loadVersionInfo();
         
@@ -153,7 +155,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                     updateChecker.getHtmlUrlFromGitHub()
                 );
             } else {
-                ToastUtils.show(this, "请先检查更新以获取版本信息");
+                ToastUtils.show(this, "无法获取最后一个版本信息");
             }
         });
         
@@ -168,7 +170,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                     updateChecker.getHtmlUrlFromGitHub()
                 );
             } else {
-                ToastUtils.show(this, "请先检查更新以获取版本信息");
+                ToastUtils.show(this, "无法获取最后一个版本信息");
             }
         });
         
@@ -225,6 +227,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
     
     private void checkForUpdates() {
         if (updateChecker != null) {
+            updateChecker.setIncludePrerelease(settingsManager.isIncludePrerelease());
             updateChecker.checkForManualUpdate();
         }
     }
@@ -380,9 +383,10 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
         
         if (isPrerelease) {
             builder.setNeutralButton("仅检查正式版", (dialog, which) -> {
-                includePrereleases = false;
+                // 更新全局设置
+                settingsManager.setIncludePrerelease(false);
                 if (updateChecker != null) {
-                    updateChecker.setIncludePrereleases(false);
+                    updateChecker.setIncludePrerelease(false);
                 }
                 updateStatusText.setText("正在检查...");
                 testUpdateItem.setVisibility(View.GONE);
