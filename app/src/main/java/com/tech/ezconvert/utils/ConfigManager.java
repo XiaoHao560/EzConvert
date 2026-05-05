@@ -270,6 +270,7 @@ public class ConfigManager {
         // 默认更新设置
         Map<String, Object> updateSettings = new HashMap<>();
         updateSettings.put("auto_check_enabled", true);
+        updateSettings.put("include_prereleases", true);
         updateSettings.put("check_frequency", 2); // 2 = 每次启动应用检测
         settingsMap.put("update_settings", updateSettings);
         
@@ -457,6 +458,14 @@ public class ConfigManager {
     
     public void setAutoCheckUpdateEnabled(boolean enabled) {
         setSetting("update_settings", "auto_check_enabled", enabled);
+    }
+    
+    public boolean isIncludePrerelease() {
+    	return getSetting("update_settings", "include_prereleases", true);
+    }
+    
+    public void setIncludePrerelease(boolean include) {
+    	setSetting("update_settings", "include_prereleases", include);
     }
     
     public int getUpdateCheckFrequency() {

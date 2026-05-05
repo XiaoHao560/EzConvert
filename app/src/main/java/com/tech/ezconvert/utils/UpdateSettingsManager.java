@@ -25,6 +25,16 @@ public class UpdateSettingsManager {
         configManager.setAutoCheckUpdateEnabled(enabled);
     }
     
+    // 获取是否检测预发布版本
+    public boolean isIncludePrerelease() {
+    	return configManager.isIncludePrerelease();
+    }
+    
+    // 设置是否检测预发布版本
+    public void setIncludePrerelease(boolean include) {
+    	configManager.setIncludePrerelease(include);
+    }
+    
     // 获取检测频率
     public int getCheckFrequency() {
         return configManager.getUpdateCheckFrequency();

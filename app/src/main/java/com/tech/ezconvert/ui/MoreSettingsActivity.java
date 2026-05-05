@@ -33,6 +33,7 @@ public class MoreSettingsActivity extends BaseActivity {
     }
     
     private MaterialSwitch autoUpdateSwitch;
+    private MaterialSwitch prereleaseSwitch;
     private MaterialSwitch notificationSwitch;
     private AutoCompleteTextView frequencySpinner;
     private LinearLayout frequencyLayout;
@@ -79,6 +80,7 @@ public class MoreSettingsActivity extends BaseActivity {
         
         // 自动更新开关
         autoUpdateSwitch = findViewById(R.id.auto_update_switch);
+        prereleaseSwitch = findViewById(R.id.prerelease_switch);
         frequencySpinner = findViewById(R.id.frequency_spinner);
         frequencyLayout = findViewById(R.id.frequency_layout);
         
@@ -119,6 +121,11 @@ public class MoreSettingsActivity extends BaseActivity {
             }
         });
         
+        // 检测测试版更新开关监听
+        prereleaseSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            configManager.setIncludePrerelease(isChecked);
+        });
+        
         // 通知开关监听
         notificationSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -148,11 +155,13 @@ public class MoreSettingsActivity extends BaseActivity {
     private void loadCurrentSettings() {
         // 加载当前设置
         boolean autoCheckEnabled = configManager.isAutoCheckUpdateEnabled();
+        boolean includeprereleaseEnabled = configManager.isIncludePrerelease();
         int currentFrequency = configManager.getUpdateCheckFrequency();
         boolean notificationEnabled = configManager.isNotificationEnabled();
         
         // 更新开关状态
         autoUpdateSwitch.setChecked(autoCheckEnabled);
+        prereleaseSwitch.setChecked(includeprereleaseEnabled);
         notificationSwitch.setChecked(notificationEnabled);
         
         // 更新Spinner选择
