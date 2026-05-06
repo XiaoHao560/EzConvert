@@ -202,12 +202,11 @@ public class ConfigManager {
                     "- `verbose`: 详细日志模式 (true/false)\n\n" +
                     "### 更新设置 (update_settings)\n" +
                     "- `auto_check_enabled`: 自动检查更新 (true/false)\n" +
-                    "- `check_frequency`: 检查频率 (0=关闭, 1=每24小时, 2=每次启动)\n" +
+                    "- `include_prereleases`: 是否检测测试版本更新 (true/false)\n" +
+                    "- `check_frequency`: 检查频率 (0=关闭, 1=每24小时, 2=每次启动)\n\n" +
+                    "### 通知设置说明\n" +
                     "- `notification_enabled`: 启用转换通知 (true/false)，默认false\n" +
                     "- `notification_first_requested`: 是否首次申请过通知权限 (true/false)\n\n" +
-                    "### 通知设置说明\n" +
-                    "- `notification_enabled`: 控制是否显示转换进度和完成通知\n" +
-                    "- `notification_first_requested`: 记录是否已在\"更多设置\"页面首次提示过通知权限\n\n" +
                     "## 注意事项\n\n" +
                     "- 请不要手动修改 `settings.json` 文件，除非你知道自己在做什么\n" +
                     "- 如需重置设置，可删除此文件，应用将重新创建默认配置\n" +
