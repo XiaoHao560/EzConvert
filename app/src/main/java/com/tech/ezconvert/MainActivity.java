@@ -52,7 +52,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallback {
+public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallback, UpdateChecker.UpdateCheckListener {
     
     @Override
     protected int getTitleContainerId() {
@@ -63,6 +63,8 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     protected int getScrollContentId() {
         return R.id.scroll_content;
     }
+    
+    private static final String TAG = "MainActivity";
     
     private static final int PERMISSION_REQUEST_CODE = 100;
     private static final int MANAGE_STORAGE_REQUEST_CODE = 102;
@@ -96,6 +98,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         
         // 初始化更新检查器
         updateChecker = new UpdateChecker(this);
+        updateChecker.setUpdateCheckListener(this);
         
         // 初始化配置管理器
         ConfigManager configManager = ConfigManager.getInstance(this);
@@ -128,6 +131,28 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                 Log.d("MainActivity", "自动检测更新已关闭或者未到检测时间");
             }
         }, 2000);
+    }
+    
+    @Override
+    public void onUpdateCheckComplete(int comparisonResult, String latestVersion,
+                                      String releaseName, String releaseNotes,
+                                      boolean isPrerelease, boolean isDevelopmentVersion,
+                                      String htmlUrl) {
+    	// 只在有新版本时弹出更新对话框
+        if (comparisonResult < 0) {
+            updateChecker.showUpdateDialog(releaseName, releaseNotes, isPrerelease, htmlUrl);
+            Log.d(TAG, "自动更新: 发现新版本 " + latestVersion + (isPrerelease ? " (预发布)" : ""));
+        }
+    }
+    
+    @Override
+    public void onUpdateCheckError(String errorMessage) {
+    	Log.e(TAG, "自动更新检查出错: " + errorMessage);
+    }
+    
+    @Override
+    public void onNoUpdateAvailable() {
+    	Log.d(TAG, "自动更新: 没有可用更新");
     }
     
     private void setupActivityResultLaunchers() {

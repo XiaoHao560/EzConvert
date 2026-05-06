@@ -15,7 +15,9 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.method.LinkMovementMethod;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.tech.ezconvert.utils.Log;
+import com.tech.ezconvert.R;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
@@ -440,7 +442,7 @@ public class UpdateChecker {
         }
     }
     
-    private void showUpdateDialog(String releaseName, String releaseNotes, 
+    public void showUpdateDialog(String releaseName, String releaseNotes, 
                                 boolean isPrerelease, String htmlUrl) {
         // 使用final变量供内部类使用
         final String finalReleaseName = releaseName;
@@ -460,7 +462,7 @@ public class UpdateChecker {
                 return;
             }
             
-            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(activity, R.style.ThemeOverlay_App_MaterialAlertDialog);
             
             String title = finalIsPrerelease ? "预发布版本: " + finalReleaseName : "更新详情: " + finalReleaseName;
             builder.setTitle(title);
@@ -507,8 +509,7 @@ public class UpdateChecker {
             });
             
             try {
-                AlertDialog dialog = builder.create();
-                dialog.show();
+                builder.show();
                 
                 if (messageView.getLineCount() > 20) {
                     messageView.setVerticalScrollBarEnabled(true);
