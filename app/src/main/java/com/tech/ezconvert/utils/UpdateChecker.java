@@ -485,7 +485,7 @@ public class UpdateChecker {
             
             builder.setView(messageView);
             
-            builder.setPositiveButton("前往下载", (dialog, which) -> {
+            builder.setPositiveButton("下载", (dialog, which) -> {
                 try {
                     Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(finalHtmlUrl));
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -496,14 +496,14 @@ public class UpdateChecker {
             });
             
             if (finalIsPrerelease) {
-                builder.setNeutralButton("仅检查正式版", (dialog, which) -> {
+                builder.setNeutralButton("仅正式版", (dialog, which) -> {
                     includePrerelease = false;
                     settingsManager.setIncludePrerelease(false);
                     checkForManualUpdate();
                 });
             }
             
-            builder.setNegativeButton("忽略此版本", (dialog, which) -> {
+            builder.setNegativeButton("忽略", (dialog, which) -> {
                 ignoreVersion(latestVersionFromGitHub);
                 ToastUtils.show(activity, "已忽略此版本更新");
             });
