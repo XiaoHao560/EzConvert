@@ -372,7 +372,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
         
         builder.setView(messageView);
         
-        builder.setPositiveButton("前往GitHub", (dialog, which) -> {
+        builder.setPositiveButton("下载", (dialog, which) -> {
             try {
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(htmlUrl));
                 startActivity(intent);
@@ -382,7 +382,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
         });
         
         if (isPrerelease) {
-            builder.setNeutralButton("仅检查正式版", (dialog, which) -> {
+            builder.setNeutralButton("仅正式版", (dialog, which) -> {
                 // 更新全局设置
                 settingsManager.setIncludePrerelease(false);
                 if (updateChecker != null) {
