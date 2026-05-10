@@ -79,8 +79,8 @@ public class VideoProcessor {
             case "中等质量": return 23;
             case "低质量": return 28;
             case "自动":
-                // 自动模式下软件编码用中等CRF
-                return 23;
+                // 自动模式下软件编码用高CRF
+                return 18;
             default: return 23;
         }
     }
