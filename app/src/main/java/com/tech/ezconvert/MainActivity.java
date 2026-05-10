@@ -410,7 +410,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         qualityAdapter.setDropDownViewResource(R.layout.item_dropdown_popup);
         AutoCompleteTextView qualitySpinnerView = (AutoCompleteTextView) qualitySpinner;
         qualitySpinnerView.setAdapter(qualityAdapter);
-        qualitySpinnerView.setText(qualityOptions[0], false);
+        qualitySpinnerView.setText(qualityOptions[1], false);
         qualitySpinnerView.setDropDownBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0xFFFFFFFF));
         
         // 音量设置
@@ -705,6 +705,13 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         }
         
         String qualityStr = qualitySpinner.getText().toString();
+        
+        // 压缩视频不支持"自动"码率，提示
+        if ("自动".equals(qualityStr)) {
+            ToastUtils.show(this, "压缩视频不支持\"自动\"质量\n请选择其他参数");
+            return;
+        }
+        
         int quality = getQualityValue(qualityStr);
         
         generateOutputPath(); // 生成基础路径
