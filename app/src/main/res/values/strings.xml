@@ -38,6 +38,7 @@
     </string-array>
     
     <string-array name="quality_options">
+        <item>自动</item>
         <item>高质量</item>
         <item>中等质量</item>
         <item>低质量</item>

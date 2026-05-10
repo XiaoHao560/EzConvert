@@ -410,7 +410,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         qualityAdapter.setDropDownViewResource(R.layout.item_dropdown_popup);
         AutoCompleteTextView qualitySpinnerView = (AutoCompleteTextView) qualitySpinner;
         qualitySpinnerView.setAdapter(qualityAdapter);
-        qualitySpinnerView.setText(qualityOptions[1], false);
+        qualitySpinnerView.setText(qualityOptions[0], false);
         qualitySpinnerView.setDropDownBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0xFFFFFFFF));
         
         // 音量设置
@@ -680,6 +680,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         }
         
         String format = videoFormatSpinner.getText().toString();
+        String qualityOption = qualitySpinner.getText().toString();
         generateOutputPath(); // 生成基础路径
         
         // 记录输出文件路径（带扩展名）
@@ -688,7 +689,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         updateStatus("开始转换视频到 " + format + " 格式...");
         // 显示取消按钮
         showCancelButton();
-        VideoProcessor.convertVideo(currentInputPath, currentOutputPath, format, currentVolume, this, this);
+        VideoProcessor.convertVideo(currentInputPath, currentOutputPath, format, currentVolume, qualityOption ,this, this);
     }
     
     private void startCompression() {
@@ -962,6 +963,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     
     private int getQualityValue(String qualityStr) {
         switch (qualityStr) {
+            case "自动": return -1;
             case "高质量": return 90;
             case "中等质量": return 70;
             case "低质量": return 50;

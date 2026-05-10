@@ -36,9 +36,59 @@ public class VideoProcessor {
         };
     }
     
+    /**
+     * 向上取整: 19180 -> 20000, 23456 -> 24000, 5000 -> 5000
+     * @param value 原始值
+     * @param step  取整步长
+     */
+    private static int roundUpToNearest(int value, int step) {
+        if (value <= 0) return step;
+        return ((value + step - 1) / step) * step;
+    }
+    
+    /**
+     * 根据质量选项获取目标视频码率(kbps)
+     * @param qualityOption 质量选项文本
+     * @param inputPath     输入文件路径(仅在"自动"时使用)
+     * @return 目标码率(kbps)
+     */
+    private static int getTargetBitrate(String qualityOption, String inputPath) {
+        if ("自动".equals(qualityOption)) {
+            int inputBitrate = getVideoBitrate(inputPath);
+            return roundUpToNearest(inputBitrate, 1000);
+        }
+        return getBitrateForQuality(getQualityValue(qualityOption));
+    }
+    
+    private static int getQualityValue(String qualityStr) {
+        switch (qualityStr) {
+            case "自动": return -1; // 自动模式
+            case "高质量": return 90;
+            case "中等质量": return 70;
+            case "低质量": return 50;
+            default: return 70;
+        }
+    }
+    
+    /**
+     * 根据质量获取软件编码CRF值
+     */
+    private static int getCrfForQuality(String qualityOption) {
+        switch (qualityOption) {
+            case "高质量": return 18;
+            case "中等质量": return 23;
+            case "低质量": return 28;
+            case "自动":
+                // 自动模式下软件编码用中等CRF
+                return 23;
+            default: return 23;
+        }
+    }
+    
     // 视频转换
     public static void convertVideo(String inputPath, String outputPath, 
-                                   String format, int volume, FFmpegUtil.FFmpegCallback callback, Context context) {
+                                   String format, int volume, String qualityOption,
+                                   FFmpegUtil.FFmpegCallback callback, Context context) {
         
         // 检查并准备文件路径
         CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath);
@@ -59,16 +109,17 @@ public class VideoProcessor {
          * 二：转封装/转码为目标格式
          */
         if (hardwareAcceleration && (format.equalsIgnoreCase("mkv"))) {
-            convertVideoTwoStep(usablePath, outputPath, format, volume, wrappedCallback, context);
+            convertVideoTwoStep(usablePath, outputPath, format, volume, qualityOption, wrappedCallback, context);
         } else {
-            convertVideoDirect(usablePath, outputPath, format, volume, wrappedCallback, context);
+            convertVideoDirect(usablePath, outputPath, format, volume, qualityOption, wrappedCallback, context);
         }
     }
     
     // 两步转换：硬件加速 MP4 -> 转封装 MKV 
     // 用于 MKV 格式，解决 Android 平台缺少 MKV 硬件编码器的问题
     private static void convertVideoTwoStep(String inputPath, String outputPath, 
-                                           String format, int volume, FFmpegUtil.FFmpegCallback callback, Context context) {
+                                           String format, int volume, String qualityOption,
+                                           FFmpegUtil.FFmpegCallback callback, Context context) {
         
         String fileName = new File(inputPath).getName();
         
@@ -76,12 +127,14 @@ public class VideoProcessor {
         String tempMp4Path = context.getCacheDir() + "/temp_hw_" + System.currentTimeMillis() + ".mp4";
         String finalOutputPath = outputPath + "." + format.toLowerCase();
         
+        // 根据质量选项获取目标码率
+        int targetBitrate = getTargetBitrate(qualityOption, inputPath);
+        
         // 硬件加速转换为 h264_media/AAC 的 MP4
         ArrayList<String> step1Cmd = new ArrayList<>();
         step1Cmd.add("-i"); step1Cmd.add(inputPath);
         step1Cmd.add("-c:v"); step1Cmd.add("h264_mediacodec");
-        int inputBitrate = getVideoBitrate(inputPath);
-        step1Cmd.add("-b:v"); step1Cmd.add(inputBitrate + "k");
+        step1Cmd.add("-b:v"); step1Cmd.add(targetBitrate + "k");
         step1Cmd.add("-c:a"); step1Cmd.add("aac");
         step1Cmd.add("-b:a"); step1Cmd.add("128k");
         step1Cmd.add("-movflags"); step1Cmd.add("+faststart");
@@ -167,7 +220,8 @@ public class VideoProcessor {
      * 适用于 MP4/MOV/AVI/FLV/GIF 等格式，以及关闭硬件加速时的所有格式
      */
     private static void convertVideoDirect(String inputPath, String outputPath, 
-                                          String format, int volume, FFmpegUtil.FFmpegCallback callback, Context context) {
+                                          String format, int volume, String qualityOption,
+                                          FFmpegUtil.FFmpegCallback callback, Context context) {
         
         String fileName = new File(inputPath).getName();
         String outputFile = outputPath + "." + getFileExtension(format);
@@ -175,7 +229,11 @@ public class VideoProcessor {
         boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
         boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
         
-        Log.d("VideoProcessor", "硬件加速: " + hardwareAcceleration + ", 多线程: " + multithreading);
+        Log.d("VideoProcessor", "硬件加速: " + hardwareAcceleration + ", 多线程: " + multithreading + ", 质量: " + qualityOption);
+        
+        // 根据质量选项计算目标码率（硬件加速用）和CRF（软件编码用）
+        int targetBitrate = getTargetBitrate(qualityOption, inputPath);
+        int crf = getCrfForQuality(qualityOption);
         
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add("-i");
@@ -200,16 +258,15 @@ public class VideoProcessor {
                 if (hardwareAcceleration) {
                     commandList.add("-c:v");
                     commandList.add("h264_mediacodec");
-                    int inputBitrate = getVideoBitrate(inputPath);
                     commandList.add("-b:v");
-                    commandList.add(inputBitrate + "k");
+                    commandList.add(targetBitrate + "k");
                 } else {
                     commandList.add("-c:v");
                     commandList.add("libx264");
                     commandList.add("-preset");
                     commandList.add("medium");
                     commandList.add("-crf");
-                    commandList.add("23");
+                    commandList.add(String.valueOf(crf));
                 }
                 commandList.add("-c:a");
                 commandList.add("aac");
@@ -227,7 +284,7 @@ public class VideoProcessor {
                 commandList.add("-preset");
                 commandList.add("medium");
                 commandList.add("-crf");
-                commandList.add("28");
+                commandList.add(String.valueOf(crf + 5)); // x265 略高于 x264
                 commandList.add("-c:a");
                 commandList.add("aac");
                 commandList.add("-b:a");
@@ -239,7 +296,7 @@ public class VideoProcessor {
                 commandList.add("-c:v");
                 commandList.add("libvpx-vp9");
                 commandList.add("-b:v");
-                commandList.add("1M");
+                commandList.add(targetBitrate + "k");
                 commandList.add("-c:a");
                 commandList.add("libopus");
                 commandList.add("-b:a");
@@ -252,9 +309,8 @@ public class VideoProcessor {
                 if (hardwareAcceleration) {
                     commandList.add("-c:v");
                     commandList.add("h264_mediacodec");
-                    int inputBitrate = getVideoBitrate(inputPath);
                     commandList.add("-b:v");
-                    commandList.add(inputBitrate + "k");
+                    commandList.add(targetBitrate + "k");
                 } else {
                     commandList.add("-c:v");
                     commandList.add("mpeg4");
@@ -273,9 +329,8 @@ public class VideoProcessor {
                 if (hardwareAcceleration) {
                     commandList.add("-c:v");
                     commandList.add("h264_mediacodec");
-                    int inputBitrate = getVideoBitrate(inputPath);
                     commandList.add("-b:v");
-                    commandList.add(inputBitrate + "k");
+                    commandList.add(targetBitrate + "k");
                 } else {
                     commandList.add("-c:v");
                     commandList.add("libx264");
@@ -304,16 +359,15 @@ public class VideoProcessor {
                 if (hardwareAcceleration) {
                     commandList.add("-c:v");
                     commandList.add("h264_mediacodec");
-                    int inputBitrate = getVideoBitrate(inputPath);
                     commandList.add("-b:v");
-                    commandList.add(inputBitrate + "k");
+                    commandList.add(targetBitrate + "k");
                 } else {
                     commandList.add("-c:v");
                     commandList.add("libx264");
                     commandList.add("-preset");
                     commandList.add("medium");
                     commandList.add("-crf");
-                    commandList.add("23");
+                    commandList.add(String.valueOf(crf));
                 }
                 commandList.add("-c:a");
                 commandList.add("aac");
