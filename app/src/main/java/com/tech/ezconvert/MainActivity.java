@@ -758,10 +758,13 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         // 记录输出文件路径
         currentOutputFile = currentOutputPath + ".mp3";
         
+        // 获取质量选项
+        String quailtyOption = qualitySpinner.getText().toString();
+        
         updateStatus("开始提取音频...");
         // 显示取消按钮
         showCancelButton();
-        AudioProcessor.extractAudioFromVideo(currentInputPath, currentOutputPath, "mp3", currentVolume, this, this);
+        AudioProcessor.extractAudioFromVideo(currentInputPath, currentOutputPath, "mp3", currentVolume, quailtyOption, this, this);
     }
     
     private void convertAudio() {
@@ -799,10 +802,13 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         // 记录输出文件路径
         currentOutputFile = currentOutputPath + "." + getAudioExtension(format);
         
+        // 获取质量选项
+        String qualityOption = qualitySpinner.getText().toString();
+        
         updateStatus("开始转换音频到 " + format + " 格式...");
         // 显示取消按钮
         showCancelButton();
-        AudioProcessor.convertAudio(currentInputPath, currentOutputPath, format, currentVolume, this, this);
+        AudioProcessor.convertAudio(currentInputPath, currentOutputPath, format, currentVolume, qualityOption, this, this);
     }
     
     private void showCutVideoDialog() {
