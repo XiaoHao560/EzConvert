@@ -409,6 +409,29 @@ public class FFmpegUtil {
         }
     }
 
+    // 验证输出路径是否位于应用可控目录内，防止路径遍历/越界访问
+    private static File getValidatedOutputFile(String outputPath) {
+        if (outputPath == null || outputPath.trim().isEmpty() || appContext == null) {
+            return null;
+        }
+        try {
+            File baseDir = appContext.getExternalFilesDir(null);
+            if (baseDir == null) {
+                return null;
+            }
+            File canonicalBase = baseDir.getCanonicalFile();
+            File candidate = new File(outputPath).getCanonicalFile();
+            String basePath = canonicalBase.getPath() + File.separator;
+            if (!candidate.getPath().startsWith(basePath)) {
+                return null;
+            }
+            return candidate;
+        } catch (Exception e) {
+            Log.w(TAG, "输出路径校验失败: " + e.getMessage());
+            return null;
+        }
+    }
+
     // 当无法获取时长时，使用文件大小估算进度条
     private static void runFfmpegCommandWithFileSize(String[] command, FFmpegCallback callback, 
                                                     String tempInputPath) {
@@ -419,9 +442,13 @@ public class FFmpegUtil {
         // 先执行命令 (durationMs 传 -1 表示使用文件大小估算)
         runFfmpegCommand(command, callback, tempInputPath, -1);
         
-        // 获取输出文件路径
+        // 获取输出文件路径并做安全校验
         String outputPath = command[command.length - 1].replace("\"", "");
-        final File outputFile = new File(outputPath);
+        final File outputFile = getValidatedOutputFile(outputPath);
+        if (outputFile == null) {
+            Log.w(TAG, "输出路径不安全或不可用，跳过基于文件大小的进度估算: " + outputPath);
+            return;
+        }
         
         // 创建进度检查定时器
         final Handler progressHandler = new Handler(Looper.getMainLooper());
