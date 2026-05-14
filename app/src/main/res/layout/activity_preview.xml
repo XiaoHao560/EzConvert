@@ -92,6 +92,7 @@
              android:elevation="0dp"
              app:titleTextAppearance="?attr/textAppearanceTitleMedium"
              app:navigationIcon="@drawable/round_arrow_back"
+             app:navigationContentDescription="@string/tooltip_back_home"
              app:titleTextColor="?attr/colorOnSurface"
              android:id="@+id/title_container">
 
@@ -160,6 +161,7 @@
                      android:layout_width="40dp"
                      android:layout_marginEnd="8dp"
                      android:src="@drawable/round_info"
+                     android:tooltipText="@string/tooltip_mediainfo"
                      android:background="?attr/selectableItemBackgroundBorderless"
                      android:padding="8dp"
                      app:tint="?attr/colorOnSurfaceVariant"
@@ -179,6 +181,7 @@
                      android:layout_width="40dp"
                      android:layout_marginEnd="8dp"
                      android:src="@drawable/round_folder"
+                     android:tooltipText="@string/tooltip_folder"
                      android:background="?attr/selectableItemBackgroundBorderless"
                      android:padding="8dp"
                      app:tint="?attr/colorOnSurfaceVariant"
