@@ -54,12 +54,9 @@ task checkSigningConfig {
 
 // 获取 Git commit hash 的方法
 ext.getGitCommit = {
-    def stdout = new ByteArrayOutputStream()
-    exec {
+    providers.exec {
         commandLine 'git', 'rev-parse', '--short', 'HEAD'
-        standardOutput = stdout
-    }
-    return stdout.toString().trim()
+    }.standardOutput.asText.map { it.trim() }.getOrElse("null")
 }
 
 android {
