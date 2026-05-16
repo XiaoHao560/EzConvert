@@ -12,6 +12,7 @@
 ### 移除
 
 ### 代码变更
+- 修改 app/build.gradle 与 gradle/versioning.gradle 中的 git 使用方法 (适配Gradle9.0)
 - 升级 targetSdk/compileSdk 为 35
 - 升级 Gradle 为 9.0.0
 - 升级 agp 为 8.13.0
