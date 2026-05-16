@@ -123,13 +123,10 @@ ext {
     }
 
     getCmdOutput = { command ->
-        def stdout = new ByteArrayOutputStream()
         try {
-            exec {
+            providers.exec {
                 commandLine command.split(' ')
-                standardOutput = stdout
-            }
-            return stdout.toString().trim()
+            }.standardOutput.asText.get().trim()
         } catch (Exception e) {
             throw e
         }
