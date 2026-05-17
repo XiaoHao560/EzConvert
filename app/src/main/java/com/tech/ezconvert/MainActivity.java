@@ -53,6 +53,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -94,7 +95,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     
     // 多文件队列处理相关字段
     private final List<String> selectedFilePaths = new ArrayList<>();
-    private final List<String> completedOutputFiles = new ArrayList<>();
+    private final CopyOnWriteArrayList<String> completedOutputFiles = new CopyOnWriteArrayList<>();
     private int currentQueueIndex = 0;
     private String currentTaskType = "";
     private String currentTaskFormat = "";
@@ -372,6 +373,13 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                 deleteFileIfExists(path);
             }
             completedOutputFiles.clear();
+            
+            // 同步清空队列状态，避免主线程的 processNextFileInQueue 竞争
+            synchronized (selectedFilePaths) {
+                selectedFilePaths.clear();
+            }
+            currentQueueIndex = 0;
+            currentInputPath = "";
             
             runOnUiThread(() -> {
                 updateStatus("操作已取消，已清理生成的文件");
