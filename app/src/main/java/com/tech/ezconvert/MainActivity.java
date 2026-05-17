@@ -1,6 +1,7 @@
 package com.tech.ezconvert;
 
 import android.app.AlertDialog;
+import android.content.ClipData;
 import android.content.Intent;
 import android.content.SharedPreferences;
 //import android.graphics.Insets;
@@ -37,16 +38,20 @@ import com.tech.ezconvert.ui.PreviewActivity;
 import com.tech.ezconvert.ui.SettingsMainActivity;
 import com.tech.ezconvert.utils.AnimationUtils;
 import com.tech.ezconvert.utils.ConfigManager;
+import com.tech.ezconvert.utils.CrashHandler;
 import com.tech.ezconvert.utils.FFmpegUtil;
 import com.tech.ezconvert.utils.FileUtils;
 import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.utils.LogManager;
+import com.tech.ezconvert.utils.NotificationHelper;
 import com.tech.ezconvert.utils.PermissionManager;
 import com.tech.ezconvert.utils.ToastUtils;
 import com.tech.ezconvert.utils.UpdateChecker;
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -86,6 +91,17 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private UpdateChecker updateChecker;
     private ActivityResultLauncher<Intent> filePickerLauncher;
+    
+    // 多文件队列处理相关字段
+    private final List<String> selectedFilePaths = new ArrayList<>();
+    private final List<String> completedOutputFiles = new ArrayList<>();
+    private int currentQueueIndex = 0;
+    private String currentTaskType = "";
+    private String currentTaskFormat = "";
+    private String currentTaskQuality = "";
+    private String currentTaskStartTime = "";
+    private String currentTaskDuration = "";
+    private String currentTaskTimestamp = "";
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -162,11 +178,46 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                 if (result.getResultCode() == RESULT_OK) {
                     Intent data = result.getData();
                     if (data != null) {
-                        Uri uri = data.getData();
-                        if (uri != null) {
-                            currentInputPath = FileUtils.getPath(this, uri);
-                            if (currentInputPath != null && new File(currentInputPath).exists()) {
-                                String fileName = new File(currentInputPath).getName();
+                        // 处理多选结果
+                        if (data.getClipData() != null) {
+                            ClipData clipData = data.getClipData();
+                            selectedFilePaths.clear();
+                            for (int i = 0; i < clipData.getItemCount(); i++) {
+                                Uri uri = clipData.getItemAt(i).getUri();
+                                String path = FileUtils.getPath(this, uri);
+                                if (path != null && new File(path).exists()) {
+                                    selectedFilePaths.add(path);
+                                }
+                            }
+                            if (!selectedFilePaths.isEmpty()) {
+                                currentInputPath = selectedFilePaths.get(0);
+                                String firstFileName = new File(currentInputPath).getName();
+                                updateStatus("已选择 " + selectedFilePaths.size() + " 个文件，首个: " + firstFileName);
+                                
+                                // 生成输出路径
+                                generateOutputPath();
+                                
+                                // 更新按键状态
+                                setFunctionButtonsEnabled(permissionsGranted);
+                                
+                                // ToastUtils.show(this, "已选择: " + selectedFilePaths.size() + " 个文件");
+                                ToastUtils.showCustom(this, "已选择: " + selectedFilePaths.size() + " 个文件");
+                            } else {
+                                updateStatus("无法访问选中的文件");
+                                ToastUtils.showCustom(this, "无法访问选中的文件");
+                                currentInputPath = "";
+                                selectedFilePaths.clear();
+                                setFunctionButtonsEnabled(permissionsGranted);
+                            }
+                        } else if (data.getData() != null) {
+                            // 单选兼容
+                            Uri uri = data.getData();
+                            String path = FileUtils.getPath(this, uri);
+                            if (path != null && new File(path).exists()) {
+                                selectedFilePaths.clear();
+                                selectedFilePaths.add(path);
+                                currentInputPath = path;
+                                String fileName = new File(path).getName();
                                 updateStatus("已选择文件: " + fileName);
                                 
                                 // 生成输出路径
@@ -182,6 +233,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                                 // ToastUtils.show(this, "无法访问文件或文件不存在");
                                 ToastUtils.showCustom(this, "无法访问文件或文件不存在");
                                 currentInputPath = "";
+                                selectedFilePaths.clear();
                                 setFunctionButtonsEnabled(permissionsGranted);
                             }
                         }
@@ -315,8 +367,14 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                 deleteFileIfExists(currentOutputFile);
             }
             
+            // 删除本次多任务中已转换出来的文件
+            for (String path : completedOutputFiles) {
+                deleteFileIfExists(path);
+            }
+            completedOutputFiles.clear();
+            
             runOnUiThread(() -> {
-                updateStatus("操作已取消");
+                updateStatus("操作已取消，已清理生成的文件");
                 
                 // 重置进度显示
                 progressBar.clearAnimation();
@@ -325,6 +383,11 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                 
                 // 恢复功能按钮可用状态
                 setFunctionButtonsEnabled(permissionsGranted);
+                
+                // 清空队列状态
+                selectedFilePaths.clear();
+                currentQueueIndex = 0;
+                currentInputPath = "";
             });
         }).start();
     }
@@ -356,7 +419,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         cancelBtn.setVisibility(View.GONE);
         isTaskRunning = false;
         // 恢复功能按钮状态（如果有文件选中）
-        setFunctionButtonsEnabled(permissionsGranted && !currentInputPath.isEmpty());
+        setFunctionButtonsEnabled(permissionsGranted && !selectedFilePaths.isEmpty());
     }
 
     private void setVersionText() {
@@ -474,7 +537,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         // 功能按钮统一添加动画
         View.OnClickListener functionButtonListener = v -> {
             AnimationUtils.animateButtonClick(v);
-            if (permissionsGranted && !currentInputPath.isEmpty()) {
+            if (permissionsGranted && !selectedFilePaths.isEmpty()) {
                 handleFunctionButtonClick(v.getId());
             } else if (!permissionsGranted) {
                 ToastUtils.show(this, "请先授予权限并选择文件");
@@ -522,7 +585,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         AnimationUtils.animateBounce(selectFileBtn);
         
         // 只有在没有选择文件时才显示默认状态
-        if (currentInputPath.isEmpty()) {
+        if (selectedFilePaths.isEmpty()) {
             updateStatus("权限已授予，请选择媒体文件");
         }
         Log.d("MainActivity", "权限检测通过");
@@ -563,7 +626,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             enabled = false;
         }
         
-        boolean hasFileSelected = !currentInputPath.isEmpty();
+        boolean hasFileSelected = !selectedFilePaths.isEmpty();
         
         convertBtn.setEnabled(enabled && hasFileSelected);
         compressBtn.setEnabled(enabled && hasFileSelected);
@@ -593,12 +656,13 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("*/*");
         intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true); // 支持多选
         
         String[] mimeTypes = {"video/*", "audio/*"};
         intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
         
         try {
-            filePickerLauncher.launch(Intent.createChooser(intent, "选择媒体文件"));
+            filePickerLauncher.launch(Intent.createChooser(intent, "选择媒体文件（可多选）"));
         } catch (Exception e) {
             ToastUtils.show(this, "无法打开文件选择器");
             Log.e("MainActivity", "打开文件选择器失败", e);
@@ -667,6 +731,139 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         }
     }
     
+    /**
+     * 处理队列中的下一个文件
+     */
+    private void processNextFileInQueue() {
+        if (currentQueueIndex >= selectedFilePaths.size()) {
+            // 全部完成
+            hideCancelButton();
+            updateStatus("所有文件处理完成，共 " + selectedFilePaths.size() + " 个");
+            ToastUtils.showLong(this, "所有文件处理完成!\n输出保存在: Download/简转/");
+            currentOutputFile = "";
+            completedOutputFiles.clear();
+            selectedFilePaths.clear();
+            currentInputPath = "";
+            setFunctionButtonsEnabled(permissionsGranted);
+            return;
+        }
+        
+        currentInputPath = selectedFilePaths.get(currentQueueIndex);
+        generateOutputPath();
+        
+        String fileName = new File(currentInputPath).getName();
+        updateStatus("正在处理第 " + (currentQueueIndex + 1) + "/" + selectedFilePaths.size() + " 个: " + fileName);
+        
+        // 重置进度条，为新文件从头开始
+        progressBar.clearAnimation();
+        progressBar.setProgress(0);
+        progressText.setText("进度: 0%");
+        
+        switch (currentTaskType) {
+            case "convert": {
+                currentOutputFile = currentOutputPath + "." + getVideoExtension(currentTaskFormat);
+                VideoProcessor.convertVideo(currentInputPath, currentOutputPath, currentTaskFormat, currentVolume, currentTaskQuality, this, this);
+                break;
+            }
+            case "compress": {
+                currentOutputFile = currentOutputPath + "_compressed.mp4";
+                int quality = getQualityValue(currentTaskQuality);
+                VideoProcessor.compressVideo(currentInputPath, currentOutputPath, quality, currentVolume, this, this);
+                break;
+            }
+            case "extract_audio": {
+                File inputFile = new File(currentInputPath);
+                String fileNameLocal = inputFile.getName();
+                String baseName = fileNameLocal.contains(".") ? 
+                    fileNameLocal.substring(0, fileNameLocal.lastIndexOf('.')) : fileNameLocal;
+                String outputDir = Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + File.separator + "简转";
+                File outputDirFile = new File(outputDir);
+                if (!outputDirFile.exists()) {
+                    outputDirFile.mkdirs();
+                }
+                String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+                currentOutputPath = outputDir + File.separator + baseName + "_audio_" + timestamp;
+                currentOutputFile = currentOutputPath + ".mp3";
+                AudioProcessor.extractAudioFromVideo(currentInputPath, currentOutputPath, "mp3", currentVolume, currentTaskQuality, this, this);
+                break;
+            }
+            case "convert_audio": {
+                File inputFile = new File(currentInputPath);
+                String fileNameLocal = inputFile.getName();
+                String baseName = fileNameLocal.contains(".") ? 
+                    fileNameLocal.substring(0, fileNameLocal.lastIndexOf('.')) : fileNameLocal;
+                String outputDir = Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + File.separator + "简转";
+                File outputDirFile = new File(outputDir);
+                if (!outputDirFile.exists()) {
+                    outputDirFile.mkdirs();
+                }
+                String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+                currentOutputPath = outputDir + File.separator + baseName + "_converted_" + timestamp;
+                currentOutputFile = currentOutputPath + "." + getAudioExtension(currentTaskFormat);
+                AudioProcessor.convertAudio(currentInputPath, currentOutputPath, currentTaskFormat, currentVolume, currentTaskQuality, this, this);
+                break;
+            }
+            case "cut_video": {
+                File inputFile = new File(currentInputPath);
+                String fileNameLocal = inputFile.getName();
+                String baseName = fileNameLocal.contains(".") ? 
+                    fileNameLocal.substring(0, fileNameLocal.lastIndexOf('.')) : fileNameLocal;
+                String outputDir = Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + File.separator + "简转";
+                File outputDirFile = new File(outputDir);
+                if (!outputDirFile.exists()) {
+                    outputDirFile.mkdirs();
+                }
+                String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+                currentOutputPath = outputDir + File.separator + baseName + "_cut_" + timestamp + ".mp4";
+                currentOutputFile = currentOutputPath;
+                VideoProcessor.cutVideo(currentInputPath, currentOutputPath, currentTaskStartTime, currentTaskDuration, currentVolume, this, this);
+                break;
+            }
+            case "screenshot": {
+                File inputFile = new File(currentInputPath);
+                String fileNameLocal = inputFile.getName();
+                String baseName = fileNameLocal.contains(".") ? 
+                    fileNameLocal.substring(0, fileNameLocal.lastIndexOf('.')) : fileNameLocal;
+                String outputDir = Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + File.separator + "简转";
+                File outputDirFile = new File(outputDir);
+                if (!outputDirFile.exists()) {
+                    outputDirFile.mkdirs();
+                }
+                String fileTimestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+                currentOutputPath = outputDir + File.separator + baseName + "_screenshot_" + fileTimestamp + ".jpg";
+                currentOutputFile = currentOutputPath;
+                VideoProcessor.extractFrame(currentInputPath, currentOutputPath, currentTaskTimestamp, this, this);
+                break;
+            }
+            case "cut_audio": {
+                File inputFile = new File(currentInputPath);
+                String fileNameLocal = inputFile.getName();
+                String baseName = fileNameLocal.contains(".") ? 
+                    fileNameLocal.substring(0, fileNameLocal.lastIndexOf('.')) : fileNameLocal;
+                String outputDir = Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + File.separator + "简转";
+                File outputDirFile = new File(outputDir);
+                if (!outputDirFile.exists()) {
+                    outputDirFile.mkdirs();
+                }
+                String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+                currentOutputPath = outputDir + File.separator + baseName + "_cut_" + timestamp + ".mp3";
+                currentOutputFile = currentOutputPath;
+                AudioProcessor.cutAudio(currentInputPath, currentOutputPath, currentTaskStartTime, currentTaskDuration, currentVolume, this, this);
+                break;
+            }
+            default:
+                Log.w("MainActivity", "未知的任务类型: " + currentTaskType);
+                currentQueueIndex++;
+                processNextFileInQueue();
+                break;
+        }
+    }
+    
     private void startConversion() {
         if (!permissionsGranted) {
             ToastUtils.show(this, "请先授予存储权限");
@@ -674,22 +871,21 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             return;
         }
         
-        if (currentInputPath.isEmpty()) {
+        if (selectedFilePaths.isEmpty()) {
             ToastUtils.show(this, "请先选择文件");
             return;
         }
         
-        String format = videoFormatSpinner.getText().toString();
-        String qualityOption = qualitySpinner.getText().toString();
-        generateOutputPath(); // 生成基础路径
+        currentTaskType = "convert";
+        currentTaskFormat = videoFormatSpinner.getText().toString();
+        currentTaskQuality = qualitySpinner.getText().toString();
+        currentQueueIndex = 0;
+        completedOutputFiles.clear();
         
-        // 记录输出文件路径（带扩展名）
-        currentOutputFile = currentOutputPath + "." + getVideoExtension(format);
-        
-        updateStatus("开始转换视频到 " + format + " 格式...");
+        updateStatus("开始批量转换视频，共 " + selectedFilePaths.size() + " 个文件");
         // 显示取消按钮
         showCancelButton();
-        VideoProcessor.convertVideo(currentInputPath, currentOutputPath, format, currentVolume, qualityOption ,this, this);
+        processNextFileInQueue();
     }
     
     private void startCompression() {
@@ -699,7 +895,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             return;
         }
         
-        if (currentInputPath.isEmpty()) {
+        if (selectedFilePaths.isEmpty()) {
             ToastUtils.show(this, "请先选择文件");
             return;
         }
@@ -712,17 +908,15 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             return;
         }
         
-        int quality = getQualityValue(qualityStr);
+        currentTaskType = "compress";
+        currentTaskQuality = qualityStr;
+        currentQueueIndex = 0;
+        completedOutputFiles.clear();
         
-        generateOutputPath(); // 生成基础路径
-        
-        // 记录输出文件路径
-        currentOutputFile = currentOutputPath + "_compressed.mp4";
-        
-        updateStatus("开始压缩视频 (" + qualityStr + ")...");
+        updateStatus("开始批量压缩视频，共 " + selectedFilePaths.size() + " 个文件");
         // 显示取消按钮
         showCancelButton();
-        VideoProcessor.compressVideo(currentInputPath, currentOutputPath, quality, currentVolume, this, this);
+        processNextFileInQueue();
     }
     
     private void extractAudio() {
@@ -732,39 +926,20 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             return;
         }
         
-        if (currentInputPath.isEmpty()) {
+        if (selectedFilePaths.isEmpty()) {
             ToastUtils.show(this, "请先选择文件");
             return;
         }
         
-        File inputFile = new File(currentInputPath);
-        String fileName = inputFile.getName();
-        String baseName = fileName.contains(".") ? 
-            fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
-            
-        // 创建简转文件夹
-        String outputDir = Environment.getExternalStoragePublicDirectory(
-            Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + File.separator + "简转";
+        currentTaskType = "extract_audio";
+        currentTaskQuality = qualitySpinner.getText().toString();
+        currentQueueIndex = 0;
+        completedOutputFiles.clear();
         
-        // 检查目录
-        File outputDirFile = new File(outputDir);
-        if (!outputDirFile.exists()) {
-            outputDirFile.mkdirs();
-        }
-        
-        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-        currentOutputPath = outputDir + File.separator + baseName + "_audio_" + timestamp;
-        
-        // 记录输出文件路径
-        currentOutputFile = currentOutputPath + ".mp3";
-        
-        // 获取质量选项
-        String quailtyOption = qualitySpinner.getText().toString();
-        
-        updateStatus("开始提取音频...");
+        updateStatus("开始批量提取音频，共 " + selectedFilePaths.size() + " 个文件");
         // 显示取消按钮
         showCancelButton();
-        AudioProcessor.extractAudioFromVideo(currentInputPath, currentOutputPath, "mp3", currentVolume, quailtyOption, this, this);
+        processNextFileInQueue();
     }
     
     private void convertAudio() {
@@ -774,41 +949,21 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             return;
         }
         
-        if (currentInputPath.isEmpty()) {
+        if (selectedFilePaths.isEmpty()) {
             ToastUtils.show(this, "请先选择文件");
             return;
         }
         
-        String format = audioFormatSpinner.getText().toString();
+        currentTaskType = "convert_audio";
+        currentTaskFormat = audioFormatSpinner.getText().toString();
+        currentTaskQuality = qualitySpinner.getText().toString();
+        currentQueueIndex = 0;
+        completedOutputFiles.clear();
         
-        File inputFile = new File(currentInputPath);
-        String fileName = inputFile.getName();
-        String baseName = fileName.contains(".") ? 
-            fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
-            
-        // 创建简转文件夹
-        String outputDir = Environment.getExternalStoragePublicDirectory(
-            Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + File.separator + "简转";
-        
-        // 检查目录
-        File outputDirFile = new File(outputDir);
-        if (!outputDirFile.exists()) {
-            outputDirFile.mkdirs();
-        }
-        
-        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-        currentOutputPath = outputDir + File.separator + baseName + "_converted_" + timestamp;
-        
-        // 记录输出文件路径
-        currentOutputFile = currentOutputPath + "." + getAudioExtension(format);
-        
-        // 获取质量选项
-        String qualityOption = qualitySpinner.getText().toString();
-        
-        updateStatus("开始转换音频到 " + format + " 格式...");
+        updateStatus("开始批量转换音频，共 " + selectedFilePaths.size() + " 个文件");
         // 显示取消按钮
         showCancelButton();
-        AudioProcessor.convertAudio(currentInputPath, currentOutputPath, format, currentVolume, qualityOption, this, this);
+        processNextFileInQueue();
     }
     
     private void showCutVideoDialog() {
@@ -838,29 +993,21 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                 return;
             }
             
-            File inputFile = new File(currentInputPath);
-            String fileName = inputFile.getName();
-            String baseName = fileName.contains(".") ? 
-                fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
-                
-            String outputDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + File.separator + "简转";
-            
-            File outputDirFile = new File(outputDir);
-            if (!outputDirFile.exists()) {
-                outputDirFile.mkdirs();
+            if (selectedFilePaths.isEmpty()) {
+                ToastUtils.show(this, "请先选择文件");
+                return;
             }
             
-            String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-            currentOutputPath = outputDir + File.separator + baseName + "_cut_" + timestamp + ".mp4";
+            currentTaskType = "cut_video";
+            currentTaskStartTime = startTime;
+            currentTaskDuration = duration;
+            currentQueueIndex = 0;
+            completedOutputFiles.clear();
             
-            // 记录输出文件路径
-            currentOutputFile = currentOutputPath;
-            
-            updateStatus("开始裁剪视频...");
+            updateStatus("开始批量裁剪视频，共 " + selectedFilePaths.size() + " 个文件");
             // 显示取消按钮
             showCancelButton();
-            VideoProcessor.cutVideo(currentInputPath, currentOutputPath, startTime, duration, currentVolume, this, this);
+            processNextFileInQueue();
         });
         
         builder.setNegativeButton("取消", null);
@@ -889,29 +1036,20 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                 return;
             }
             
-            File inputFile = new File(currentInputPath);
-            String fileName = inputFile.getName();
-            String baseName = fileName.contains(".") ? 
-                fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
-                
-            String outputDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + File.separator + "简转";
-            
-            File outputDirFile = new File(outputDir);
-            if (!outputDirFile.exists()) {
-                outputDirFile.mkdirs();
+            if (selectedFilePaths.isEmpty()) {
+                ToastUtils.show(this, "请先选择文件");
+                return;
             }
             
-            String fileTimestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-            currentOutputPath = outputDir + File.separator + baseName + "_screenshot_" + fileTimestamp + ".jpg";
+            currentTaskType = "screenshot";
+            currentTaskTimestamp = timestamp;
+            currentQueueIndex = 0;
+            completedOutputFiles.clear();
             
-            // 记录输出文件路径
-            currentOutputFile = currentOutputPath;
-            
-            updateStatus("开始截图...");
+            updateStatus("开始批量截图，共 " + selectedFilePaths.size() + " 个文件");
             // 显示取消按钮
             showCancelButton();
-            VideoProcessor.extractFrame(currentInputPath, currentOutputPath, timestamp, this, this);
+            processNextFileInQueue();
         });
         
         builder.setNegativeButton("取消", null);
@@ -945,29 +1083,21 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                 return;
             }
             
-            File inputFile = new File(currentInputPath);
-            String fileName = inputFile.getName();
-            String baseName = fileName.contains(".") ? 
-                fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
-                
-            String outputDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + File.separator + "简转";
-            
-            File outputDirFile = new File(outputDir);
-            if (!outputDirFile.exists()) {
-                outputDirFile.mkdirs();
+            if (selectedFilePaths.isEmpty()) {
+                ToastUtils.show(this, "请先选择文件");
+                return;
             }
             
-            String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-            currentOutputPath = outputDir + File.separator + baseName + "_cut_" + timestamp + ".mp3";
+            currentTaskType = "cut_audio";
+            currentTaskStartTime = startTime;
+            currentTaskDuration = duration;
+            currentQueueIndex = 0;
+            completedOutputFiles.clear();
             
-            // 记录输出文件路径
-            currentOutputFile = currentOutputPath;
-            
-            updateStatus("开始裁剪音频...");
+            updateStatus("开始批量裁剪音频，共 " + selectedFilePaths.size() + " 个文件");
             // 显示取消按钮
             showCancelButton();
-            AudioProcessor.cutAudio(currentInputPath, currentOutputPath, startTime, duration, currentVolume, this, this);
+            processNextFileInQueue();
         });
         
         builder.setNegativeButton("取消", null);
@@ -1004,9 +1134,6 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     @Override
     public void onComplete(boolean success, String message) {
         runOnUiThread(() -> {
-            // 隐藏取消按钮并重置任务状态
-            hideCancelButton();
-            
             // 检查是否是取消操作（通过特定消息标识）
             if (message != null && message.equals("操作已取消")) {
                 updateStatus("操作已取消");
@@ -1014,24 +1141,46 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                 progressBar.clearAnimation();
                 progressBar.setProgress(0);
                 progressText.setText("进度: 0%");
-                currentOutputFile = ""; // 清空路径
+                currentOutputFile = "";
+                // 清空队列状态
+                selectedFilePaths.clear();
+                completedOutputFiles.clear();
+                currentQueueIndex = 0;
                 return;
             }
             
             if (success) {
-                String outputFileName = new File(currentInputPath).getName();
-                updateStatus("处理完成: " + outputFileName);
-                ToastUtils.showLong(MainActivity.this, 
-                    "处理完成! 输出文件\n保存在: Download/简转/");
-                currentOutputFile = ""; // 成功后清空路径，防止误删
+                completedOutputFiles.add(currentOutputFile);
+                currentQueueIndex++;
+                
+                if (currentQueueIndex < selectedFilePaths.size()) {
+                    // 还有下一个文件，重置进度并继续处理
+                    progressBar.clearAnimation();
+                    progressBar.setProgress(0);
+                    progressText.setText("进度: 0%");
+                    processNextFileInQueue();
+                } else {
+                    // 全部完成
+                    hideCancelButton();
+                    updateStatus("所有文件处理完成，共 " + selectedFilePaths.size() + " 个");
+                    ToastUtils.showLong(MainActivity.this, 
+                        "处理完成! 输出文件\n保存在: Download/简转/");
+                    currentOutputFile = "";
+                    completedOutputFiles.clear();
+                    selectedFilePaths.clear();
+                    currentInputPath = "";
+                    setFunctionButtonsEnabled(permissionsGranted);
+                }
             } else {
                 updateStatus("处理失败: " + message);
                 ToastUtils.show(MainActivity.this, "处理失败: " + message);
-                // 失败时不清空路径，允许用户手动清理或重试
+                // 失败时停止队列处理，保留已完成的文件
+                hideCancelButton();
+                progressBar.clearAnimation();
+                progressBar.setProgress(0);
+                progressText.setText("进度: 0%");
+                currentOutputFile = "";
             }
-            progressBar.clearAnimation();
-            progressBar.setProgress(0);
-            progressText.setText("进度: 0%");
         });
     }
     
@@ -1048,6 +1197,9 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             progressBar.clearAnimation();
             progressBar.setProgress(0);
             progressText.setText("进度: 0%");
+            
+            // 错误时停止队列处理
+            currentOutputFile = "";
         });
     }
     
@@ -1141,6 +1293,8 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                 if (uri != null) {
                     String path = FileUtils.getPath(this, uri);
                     if (path != null && new File(path).exists()) {
+                        selectedFilePaths.clear();
+                        selectedFilePaths.add(path);
                         currentInputPath = path;
                         currentOutputPath = generateShareOutputPath(path);
                         updateStatus("已接收分享：" + new File(path).getName());
