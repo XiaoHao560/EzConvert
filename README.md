@@ -131,3 +131,12 @@ Copyright (C) 2024-2026 XiaoHao560
 ## 联系与反馈
 
 如有疑问或建议，请通过 [GitHub Issues](https://github.com/XiaoHao560/EzConvert/issues) 联系作者。
+
+
+## ☕ 赞助支持
+
+如果 EzConvert 对你有帮助，欢迎赞赏支持，这将是我持续开发和维护的动力！
+
+| 微信赞赏 |
+|:---:|
+| ![微信赞赏码](screenshots/sponsor/wechat.png) |
