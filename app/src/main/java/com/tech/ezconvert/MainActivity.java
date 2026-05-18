@@ -1288,28 +1288,82 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         String action = intent.getAction();
         String type   = intent.getType();
         
-        if (Intent.ACTION_SEND.equals(action) && type != null) {
-            if (type.startsWith("video/") || type.startsWith("audio/")) {
-                Uri uri = null;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    uri = intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri.class);
-                } else {
-                    // 对于旧版本，使用已过时的方法但添加抑制警告注解
-                    uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-                }
+        // 类型校验: 只处理视频/音频
+        if (type == null || (!type.startsWith("video/") && !type.startsWith("audio/"))) {
+            return;
+        }
+        
+        // 多文件分享
+        if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
+            ArrayList<Uri> uriList;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                uriList = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri.class);
+            } else {
+                // 对于旧版本，使用已过时的方法
+                uriList = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+            }
+            
+            if (uriList == null || uriList.isEmpty()) {
+                ToastUtils.showCustom(this, "未接收到分享文件");
+                return;
+            }
+            
+            selectedFilePaths.clear();
+            int successCount = 0;
+            
+            for (Uri uri : uriList) {
+                if (uri == null) continue;
                 
-                if (uri != null) {
-                    String path = FileUtils.getPath(this, uri);
-                    if (path != null && new File(path).exists()) {
-                        selectedFilePaths.clear();
-                        selectedFilePaths.add(path);
-                        currentInputPath = path;
-                        currentOutputPath = generateShareOutputPath(path);
-                        updateStatus("已接收分享：" + new File(path).getName());
-                        setFunctionButtonsEnabled(permissionsGranted);
-                    } else {
-                        ToastUtils.show(this, "无法解析分享文件");
-                    }
+                String path = FileUtils.getPath(this, uri);
+                if (path != null && new File(path).exists()) {
+                    selectedFilePaths.add(path);
+                    successCount++;
+                } else {
+                    Log.w(TAG, "无法解析分享文件: " + uri);
+                }
+            }
+            
+            if (selectedFilePaths.isEmpty()) {
+                ToastUtils.showCustom(this, "无法访问选中的分享文件");
+                return;
+            }
+            
+            // 使用第一个文件生成输出路径基础
+            currentInputPath = selectedFilePaths.get(0);
+            currentOutputFile = generateShareOutputPath(currentInputPath);
+            
+            String firstFileName = new File(currentInputPath).getName();
+            updateStatus("已接收 " + successCount + "/" + uriList.size() + " 个分享文件，首个: " + firstFileName);
+            setFunctionButtonsEnabled(permissionsGranted);
+            
+            if (successCount < uriList.size()) {
+                ToastUtils.showCustom(this, successCount + " 个文件已加载，" + (uriList.size() - successCount) + " 个无法访问");
+            } else {
+                ToastUtils.showCustom(this, "已接收: " + successCount + " 个分享文件");
+            }
+        }
+        // 单文件分享
+        else if (Intent.ACTION_SEND.equals(action)) {
+            Uri uri = null;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                uri = intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri.class);
+            } else {
+                // 对于旧版本，使用已过时的方法但添加抑制警告注解
+                uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+            }
+            
+            if (uri != null) {
+                String path = FileUtils.getPath(this, uri);
+                if (path != null && new File(path).exists()) {
+                    selectedFilePaths.clear();
+                    selectedFilePaths.add(path);
+                    currentInputPath = path;
+                    currentOutputPath = generateShareOutputPath(path);
+                    updateStatus("已接收分享: " + new File(path).getName());
+                    setFunctionButtonsEnabled(permissionsGranted);
+                    ToastUtils.showCustom(this, "已接收分享文件");
+                } else {
+                    ToastUtils.showCustom(this, "无法解析分享文件");
                 }
             }
         }
