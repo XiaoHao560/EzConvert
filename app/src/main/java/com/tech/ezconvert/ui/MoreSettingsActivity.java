@@ -153,6 +153,11 @@ public class MoreSettingsActivity extends BaseActivity {
     }
 
     private void loadCurrentSettings() {
+        // 先解绑所有监听器，防止触发保存
+        autoUpdateSwitch.setOnCheckedChangeListener(null);
+        prereleaseSwitch.setOnCheckedChangeListener(null);
+        notificationSwitch.setOnCheckedChangeListener(null);
+        
         // 加载当前设置
         boolean autoCheckEnabled = configManager.isAutoCheckUpdateEnabled();
         boolean includeprereleaseEnabled = configManager.isIncludePrerelease();
@@ -170,6 +175,31 @@ public class MoreSettingsActivity extends BaseActivity {
         
         // 更新布局可见性
         updateFrequencyLayoutVisibility(autoCheckEnabled);
+        
+        // 重新绑定监听器
+        autoUpdateSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            	configManager.setAutoCheckUpdateEnabled(isChecked);
+                updateFrequencyLayoutVisibility(isChecked);
+            }
+        });
+        
+        prereleaseSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            configManager.setIncludePrerelease(isChecked);
+        });
+        
+        notificationSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton ButtonView, boolean isChecked) {
+            	if (isHandlingNotificationSwitch) return;
+                if (isChecked) {
+                    handleNotificationEnable();
+                } else {
+                    configManager.setNotificationEnabled(false);
+                }
+            }
+        });
     }
 
     // 更新频率选择区域的可见性
