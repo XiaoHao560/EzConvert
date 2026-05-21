@@ -6,6 +6,8 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import com.tech.ezconvert.utils.Log;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -36,9 +38,13 @@ public class ConfigManager {
     private static ConfigManager instance;
     private final Context context;
     private final Gson gson;
+    private final Handler saveHandler = new Handler(Looper.getMainLooper());
     private File configDir;
     private File settingsFile;
     private Map<String, Object> settingsMap;
+    private Runnable pendingSave;
+    private long lastSaveTime = 0;
+    private static final long SAVE_DEBOUNCE_MS = 800;
     
     // 时间格式常量
     private static final String TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
@@ -334,9 +340,25 @@ public class ConfigManager {
     }
     
     public void saveSettings() {
-        // 更新配置文件元数据
-        updateAppInfo();
+        long now = System.currentTimeMillis();
         
+        // 如果 800ms 内有多次调用，只保留最后一次
+        if (pendingSave != null) {
+            saveHandler.removeCallbacks(pendingSave);
+        }
+        
+        pendingSave = () -> performSave();
+        
+        if (now - lastSaveTime < SAVE_DEBOUNCE_MS) {
+            saveHandler.postDelayed(pendingSave, SAVE_DEBOUNCE_MS);
+        } else {
+            performSave();
+        }
+    }
+
+    private void performSave() {
+        lastSaveTime = System.currentTimeMillis();
+        updateAppInfo();
         try (FileWriter writer = new FileWriter(settingsFile)) {
             gson.toJson(settingsMap, writer);
             Log.i(TAG, "Settings saved to: " + settingsFile.getAbsolutePath());
