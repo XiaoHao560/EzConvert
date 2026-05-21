@@ -13,6 +13,7 @@
 
 ### 变更
 - 修改 应用安卓版本为 **Android15**
+- 修改 FFmpegKit 库，适配 Android15 的 16kb页大小
 
 ### 移除
 

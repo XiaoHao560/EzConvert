@@ -126,6 +126,7 @@ Copyright (C) 2024-2026 XiaoHao560
 
 ## 鸣谢
 - [FFmpegKit](https://github.com/arthenica/ffmpeg-kit)
+- [FFmpegKit-16kb](https://github.com/moizhassankh/ffmpeg-kit-android-16KB)
 
 
 ## 联系与反馈
