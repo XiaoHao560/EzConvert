@@ -144,11 +144,8 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         
         // 延迟2秒后自动检查更新（等待主界面加载完成）
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            if (updateChecker.shouldAutoCheck()) {
-                updateChecker.checkForAutoUpdate();
-            } else {
-                Log.d("MainActivity", "自动检测更新已关闭或者未到检测时间");
-            }
+            // 让 UpdateChecker 内部处理判断逻辑
+            updateChecker.checkForAutoUpdate();
         }, 2000);
     }
     
