@@ -42,6 +42,7 @@ public class LogcatRecorder implements Application.ActivityLifecycleCallbacks {
     private AtomicBoolean isRunning = new AtomicBoolean(false);
     private volatile boolean isCrashing = false;
     private volatile boolean isAvailable = false; // 功能是否可用
+    private static volatile boolean initializing = false;
     
     private java.lang.Process logcatProcess;
     private BufferedReader reader;
@@ -143,14 +144,25 @@ public class LogcatRecorder implements Application.ActivityLifecycleCallbacks {
     
     // 初始化并开始记录
     public void init(Context context) {
-        if (isRunning.get()) return;
+        if (isRunning.get()) {
+            Log.d(TAG, "Logcat 已在运行，跳过初始化");
+            return;
+        }
+        
+        // 防止在多个线程同时初始化
+        if (initializing) {
+            Log.d(TAG, "Logcat 正在初始化中，跳过");
+            return;
+        }
+        initializing = true;
         
         this.context = context.getApplicationContext();
         
-        // 先检测可用性
+        // 检测可用性
         if (!checkAvailability(context)) {
-            Log.w(TAG, "LogcatRecorder 不可用，跳过初始化");
+            Log.w(TAG, "Logcat 不可用，跳过初始化");
             this.isAvailable = false;
+            initializing = false;
             return;
         }
         

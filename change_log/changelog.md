@@ -6,6 +6,7 @@
 
 ### 修复
 - 修复 应用启动时权限检查重复触发的问题
+- 修复 设置界面打开时误触发保存配置的问题
 
 ### 优化
 - 优化 `保存设置` 时添加保存防抖机制
@@ -16,6 +17,7 @@
 ### 移除
 
 ### 代码变更
+- 移除 EzConvert 内的 Logcat 可用性检测，避免与 LogcatRecorder 重复检测
 - 移除 UpdateChecker 外层的冗余判断
 - 修改 app/build.gradle 与 gradle/versioning.gradle 中的 git 使用方法 (适配Gradle9.0)
 - 升级 targetSdk/compileSdk 为 35

@@ -59,7 +59,7 @@ public class EzConvert extends Application {
         LogManager.getInstance(this);
         
         // 初始化 LogcatRecorder
-        initLogcatRecorder();
+        LogcatRecorder.getInstance().init(this);
         
         // 定期刷盘（30 秒）
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
@@ -75,32 +75,6 @@ public class EzConvert extends Application {
                 new Handler(Looper.getMainLooper()).postDelayed(this, 30000);
             }
         }, 30000);
-    }
-    
-    /**
-     * 初始化 LogcatRecorder，每次启动都检测可用性
-     * 如果不可用，记录到 SharedPreferences，下次启动时跳过
-     */
-    private void initLogcatRecorder() {
-        // 在后台线程执行检测，避免阻塞主线程
-        new Thread(() -> {
-            // 每次启动都重新检测可用性
-            boolean isAvailable = LogcatRecorder.checkAvailability(this);
-            
-            // 保存检测结果
-            SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-            prefs.edit().putBoolean(KEY_LOGCAT_AVAILABLE, isAvailable).apply();
-            
-            if (isAvailable) {
-                Log.d("EzConvert", "LogcatRecorder 可用，开始初始化");
-                // 在主线程初始化（因为涉及 UI 生命周期回调）
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    LogcatRecorder.getInstance().init(this);
-                });
-            } else {
-                Log.w("EzConvert", "LogcatRecorder 不可用，已跳过初始化");
-            }
-        }).start();
     }
     
     @Override
