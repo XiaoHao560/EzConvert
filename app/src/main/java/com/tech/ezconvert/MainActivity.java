@@ -87,6 +87,8 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     private String currentOutputPath = "";
     private String currentOutputFile = "";
     private boolean permissionsGranted = false;
+    private long lastPermissionCheck = 0;
+    private static final long PERMISSION_COOLDOWN = 1000; // 1 秒内不重复检查权限
     private int currentVolume = 100;
     private volatile boolean isTaskRunning = false;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -136,7 +138,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         updateStatus("正在检查权限...");
         
         // 检查权限状态
-        PermissionManager.checkPermissionStatus(this);
+        checkPermissions();
         
         handleShareIntent(getIntent());
         
@@ -1221,8 +1223,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     @Override
     protected void onResume() {
         super.onResume();
-        // 从设置页面返回时，重新检查权限
-        PermissionManager.checkPermissionStatus(this);
+        checkPermissions();
     }
     
     @Override
@@ -1242,6 +1243,16 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         if (updateChecker != null) {
             updateChecker.cleanup();
         }
+    }
+    
+    private void checkPermissions() {
+    	long now = System.currentTimeMillis();
+        if (now - lastPermissionCheck < PERMISSION_COOLDOWN) {
+            // Log.d(TAG, "权限检查冷却中，跳过");
+            return;
+        }
+        lastPermissionCheck = now;
+        PermissionManager.checkPermissionStatus(this);
     }
 
     private void cleanupCacheFiles() {
