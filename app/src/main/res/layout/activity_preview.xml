@@ -92,8 +92,8 @@
              android:elevation="0dp"
              app:titleTextAppearance="?attr/textAppearanceTitleMedium"
              app:navigationIcon="@drawable/round_arrow_back"
-             app:navigationContentDescription="@string/tooltip_back_home"
              app:titleTextColor="?attr/colorOnSurface"
+             app:navigationContentDescription="@string/tooltip_back_home"
              android:id="@+id/title_container">
 
         </com.google.android.material.appbar.MaterialToolbar>
