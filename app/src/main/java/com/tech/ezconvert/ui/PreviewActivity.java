@@ -614,7 +614,7 @@ public class PreviewActivity extends BaseActivity {
                     
                     if (duration > 0) {
                         float progress = (position * 1000f) / duration;
-                        progressSlider.setValue(progress);
+                        setProgressSafe(progress);
                         currentTimeText.setText(formatTime(position));
                         totalTimeText.setText(formatTime(duration));
                     }
@@ -623,6 +623,11 @@ public class PreviewActivity extends BaseActivity {
             }
         };
         uiHandler.post(progressUpdateRunnable);
+    }
+    
+    private void setProgressSafe(float value) {
+    	float clamped = Math.max(0f, Math.min(1000f, value));
+        progressSlider.setValue(clamped);
     }
     
     private void openFilePicker() {
