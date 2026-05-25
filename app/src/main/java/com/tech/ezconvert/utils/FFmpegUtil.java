@@ -601,4 +601,28 @@ public class FFmpegUtil {
             isQueryCommand = false; // 删除查询命令标志
         }
     }
+
+    /**
+     * 获取 FFmpegKit 版本号
+     */
+    public static String getFFmpegKitVersion() {
+    	try {
+            return FFmpegKitConfig.getVersion();
+        } catch (Exception e) {
+            Log.e(TAG, "获取FFmpegKit版本失败", e);
+            return "null";
+        }
+    }
+
+    /**
+     * 获取 FFmpeg 版本号
+     */
+    public static String getFFmpegVersion() {
+    	try {
+            return FFmpegKitConfig.getFFmpegVersion();
+        } catch (Exception e) {
+            Log.e(TAG, "获取FFmpeg版本失败", e);
+            return "null";
+        }
+    }
 }

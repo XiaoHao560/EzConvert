@@ -432,9 +432,14 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     private void setVersionText() {
         try {
             String versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
-            versionText.setText("EzConvert v" + versionName + " | FFmpegKit: 6.0-2");
+            String ffmpegKitVersion = FFmpegUtil.getFFmpegKitVersion();
+            String ffmpegVersion = FFmpegUtil.getFFmpegVersion();
+            versionText.setText("EzConvert v" + versionName + 
+                                " | FFmpeg: " + ffmpegVersion + 
+                                " (Kit "+ ffmpegKitVersion + ")");
         } catch (PackageManager.NameNotFoundException e) {
-            versionText.setText("EzConvert v0.0.0 | FFmpegKit: 6.0-2");
+            Log.e(TAG, "版本号获取失败", e);
+            versionText.setText("EzConvert 版本获取失败 | FFmpegKit: Unknown");
         }
     }
     
