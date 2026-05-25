@@ -1,2 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <color name="colorPrimary">#90CAF9</color>
+    <color name="colorPrimaryDark">#64B5F6</color>
+    <color name="colorPrimaryLight">#BBDEFB</color>
+    <color name="colorPrimaryContainer">#1565C0</color>
+    <color name="colorOnPrimaryContainer">#90CAF9</color>
+
+    <color name="bg_light">#121212</color>
+    <color name="bg_card">#1E1E1E</color>
+    
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#B0B0B0</color>
+    <color name="text_hint">#808080</color>
+    
+    <color name="border_medium">#424242</color>
+    
+    <color name="radio_checked">#90CAF9</color>
+    <color name="radio_unchecked">#424242</color>
+    <color name="radio_text_color">#E0E0E0</color>
+
+    <color name="divider">#1FFFFFFF</color>
+</resources>

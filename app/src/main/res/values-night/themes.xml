@@ -1,9 +1,85 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-  <!-- Base application theme. -->
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
   <style name="Base.AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
-    <!-- Customize your theme here. -->
-    <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    <item name="colorPrimary">@color/colorPrimary</item>
+    <item name="colorPrimaryContainer">@color/colorPrimaryContainer</item>
+    <item name="colorOnPrimaryContainer">@color/colorOnPrimaryContainer</item>
+    <item name="colorSurface">@color/bg_card</item>
+    <item name="colorSurfaceVariant">#2C2C2C</item>
+    <item name="colorOutline">@color/border_medium</item>
+    
+    <item name="materialSwitchStyle">@style/Widget.App.MaterialSwitch</item>
+    
+    <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.SmallComponent</item>
+    <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.MediumComponent</item>
+    <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.LargeComponent</item>
+    
+    <item name="materialButtonStyle">@style/Widget.App.Button</item>
+    <item name="android:windowAnimationStyle">@style/WindowAnimationTransition</item>
+    <item name="android:windowContentTransitions">true</item>
+    
+    <item name="alertDialogTheme">@style/ThemeOverlay.App.MaterialAlertDialog</item>
+    
+    <item name="android:textColorHighlight">@color/colorPrimaryLight</item>
+    
+    <item name="colorControlActivated">@color/colorPrimary</item>
+    <item name="android:colorControlActivated">@color/colorPrimary</item>
+    
+    <item name="actionModeBackground">@color/colorPrimary</item>
+    <item name="android:actionModeBackground">@color/colorPrimary</item>
+    
+    <item name="actionMenuTextColor">@android:color/white</item>
+    <item name="android:actionMenuTextColor">@android:color/white</item>
   </style>
 
-  <style name="AppTheme" parent="Base.AppTheme" />
+  <style name="AppTheme" parent="Base.AppTheme">
+    <item name="android:windowFullscreen">false</item>
+    <item name="android:statusBarColor">@android:color/transparent</item>
+    <item name="android:navigationBarColor">@android:color/transparent</item>
+    <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+    <item name="android:buttonTint">@null</item>
+    <item name="buttonTint">@null</item>
+  </style>
+
+  <style name="ThemeOverlay.App.MaterialAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+    <item name="android:background">@color/bg_card</item>
+  </style>
+
+  <style name="Widget.App.MaterialSwitch" parent="Widget.Material3.CompoundButton.MaterialSwitch">
+  </style>
+  
+  <style name="ShapeAppearance.SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
+    <item name="cornerFamily">rounded</item>
+    <item name="cornerSize">8dp</item>
+  </style>
+
+  <style name="ShapeAppearance.MediumComponent" parent="ShapeAppearance.Material3.MediumComponent">
+    <item name="cornerFamily">rounded</item>
+    <item name="cornerSize">12dp</item>
+  </style>
+
+  <style name="ShapeAppearance.LargeComponent" parent="ShapeAppearance.Material3.LargeComponent">
+    <item name="cornerFamily">rounded</item>
+    <item name="cornerSize">16dp</item>
+  </style>
+
+  <style name="Widget.App.Button" parent="Widget.Material3.Button">
+    <item name="android:insetTop">0dp</item>
+    <item name="android:insetBottom">0dp</item>
+    <item name="cornerRadius">12dp</item>
+  </style>
+
+  <style name="WindowAnimationTransition">
+    <item name="android:windowEnterAnimation">@anim/slide_in_right</item>
+    <item name="android:windowExitAnimation">@anim/slide_out_left</item>
+    <item name="android:windowAllowEnterTransitionOverlap">true</item>
+    <item name="android:windowAllowReturnTransitionOverlap">true</item>
+  </style>
+  
+  <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+    <item name="windowSplashScreenBackground">@color/bg_card</item>
+    <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+    <item name="windowSplashScreenAnimationDuration">1000</item>
+    <item name="postSplashScreenTheme">@style/AppTheme</item>
+  </style>
 </resources>
