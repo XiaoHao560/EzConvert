@@ -10,6 +10,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -18,6 +19,7 @@ import com.google.android.material.materialswitch.MaterialSwitch;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.NotificationHelper;
+import com.tech.ezconvert.utils.ThemeManager;
 import com.tech.ezconvert.utils.ToastUtils;
 
 public class MoreSettingsActivity extends BaseActivity {
@@ -39,6 +41,15 @@ public class MoreSettingsActivity extends BaseActivity {
     private LinearLayout frequencyLayout;
     private MaterialToolbar toolbar;
     private ConfigManager configManager;
+    private ThemeManager themeManager;
+    
+    // 主题设置相关视图
+    private LinearLayout itemThemeSystem;
+    private LinearLayout itemThemeLight;
+    private LinearLayout itemThemeDark;
+    private RadioButton radioThemeSystem;
+    private RadioButton radioThemeLight;
+    private RadioButton radioThemeDark;
     
     // 标记是否正在处理开关变化，防止循环触发
     private boolean isHandlingNotificationSwitch = false;
@@ -47,6 +58,10 @@ public class MoreSettingsActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // 应用保存的主题模式，确保 Activity 创建前主题已生效
+        themeManager = ThemeManager.getInstance(this);
+        themeManager.applySavedTheme();
+        
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_more_settings);
 
@@ -77,6 +92,14 @@ public class MoreSettingsActivity extends BaseActivity {
             );
             ActivityCompat.startActivity(this, intent, options.toBundle());
         });
+        
+        // 主题设置
+        itemThemeSystem = findViewById(R.id.item_theme_system);
+        itemThemeLight = findViewById(R.id.item_theme_light);
+        itemThemeDark = findViewById(R.id.item_theme_dark);
+        radioThemeSystem = findViewById(R.id.radio_theme_system);
+        radioThemeLight = findViewById(R.id.radio_theme_light);
+        radioThemeDark = findViewById(R.id.radio_theme_dark);
         
         // 自动更新开关
         autoUpdateSwitch = findViewById(R.id.auto_update_switch);
@@ -112,6 +135,11 @@ public class MoreSettingsActivity extends BaseActivity {
 
     // 设置点击监听器
     private void setupClickListeners() {
+        // 主题选项点击监听
+        itemThemeSystem.setOnClickListener(v -> setThemeMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM));
+        itemThemeLight.setOnClickListener(v -> setThemeMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO));
+        itemThemeDark.setOnClickListener(v -> setThemeMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES));
+        
         // 自动更新开关监听
         autoUpdateSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -173,6 +201,10 @@ public class MoreSettingsActivity extends BaseActivity {
         int spinnerPosition = mapFrequencyToPosition(currentFrequency);
         frequencySpinner.setText(frequencySpinner.getAdapter().getItem(spinnerPosition).toString(), false);
         
+        // 加载主题设置
+        int currentThemeMode = themeManager.getThemeMode();
+        updateThemeRadioButtons(currentThemeMode);
+        
         // 更新布局可见性
         updateFrequencyLayoutVisibility(autoCheckEnabled);
         
@@ -233,6 +265,19 @@ public class MoreSettingsActivity extends BaseActivity {
             default:
                 return 0;
         }
+    }
+    
+    // 设置主题模式并更新 UI 状态
+    private void setThemeMode(int mode) {
+        themeManager.setThemeMode(mode);
+        updateThemeRadioButtons(mode);
+    }
+    
+    // 更新主题单选按钮状态
+    private void updateThemeRadioButtons(int mode) {
+        radioThemeSystem.setChecked(mode == androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        radioThemeLight.setChecked(mode == androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO);
+        radioThemeDark.setChecked(mode == androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES);
     }
     
     // 处理用户开启通知

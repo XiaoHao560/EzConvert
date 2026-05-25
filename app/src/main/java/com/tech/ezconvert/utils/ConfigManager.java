@@ -58,6 +58,7 @@ public class ConfigManager {
     public static final String KEY_UPDATE_INCLUDE_PRERELEASES = "update_include_prereleases";
     public static final String KEY_NOTIFICATION_ENABLED = "notification_enabled";
     public static final String KEY_NOTIFICATION_FIRST_REQUESTED = "notification_first_requested";
+    public static final String KEY_THEME_MODE = "theme_mode";
     
     private ConfigManager(Context context) {
         this.context = context.getApplicationContext();
@@ -213,6 +214,11 @@ public class ConfigManager {
                     "### 通知设置说明\n" +
                     "- `notification_enabled`: 启用转换通知 (true/false)，默认false\n" +
                     "- `notification_first_requested`: 是否首次申请过通知权限 (true/false)\n\n" +
+                    "### 主题设置说明\n" +
+                    "- `theme_mode`: 应用主题模式 (整数)\n" +
+                    "  - `-1` = 跟随系统 (默认)\n" +
+                    "  - `1` = 浅色模式\n" +
+                    "  - `2` = 深色模式\n\n" +
                     "## 注意事项\n\n" +
                     "- 请不要手动修改 `settings.json` 文件，除非你知道自己在做什么\n" +
                     "- 如需重置设置，可删除此文件，应用将重新创建默认配置\n" +
@@ -271,6 +277,11 @@ public class ConfigManager {
         notificationSettings.put("notification_enabled", false);
         notificationSettings.put("notification_first_requested", false);
         settingsMap.put("notification_settings", notificationSettings);
+        
+        // 默认主题设置
+        Map<String, Object> themeSettings = new HashMap<>();
+        themeSettings.put("theme_mode", -1); // -1 = 跟随系统, 1 = 浅色, 2 = 深色
+        settingsMap.put("theme_settings", themeSettings);
         
         // 默认更新设置
         Map<String, Object> updateSettings = new HashMap<>();
@@ -517,6 +528,19 @@ public class ConfigManager {
     
     public void setNotificationFirstRequested(boolean requested) {
         setSetting("notification_settings", "notification_first_requested", requested);
+    }
+    
+    // 主题设置
+    public int getThemeMode() {
+        Object value = getSetting("theme_settings", "theme_mode", -1);
+        if (value instanceof Double) {
+            return ((Double) value).intValue();
+        }
+        return (int) value;
+    }
+    
+    public void setThemeMode(int mode) {
+        setSetting("theme_settings", "theme_mode", mode);
     }
     
     // 迁移SharedPreferences设置
