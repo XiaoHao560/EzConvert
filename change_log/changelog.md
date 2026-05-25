@@ -15,10 +15,13 @@
 ### 变更
 - 修改 应用安卓版本为 **Android15**
 - 修改 FFmpegKit 库，适配 Android15 的 16kb页大小
+- 修改 `日志设置界面` 日志等级设置相关文本
+- 修改 `主界面` FFmpeg 与 FFmpegKit 版本显示
 
 ### 移除
 
 ### 代码变更
+- 新增 FFmpeg 与 FFmpegKit 版本获取方法
 - 移除 EzConvert 内的 Logcat 可用性检测，避免与 LogcatRecorder 重复检测
 - 移除 UpdateChecker 外层的冗余判断
 - 修改 app/build.gradle 与 gradle/versioning.gradle 中的 git 使用方法 (适配Gradle9.0)
