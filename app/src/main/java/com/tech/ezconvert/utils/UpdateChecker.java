@@ -43,8 +43,11 @@ public class UpdateChecker {
     private static final String PREF_LAST_CHECK = "last_update_check";
     private static final String PREF_IGNORED_VERSION = "ignored_version";
     
+    // 静态共享线程池，生命周期跟随应用进程，避免频繁重建 Activity 时线程池被关闭
+    private static ExecutorService sharedExecutor;
+    private static final Object EXECUTOR_LOCK = new Object();
+    
     private final Context context;
-    private final ExecutorService executorService;
     private final Handler mainHandler;
     private Markwon markwon;
     
@@ -71,11 +74,11 @@ public class UpdateChecker {
     
     public UpdateChecker(Context context) {
         this.context = context;
-        this.executorService = Executors.newSingleThreadExecutor();
         this.mainHandler = new Handler(Looper.getMainLooper());
         this.settingsManager = new UpdateSettingsManager(context);
         this.includePrerelease = settingsManager.isIncludePrerelease();
         initMarkwon();
+        ensureExecutor();
     }
     
     public void setUpdateCheckListener(UpdateCheckListener listener) {
@@ -189,10 +192,26 @@ public class UpdateChecker {
         }
     }
     
+    /**
+     * 确保共享线程池可用
+     * 若线程池未创建或已被关闭，则重新创建，防止页面频繁切换导致崩溃
+     */
+    private void ensureExecutor() {
+        synchronized (EXECUTOR_LOCK) {
+            if (sharedExecutor == null || sharedExecutor.isShutdown()) {
+                sharedExecutor = Executors.newSingleThreadExecutor();
+                Log.d(TAG, "Shared executor recreated");
+            }
+        }
+    }
+    
     private void checkForUpdates(final boolean showToast, final boolean isManual) {
         isChecking = true;
         
-        executorService.execute(() -> {
+        // 确保线程池可用后再提交任务
+        ensureExecutor();
+        
+        sharedExecutor.execute(() -> {
             try {
                 // 获取当前版本信息
                 String currentVersion = getCurrentVersion();
@@ -627,11 +646,13 @@ public class UpdateChecker {
         settingsManager.setIncludePrerelease(include);
     }
     
+    /**
+     * 清理当前实例资源
+     * 仅移除当前实例的 Handler 回调与监听器引用，防止 Activity 内存泄漏
+     */
     public void cleanup() {
-        if (!executorService.isShutdown()) {
-            executorService.shutdown();
-        }
         mainHandler.removeCallbacksAndMessages(null);
+        updateCheckListener = null;
     }
     
      // 用于测试的强制检查（不考虑时间间隔）
