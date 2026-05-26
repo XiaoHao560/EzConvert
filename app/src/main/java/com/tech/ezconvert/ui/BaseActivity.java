@@ -1,15 +1,25 @@
 package com.tech.ezconvert.ui;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Filter;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
+import com.tech.ezconvert.R;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public abstract class BaseActivity extends AppCompatActivity {
 
@@ -54,7 +64,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         double darkness = (0.299 * Color.red(color) + 
                           0.587 * Color.green(color) + 
                           0.114 * Color.blue(color)) / 255;
-        return darkness > 0.5; // > 0.5 认为是浅色
+        return darkness > 0.5;
     }
 
     @Override
@@ -100,5 +110,42 @@ public abstract class BaseActivity extends AppCompatActivity {
         if (titleContainer != null) {
             ViewCompat.requestApplyInsets(titleContainer);
         }
+    }
+
+    /**
+    * 配置 Spinner
+    * 此类用于修复重建 Activity 后，Spinner 会过滤文字的问题
+    */
+    protected void setupSpinner(MaterialAutoCompleteTextView spinner, String[] items, String defaultValue) {
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.item_dropdown, items) {
+            private final Filter NO_FILTER = new Filter() {
+                @Override
+                protected FilterResults performFiltering(CharSequence constraint) {
+                    FilterResults results = new FilterResults();
+                    results.values = new ArrayList<>(Arrays.asList(items));
+                    results.count = items.length;
+                    return results;
+                }
+    
+                @Override
+                protected void publishResults(CharSequence constraint, FilterResults results) {
+                    notifyDataSetChanged();
+                }
+    
+                @Override
+                public CharSequence convertResultToString(Object resultValue) {
+                    return resultValue != null ? resultValue.toString() : "";
+                }
+            };
+    
+            @Override
+            public Filter getFilter() {
+                return NO_FILTER;
+            }
+        };
+        adapter.setDropDownViewResource(R.layout.item_dropdown_popup);
+        spinner.setAdapter(adapter);
+        spinner.setThreshold(1);
+        spinner.setText(defaultValue, false);
     }
 }
