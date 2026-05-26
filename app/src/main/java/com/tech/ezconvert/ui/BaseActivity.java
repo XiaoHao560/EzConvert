@@ -1,6 +1,7 @@
 package com.tech.ezconvert.ui;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.tech.ezconvert.R;
+import com.tech.ezconvert.utils.ThemeManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -43,7 +45,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         // 启用沉浸式
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         
-        // 自动设置状态栏/导航栏图标颜色（反色）
+        // 根据主题设置自动切换状态栏/导航栏图标颜色
         setupSystemBarAppearance();
     }
 
@@ -52,19 +54,32 @@ public abstract class BaseActivity extends AppCompatActivity {
         WindowInsetsControllerCompat controller = ViewCompat.getWindowInsetsController(decorView);
         
         if (controller != null) {
-            // 检测背景是否为浅色，自动切换图标颜色为深色
-            boolean isLightBackground = isLightColor(getBackgroundColor());
-            controller.setAppearanceLightStatusBars(isLightBackground);
-            controller.setAppearanceLightNavigationBars(isLightBackground);
+            boolean isLightMode = isLightTheme();
+            controller.setAppearanceLightStatusBars(isLightMode);
+            controller.setAppearanceLightNavigationBars(isLightMode);
         }
     }
 
-    // 判断颜色是否为浅色
-    private boolean isLightColor(int color) {
-        double darkness = (0.299 * Color.red(color) + 
-                          0.587 * Color.green(color) + 
-                          0.114 * Color.blue(color)) / 255;
-        return darkness > 0.5;
+    /**
+     * 根据应用主题设置判断当前是否为浅色主题
+     * 浅色主题 -> 状态栏图标用深色 (light bars = true)
+     * 深色主题 -> 状态栏图标用浅色 (light bars = false)
+     */
+    private boolean isLightTheme() {
+        int themeMode = ThemeManager.getInstance(this).getThemeMode();
+        
+        if (themeMode == androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO) {
+            // 强制浅色主题
+            return true;
+        } else if (themeMode == androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES) {
+            // 强制深色主题
+            return false;
+        } else {
+            // 跟随系统：根据系统当前实际主题判断
+            int currentNightMode = getResources().getConfiguration().uiMode 
+                & Configuration.UI_MODE_NIGHT_MASK;
+            return currentNightMode != Configuration.UI_MODE_NIGHT_YES;
+        }
     }
 
     @Override
@@ -114,7 +129,7 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     /**
     * 配置 Spinner
-    * 此类用于修复重建 Activity 后，Spinner 会过滤文字的问题
+    * 此类用于修复重建 Activity 后，Spinner 显示不全的问题
     */
     protected void setupSpinner(MaterialAutoCompleteTextView spinner, String[] items, String defaultValue) {
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.item_dropdown, items) {
