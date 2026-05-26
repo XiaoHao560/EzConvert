@@ -18,7 +18,6 @@ import android.view.View;
 import android.view.Window;
 //import android.view.WindowInsets;
 import android.widget.*;
-import android.widget.AutoCompleteTextView;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -30,6 +29,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.tech.ezconvert.processor.AudioProcessor;
 import com.tech.ezconvert.processor.VideoProcessor;
 import com.tech.ezconvert.ui.BaseActivity;
@@ -80,7 +80,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     private Button selectFileBtn, convertBtn, compressBtn, extractAudioBtn;
     private Button cutVideoBtn, screenshotBtn, convertAudioBtn, cutAudioBtn;
     private Button cancelBtn;
-    private AutoCompleteTextView videoFormatSpinner, audioFormatSpinner, qualitySpinner, volumeSpinner;
+    private MaterialAutoCompleteTextView videoFormatSpinner, audioFormatSpinner, qualitySpinner, volumeSpinner;
     private com.google.android.material.slider.Slider volumeSeekBar;
     private LinearLayout customVolumeLayout;
     private String currentInputPath = "";
@@ -462,53 +462,31 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     private void setupSpinners() {
         // 视频格式
         String[] videoFormats = getResources().getStringArray(R.array.video_formats);
-        ArrayAdapter<String> videoAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown, videoFormats);
-        videoAdapter.setDropDownViewResource(R.layout.item_dropdown_popup);
-        AutoCompleteTextView videoSpinner = (AutoCompleteTextView) videoFormatSpinner;
-        videoSpinner.setAdapter(videoAdapter);
-        videoSpinner.setText(videoFormats[0], false);
-        // 强制白色背景
-        videoSpinner.setDropDownBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0xFFFFFFFF));
-        
+        setupSpinner(videoFormatSpinner, videoFormats, videoFormats[0]);
+
         // 音频格式
         String[] audioFormats = getResources().getStringArray(R.array.audio_formats);
-        ArrayAdapter<String> audioAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown, audioFormats);
-        audioAdapter.setDropDownViewResource(R.layout.item_dropdown_popup);
-        AutoCompleteTextView audioSpinner = (AutoCompleteTextView) audioFormatSpinner;
-        audioSpinner.setAdapter(audioAdapter);
-        audioSpinner.setText(audioFormats[0], false);
-        audioSpinner.setDropDownBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0xFFFFFFFF));
-        
+        setupSpinner(audioFormatSpinner, audioFormats, audioFormats[0]);
+
         // 质量
         String[] qualityOptions = getResources().getStringArray(R.array.quality_options);
-        ArrayAdapter<String> qualityAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown, qualityOptions);
-        qualityAdapter.setDropDownViewResource(R.layout.item_dropdown_popup);
-        AutoCompleteTextView qualitySpinnerView = (AutoCompleteTextView) qualitySpinner;
-        qualitySpinnerView.setAdapter(qualityAdapter);
-        qualitySpinnerView.setText(qualityOptions[1], false);
-        qualitySpinnerView.setDropDownBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0xFFFFFFFF));
-        
-        // 音量设置
+        setupSpinner(qualitySpinner, qualityOptions, qualityOptions[1]);
+
+        // 音量
         String[] volumeOptions = getResources().getStringArray(R.array.volume_options);
-        ArrayAdapter<String> volumeAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown, volumeOptions);
-        volumeAdapter.setDropDownViewResource(R.layout.item_dropdown_popup);
-        AutoCompleteTextView volumeSpinnerView = (AutoCompleteTextView) volumeSpinner;
-        volumeSpinnerView.setAdapter(volumeAdapter);
-        volumeSpinnerView.setText(volumeOptions[0], false);
-        volumeSpinnerView.setDropDownBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0xFFFFFFFF));
-        
+        setupSpinner(volumeSpinner, volumeOptions, volumeOptions[0]);
+
         // 音量滑动条监听
         volumeSeekBar.addOnChangeListener((slider, value, fromUser) -> {
             currentVolume = (int) value;
             volumePercentText.setText(currentVolume + "%");
-            
             if (fromUser) {
-                volumeSpinnerView.setText(volumeOptions[3], false);
+                volumeSpinner.setText(volumeOptions[3], false);
             }
         });
-        
+
         // 音量选择监听
-        volumeSpinnerView.setOnItemClickListener((parent, view, position, id) -> {
+        volumeSpinner.setOnItemClickListener((parent, view, position, id) -> {
             switch (position) {
                 case 0: // 正常（100%）
                     currentVolume = 100;

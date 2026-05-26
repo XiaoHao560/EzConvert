@@ -199,7 +199,7 @@
                          style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                          app:boxStrokeWidth="1dp">
 
-                        <AutoCompleteTextView
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
                              android:layout_height="wrap_content"
                              android:layout_width="match_parent"
                              android:paddingVertical="12dp"
@@ -235,7 +235,7 @@
                          style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                          app:boxStrokeWidth="1dp">
 
-                        <AutoCompleteTextView
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
                              android:layout_height="wrap_content"
                              android:layout_width="match_parent"
                              android:paddingVertical="12dp"
@@ -271,7 +271,7 @@
                          style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                          app:boxStrokeWidth="1dp">
 
-                        <AutoCompleteTextView
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
                              android:layout_height="wrap_content"
                              android:layout_width="match_parent"
                              android:paddingVertical="12dp"
@@ -314,7 +314,7 @@
                          style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                          app:boxStrokeWidth="1dp">
 
-                        <AutoCompleteTextView
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
                              android:layout_height="wrap_content"
                              android:layout_width="match_parent"
                              android:paddingVertical="12dp"

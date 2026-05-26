@@ -7,7 +7,6 @@ import android.provider.Settings;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -16,6 +15,7 @@ import androidx.core.app.ActivityOptionsCompat;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.NotificationHelper;
@@ -37,7 +37,7 @@ public class MoreSettingsActivity extends BaseActivity {
     private MaterialSwitch autoUpdateSwitch;
     private MaterialSwitch prereleaseSwitch;
     private MaterialSwitch notificationSwitch;
-    private AutoCompleteTextView frequencySpinner;
+    private MaterialAutoCompleteTextView frequencySpinner;
     private LinearLayout frequencyLayout;
     private MaterialToolbar toolbar;
     private ConfigManager configManager;
@@ -110,16 +110,8 @@ public class MoreSettingsActivity extends BaseActivity {
         // 通知开关
         notificationSwitch = findViewById(R.id.notification_switch);
         
-        // 设置下拉菜单适配器
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-            this,
-            R.array.update_frequency_options,
-            android.R.layout.simple_dropdown_item_1line
-        );
-        frequencySpinner.setAdapter(adapter);
-        
-        // 设置下拉菜单背景为白色
-        frequencySpinner.setDropDownBackgroundDrawable(new ColorDrawable(getResources().getColor(android.R.color.white)));
+        String[] frequencyItems = getResources().getStringArray(R.array.update_frequency_options);
+        setupSpinner(frequencySpinner, frequencyItems, frequencyItems[0]);
         
         // 设置 Toolbar
         setupToolbar();
@@ -199,7 +191,8 @@ public class MoreSettingsActivity extends BaseActivity {
         
         // 更新Spinner选择
         int spinnerPosition = mapFrequencyToPosition(currentFrequency);
-        frequencySpinner.setText(frequencySpinner.getAdapter().getItem(spinnerPosition).toString(), false);
+        String[] frequencyItems = getResources().getStringArray(R.array.update_frequency_options);
+        frequencySpinner.setText(frequencyItems[spinnerPosition], false);
         
         // 加载主题设置
         int currentThemeMode = themeManager.getThemeMode();
