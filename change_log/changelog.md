@@ -19,8 +19,10 @@
 - 修改 FFmpegKit 库，适配 Android15 的 16kb页大小
 - 修改 `日志设置界面` 日志等级设置相关文本
 - 修改 `主界面` FFmpeg 与 FFmpegKit 版本显示
+- 修改 `主界面` 自定义音量的 slider 为整数增加 (stepSize="1")
 
 ### 移除
+- 移除 `主界面` 自定义音量的 slider 的点击反馈 (haloColor)
 
 ### 代码变更
 - 新增 FFmpeg 与 FFmpegKit 版本获取方法
