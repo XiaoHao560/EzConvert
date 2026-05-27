@@ -366,7 +366,6 @@
                          android:layout_height="wrap_content"
                          android:layout_width="match_parent"
                          app:thumbColor="?attr/colorPrimary"
-                         app:haloColor="?attr/colorPrimaryContainer"
                          app:tickVisible="false"
                          android:valueTo="200"
                          app:trackColorActive="?attr/colorPrimary"
@@ -374,6 +373,7 @@
                          app:trackColorInactive="?attr/colorSurfaceContainerHighest"
                          android:valueFrom="0"
                          app:trackHeight="4dp"
+                         android:stepSize="1"
                          android:id="@+id/volume_seekbar" />
 
                 </LinearLayout>
