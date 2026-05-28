@@ -20,7 +20,8 @@ public class EzConvert extends Application {
         super.onCreate();
         
         // 在应用启动时应用保存的主题模式
-        ThemeManager.getInstance(this).applySavedTheme();
+        ThemeManager themeManager = ThemeManager.getInstance(this);
+        themeManager.applySavedTheme();
         
         // 初始化崩溃捕获
         CrashHandler.getInstance().init(this);

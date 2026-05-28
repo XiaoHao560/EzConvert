@@ -13,6 +13,7 @@ import android.widget.RadioButton;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.color.DynamicColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
@@ -51,6 +52,10 @@ public class MoreSettingsActivity extends BaseActivity {
     private RadioButton radioThemeLight;
     private RadioButton radioThemeDark;
     
+    // 动态取色相关视图
+    private LinearLayout itemDynamicColor;
+    private MaterialSwitch dynamicColorSwitch;
+    
     // 标记是否正在处理开关变化，防止循环触发
     private boolean isHandlingNotificationSwitch = false;
     // 标记是否刚从权限设置返回，需要检查权限状态
@@ -63,6 +68,7 @@ public class MoreSettingsActivity extends BaseActivity {
         themeManager.applySavedTheme();
         
         super.onCreate(savedInstanceState);
+        themeManager.applyDynamicColorToActivityIfNeeded(this);
         setContentView(R.layout.activity_more_settings);
 
         // 设置进入动画
@@ -101,6 +107,22 @@ public class MoreSettingsActivity extends BaseActivity {
         radioThemeLight = findViewById(R.id.radio_theme_light);
         radioThemeDark = findViewById(R.id.radio_theme_dark);
         
+        // 动态取色开关
+        itemDynamicColor = findViewById(R.id.item_dynamic_color);
+        dynamicColorSwitch = findViewById(R.id.dynamic_color_switch);
+        
+        // 检查设备是否支持动态取色 (Android 12+)
+        if (!DynamicColors.isDynamicColorAvailable()) {
+            itemDynamicColor.setEnabled(false);
+            itemDynamicColor.setAlpha(0.38f);
+            itemDynamicColor.setClickable(false);
+            dynamicColorSwitch.setEnabled(false);
+            // 点击整个行时提示用户设备不支持
+            itemDynamicColor.setOnClickListener(v -> {
+                ToastUtils.show(this, "当前设备不支持 Material You 动态取色功能");
+            });
+        }
+        
         // 自动更新开关
         autoUpdateSwitch = findViewById(R.id.auto_update_switch);
         prereleaseSwitch = findViewById(R.id.prerelease_switch);
@@ -131,6 +153,12 @@ public class MoreSettingsActivity extends BaseActivity {
         itemThemeSystem.setOnClickListener(v -> setThemeMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM));
         itemThemeLight.setOnClickListener(v -> setThemeMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO));
         itemThemeDark.setOnClickListener(v -> setThemeMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES));
+        
+        // 动态取色开关监听: 保存后即时刷新当前 Activity
+        dynamicColorSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            configManager.setDynamicColorEnabled(isChecked);
+            themeManager.applyDynamicColorAndRecreate(MoreSettingsActivity.this);
+        });
         
         // 自动更新开关监听
         autoUpdateSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -177,17 +205,24 @@ public class MoreSettingsActivity extends BaseActivity {
         autoUpdateSwitch.setOnCheckedChangeListener(null);
         prereleaseSwitch.setOnCheckedChangeListener(null);
         notificationSwitch.setOnCheckedChangeListener(null);
+        dynamicColorSwitch.setOnCheckedChangeListener(null);
         
         // 加载当前设置
         boolean autoCheckEnabled = configManager.isAutoCheckUpdateEnabled();
         boolean includeprereleaseEnabled = configManager.isIncludePrerelease();
         int currentFrequency = configManager.getUpdateCheckFrequency();
         boolean notificationEnabled = configManager.isNotificationEnabled();
+        boolean dynamicColorEnabled = configManager.isDynamicColorEnabled();
         
         // 更新开关状态
         autoUpdateSwitch.setChecked(autoCheckEnabled);
         prereleaseSwitch.setChecked(includeprereleaseEnabled);
         notificationSwitch.setChecked(notificationEnabled);
+        
+        // 仅在设备支持时更新动态取色开关状态
+        if (DynamicColors.isDynamicColorAvailable()) {
+            dynamicColorSwitch.setChecked(dynamicColorEnabled);
+        }
         
         // 更新Spinner选择
         int spinnerPosition = mapFrequencyToPosition(currentFrequency);
@@ -224,6 +259,11 @@ public class MoreSettingsActivity extends BaseActivity {
                     configManager.setNotificationEnabled(false);
                 }
             }
+        });
+        
+        dynamicColorSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            configManager.setDynamicColorEnabled(isChecked);
+            themeManager.applyDynamicColorAndRecreate(MoreSettingsActivity.this);
         });
     }
 

@@ -321,6 +321,71 @@
 
                     </LinearLayout>
 
+                    <com.google.android.material.divider.MaterialDivider
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="16dp"
+                        app:dividerColor="?attr/colorOutlineVariant"
+                        app:dividerThickness="1dp" />
+
+                    <LinearLayout
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="16dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:id="@+id/item_dynamic_color">
+
+                        <FrameLayout
+                            android:layout_height="40dp"
+                            android:layout_width="40dp"
+                            android:layout_marginEnd="16dp"
+                            android:background="@drawable/circle_background_primary_container">
+
+                            <ImageView
+                                android:layout_height="24dp"
+                                android:layout_width="24dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/round_palette"
+                                app:tint="?attr/colorPrimary" />
+
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_height="wrap_content"
+                            android:layout_width="0dp"
+                            android:orientation="vertical"
+                            android:layout_weight="1">
+
+                            <TextView
+                                android:layout_height="wrap_content"
+                                android:layout_width="match_parent"
+                                android:textSize="14sp"
+                                android:fontFamily="sans-serif-medium"
+                                android:textColor="?attr/colorOnSurface"
+                                android:text="自动取色" />
+
+                            <TextView
+                                android:layout_height="wrap_content"
+                                android:layout_width="match_parent"
+                                android:textSize="12sp"
+                                android:fontFamily="sans-serif"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:layout_marginTop="2dp"
+                                android:text="根据系统壁纸颜色动态生成主题色调（Material You）" />
+
+                        </LinearLayout>
+
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            android:layout_height="wrap_content"
+                            android:layout_width="wrap_content"
+                            android:id="@+id/dynamic_color_switch" />
+
+                    </LinearLayout>
+
                 </LinearLayout>
 
                 <com.google.android.material.divider.MaterialDivider
@@ -337,7 +402,7 @@
                     android:fontFamily="sans-serif"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:lineSpacingExtra="2dp"
-                    android:text="选择应用主题显示模式。跟随系统将根据设备的系统设置自动在浅色和深色主题间切换。" />
+                    android:text="选择应用主题显示模式。跟随系统将根据设备的系统设置自动在浅色和深色主题间切换。自动取色功能需要 Android 12 及以上系统支持，开启后将根据壁纸颜色动态调整应用主题色调。" />
 
             </LinearLayout>
 
