@@ -59,6 +59,22 @@ ext.getGitCommit = {
     }.standardOutput.asText.map { it.trim() }.getOrElse("null")
 }
 
+def abiList = ['arm64-v8a', 'armeabi-v7a']
+try {
+    def taskNames = gradle.startParameter.taskNames
+    if (taskNames != null && !taskNames.isEmpty()) {
+        def allTasks = taskNames.join(',').toLowerCase()
+        if (allTasks.contains('debug') && !allTasks.contains('release')) {
+            abiList = ['arm64-v8a']
+            println ">>> Debug mode: only build arm64-v8a"
+        } else {
+            println ">>> Build mode: build both arm64-v8a and armeabi-v7a"
+        }
+    }
+} catch (Exception e) {
+    println ">>> ABI detection failed, using default dual-arch: " + e.message
+}
+
 android {
     namespace 'com.tech.ezconvert'
     // 从 libs.versions.toml 读取 SDK 版本
@@ -95,7 +111,9 @@ android {
         abi {
             enable true
             reset()
-            include 'arm64-v8a', 'armeabi-v7a'
+            abiList.each { abiName ->
+                include abiName
+            }
             universalApk false
         }
     }
