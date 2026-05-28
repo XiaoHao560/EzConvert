@@ -133,6 +133,11 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         initializeViews();
         setupSpinners();
         
+        // 卡片入场动画
+        if (savedInstanceState == null) {
+            setupCardAnimations();
+        }
+        
         // 初始按钮状态
         setFunctionButtonsEnabled(false);
         updateStatus("正在检查权限...");
@@ -285,9 +290,6 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         
         // 取消按钮点击监听
         setupCancelButtonListener();
-        
-        // 卡片入场动画
-        setupCardAnimations();
     }
     
     // 显示导航菜单

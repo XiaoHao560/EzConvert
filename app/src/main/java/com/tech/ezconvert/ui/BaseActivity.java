@@ -17,6 +17,7 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
+import com.google.android.material.color.DynamicColors;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.ThemeManager;
@@ -24,6 +25,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public abstract class BaseActivity extends AppCompatActivity {
+
+    // 记录本次 onCreate 时的动态取色状态，用于 onResume 检测变更
+    private boolean wasDynamicColorEnabled;
 
     // 子类可重写返回自定义背景色（默认白色）
     protected int getBackgroundColor() {
@@ -42,11 +46,31 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
+        // 动态取色
+        ThemeManager.getInstance(this).applyDynamicColorToActivityIfNeeded(this);
+        
+        // 记录本次创建时的动态取色开关状态 (用于返回时检测变化)
+        wasDynamicColorEnabled = ThemeManager.getInstance(this).isDynamicColorEnabled()
+                && DynamicColors.isDynamicColorAvailable();
+        
         // 启用沉浸式
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         
         // 根据主题设置自动切换状态栏/导航栏图标颜色
         setupSystemBarAppearance();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // 当用户从设置页返回时，检测动态取色配置是否发生变化
+        boolean isDynamicColorEnabledNow = ThemeManager.getInstance(this).isDynamicColorEnabled()
+                && DynamicColors.isDynamicColorAvailable();
+        
+        if (isDynamicColorEnabledNow != wasDynamicColorEnabled) {
+            // 配置已变更，重建当前 Activity 以应用新主题色调
+            recreate();
+        }
     }
 
     private void setupSystemBarAppearance() {

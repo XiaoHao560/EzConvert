@@ -59,6 +59,7 @@ public class ConfigManager {
     public static final String KEY_NOTIFICATION_ENABLED = "notification_enabled";
     public static final String KEY_NOTIFICATION_FIRST_REQUESTED = "notification_first_requested";
     public static final String KEY_THEME_MODE = "theme_mode";
+    public static final String KEY_DYNAMIC_COLOR = "dynamic_color";
     
     private ConfigManager(Context context) {
         this.context = context.getApplicationContext();
@@ -218,7 +219,8 @@ public class ConfigManager {
                     "- `theme_mode`: 应用主题模式 (整数)\n" +
                     "  - `-1` = 跟随系统 (默认)\n" +
                     "  - `1` = 浅色模式\n" +
-                    "  - `2` = 深色模式\n\n" +
+                    "  - `2` = 深色模式\n" +
+                    "- `dynamic_color`: 自动取色 (true/false)，根据系统壁纸动态生成主题色调，需要 Android 12+ 设备支持\n\n" +
                     "## 注意事项\n\n" +
                     "- 请不要手动修改 `settings.json` 文件，除非你知道自己在做什么\n" +
                     "- 如需重置设置，可删除此文件，应用将重新创建默认配置\n" +
@@ -281,6 +283,7 @@ public class ConfigManager {
         // 默认主题设置
         Map<String, Object> themeSettings = new HashMap<>();
         themeSettings.put("theme_mode", -1); // -1 = 跟随系统, 1 = 浅色, 2 = 深色
+        themeSettings.put("dynamic_color", true); // true = 启用自动取色 (Material You)
         settingsMap.put("theme_settings", themeSettings);
         
         // 默认更新设置
@@ -541,6 +544,15 @@ public class ConfigManager {
     
     public void setThemeMode(int mode) {
         setSetting("theme_settings", "theme_mode", mode);
+    }
+    
+    // 动态取色设置
+    public boolean isDynamicColorEnabled() {
+        return getSetting("theme_settings", "dynamic_color", true);
+    }
+    
+    public void setDynamicColorEnabled(boolean enabled) {
+        setSetting("theme_settings", "dynamic_color", enabled);
     }
     
     // 迁移SharedPreferences设置

@@ -1,7 +1,9 @@
 package com.tech.ezconvert.utils;
 
+import android.app.Activity;
 import android.content.Context;
 import androidx.appcompat.app.AppCompatDelegate;
+import com.google.android.material.color.DynamicColors;
 
 /**
  * 主题管理器
@@ -41,5 +43,37 @@ public class ThemeManager {
     // 获取当前保存的主题模式
     public int getThemeMode() {
         return configManager.getThemeMode();
+    }
+    
+    // 获取当前动态取色设置状态
+    public boolean isDynamicColorEnabled() {
+        return configManager.isDynamicColorEnabled();
+    }
+    
+    // 设置动态取色开关状态
+    public void setDynamicColorEnabled(boolean enabled) {
+        configManager.setDynamicColorEnabled(enabled);
+    }
+    
+    /**
+     * 为指定 Activity 应用动态取色 (如果配置开启且设备支持)
+     * 必须要在 Activity 的 super.onCreate() 之后，setContentView() 之前调用
+     */
+    public void applyDynamicColorToActivityIfNeeded(Activity activity) {
+        if (configManager.isDynamicColorEnabled() && DynamicColors.isDynamicColorAvailable()) {
+            DynamicColors.applyToActivityIfAvailable(activity);
+        }
+    }
+    
+    /**
+     * 切换动态取色后即时刷新当前 Activity
+     * 通过 recreate() 重新创建 Activity，新实例会在 onCreate() 中自动应用最新配置
+     */
+    public void applyDynamicColorAndRecreate(Activity activity) {
+        if (!DynamicColors.isDynamicColorAvailable()) {
+            return;
+        }
+        // 无需在此处 apply，recreate 后新 Activity 的 onCreate 会调用 applyDynamicColorToActivityIfNeeded()
+        activity.recreate();
     }
 }
