@@ -29,6 +29,7 @@
 - 新增 FFmpeg 与 FFmpegKit 版本获取方法
 - 移除 EzConvert 内的 Logcat 可用性检测，避免与 LogcatRecorder 重复检测
 - 移除 UpdateChecker 外层的冗余判断
+- 修改 构建逻辑，构建 debug 时仅构建 arm64-v8a 架构 apk，提升 debug 构建速度
 - 修改 app/build.gradle 与 gradle/versioning.gradle 中的 git 使用方法 (适配Gradle9.0)
 - 升级 targetSdk/compileSdk 为 35
 - 升级 Gradle 为 9.0.0
