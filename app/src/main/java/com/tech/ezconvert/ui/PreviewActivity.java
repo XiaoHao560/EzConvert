@@ -335,13 +335,23 @@ public class PreviewActivity extends BaseActivity {
                         info.append("分辨率: ").append(stream.optInt("width", 0))
                             .append("x").append(stream.optInt("height", 0)).append("\n");
                         
-                        String fps = stream.optString("r_frame_rate", "");
+                        String fps = stream.optString("avg_frame_rate", "");
+                        if (fps.isEmpty() || "0/0".equals(fps)) {
+                            fps = stream.optString("r_frame_rate", "");
+                        }
+                        
                         if (!fps.isEmpty() && fps.contains("/")) {
                             String[] parts = fps.split("/");
                             if (parts.length == 2) {
                                 try {
-                                    double frameRate = Double.parseDouble(parts[0]) / Double.parseDouble(parts[1]);
-                                    info.append("源帧率: ").append(String.format("%.2f", frameRate)).append(" fps\n");
+                                    double num = Double.parseDouble(parts[0]);
+                                    double den = Double.parseDouble(parts[1]);
+                                    if (den > 0) {
+                                        double frameRate = num / den;
+                                        if (frameRate > 0 && frameRate < 1000) {
+                                            info.append("源帧率: ").append(String.format("%.2f", frameRate)).append(" fps\n");
+                                        }
+                                    }
                                 } catch (NumberFormatException ignored) {}
                             }
                         }
