@@ -26,6 +26,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.recyclerview.widget.*;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -95,6 +96,11 @@ public class LogViewerActivity extends BaseActivity {
     private LinearLayout ffmpegLogHeader;
     private TextView ffmpegLogCountText;
     private boolean isFfmpegLogExpanded = false;  // 默认收起
+
+    // 底部按钮
+    private MaterialButton btnExportLog;
+    private MaterialButton btnClearLog;
+    private MaterialButton btnCopyLog;
 
     // SAF 相关
     private ActivityResultLauncher<Uri> openDocumentTreeLauncher;
@@ -299,6 +305,10 @@ public class LogViewerActivity extends BaseActivity {
         ffmpegLogAdapter = new LogAdapter(new ArrayList<>());
         ffmpegLogRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         ffmpegLogRecyclerView.setAdapter(ffmpegLogAdapter);
+
+        btnExportLog = findViewById(R.id.btn_export_log);
+        btnClearLog = findViewById(R.id.btn_clear_log);
+        btnCopyLog = findViewById(R.id.btn_copy_log);
     }
 
     // 加载设备信息
@@ -361,19 +371,19 @@ public class LogViewerActivity extends BaseActivity {
         });
 
         // 清空按钮
-        findViewById(R.id.btn_clear_log).setOnClickListener(v -> {
+        btnClearLog.setOnClickListener(v -> {
             logManager.clearAllLogs();
             refreshLogDisplay();
             ToastUtils.show(this, "日志已清除");
         });
 
         // 复制按钮
-        findViewById(R.id.btn_copy_log).setOnClickListener(v -> {
+        btnCopyLog.setOnClickListener(v -> {
             copyAllLogs();
         });
         
         // 导出按钮
-        findViewById(R.id.btn_export_log).setOnClickListener(v -> {
+        btnExportLog.setOnClickListener(v -> {
             exportLogsToZip();
         });
     }
@@ -498,7 +508,7 @@ public class LogViewerActivity extends BaseActivity {
             openDocumentTreeLauncher.launch(null);
         });
 
-        MaterialAlertDialogBuilder dialogBuilder = new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_MaterialAlertDialog)
+        MaterialAlertDialogBuilder dialogBuilder = new MaterialAlertDialogBuilder(this)
             .setTitle("导出日志")
             .setMessage("请选择保存日志文件的目录")
             .setView(dialogView)
@@ -537,7 +547,7 @@ public class LogViewerActivity extends BaseActivity {
     private void showExportConfirmDialog(Uri savedUri) {
         String readablePath = getReadablePathFromUri(savedUri);
         
-        new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_MaterialAlertDialog)
+        new MaterialAlertDialogBuilder(this)
             .setTitle("导出日志")
             .setMessage("日志将导出到以下目录：\n\n" + readablePath + "\n\n文件格式：logs_时间戳.zip")
             .setPositiveButton("确认导出", (dialog, which) -> {
@@ -680,8 +690,7 @@ public class LogViewerActivity extends BaseActivity {
             TextView tv = new TextView(p.getContext());
             tv.setPadding(16, 12, 16, 12);
             tv.setTextSize(12);
-            // 默认颜色，实际会在 onBindViewHolder 中动态设置
-            tv.setTextColor(p.getContext().getResources().getColor(R.color.text_primary));
+            tv.setTextColor(resolveColor(p.getContext(), com.google.android.material.R.attr.colorOnSurface));
             return new Holder(tv);
         }
         
@@ -737,15 +746,15 @@ public class LogViewerActivity extends BaseActivity {
         // 获取整行文字颜色
         private int getLineColorByLevel(String logLine, Context context) {
             if (logLine.contains("[ERROR]")) {
-                return getThemeColor(context, com.google.android.material.R.attr.colorError);
+                return resolveColor(context, com.google.android.material.R.attr.colorError);
             } else if (logLine.contains("[WARN]")) {
-                return android.graphics.Color.parseColor("#FF9800");
+                return resolveColor(context, com.google.android.material.R.attr.colorTertiary);
             } else if (logLine.contains("[INFO]")) {
-                return getThemeColor(context, com.google.android.material.R.attr.colorOnSurface);
+                return resolveColor(context, com.google.android.material.R.attr.colorOnSurface);
             } else if (logLine.contains("[DEBUG]") || logLine.contains("[VERBOSE]")) {
-                return getThemeColor(context, com.google.android.material.R.attr.colorOnSurfaceVariant);
+                return resolveColor(context, com.google.android.material.R.attr.colorOnSurfaceVariant);
             }
-            return getThemeColor(context, com.google.android.material.R.attr.colorOnSurface);
+            return resolveColor(context, com.google.android.material.R.attr.colorOnSurface);
         }
         
         // 获取日志级别标签的样式 (背景色 + 标签内文字色)
@@ -754,36 +763,35 @@ public class LogViewerActivity extends BaseActivity {
             switch (level) {
                 case "ERROR":
                     return new LevelStyle(
-                        getThemeColor(context, com.google.android.material.R.attr.colorErrorContainer),
-                        getThemeColor(context, com.google.android.material.R.attr.colorOnErrorContainer)
+                        resolveColor(context, com.google.android.material.R.attr.colorErrorContainer),
+                        resolveColor(context, com.google.android.material.R.attr.colorOnErrorContainer)
                     );
                 case "WARN":
-                    // 使用琥珀色配色，确保与 ERROR 的红色区分
                     return new LevelStyle(
-                        android.graphics.Color.parseColor("#FFECB3"), // 浅琥珀背景
-                        android.graphics.Color.parseColor("#BF360C")  // 深琥珀文字
+                        resolveColor(context, com.google.android.material.R.attr.colorTertiaryContainer),
+                        resolveColor(context, com.google.android.material.R.attr.colorOnTertiaryContainer)
                     );
                 case "INFO":
                     return new LevelStyle(
-                        getThemeColor(context, com.google.android.material.R.attr.colorPrimaryContainer),
-                        getThemeColor(context, com.google.android.material.R.attr.colorOnPrimaryContainer)
+                        resolveColor(context, com.google.android.material.R.attr.colorPrimaryContainer),
+                        resolveColor(context, com.google.android.material.R.attr.colorOnPrimaryContainer)
                     );
                 case "DEBUG":
                 case "VERBOSE":
                     return new LevelStyle(
-                        getThemeColor(context, com.google.android.material.R.attr.colorSurfaceVariant),
-                        getThemeColor(context, com.google.android.material.R.attr.colorOnSurfaceVariant)
+                        resolveColor(context, com.google.android.material.R.attr.colorSurfaceVariant),
+                        resolveColor(context, com.google.android.material.R.attr.colorOnSurfaceVariant)
                     );
                 default:
                     return new LevelStyle(
-                        getThemeColor(context, com.google.android.material.R.attr.colorSurfaceVariant),
-                        getThemeColor(context, com.google.android.material.R.attr.colorOnSurface)
+                        resolveColor(context, com.google.android.material.R.attr.colorSurfaceVariant),
+                        resolveColor(context, com.google.android.material.R.attr.colorOnSurface)
                     );
             }
         }
         
         // 安全获取主题属性颜色值
-        private int getThemeColor(Context context, int attrResId) {
+        private static int resolveColor(Context context, int attrResId) {
             android.util.TypedValue typedValue = new android.util.TypedValue();
             android.content.res.Resources.Theme theme = context.getTheme();
             if (theme.resolveAttribute(attrResId, typedValue, true)) {
