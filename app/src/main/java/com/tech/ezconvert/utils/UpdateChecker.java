@@ -481,7 +481,7 @@ public class UpdateChecker {
                 return;
             }
             
-            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(activity, R.style.ThemeOverlay_App_MaterialAlertDialog);
+            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(activity);
             
             String title = finalIsPrerelease ? "预发布版本: " + finalReleaseName : "更新详情: " + finalReleaseName;
             builder.setTitle(title);

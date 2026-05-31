@@ -337,7 +337,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         cancelBtn.setOnClickListener(v -> {
             AnimationUtils.animateButtonClick(v);
             
-            new com.google.android.material.dialog.MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_MaterialAlertDialog)
+            new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
                 .setIcon(R.drawable.round_warning)
                 .setTitle("确认取消?")
                 .setMessage("确定要取消当前操作吗？\n\n已生成的临时文件将被删除。")
