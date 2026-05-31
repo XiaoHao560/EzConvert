@@ -4,10 +4,10 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_toast"
-    android:textColor="#FFFFFF"
+    android:textColor="@android:color/white"
     android:textSize="14sp"
     android:paddingHorizontal="20dp"
     android:paddingVertical="12dp"
     android:maxWidth="320dp"
     android:minWidth="120dp"
-    android:gravity="center"/>
+    android:gravity="center" />
