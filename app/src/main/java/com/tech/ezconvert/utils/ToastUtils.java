@@ -1,12 +1,16 @@
 package com.tech.ezconvert.utils;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.core.graphics.drawable.DrawableCompat;
+
+import com.google.android.material.color.MaterialColors;
 import com.tech.ezconvert.R;
 
 /**
@@ -55,9 +59,12 @@ public class ToastUtils {
         
         Context appContext = context.getApplicationContext();
         View layout = LayoutInflater.from(appContext)
-                .inflate(R.layout.layout_custom_toast, null);
+                .inflate(R.layout.custom_toast, null);
         TextView textView = layout.findViewById(R.id.toast_text);
         textView.setText(message);
+        
+        // 应用 Material You 动态取色
+        applyMaterialYouColors(layout, context);
         
         currentToast = new Toast(appContext);
         currentToast.setDuration(duration);
@@ -85,13 +92,52 @@ public class ToastUtils {
 
         // 前台（或低版本）使用自定义布局
         View layout = LayoutInflater.from(appContext)
-                .inflate(R.layout.layout_custom_toast, null);
+                .inflate(R.layout.custom_toast, null);
         TextView textView = layout.findViewById(R.id.toast_text);
         textView.setText(message);
+
+        // 应用 Material You 动态取色
+        applyMaterialYouColors(layout, context);
 
         currentToast = new Toast(appContext);
         currentToast.setDuration(duration);
         currentToast.setView(layout);
         currentToast.show();
+    }
+    
+    /**
+     * 应用 Material You 动态颜色到 Toast 布局
+     */
+    private static void applyMaterialYouColors(View layout, Context context) {
+        TextView textView = layout.findViewById(R.id.toast_text);
+        if (textView == null) return;
+
+        try {
+            // 获取 Material 3 容器背景色与对应文字色，fallback 为 0 表示获取失败时不覆盖
+            int bgColor = MaterialColors.getColor(context,
+                    com.google.android.material.R.attr.colorSecondaryContainer,
+                    0);
+            int textColor = MaterialColors.getColor(context,
+                    com.google.android.material.R.attr.colorOnSecondaryContainer,
+                    0);
+
+            // 对背景 Drawable 进行 Tint 着色，实现动态取色适配
+            if (bgColor != 0) {
+                Drawable background = textView.getBackground();
+                if (background != null) {
+                    background = background.mutate();
+                    DrawableCompat.setTint(background, bgColor);
+                    textView.setBackground(background);
+                }
+            }
+            
+            // 应用动态文字颜色
+            if (textColor != 0) {
+                textView.setTextColor(textColor);
+            }
+        } catch (Exception e) {
+            // 解析失败时保持 XML 默认颜色，确保不崩溃
+            e.printStackTrace();
+        }
     }
 }
