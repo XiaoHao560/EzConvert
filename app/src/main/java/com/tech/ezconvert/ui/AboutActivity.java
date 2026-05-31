@@ -350,7 +350,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
     
     private void showUpdateDialog(String releaseName, String releaseNotes, 
                                  boolean isPrerelease, String htmlUrl) {
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_MaterialAlertDialog);
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
         
         String title = isPrerelease ? "预发布版本: " + releaseName : "更新详情: " + releaseName;
         builder.setTitle(title);
@@ -412,7 +412,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
     
     private void showTestUpdateDialog(String releaseName, String releaseNotes, 
                                      boolean isPrerelease, String htmlUrl) {
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_MaterialAlertDialog);
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
         
         String title = "[测试] " + (isPrerelease ? "预发布版本: " + releaseName : "更新详情: " + releaseName);
         builder.setTitle(title);

@@ -330,7 +330,7 @@ public class MoreSettingsActivity extends BaseActivity {
     
     // 显示通知权限申请对话框
     private void showNotificationPermissionDialog() {
-        new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_MaterialAlertDialog)
+        new MaterialAlertDialogBuilder(this)
             .setTitle(R.string.notification_permission_title)
             .setMessage(R.string.notification_permission_message)
             .setPositiveButton(R.string.notification_permission_go_settings, (dialog, which) -> {

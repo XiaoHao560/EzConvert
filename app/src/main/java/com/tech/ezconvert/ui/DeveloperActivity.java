@@ -66,7 +66,7 @@ public class DeveloperActivity extends BaseActivity {
             loadingText.setText("正在查询 FFmpeg 信息...");
         }
         
-        androidx.appcompat.app.AlertDialog loadingDialog = new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_MaterialAlertDialog)
+        androidx.appcompat.app.AlertDialog loadingDialog = new MaterialAlertDialogBuilder(this)
             .setView(loadingView)
             .setCancelable(false)
             .show();
@@ -148,7 +148,7 @@ public class DeveloperActivity extends BaseActivity {
         scrollView.addView(textView);
         
         // 构建对话框
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_MaterialAlertDialog)
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this)
             .setIcon(R.drawable.round_code)
             .setTitle("FFmpeg 编解码器信息")
             .setView(scrollView)
@@ -186,7 +186,7 @@ public class DeveloperActivity extends BaseActivity {
         
         scrollView.addView(textView);
         
-        new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_MaterialAlertDialog)
+        new MaterialAlertDialogBuilder(this)
             .setTitle(title)
             .setView(scrollView)
             .setPositiveButton("关闭", null)
@@ -206,7 +206,7 @@ public class DeveloperActivity extends BaseActivity {
     
     // 显示对话框防止误触
     private void showNpeConfirmDialog() {
-        new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_MaterialAlertDialog)
+        new MaterialAlertDialogBuilder(this)
             .setIcon(R.drawable.alert_circle)
             .setTitle("警告")
             .setMessage("即将触发空指针异常来测试崩溃处理机制。\n\n应用将会崩溃，未保存的数据可能会丢失。\n\n确定要继续吗？")
@@ -222,7 +222,7 @@ public class DeveloperActivity extends BaseActivity {
     
     // 显示说明对话框
     private void showNpeExplanationDialog() {
-        new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_MaterialAlertDialog)
+        new MaterialAlertDialogBuilder(this)
             .setIcon(R.drawable.information_outline)
             .setTitle("空指针异常测试说明")
             .setMessage("此功能用于测试应用的崩溃处理机制：\n\n" +
