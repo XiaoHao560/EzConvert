@@ -110,7 +110,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           pr_title: "Auto PR: ${{ github.ref_name }}"
           pr_body: ${{ steps.changelog.outputs.pr_body }}
-          pr_label: "automated-pr,needs-review"
+          # pr_label: "automated-pr,needs-review"
 
       - name: Show final PR body (debug)
         run: |
