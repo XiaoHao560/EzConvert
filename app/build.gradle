@@ -1,6 +1,8 @@
 plugins {
-    // 不再需要指定版本，版本在 libs.versions.toml 中管理
     alias(libs.plugins.android.application)
+    id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
+    id 'com.google.firebase.firebase-perf'
 }
 
 // 版本号生成脚本
@@ -201,11 +203,17 @@ android {
             if (signingConfigs.hasProperty('release')) {
                 signingConfig signingConfigs.release
             }
+            firebaseCrashlytics {
+              nativeSymbolUploadEnabled true
+            }
             minifyEnabled false
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
+            firebaseCrashlytics {
+              nativeSymbolUploadEnabled true
+            }
             applicationIdSuffix ".debug"
             minifyEnabled false
         }
@@ -264,6 +272,11 @@ dependencies {
     testImplementation libs.robolectric
     
     implementation libs.gson
+    
+    implementation platform('com.google.firebase:firebase-bom:34.14.0')
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-crashlytics-ndk'
+    implementation 'com.google.firebase:firebase-perf'
 }
 
 preBuild {
