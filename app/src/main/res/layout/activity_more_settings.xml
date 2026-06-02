@@ -402,7 +402,7 @@
                     android:fontFamily="sans-serif"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:lineSpacingExtra="2dp"
-                    android:text="选择应用主题显示模式。跟随系统将根据设备的系统设置自动在浅色和深色主题间切换。自动取色功能需要 Android 12 及以上系统支持，开启后将根据壁纸颜色动态调整应用主题色调。" />
+                    android:text="选择应用主题显示模式。跟随系统将根据设备的系统设置自动在浅色和深色主题间切换。自动取色功能需要 Android 12 及以上系统支持，开启后将根据壁纸颜色动态调整应用主题色调" />
 
             </LinearLayout>
 
@@ -494,7 +494,7 @@
                     android:fontFamily="sans-serif"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:lineSpacingExtra="2dp"
-                    android:text="开启后，转换过程中会显示进度通知，完成后会显示成功或失败提示。需要系统通知权限。" />
+                    android:text="开启后，转换过程中会显示进度通知，完成后会显示成功或失败提示。需要系统通知权限" />
 
             </LinearLayout>
 
@@ -672,7 +672,99 @@
                     android:fontFamily="sans-serif"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:lineSpacingExtra="2dp"
-                    android:text="开启自动检测后，应用会根据您选择的频率自动检查版本更新。关闭后，您仍可在关于页面手动检查更新。" />
+                    android:text="开启自动检测后，应用会根据您选择的频率自动检查版本更新。关闭后，您仍可在关于页面手动检查更新" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_marginBottom="12dp"
+            app:strokeColor="?attr/colorOutline"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:cardBackgroundColor="@android:color/transparent"
+            style="@style/Widget.Material3.CardView.Outlined"
+            app:cardCornerRadius="12dp"
+            android:id="@+id/firebase_settings_card">
+
+            <LinearLayout
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:padding="16dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:layout_marginBottom="16dp"
+                        android:textSize="16sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="?attr/colorOnSurface"
+                        android:text="隐私与数据" />
+
+                    <LinearLayout
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_height="wrap_content"
+                            android:layout_width="0dp"
+                            android:orientation="vertical"
+                            android:layout_weight="1">
+
+                            <TextView
+                                android:layout_height="wrap_content"
+                                android:layout_width="match_parent"
+                                android:textSize="14sp"
+                                android:fontFamily="sans-serif-medium"
+                                android:textColor="?attr/colorOnSurface"
+                                android:text="Firebase 数据收集" />
+
+                            <TextView
+                                android:layout_height="wrap_content"
+                                android:layout_width="match_parent"
+                                android:textSize="12sp"
+                                android:fontFamily="sans-serif"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:layout_marginTop="2dp"
+                                android:text="发送匿名使用情况和崩溃报告" />
+
+                        </LinearLayout>
+
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            android:layout_height="wrap_content"
+                            android:layout_width="wrap_content"
+                            android:id="@+id/firebase_switch" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <com.google.android.material.divider.MaterialDivider
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    app:dividerColor="?attr/colorOutlineVariant"
+                    app:dividerThickness="1dp" />
+
+                <TextView
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:padding="16dp"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:lineSpacingExtra="2dp"
+                    android:text="开启后应用会统计匿名的使用情况和崩溃报告，帮助我们改进应用体验。这对我们很重要！可以收集到未被报告的问题，当然你也可以在遇到问题后第一时间通过github反馈" />
 
             </LinearLayout>
 
