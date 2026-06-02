@@ -60,6 +60,7 @@ public class ConfigManager {
     public static final String KEY_NOTIFICATION_FIRST_REQUESTED = "notification_first_requested";
     public static final String KEY_THEME_MODE = "theme_mode";
     public static final String KEY_DYNAMIC_COLOR = "dynamic_color";
+    public static final String KEY_FIREBASE_ANALYTICS = "firebase_analytics_enabled";
     
     private ConfigManager(Context context) {
         this.context = context.getApplicationContext();
@@ -221,6 +222,11 @@ public class ConfigManager {
                     "  - `1` = 浅色模式\n" +
                     "  - `2` = 深色模式\n" +
                     "- `dynamic_color`: 自动取色 (true/false)，根据系统壁纸动态生成主题色调，需要 Android 12+ 设备支持\n\n" +
+                    "### Firebase 设置 (firebase_settings)\n" +
+                    "- `analytics_enabled`: Firebase 分析数据收集 (true/false)，默认开启\n" +
+                    "  - 用于收集匿名应用使用统计和崩溃报告，帮助改进应用体验\n" +
+                    "  - 关闭后将停止向 Firebase 发送任何分析数据\n" +
+                    "  - 此设置仅影响本设备，可随时在设置中重新开启\n\n" +
                     "## 注意事项\n\n" +
                     "- 请不要手动修改 `settings.json` 文件，除非你知道自己在做什么\n" +
                     "- 如需重置设置，可删除此文件，应用将重新创建默认配置\n" +
@@ -292,6 +298,11 @@ public class ConfigManager {
         updateSettings.put("include_prereleases", true);
         updateSettings.put("check_frequency", 2); // 2 = 每次启动应用检测
         settingsMap.put("update_settings", updateSettings);
+        
+        // 默认 Firebase 设置
+        Map<String, Object> firebaseSettings = new HashMap<>();
+        firebaseSettings.put("analytics_enabled", true);
+        settingsMap.put("firebase_settings", firebaseSettings);
         
         saveSettings();
     }
@@ -553,6 +564,15 @@ public class ConfigManager {
     
     public void setDynamicColorEnabled(boolean enabled) {
         setSetting("theme_settings", "dynamic_color", enabled);
+    }
+    
+    // Firebase 设置
+    public boolean isFirebaseAnalyticsEnabled() {
+    	return getSetting("firebase_settings", "analytics_enabled", true);
+    }
+    
+    public void setFirebaseAnalyticsEnabled(boolean enabled) {
+    	setSetting("firebase_settings", "analytics_enabled", enabled);
     }
     
     // 迁移SharedPreferences设置

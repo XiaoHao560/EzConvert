@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.tech.ezconvert.utils.Log;
 import java.io.File;
 
@@ -18,6 +19,11 @@ public class EzConvert extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        
+        // 在应用启动时，根据Firebase设置来加载firebase
+        ConfigManager configManager = ConfigManager.getInstance(this);
+        boolean analyticsEnabled = configManager.isFirebaseAnalyticsEnabled();
+        FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(analyticsEnabled);
         
         // 在应用启动时应用保存的主题模式
         ThemeManager themeManager = ThemeManager.getInstance(this);

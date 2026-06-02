@@ -17,6 +17,7 @@ import com.google.android.material.color.DynamicColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.NotificationHelper;
@@ -38,6 +39,7 @@ public class MoreSettingsActivity extends BaseActivity {
     private MaterialSwitch autoUpdateSwitch;
     private MaterialSwitch prereleaseSwitch;
     private MaterialSwitch notificationSwitch;
+    private MaterialSwitch firebaseSwitch;
     private MaterialAutoCompleteTextView frequencySpinner;
     private LinearLayout frequencyLayout;
     private MaterialToolbar toolbar;
@@ -132,6 +134,9 @@ public class MoreSettingsActivity extends BaseActivity {
         // 通知开关
         notificationSwitch = findViewById(R.id.notification_switch);
         
+        // Firebase 数据收集开关
+        firebaseSwitch = findViewById(R.id.firebase_switch);
+        
         String[] frequencyItems = getResources().getStringArray(R.array.update_frequency_options);
         setupSpinner(frequencySpinner, frequencyItems, frequencyItems[0]);
         
@@ -198,6 +203,12 @@ public class MoreSettingsActivity extends BaseActivity {
             int frequency = mapPositionToFrequency(position);
             configManager.setUpdateCheckFrequency(frequency);
         });
+        
+        // Firebase 数据收集开关监听
+        firebaseSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            configManager.setFirebaseAnalyticsEnabled(isChecked);
+            FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(isChecked);
+        });
     }
 
     private void loadCurrentSettings() {
@@ -206,6 +217,7 @@ public class MoreSettingsActivity extends BaseActivity {
         prereleaseSwitch.setOnCheckedChangeListener(null);
         notificationSwitch.setOnCheckedChangeListener(null);
         dynamicColorSwitch.setOnCheckedChangeListener(null);
+        firebaseSwitch.setOnCheckedChangeListener(null);
         
         // 加载当前设置
         boolean autoCheckEnabled = configManager.isAutoCheckUpdateEnabled();
@@ -213,11 +225,13 @@ public class MoreSettingsActivity extends BaseActivity {
         int currentFrequency = configManager.getUpdateCheckFrequency();
         boolean notificationEnabled = configManager.isNotificationEnabled();
         boolean dynamicColorEnabled = configManager.isDynamicColorEnabled();
+        boolean firebaseEnabled = configManager.isFirebaseAnalyticsEnabled();
         
         // 更新开关状态
         autoUpdateSwitch.setChecked(autoCheckEnabled);
         prereleaseSwitch.setChecked(includeprereleaseEnabled);
         notificationSwitch.setChecked(notificationEnabled);
+        firebaseSwitch.setChecked(firebaseEnabled);
         
         // 仅在设备支持时更新动态取色开关状态
         if (DynamicColors.isDynamicColorAvailable()) {
@@ -264,6 +278,11 @@ public class MoreSettingsActivity extends BaseActivity {
         dynamicColorSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             configManager.setDynamicColorEnabled(isChecked);
             themeManager.applyDynamicColorAndRecreate(MoreSettingsActivity.this);
+        });
+        
+        firebaseSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            configManager.setFirebaseAnalyticsEnabled(isChecked);
+            FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(isChecked);
         });
     }
 
