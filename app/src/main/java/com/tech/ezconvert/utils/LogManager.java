@@ -218,7 +218,7 @@ public class LogManager {
             notifyLogAdded(entry);
             
         } catch (Throwable e) {
-            android.util.Log.e(TAG, "addAppLog异常", e);
+            Log.e(TAG, "addAppLog异常", e);
         }
     }
 
@@ -359,7 +359,7 @@ public class LogManager {
             writer.flush();
             writer.close();
         } catch (IOException e) {
-            android.util.Log.e(TAG, "写入失败: " + e.getMessage());
+            Log.e(TAG, "写入失败: " + e.getMessage());
         }
     }
 
@@ -370,7 +370,7 @@ public class LogManager {
             writer.flush();
             writer.close();
         } catch (IOException e) {
-            android.util.Log.e(TAG, "清空失败: " + e.getMessage());
+            Log.e(TAG, "清空失败: " + e.getMessage());
         }
     }
 
