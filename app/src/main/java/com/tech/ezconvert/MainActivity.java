@@ -45,6 +45,7 @@ import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.utils.LogManager;
 import com.tech.ezconvert.utils.NotificationHelper;
 import com.tech.ezconvert.utils.PermissionManager;
+import com.tech.ezconvert.utils.ReleaseNotesManager;
 import com.tech.ezconvert.utils.ToastUtils;
 import com.tech.ezconvert.utils.UpdateChecker;
 import java.io.File;
@@ -146,6 +147,9 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         checkPermissions();
         
         handleShareIntent(getIntent());
+        
+        // 检查并展示更新日志 (版本更新后首次打开时触发)
+        ReleaseNotesManager.showIfNeeded(this);
         
         // 延迟2秒后自动检查更新（等待主界面加载完成）
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
