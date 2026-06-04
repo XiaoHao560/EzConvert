@@ -4,8 +4,8 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
-import android.util.Log;
 import com.arthenica.ffmpegkit.Level;
+import com.tech.ezconvert.utils.Log;
 import org.json.JSONObject;
 import java.io.*;
 import java.lang.annotation.Native;
@@ -29,7 +29,7 @@ public class LogManager {
     private final CopyOnWriteArrayList<String> ffmpegLogMemoryCache = new CopyOnWriteArrayList<>();
     private final List<LogListener> listeners = new CopyOnWriteArrayList<>();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
-    private static final int MAX_MEMORY_CACHE = 5000;
+    private static final int MAX_MEMORY_CACHE = 20000;
 
     public static class LogEntry {
         public long timestamp;
@@ -158,10 +158,10 @@ public class LogManager {
             
             // 只在详细模式下输出这行初始化日志
             if (verboseLogging) {
-                android.util.Log.d(TAG, "日志管理器初始化完成");
+                Log.d(TAG, "日志管理器初始化完成");
             }
         } catch (Throwable e) {
-            android.util.Log.e(TAG, "LogManager 初始化失败", e);
+            Log.e(TAG, "LogManager 初始化失败", e);
         }
     }
 
@@ -214,6 +214,9 @@ public class LogManager {
             char levelChar = getLevelChar(level);
             NativeLogWriter.write(levelChar, tag, fullMessage);
             
+            // 通知 UI 实时更新
+            notifyLogAdded(entry);
+            
         } catch (Throwable e) {
             android.util.Log.e(TAG, "addAppLog异常", e);
         }
@@ -229,6 +232,10 @@ public class LogManager {
             ffmpegLogMemoryCache.remove(0);
         }
         writeToFile(ffmpegLogFile, logLine);
+        
+        // 通知 UI 实时更新，tag 标记为 FFmpegLog 以便 Activity 区分
+        LogEntry entry = new LogEntry(convertLevelToAndroid(level), "FFmpegLog", message, null);
+        notifyLogAdded(entry);
     }
 
     public void addListener(LogListener listener) {
@@ -254,6 +261,16 @@ public class LogManager {
     public List<String> getFfmpegLogsFromMemory() {
         return new ArrayList<>(ffmpegLogMemoryCache);
     }
+    
+    // 高效获取应用日志数量，无需遍历
+    public int getAppLogCount() {
+        return appLogMemoryCache.size();
+    }
+    
+    // 高效获取FFmpeg日志数量，无需遍历
+    public int getFfmpegLogCount() {
+        return ffmpegLogMemoryCache.size();
+    }
 
     // 更新日志等级
     public void updateLogLevel(boolean verbose) {
@@ -270,6 +287,29 @@ public class LogManager {
             case android.util.Log.ASSERT: return Level.AV_LOG_ERROR;
             default: return Level.AV_LOG_INFO;
         }
+    }
+    
+    // 将 FFmpegKit 的 Level 转换为 Android Log 级别
+    private int convertLevelToAndroid(Level level) {
+        if (level == null) return android.util.Log.INFO;
+        switch (level) {
+            case AV_LOG_PANIC:
+            case AV_LOG_FATAL:
+            case AV_LOG_ERROR: return android.util.Log.ERROR;
+            case AV_LOG_WARNING: return android.util.Log.WARN;
+            case AV_LOG_INFO: return android.util.Log.INFO;
+            case AV_LOG_DEBUG: return android.util.Log.DEBUG;
+            default: return android.util.Log.VERBOSE;
+        }
+    }
+    
+    // 在主线程通知所有监听器
+    private void notifyLogAdded(LogEntry entry) {
+        mainHandler.post(() -> {
+            for (LogListener listener : listeners) {
+                listener.onLogAdded(entry);
+            }
+        });
     }
 
     // 获取所有日志（用于复制功能）

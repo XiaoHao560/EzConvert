@@ -261,11 +261,12 @@
                     </LinearLayout>
 
                     <androidx.recyclerview.widget.RecyclerView
-                         android:layout_height="wrap_content"
+                         android:layout_height="350dp"
                          android:layout_width="match_parent"
-                         android:visibility="visible"
-                         android:maxHeight="350dp"
-                         android:minHeight="120dp"
+                         android:visibility="gone"
+                         android:scrollbars="vertical"
+                         android:scrollbarStyle="outsideOverlay"
+                         android:fadeScrollbars="false"
                          android:padding="6dp"
                          android:clipToPadding="false"
                          android:id="@+id/app_log_recycler_view" />
@@ -335,11 +336,12 @@
                     </LinearLayout>
 
                     <androidx.recyclerview.widget.RecyclerView
-                         android:layout_height="wrap_content"
+                         android:layout_height="350dp"
                          android:layout_width="match_parent"
-                         android:visibility="visible"
-                         android:maxHeight="350dp"
-                         android:minHeight="120dp"
+                         android:visibility="gone"
+                         android:scrollbars="vertical"
+                         android:scrollbarStyle="outsideOverlay"
+                         android:fadeScrollbars="false"
                          android:padding="6dp"
                          android:clipToPadding="false"
                          android:id="@+id/ffmpeg_log_recycler_view" />

@@ -107,6 +107,9 @@ public class LogViewerActivity extends BaseActivity {
     private TextInputEditText pathEditText;
     private Uri selectedTreeUri;
     private SharedPreferences prefs;
+    
+    // 日志监听器引用，用于 onDestroy 正确注销
+    private LogManager.LogListener logListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,23 +134,22 @@ public class LogViewerActivity extends BaseActivity {
         loadDeviceInfo(); // 加载设备信息
         refreshLogDisplay(); // 初始化加载日志 （此时RecyclerView是隐藏的）
         
-        logManager.addListener(new LogManager.LogListener() {
+        // 注册日志实时监听器，使用增量追加避免全量刷新
+        logListener = new LogManager.LogListener() {
             @Override
             public void onLogAdded(LogManager.LogEntry entry) {
                 runOnUiThread(() -> {
                     if ("FFmpegLog".equals(entry.tag)) {
-                        List<String> ffmpegLogs = logManager.getFfmpegLogsFromMemory();
-                        ffmpegLogAdapter.updateData(ffmpegLogs);
-                        ffmpegLogCountText.setText("共 " + ffmpegLogs.size() + " 条");
+                        ffmpegLogAdapter.appendSingle(entry.getFormattedMessage());
+                        ffmpegLogCountText.setText("共 " + logManager.getFfmpegLogCount() + " 条");
                         if (isFfmpegLogExpanded) {
-                            ffmpegLogRecyclerView.scrollToPosition(ffmpegLogs.size() - 1);
+                            ffmpegLogRecyclerView.scrollToPosition(ffmpegLogAdapter.getItemCount() - 1);
                         }
                     } else {
-                        List<String> appLogs = logManager.getAppLogsFromMemory();
-                        appLogAdapter.updateData(appLogs);
-                        appLogCountText.setText("共 " + appLogs.size() + " 条");
+                        appLogAdapter.appendSingle(entry.getFormattedMessage());
+                        appLogCountText.setText("共 " + logManager.getAppLogCount() + " 条");
                         if (isAppLogExpanded) {
-                            appLogRecyclerView.scrollToPosition(appLogs.size() - 1);
+                            appLogRecyclerView.scrollToPosition(appLogAdapter.getItemCount() - 1);
                         }
                     }
                 });
@@ -157,7 +159,8 @@ public class LogViewerActivity extends BaseActivity {
             public void onLogsCleared() {
                 runOnUiThread(() -> refreshLogDisplay());
             }
-        });
+        };
+        logManager.addListener(logListener);
     }
 
     // 初始化目录选择启动器
@@ -410,22 +413,18 @@ public class LogViewerActivity extends BaseActivity {
     }
 
     private void refreshLogDisplay() {
-        // 应用日志
+        // 应用日志：全量刷新，用于初始化或清除后重建
         List<String> appLogs = logManager.getAppLogsFromMemory();
         appLogAdapter.updateData(appLogs);
-        
-        // 只在展开状态下滚动
-        appLogCountText.setText("共 " + appLogs.size() + " 条");
+        appLogCountText.setText("共 " + logManager.getAppLogCount() + " 条");
         if (!appLogs.isEmpty() && isAppLogExpanded) {
             appLogRecyclerView.scrollToPosition(appLogs.size() - 1);
         }
 
-        // FFmpeg日志
+        // FFmpeg日志：全量刷新
         List<String> ffmpegLogs = logManager.getFfmpegLogsFromMemory();
         ffmpegLogAdapter.updateData(ffmpegLogs);
-        
-        // 只在展开状态下滚动
-        ffmpegLogCountText.setText("共 " + ffmpegLogs.size() + " 条");
+        ffmpegLogCountText.setText("共 " + logManager.getFfmpegLogCount() + " 条");
         if (!ffmpegLogs.isEmpty() && isFfmpegLogExpanded) {
             ffmpegLogRecyclerView.scrollToPosition(ffmpegLogs.size() - 1);
         }
@@ -669,7 +668,10 @@ public class LogViewerActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        logManager.removeListener(null);
+        // 注销监听器，防止内存泄漏
+        if (logListener != null) {
+            logManager.removeListener(logListener);
+        }
     }
 
     private static class LogAdapter extends RecyclerView.Adapter<LogAdapter.Holder> {
@@ -681,9 +683,17 @@ public class LogViewerActivity extends BaseActivity {
             this.list = new ArrayList<>(list); 
         }
         
+        // 全量刷新：用于初始化、清除日志、手动刷新
         void updateData(List<String> newList) {
             this.list = new ArrayList<>(newList);
             notifyDataSetChanged();
+        }
+        
+        // 增量追加单条：用于实时日志追加
+        void appendSingle(String logLine) {
+            int position = list.size();
+            list.add(logLine);
+            notifyItemInserted(position);
         }
         
         @Override public Holder onCreateViewHolder(android.view.ViewGroup p, int vType) {
