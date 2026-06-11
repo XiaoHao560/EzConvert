@@ -748,6 +748,7 @@ public class PreviewActivity extends BaseActivity {
             showBottomControls();
             showToolbar();
             isControlsVisible = true;
+            fullscreenBtn.setTooltipText("全屏");
         }
     }
     
@@ -789,8 +790,10 @@ public class PreviewActivity extends BaseActivity {
     private void updatePlayPauseIcon() {
         if (isPlaying) {
             playPauseBtn.setImageResource(R.drawable.round_pause);
+            playPauseBtn.setTooltipText("暂停");
         } else {
             playPauseBtn.setImageResource(R.drawable.round_play_arrow);
+            playPauseBtn.setTooltipText("继续");
         }
     }
     
@@ -954,6 +957,7 @@ public class PreviewActivity extends BaseActivity {
         
         // 更新图标
         fullscreenBtn.setImageResource(R.drawable.round_fullscreen_exit);
+        fullscreenBtn.setTooltipText("退出全屏");
         
         // 切换 PlayerView 为适配模式
         playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
@@ -976,6 +980,7 @@ public class PreviewActivity extends BaseActivity {
         
         // 更新图标
         fullscreenBtn.setImageResource(R.drawable.round_fullscreen);
+        fullscreenBtn.setTooltipText("全屏");
         
         // 恢复 PlayerView 为适应模式
         playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
