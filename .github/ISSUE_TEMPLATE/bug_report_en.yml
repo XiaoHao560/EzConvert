@@ -1,79 +1,79 @@
-name: 🐛 缺陷反馈
-description: 请填写表单，方便我们快速定位 Android 端问题。
-title: "[Bug] 一句话描述问题"
+name: 🐛 Bug Report
+description: Please fill out the form to help us quickly locate issues on Android.
+title: "[Bug] Brief description of the issue"
 labels: ["bug"]
 body:
   - type: textarea
     id: reproduce
     attributes:
-      label: 复现步骤
+      label: Steps to Reproduce
       placeholder: |
-        1. 打开 App → 点击 XX 按钮
-        2. 打开 设置 → 点击 XX 按钮
-        3. 崩溃 / 白屏 / 无响应
+        1. Open App → Tap XX button
+        2. Open Settings → Tap XX button
+        3. Crash / White screen / No response
     validations:
       required: true
 
   - type: textarea
     id: actual
     attributes:
-      label: 实际结果
-      description: 可贴截图或录屏。
+      label: Actual Result
+      description: You can attach screenshots or screen recordings.
     validations:
       required: true
 
   - type: textarea
     id: expected
     attributes:
-      label: 预期结果
+      label: Expected Result
     validations:
       required: true
 
   - type: input
     id: version
     attributes:
-      label: App 版本
-      placeholder: 例：v1.2.3（在设置→关于里查看）
+      label: App Version
+      placeholder: e.g., v1.2.3 (check in Settings → About)
     validations:
       required: true
 
   - type: dropdown
     id: abi
     attributes:
-      label: CPU 架构 / ABI
+      label: CPU Architecture / ABI
       options:
         - arm64-v8a
         - armeabi-v7a
-        - 不清楚
+        - Not sure
     validations:
       required: true
 
   - type: dropdown
     id: android
     attributes:
-      label: Android 系统版本
+      label: Android OS Version
       options:
-        - 15 及以上
+        - 15 or higher
         - 14
         - 13
         - 12
         - 11
         - 10
-        - 9 及以下
+        - 9 or lower
     validations:
       required: true
 
   - type: input
     id: device
     attributes:
-      label: 手机型号
-      placeholder: 例：Xiaomi 13 / Samsung S23
+      label: Device Model
+      placeholder: e.g., Xiaomi 13 / Samsung S23
     validations:
       required: true
 
   - type: textarea
     id: logcat
     attributes:
-      label: 相关日志
-      description: 请打包并上传应用内全部日志
+      label: Relevant Logs
+      description: Please package and upload all app logs
       render: shell

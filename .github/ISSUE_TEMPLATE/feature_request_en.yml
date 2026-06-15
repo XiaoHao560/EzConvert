@@ -1,0 +1,27 @@
+name: 💡 Feature Request
+description: Want to add a new feature to the app? Feel free to describe it.
+title: "[Feat] Brief description of the requirement"
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / Current Situation
+      placeholder: Be as specific as possible to help everyone understand the scenario.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Your Desired Solution
+      placeholder: e.g., I hope to see a "Batch delete" button when long-pressing an item.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: volunteer
+    attributes:
+      label: Willing to Contribute Code?
+      options:
+        - label: I am willing to submit a PR to implement this feature.

@@ -14,16 +14,10 @@ body:
   - type: textarea
     id: solution
     attributes:
-      label: 你想要的解决方案（Android 端）
+      label: 你想要的解决方案
       placeholder: 例如：希望在长按条目时弹出「批量删除」按钮。
     validations:
       required: true
-
-  - type: textarea
-    id: ui
-    attributes:
-      label: UI/UX 草稿（如有）
-      description: 可贴手绘图、Figma 链接或文字描述。
 
   - type: checkboxes
     id: volunteer
