@@ -6,145 +6,145 @@
 ![GitHub top language](https://img.shields.io/github/languages/top/XiaoHao560/EzConvert?style=flat-square&color=informational)
 ![GitHub repo size](https://img.shields.io/github/repo-size/XiaoHao560/EzConvert?style=flat-square&color=informational)
 ![License](https://img.shields.io/github/license/XiaoHao560/EzConvert?style=flat-square)
-# 项目更新日志
-<details markdown='1'><summary>展开/收起</summary>
 
-从 v0.2.0 开始，我们使用**结构化更新日志**[change_log](change_log/)。
-此前版本的变更记录请查看 [GitHub Releases](https://github.com/XiaoHao560/EzConvert/releases) 或提交历史。
+[中文](README_zh.md)
 
-从 v0.5.1 开始，我们使用**线性历史**的方式合并PR，所有PR均使用 **Rebase & Merge** 的方式合并。
+# Changelog
+
+<details markdown='1'><summary>Expand/Collapse</summary>
+
+Starting from v0.2.0, we use a **structured changelog** [change_log](change_log/).
+For earlier versions, please refer to [GitHub Releases](https://github.com/XiaoHao560/EzConvert/releases) or the commit history.
+
+Starting from v0.5.1, we use a **linear history** approach to merge PRs. All PRs are merged via **Rebase & Merge**.
 
 </details>
 
-# 
-
-
 # EzConvert
 
-基于 FFmpeg 的 Android 转码与提取工具
+An Android transcoding and media extraction tool powered by FFmpeg
 
-## 项目简介
+## Overview
 
-EzConvert 是一款运行于安卓平台的转码与媒体内容提取工具，底层集成了强大的 FFmpeg，支持多种音视频格式的转换和提取。功能持续开发中，欢迎反馈问题与建议！
+EzConvert is a transcoding and media extraction tool designed for the Android platform, built on top of the powerful FFmpeg framework. It supports conversion and extraction across a wide range of audio and video formats. Features are actively under development—your feedback and suggestions are welcome!
 
-## 功能特点
+## Features
 
-- 支持主流音视频格式的相互转码
-> 视频格式：mp4,avi,mov,mkv,flv,webm,gif
-> 
-> 音频格式：mp3,wav,aac,flac,ogg,m4a
-- 支持媒体文件内容提取（如音轨、视频流等）
-- 支持压缩视频文件质量
-- 支持裁剪视频/音频文件
-- 支持将视频内某段截取为图片
-- 简洁易用的Material Design 3 UI
-- 基于 FFmpeg，转换高效、质量可控
-- 持续迭代，欢迎参与测试和反馈
+- Supports transcoding between mainstream audio and video formats
+  - Video formats: mp4, avi, mov, mkv, flv, webm, gif
+  - Audio formats: mp3, wav, aac, flac, ogg, m4a
+- Supports media content extraction (e.g., audio tracks, video streams)
+- Supports video compression
+- Supports trimming/cropping of video and audio files
+- Supports extracting video frames as images
+- Clean and intuitive Material Design 3 UI
+- Powered by FFmpeg for efficient conversion with controllable quality
+- Continuously updated—welcome to participate in testing and feedback
 
-## 版本控制
+## Version Control
 
-本项目将遵循**语义化版本控制规范（SemVer）** 来进行控制应用版本号，关于**语义化版本控制规范**请详见 [语义化版本控制规范](https://semver.org/)
+This project follows the **Semantic Versioning (SemVer)** specification for version numbering. For details, see [SemVer](https://semver.org/).
 
-## 技术栈
+## Tech Stack
 
-- 核心语言：Java
-- 平台：Android
-- 音视频处理：FFmpeg
+- Core Language: Java
+- Platform: Android
+- Media Processing: FFmpeg
 
-## 自行构建
+## Building from Source
 
-1. Clone 本仓库到本地：
+1. Clone this repository to your local machine:
 
    ```bash
    git clone https://github.com/XiaoHao560/EzConvert.git
    ```
 
-2. 使用 Android Studio 或兼容 IDE 导入项目。
+2. Import the project using Android Studio or a compatible IDE.
 
-3. 配置 FFmpeg 依赖，并连接安卓设备或模拟器运行。
+3. Configure the FFmpeg dependency, then connect an Android device or emulator to run.
 
-## 使用说明
+## Usage
 
-1. 启动 EzConvert App
-2. 选择需要转码或提取的文件
-3. 设置目标格式及相关参数
-4. 一键开始处理，等待转换完成
+1. Launch the EzConvert app
+2. Select the file you want to transcode or extract
+3. Set the target format and relevant parameters
+4. Tap to start processing and wait for the conversion to complete
 
-## Android 版本支持
-- 本应用仅适用于 **Android 7~15**
-> 未适配 Android 15 以上版本
+## Android Version Support
 
-- 仅支持 **arm64-v8a** 与 **armeabi-v7a** 设备，如需其他架构应用，请自行构建本项目
+- This app is designed for **Android 7–15**
+  > Not yet adapted for Android 15+ versions.
 
-## 已知问题与计划
+- Only supports **arm64-v8a** and **armeabi-v7a** architectures. For other architectures, please build the project yourself.
 
-> UI/UX 仍在持续优化
-> 
-> MKV,WebM 格式转换不支持硬件编解码
-- [x] 硬件编解码/多线程优化
-- [x] 转换视频格式
-- [x] 转换音频格式
-- [x] 压缩视频
-- [x] 提取视频
-- [x] 提取音频
-- [x] 裁剪视频
-- [x] 裁剪音频
-- [x] 视频截图
-- [x] 错误日志输出/全部日志输出
-- [x] 日志级别设置
-- [x] 从系统分享导入媒体文件
-- [x] 检测更新
-- [x] 通知设置
-- [x] 真实进度条
-- [x] 添加内置播放器用于预览
-- [x] 预览媒体文件功能
-- [x] 设置功能
-- [x] 媒体文件详细信息显示
-- [x] 主题设置
-- [ ] 多语言化
-- [ ] 自定义文件名功能
-- [ ] 自定义 UI 颜色
-- [ ] 自定义转换质量
-- [ ] 更多媒体格式转换支持
-- [ ] 单独调整质量参数
-- [ ] 音频淡出淡入
-- [ ] 添加视频水印
-- [ ] 合并视频与音频
+## Known Issues & Roadmap
 
- <mark>欢迎提交 Bug 及功能建议！</mark>
+> UI/UX is still being continuously optimized
+>
+> MKV and WebM format conversion does not support hardware encoding/decoding
 
-## 如何参与贡献
+- [x] Hardware encoding/decoding & multi-threading optimization
+- [x] Video format conversion
+- [x] Audio format conversion
+- [x] Video compression
+- [x] Video extraction
+- [x] Audio extraction
+- [x] Video trimming
+- [x] Audio trimming
+- [x] Video frame capture
+- [x] Error log output / full log output
+- [x] Log level settings
+- [x] Import media files via system share
+- [x] Update detection
+- [x] Notification settings
+- [x] Real progress bar
+- [x] Built-in player for preview
+- [x] Media file preview
+- [x] Settings
+- [x] Media file metadata display
+- [x] Theme settings
+- [ ] Multi-language support
+- [ ] Custom filename feature
+- [ ] Custom UI colors
+- [ ] Custom conversion quality
+- [ ] Support for more media formats
+- [ ] Individual quality parameter adjustment
+- [ ] Audio fade in/fade out
+- [ ] Video watermarking
+- [ ] Merge video and audio
 
-我们欢迎所有形式的贡献！请遵循以下步骤：
+<mark>Bug reports and feature suggestions are welcome!</mark>
 
-1. **阅读贡献指南**：详细流程请查看 [CONTRIBUTING.md](CONTRIBUTING.md)
-2. **Fork 本项目** 并创建功能分支
-3. **提交 Pull Request**：修改代码后，按照 CONTRIBUTING.md 中的流程提交
-4. **提交 Issue**：遇到 Bug 或有功能建议，可通过 [GitHub Issues](https://github.com/XiaoHao560/EzConvert/issues) 反馈
+## Contributing
+
+We welcome all forms of contribution! Please follow the steps below:
+
+1. **Read the Contribution Guide**: For detailed instructions, see [CONTRIBUTING.md](CONTRIBUTING.md)
+2. **Fork this repository** and create a feature branch
+3. **Submit a Pull Request**: After making changes, submit a PR following the process in CONTRIBUTING.md
+4. **Submit an Issue**: For bug reports or feature suggestions, please use [GitHub Issues](https://github.com/XiaoHao560/EzConvert/issues)
 
 > [!NOTE]
-> **提示**：每次提交 PR 前，请在 `change_log/changelog.md` 中记录你的变更，PR 描述会自动生成。
+> **Note**: Before submitting a PR, please record your changes in `change_log/changelog.md`. The PR description will be generated automatically.
 
-## 许可证
+## License
+
 Copyright (C) 2024-2026 XiaoHao560  
-本项目采用 [GNU General Public License v3.0](LICENSE) 开源许可证。
+This project is licensed under the [GNU General Public License v3.0](LICENSE).
 
-> 注：因本项目使用了 FFmpegKit，任何包含本项目的二进制再分发必须遵守 GPL v3开源协议。
+> Note: Since this project uses FFmpegKit, any binary redistribution that includes this project must comply with the GPL v3 open-source license.
 
-## 鸣谢
+## Acknowledgements
+
 - [FFmpegKit](https://github.com/arthenica/ffmpeg-kit)
 - [FFmpegKit-16kb](https://github.com/moizhassankh/ffmpeg-kit-android-16KB)
 
+## Contact & Feedback
 
-## 联系与反馈
+For questions or suggestions, please reach out via [GitHub Issues](https://github.com/XiaoHao560/EzConvert/issues).
 
-如有疑问或建议，请通过 [GitHub Issues](https://github.com/XiaoHao560/EzConvert/issues) 联系作者。
+## ☕ Sponsorship
 
+If EzConvert has been helpful to you, your support is greatly appreciated and will motivate continued development and maintenance!
 
-## ☕ 赞助支持
-
-如果 EzConvert 对你有帮助，欢迎赞赏支持，这将是我持续开发和维护的动力！
-
-| 微信赞赏 |
-|:---:|
-| ![微信赞赏码](screenshots/sponsor/wechat.png) |
+[SPONSOR](SPONSOR.md)
