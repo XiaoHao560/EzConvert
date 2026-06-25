@@ -14,6 +14,25 @@
     <string name="check_frequency">检测频率</string>
     <string name="select_frequency">选择频率</string>
 
+    <string name="crash_title">应用崩溃</string>
+    <string name="crash_subtitle">很抱歉，EzConvert 发生了意外错误</string>
+    <string name="crash_type_label">异常类型</string>
+    <string name="crash_message_label">异常描述</string>
+    <string name="crash_location_label">崩溃位置</string>
+    <string name="crash_report_title">崩溃报告</string>
+    <string name="crash_restart_app">重启应用</string>
+    <string name="crash_export_logs">打包日志</string>
+    <string name="unknown">未知</string>
+    <string name="none">无</string>
+    <string name="crash_no_report">无法读取崩溃报告</string>
+    <string name="crash_read_failed">读取失败: </string>
+    <string name="crash_log_dir_missing">日志目录不存在</string>
+    <string name="crash_dir_access_denied">无法访问所选目录</string>
+    <string name="crash_create_file_failed">无法创建文件</string>
+    <string name="crash_open_stream_failed">无法打开文件输出流</string>
+    <string name="crash_export_success">日志已导出到:\n%s</string>
+    <string name="crash_export_failed">导出失败: %s</string>
+
     <string name="notification_permission_title">启用通知</string>
     <string name="notification_permission_message">是否允许简转发送通知？\n\n通知用于显示转换进度和完成提示。</string>
     <string name="notification_permission_go_settings">去开启</string>
