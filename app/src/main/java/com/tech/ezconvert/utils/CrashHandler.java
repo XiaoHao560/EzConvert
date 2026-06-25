@@ -3,6 +3,7 @@ package com.tech.ezconvert.utils;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -71,6 +72,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler, Applicatio
         
         // 保存到本地文件
         saveToFile(crashReport);
+        saveCurrentCrashReport(crashReport);
         Log.e(TAG, "应用崩溃:\n" + crashReport);
         
         // 如果 LogcatRecorder 可用，强制刷新日志
@@ -78,21 +80,35 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler, Applicatio
             LogcatRecorder.getInstance().crashFlush();
         }
         
-        // 延迟 2 秒，确保日志写入完成
+        // 启动崩溃界面
+        if (context != null) {
+            Intent intent = new Intent(context, com.tech.ezconvert.ui.CrashActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            intent.putExtra("crash_type", ex.getClass().getSimpleName());
+            intent.putExtra("crash_message", ex.getMessage() != null ? ex.getMessage() : "无");
+            
+            StackTraceElement[] stackTrack = ex.getStackTrace();
+            if (stackTrack != null && stackTrack.length > 0) {
+                StackTraceElement first = stackTrack[0];
+                intent.putExtra("crash_file", first.getFileName());
+                intent.putExtra("crash_class", first.getClassName());
+                intent.putExtra("crash_method", first.getMethodName());
+                intent.putExtra("crash_line", first.getLineNumber());
+            }
+            
+            context.startActivity(intent);
+        }
+        
+        // 延迟 100 ms，确保日志写入完成并且界面已启动
         try {
-            Thread.sleep(2000);
+            Thread.sleep(100);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         
-        // 调用系统默认处理器（让系统显示崩溃对话框或处理）
-        if (defaultHandler != null) {
-            defaultHandler.uncaughtException(thread, ex);
-        } else {
-            // 强制杀死进程，结束应用
-            Process.killProcess(Process.myPid());
-            System.exit(1);
-        }
+        // 强制杀死进程，结束应用
+        Process.killProcess(Process.myPid());
+        System.exit(1);
     }
     
     private String buildCrashReport(Thread thread, Throwable ex) {
@@ -217,6 +233,29 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler, Applicatio
             android.util.Log.e(TAG, "保存崩溃日志失败", e);
         } finally {
             // 手动关闭流
+            if (writer != null) {
+                try {
+                    writer.close();
+                } catch (IOException ignored) {}
+            }
+        }
+    }
+    
+    private void saveCurrentCrashReport(String content) {
+    	if (content == null || context == null) return;
+        
+        File dir = getLogDir();
+        if (dir == null) return;
+        
+        FileWriter writer = null;
+        try {
+            File file = new File(dir, "crash_report_current.txt");
+            writer = new FileWriter(file, false); // 覆盖
+            writer.write(content);
+            writer.flush();
+        } catch (IOException e) {
+            android.util.Log.e(TAG, "保存当前崩溃日志失败", e);
+        } finally {
             if (writer != null) {
                 try {
                     writer.close();

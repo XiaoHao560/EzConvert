@@ -100,5 +100,10 @@
             android:exported="false"
             android:label="预览"
             android:configChanges="orientation|screenSize|smallestScreenSize|keyboardHidden" />
+            
+        <activity
+            android:name=".ui.CrashActivity"
+            android:exported="false"
+            android:label="应用崩溃界面" />
     </application>
 </manifest>
