@@ -38,6 +38,7 @@
     <string name="notification_permission_go_settings">去开启</string>
     <string name="notification_permission_later">暂不</string>
 
+    <string name="tooltip_exit">退出应用</string>
     <string name="tooltip_back">返回上一层级</string>
     <string name="tooltip_back_home">返回主界面</string>
     <string name="tooltip_menu">菜单</string>
