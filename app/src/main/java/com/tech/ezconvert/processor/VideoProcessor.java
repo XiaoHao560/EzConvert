@@ -2,810 +2,96 @@ package com.tech.ezconvert.processor;
 
 import android.content.Context;
 import com.tech.ezconvert.utils.CacheManager;
-import com.tech.ezconvert.utils.Log;
-import com.tech.ezconvert.ui.TranscodeSettingsActivity;
+import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.FFmpegUtil;
+import com.tech.ezconvert.utils.Log;
+import com.tech.ezconvert.utils.ParameterData;
 import java.io.File;
 import java.util.ArrayList;
 
+/**
+ * 视频处理器
+ * 所有视频处理任务统一通过 processVideo() 方法，使用 ParameterData 传递参数
+ */
 public class VideoProcessor {
-    
-    // 包装回调，确保缓存文件被清理
-    private static FFmpegUtil.FFmpegCallback wrapCallback(final FFmpegUtil.FFmpegCallback original, 
-                                                         final String cachePath, 
-                                                         final boolean isFromCache) {
-        if (!isFromCache || original == null) return original;
-        
-        return new FFmpegUtil.FFmpegCallback() {
-            @Override
-            public void onProgress(int progress, long time) {
-                original.onProgress(progress, time);
-            }
-            
-            @Override
-            public void onComplete(boolean success, String message) {
-                CacheManager.releaseCacheFile(cachePath);
-                original.onComplete(success, message);
-            }
-            
-            @Override
-            public void onError(String error) {
-                CacheManager.releaseCacheFile(cachePath);
-                original.onError(error);
-            }
-        };
-    }
-    
+
+    private static final String TAG = "VideoProcessor";
+
     /**
-     * 向上取整: 19180 -> 20000, 23456 -> 24000, 5000 -> 5000
-     * @param value 原始值
-     * @param step  取整步长
+     * 统一视频处理入口
+     * inputPath 输入文件路径
+     * outputPathBase 输出路径基础（不含扩展名）
+     * params 参数对象
+     * context 上下文
+     * callback 回调
      */
-    private static int roundUpToNearest(int value, int step) {
-        if (value <= 0) return step;
-        return ((value + step - 1) / step) * step;
-    }
-    
-    /**
-     * 根据质量选项获取目标视频码率(kbps)
-     * @param qualityOption 质量选项文本
-     * @param inputPath     输入文件路径(仅在"自动"时使用)
-     * @return 目标码率(kbps)
-     */
-    private static int getTargetBitrate(String qualityOption, String inputPath) {
-        if ("自动".equals(qualityOption)) {
-            int inputBitrate = getVideoBitrate(inputPath);
-            return roundUpToNearest(inputBitrate, 1000);
-        }
-        return getBitrateForQuality(getQualityValue(qualityOption));
-    }
-    
-    private static int getQualityValue(String qualityStr) {
-        switch (qualityStr) {
-            case "自动": return -1; // 自动模式
-            case "高质量": return 90;
-            case "中等质量": return 70;
-            case "低质量": return 50;
-            default: return 70;
-        }
-    }
-    
-    /**
-     * 根据质量获取软件编码CRF值
-     */
-    private static int getCrfForQuality(String qualityOption) {
-        switch (qualityOption) {
-            case "高质量": return 18;
-            case "中等质量": return 23;
-            case "低质量": return 28;
-            case "自动":
-                // 自动模式下软件编码用高CRF
-                return 18;
-            default: return 23;
-        }
-    }
-    
-    // 视频转换
-    public static void convertVideo(String inputPath, String outputPath, 
-                                   String format, int volume, String qualityOption,
-                                   FFmpegUtil.FFmpegCallback callback, Context context) {
-        
-        // 检查并准备文件路径
-        CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath);
-        if (accessResult == null) {
-            callback.onError("无法访问输入文件，可能已被删除或无权限");
-            return;
-        }
-        
-        final String usablePath = accessResult.usablePath;
-        final boolean isFromCache = accessResult.isFromCache;
-        FFmpegUtil.FFmpegCallback wrappedCallback = wrapCallback(callback, usablePath, isFromCache);
-        
-        boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
-        
-        /**
-         * 对 MKV 格式，启用硬件加速时采用两步转换方案
-         * 一：硬件加速生成 MP4 中间文件
-         * 二：转封装/转码为目标格式
-         */
-        if (hardwareAcceleration && (format.equalsIgnoreCase("mkv"))) {
-            convertVideoTwoStep(usablePath, outputPath, format, volume, qualityOption, wrappedCallback, context);
-        } else {
-            convertVideoDirect(usablePath, outputPath, format, volume, qualityOption, wrappedCallback, context);
-        }
-    }
-    
-    // 两步转换：硬件加速 MP4 -> 转封装 MKV 
-    // 用于 MKV 格式，解决 Android 平台缺少 MKV 硬件编码器的问题
-    private static void convertVideoTwoStep(String inputPath, String outputPath, 
-                                           String format, int volume, String qualityOption,
-                                           FFmpegUtil.FFmpegCallback callback, Context context) {
-        
-        String fileName = new File(inputPath).getName();
-        
-        // 生成临时 MP4 文件（硬件加速）
-        String tempMp4Path = context.getCacheDir() + "/temp_hw_" + System.currentTimeMillis() + ".mp4";
-        String finalOutputPath = outputPath + "." + format.toLowerCase();
-        
-        // 根据质量选项获取目标码率
-        int targetBitrate = getTargetBitrate(qualityOption, inputPath);
-        
-        // 硬件加速转换为 h264_media/AAC 的 MP4
-        ArrayList<String> step1Cmd = new ArrayList<>();
-        step1Cmd.add("-i"); step1Cmd.add(inputPath);
-        step1Cmd.add("-c:v"); step1Cmd.add("h264_mediacodec");
-        step1Cmd.add("-b:v"); step1Cmd.add(targetBitrate + "k");
-        step1Cmd.add("-c:a"); step1Cmd.add("aac");
-        step1Cmd.add("-b:a"); step1Cmd.add("128k");
-        step1Cmd.add("-movflags"); step1Cmd.add("+faststart");
-        
-        if (TranscodeSettingsActivity.isMultithreadingEnabled(context)) {
-            step1Cmd.add("-threads"); step1Cmd.add("0");
-        }
-        if (volume != 100) {
-            step1Cmd.add("-af"); step1Cmd.add("volume=" + (volume / 100.0));
-        }
-        step1Cmd.add("-y"); step1Cmd.add(tempMp4Path);
-        
-        FFmpegUtil.executeCommand(step1Cmd.toArray(new String[0]), new FFmpegUtil.FFmpegCallback() {
-            @Override
-            public void onProgress(int progress, long time) {
-                // 第一步贡献 0-50% 的进度条
-                callback.onProgress(progress / 2, time);
-            }
-            
-            @Override
-            public void onComplete(boolean success, String message) {
-                if (success) {
-                    // 从 MP4 转换到目标格式
-                    ArrayList<String> step2Cmd = new ArrayList<>();
-                    step2Cmd.add("-i"); step2Cmd.add(tempMp4Path);
-                    
-                    if (format.equalsIgnoreCase("mkv")) {
-                        step2Cmd.add("-c:v"); step2Cmd.add("copy");
-                        step2Cmd.add("-c:a"); step2Cmd.add("copy");
-                        step2Cmd.add("-f"); step2Cmd.add("matroska");
-                    }
-                    
-                    if (TranscodeSettingsActivity.isMultithreadingEnabled(context)) {
-                        step2Cmd.add("-threads"); step2Cmd.add("0");
-                    }
-                    step2Cmd.add("-y"); step2Cmd.add(finalOutputPath);
-                    
-                    FFmpegUtil.executeCommand(step2Cmd.toArray(new String[0]), new FFmpegUtil.FFmpegCallback() {
-                        @Override
-                        public void onProgress(int progress, long time) {
-                            // 第二步贡献 50-100% 的进度条
-                            callback.onProgress(50 + (progress / 2), time);
-                        }
-                        
-                        @Override
-                        public void onComplete(boolean success, String message) {
-                            // 清理临时 MP4 文件
-                            if (new File(tempMp4Path).delete()) {
-                                Log.d("VideoProcessor", "已删除临时MP4: " + tempMp4Path);
-                            } else {
-                                Log.w("VideoProcessor", "删除临时MP4失败: " + tempMp4Path);
-                            }
-                            new File(tempMp4Path).delete();
-                            
-                            if (success) {
-                                callback.onComplete(true, "转换成功: " + message);
-                            } else {
-                                callback.onComplete(false, "第二步封装失败: " + message);
-                            }
-                        }
-                        
-                        @Override
-                        public void onError(String error) {
-                            new File(tempMp4Path).delete();
-                            callback.onError("第二步报错: " + error);
-                        }
-                    }, tempMp4Path, fileName);
-                } else {
-                    callback.onComplete(false, "第一步硬件编码失败: " + message);
-                }
-            }
-            
-            @Override
-            public void onError(String error) {
-                new File(tempMp4Path).delete(); // 清理临时文件
-                callback.onError("第一步硬件编码报错: " + error);
-            }
-        }, inputPath, fileName);
-    }
-    
-    /**
-     * 直接转换方法
-     * 适用于 MP4/MOV/AVI/FLV/GIF 等格式，以及关闭硬件加速时的所有格式
-     */
-    private static void convertVideoDirect(String inputPath, String outputPath, 
-                                          String format, int volume, String qualityOption,
-                                          FFmpegUtil.FFmpegCallback callback, Context context) {
-        
-        String fileName = new File(inputPath).getName();
-        String outputFile = outputPath + "." + getFileExtension(format);
-        
-        boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
-        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
-        
-        Log.d("VideoProcessor", "硬件加速: " + hardwareAcceleration + ", 多线程: " + multithreading + ", 质量: " + qualityOption);
-        
-        // 根据质量选项计算目标码率（硬件加速用）和CRF（软件编码用）
-        int targetBitrate = getTargetBitrate(qualityOption, inputPath);
-        int crf = getCrfForQuality(qualityOption);
-        
-        ArrayList<String> commandList = new ArrayList<>();
-        commandList.add("-i");
-        commandList.add(inputPath);
-        
-        if (multithreading) {
-            commandList.add("-threads");
-            commandList.add("0");
-        }
-        
-        if (volume != 100) {
-            double volumeFactor = volume / 100.0;
-            commandList.add("-af");
-            commandList.add("volume=" + volumeFactor);
-        }
-        
-        switch (format.toLowerCase()) {
-            // mp4,mov 格式如果启用了硬件编解码则使用 h264_media
-            //            没有启用则使用 libx264
-            case "mp4":
-            case "mov":
-                if (hardwareAcceleration) {
-                    commandList.add("-c:v");
-                    commandList.add("h264_mediacodec");
-                    commandList.add("-b:v");
-                    commandList.add(targetBitrate + "k");
-                } else {
-                    commandList.add("-c:v");
-                    commandList.add("libx264");
-                    commandList.add("-preset");
-                    commandList.add("medium");
-                    commandList.add("-crf");
-                    commandList.add(String.valueOf(crf));
-                }
-                commandList.add("-c:a");
-                commandList.add("aac");
-                commandList.add("-b:a");
-                commandList.add("128k");
-                commandList.add("-movflags");
-                commandList.add("+faststart");
-                break;
-                
-            case "mkv":
-                // mkv 目前只有软件解码方案 libx265
-                // 当硬件加速启用时，此方法不会被调用（由两步转换处理）
-                commandList.add("-c:v");
-                commandList.add("libx265");
-                commandList.add("-preset");
-                commandList.add("medium");
-                commandList.add("-crf");
-                commandList.add(String.valueOf(crf + 5)); // x265 略高于 x264
-                commandList.add("-c:a");
-                commandList.add("aac");
-                commandList.add("-b:a");
-                commandList.add("128k");
-                break;
-                
-            case "webm":
-                // webm 目前只有软件解码方案 libvpx-vp9
-                commandList.add("-c:v");
-                commandList.add("libvpx-vp9");
-                commandList.add("-b:v");
-                commandList.add(targetBitrate + "k");
-                commandList.add("-c:a");
-                commandList.add("libopus");
-                commandList.add("-b:a");
-                commandList.add("128k");
-                break;
-                
-            case "avi":
-            // avi 如果启用了硬件编解码则使用 h264_media
-            //     没有启用则使用 mpeg4
-                if (hardwareAcceleration) {
-                    commandList.add("-c:v");
-                    commandList.add("h264_mediacodec");
-                    commandList.add("-b:v");
-                    commandList.add(targetBitrate + "k");
-                } else {
-                    commandList.add("-c:v");
-                    commandList.add("mpeg4");
-                    commandList.add("-q:v");
-                    commandList.add("5");
-                }
-                commandList.add("-c:a");
-                commandList.add("libmp3lame");
-                commandList.add("-b:a");
-                commandList.add("192k");
-                break;
-                
-            case "flv":
-            // flv 如果启用了硬件编解码则使用 h264_media
-            //     没有启用则使用 libx264
-                if (hardwareAcceleration) {
-                    commandList.add("-c:v");
-                    commandList.add("h264_mediacodec");
-                    commandList.add("-b:v");
-                    commandList.add(targetBitrate + "k");
-                } else {
-                    commandList.add("-c:v");
-                    commandList.add("libx264");
-                    commandList.add("-preset");
-                    commandList.add("fast");
-                }
-                commandList.add("-c:a");
-                commandList.add("aac");
-                commandList.add("-b:a");
-                commandList.add("128k");
-                break;
-                
-            case "gif":
-            // gif 没有硬件编解码
-                commandList.add("-vf");
-                commandList.add("fps=10,scale=480:-1:flags=lanczos");
-                commandList.add("-pix_fmt");
-                commandList.add("rgb8");
-                commandList.add("-loop");
-                commandList.add("0");
-                break;
-                
-            default:
-            // 默认方案如果启用了硬件编解码则使用 h264_media
-            //        没有启用则使用 libx264
-                if (hardwareAcceleration) {
-                    commandList.add("-c:v");
-                    commandList.add("h264_mediacodec");
-                    commandList.add("-b:v");
-                    commandList.add(targetBitrate + "k");
-                } else {
-                    commandList.add("-c:v");
-                    commandList.add("libx264");
-                    commandList.add("-preset");
-                    commandList.add("medium");
-                    commandList.add("-crf");
-                    commandList.add(String.valueOf(crf));
-                }
-                commandList.add("-c:a");
-                commandList.add("aac");
-                commandList.add("-b:a");
-                commandList.add("128k");
-        }
-        
-        commandList.add("-y");
-        commandList.add(outputFile);
-        
-        String[] command = commandList.toArray(new String[0]);
-        Log.d("VideoProcessor", "转换命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, callback, inputPath, fileName);
-    }
-    
-    // 视频压缩
-    public static void compressVideo(String inputPath, String outputPath, 
-                                    int quality, int volume, FFmpegUtil.FFmpegCallback callback, Context context) {
-        
+    public static void processVideo(String inputPath, String outputPathBase,
+                                    ParameterData params, Context context,
+                                    FFmpegUtil.FFmpegCallback callback) {
         // 检查并准备文件路径
         CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath);
         if (accessResult == null) {
             callback.onError("无法访问输入文件");
             return;
         }
-        
+
         final String usablePath = accessResult.usablePath;
         final boolean isFromCache = accessResult.isFromCache;
         FFmpegUtil.FFmpegCallback wrappedCallback = wrapCallback(callback, usablePath, isFromCache);
-        
-        // 从原始路径获取文件名用于日志
+
         String fileName = new File(inputPath).getName();
-        
-        // quality: 0-100, 0最高质量
-        int crf = 51 - (quality * 51 / 100);
-        if (crf < 18) crf = 18;
-        if (crf > 51) crf = 51;
-        
-        String outputFile = outputPath + "_compressed.mp4";
-        
-        boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
-        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
-        
-        ArrayList<String> commandList = new ArrayList<>();
-        commandList.add("-i");
-        commandList.add(usablePath);
-        
-        if (multithreading) {
-            commandList.add("-threads");
-            commandList.add("0");
-        }
-        
-        if (volume != 100) {
-            double volumeFactor = volume / 100.0;
-            commandList.add("-af");
-            commandList.add("volume=" + volumeFactor);
-        }
-        
-        if (hardwareAcceleration) {
-            commandList.add("-c:v");
-            commandList.add("h264_mediacodec");
-            commandList.add("-b:v");
-            commandList.add(getBitrateForQuality(quality) + "k");
-        } else {
-            commandList.add("-c:v");
-            commandList.add("libx264");
-            commandList.add("-crf");
-            commandList.add(String.valueOf(crf));
-            commandList.add("-preset");
-            commandList.add("medium");
-        }
-        
-        commandList.add("-c:a");
-        commandList.add("aac");
-        commandList.add("-movflags");
-        commandList.add("+faststart");
-        commandList.add("-y");
-        commandList.add(outputFile);
-        
-        String[] command = commandList.toArray(new String[0]);
-        Log.d("VideoProcessor", "压缩命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, wrappedCallback, usablePath, fileName);
-    }
-    
-    // 视频裁剪
-    public static void cutVideo(String inputPath, String outputPath,
-                               String startTime, String duration, int volume,
-                               FFmpegUtil.FFmpegCallback callback, Context context) {
-        
-        // 检查并准备文件路径
-        CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath);
-        if (accessResult == null) {
-            callback.onError("无法访问输入文件");
-            return;
-        }
-        
-        final String usablePath = accessResult.usablePath;
-        final boolean isFromCache = accessResult.isFromCache;
-        FFmpegUtil.FFmpegCallback wrappedCallback = wrapCallback(callback, usablePath, isFromCache);
-        
-        String fileName = new File(inputPath).getName();
-        
-        boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
-        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
-        
-        ArrayList<String> commandList = new ArrayList<>();
-        commandList.add("-i");
-        commandList.add(usablePath);
-        
-        if (multithreading) {
-            commandList.add("-threads");
-            commandList.add("0");
-        }
-        
-        if (volume != 100) {
-            double volumeFactor = volume / 100.0;
-            commandList.add("-af");
-            commandList.add("volume=" + volumeFactor);
-        }
-        
-        commandList.add("-ss");
-        commandList.add(startTime);
-        commandList.add("-t");
-        commandList.add(duration);
-        
-        if (hardwareAcceleration) {
-            commandList.add("-c:v");
-            commandList.add("h264_mediacodec");
-            commandList.add("-b:v");
-            commandList.add("2000k");
-        } else {
-            commandList.add("-c:v");
-            commandList.add("libx264");
-            commandList.add("-preset");
-            commandList.add("fast");
-        }
-        
-        commandList.add("-c:a");
-        commandList.add("aac");
-        commandList.add("-avoid_negative_ts");
-        commandList.add("make_zero");
-        commandList.add("-y");
-        commandList.add(outputPath);
-        
-        String[] command = commandList.toArray(new String[0]);
-        Log.d("VideoProcessor", "裁剪命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, wrappedCallback, usablePath, fileName);
-    }
-    
-    // 添加水印
-    public static void addWatermark(String inputPath, String outputPath,
-                                   String watermarkPath, String position,
-                                   FFmpegUtil.FFmpegCallback callback, Context context) {
-        
-        // 检查并准备主视频文件路径
-        CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath);
-        if (accessResult == null) {
-            callback.onError("无法访问输入视频文件");
-            return;
-        }
-        
-        final String usablePath = accessResult.usablePath;
-        final boolean isFromCache = accessResult.isFromCache;
-        
-        // 检查水印文件路径（水印也需要可访问）
-        CacheManager.AccessResult watermarkResult = CacheManager.prepareFileForProcessing(context, watermarkPath);
-        final String usableWatermarkPath = (watermarkResult != null) ? watermarkResult.usablePath : watermarkPath;
-        final boolean watermarkFromCache = (watermarkResult != null) && watermarkResult.isFromCache;
-        
-        // 包装回调，清理两个可能的缓存
-        FFmpegUtil.FFmpegCallback wrappedCallback = new FFmpegUtil.FFmpegCallback() {
-            @Override
-            public void onProgress(int progress, long time) {
-                callback.onProgress(progress, time);
-            }
-            
-            @Override
-            public void onComplete(boolean success, String message) {
-                if (isFromCache) CacheManager.releaseCacheFile(usablePath);
-                if (watermarkFromCache) CacheManager.releaseCacheFile(usableWatermarkPath);
-                callback.onComplete(success, message);
-            }
-            
-            @Override
-            public void onError(String error) {
-                if (isFromCache) CacheManager.releaseCacheFile(usablePath);
-                if (watermarkFromCache) CacheManager.releaseCacheFile(usableWatermarkPath);
-                callback.onError(error);
-            }
-        };
-        
-        String fileName = new File(inputPath).getName();
-        
-        String overlay;
-        switch (position) {
-            case "top-left":
-                overlay = "10:10";
+        String outputPath = buildOutputPath(outputPathBase, params);
+
+        // 根据任务类型分发
+        switch (params.taskType) {
+            case "convert":
+                executeConvert(usablePath, outputPath, params, context, wrappedCallback, fileName);
                 break;
-            case "top-right":
-                overlay = "main_w-overlay_w-10:10";
+            case "compress":
+                executeCompress(usablePath, outputPath, params, context, wrappedCallback, fileName);
                 break;
-            case "bottom-left":
-                overlay = "10:main_h-overlay_h-10";
+            case "cut_video":
+                executeCutVideo(usablePath, outputPath, params, context, wrappedCallback, fileName);
                 break;
-            case "bottom-right":
-                overlay = "main_w-overlay_w-10:main_h-overlay_h-10";
+            case "screenshot":
+                executeScreenshot(usablePath, outputPath, params, context, wrappedCallback, fileName);
                 break;
-            case "center":
-                overlay = "(main_w-overlay_w)/2:(main_h-overlay_h)/2";
+            case "extract_audio":
+                executeExtractAudio(usablePath, outputPath, params, context, wrappedCallback, fileName);
                 break;
             default:
-                overlay = "10:10";
+                wrappedCallback.onError("不支持的任务类型: " + params.taskType);
         }
-        
-        boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
-        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
-        
-        ArrayList<String> commandList = new ArrayList<>();
-        commandList.add("-i");
-        commandList.add(usablePath);
-        commandList.add("-i");
-        commandList.add(usableWatermarkPath);
-        
-        if (multithreading) {
-            commandList.add("-threads");
-            commandList.add("0");
-        }
-        
-        commandList.add("-filter_complex");
-        commandList.add("[1]format=rgba,colorchannelmixer=aa=0.7[wm];[0][wm]overlay=" + overlay);
-        
-        if (hardwareAcceleration) {
-            commandList.add("-c:v");
-            commandList.add("h264_mediacodec");
-            commandList.add("-b:v");
-            commandList.add("2000k");
-        } else {
-            commandList.add("-c:v");
-            commandList.add("libx264");
-            commandList.add("-preset");
-            commandList.add("fast");
-        }
-        
-        commandList.add("-c:a");
-        commandList.add("aac");
-        commandList.add("-y");
-        commandList.add(outputPath);
-        
-        String[] command = commandList.toArray(new String[0]);
-        Log.d("VideoProcessor", "水印命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, wrappedCallback, usablePath, fileName);
     }
-    
-    // 调整视频分辨率
-    public static void resizeVideo(String inputPath, String outputPath,
-                                  int width, int height, FFmpegUtil.FFmpegCallback callback, Context context) {
-        
-        // 检查并准备文件路径
-        CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath);
-        if (accessResult == null) {
-            callback.onError("无法访问输入文件");
-            return;
+
+    // 构建输出文件完整路径 (含扩展名)
+    private static String buildOutputPath(String basePath, ParameterData params) {
+        String ext;
+        switch (params.taskType) {
+            case "convert":
+                ext = getFileExtension(params.outputFormat);
+                break;
+            case "compress":
+                ext = "mp4";
+                break;
+            case "cut_video":
+                ext = "mp4";
+                break;
+            case "screenshot":
+                ext = params.screenshotFormat;
+                break;
+            case "extract_audio":
+                ext = "mp3"; // 提取音频固定输出 MP3
+                break;
+            default:
+                ext = "mp4";
         }
-        
-        final String usablePath = accessResult.usablePath;
-        final boolean isFromCache = accessResult.isFromCache;
-        FFmpegUtil.FFmpegCallback wrappedCallback = wrapCallback(callback, usablePath, isFromCache);
-        
-        String fileName = new File(inputPath).getName();
-        String scaleFilter = "scale=" + width + ":" + height + ":flags=lanczos";
-        
-        boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
-        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
-        
-        ArrayList<String> commandList = new ArrayList<>();
-        commandList.add("-i");
-        commandList.add(usablePath);
-        
-        if (multithreading) {
-            commandList.add("-threads");
-            commandList.add("0");
-        }
-        
-        commandList.add("-vf");
-        commandList.add(scaleFilter);
-        
-        if (hardwareAcceleration) {
-            commandList.add("-c:v");
-            commandList.add("h264_mediacodec");
-            commandList.add("-b:v");
-            commandList.add("1500k");
-        } else {
-            commandList.add("-c:v");
-            commandList.add("libx264");
-            commandList.add("-preset");
-            commandList.add("fast");
-        }
-        
-        commandList.add("-c:a");
-        commandList.add("aac");
-        commandList.add("-y");
-        commandList.add(outputPath);
-        
-        String[] command = commandList.toArray(new String[0]);
-        Log.d("VideoProcessor", "调整分辨率命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, wrappedCallback, usablePath, fileName);
+        return basePath + "." + ext;
     }
-    
-    // 提取视频帧（截图）
-    public static void extractFrame(String inputPath, String outputPath,
-                                   String timestamp, FFmpegUtil.FFmpegCallback callback, Context context) {
-        
-        // 检查并准备文件路径
-        CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath);
-        if (accessResult == null) {
-            callback.onError("无法访问输入文件");
-            return;
-        }
-        
-        final String usablePath = accessResult.usablePath;
-        final boolean isFromCache = accessResult.isFromCache;
-        FFmpegUtil.FFmpegCallback wrappedCallback = wrapCallback(callback, usablePath, isFromCache);
-        
-        String fileName = new File(inputPath).getName();
-        
-        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
-        
-        ArrayList<String> commandList = new ArrayList<>();
-        commandList.add("-i");
-        commandList.add(usablePath);
-        
-        if (multithreading) {
-            commandList.add("-threads");
-            commandList.add("0");
-        }
-        
-        commandList.add("-ss");
-        commandList.add(timestamp);
-        commandList.add("-vframes");
-        commandList.add("1");
-        commandList.add("-q:v");
-        commandList.add("2");
-        commandList.add("-y");
-        commandList.add(outputPath);
-        
-        String[] command = commandList.toArray(new String[0]);
-        Log.d("VideoProcessor", "截图命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, wrappedCallback, usablePath, fileName);
-    }
-    
-    // 合并视频和音频
-    public static void mergeVideoAudio(String videoPath, String audioPath,
-                                      String outputPath, FFmpegUtil.FFmpegCallback callback, Context context) {
-        
-        // 检查并准备视频文件路径
-        CacheManager.AccessResult videoResult = CacheManager.prepareFileForProcessing(context, videoPath);
-        if (videoResult == null) {
-            callback.onError("无法访问视频文件");
-            return;
-        }
-        
-        // 检查并准备音频文件路径
-        CacheManager.AccessResult audioResult = CacheManager.prepareFileForProcessing(context, audioPath);
-        if (audioResult == null) {
-            callback.onError("无法访问音频文件");
-            return;
-        }
-        
-        final String usableVideoPath = videoResult.usablePath;
-        final String usableAudioPath = audioResult.usablePath;
-        final boolean videoFromCache = videoResult.isFromCache;
-        final boolean audioFromCache = audioResult.isFromCache;
-        
-        // 包装回调，清理两个可能的缓存
-        FFmpegUtil.FFmpegCallback wrappedCallback = new FFmpegUtil.FFmpegCallback() {
-            @Override
-            public void onProgress(int progress, long time) {
-                callback.onProgress(progress, time);
-            }
-            
-            @Override
-            public void onComplete(boolean success, String message) {
-                if (videoFromCache) CacheManager.releaseCacheFile(usableVideoPath);
-                if (audioFromCache) CacheManager.releaseCacheFile(usableAudioPath);
-                callback.onComplete(success, message);
-            }
-            
-            @Override
-            public void onError(String error) {
-                if (videoFromCache) CacheManager.releaseCacheFile(usableVideoPath);
-                if (audioFromCache) CacheManager.releaseCacheFile(usableAudioPath);
-                callback.onError(error);
-            }
-        };
-        
-        String fileName = new File(videoPath).getName();
-        
-        boolean hardwareAcceleration = TranscodeSettingsActivity.isHardwareAccelerationEnabled(context);
-        boolean multithreading = TranscodeSettingsActivity.isMultithreadingEnabled(context);
-        
-        ArrayList<String> commandList = new ArrayList<>();
-        commandList.add("-i");
-        commandList.add(usableVideoPath);
-        commandList.add("-i");
-        commandList.add(usableAudioPath);
-        
-        if (multithreading) {
-            commandList.add("-threads");
-            commandList.add("0");
-        }
-        
-        if (hardwareAcceleration) {
-            commandList.add("-c:v");
-            commandList.add("h264_mediacodec");
-            commandList.add("-b:v");
-            commandList.add("2000k");
-        } else {
-            commandList.add("-c:v");
-            commandList.add("copy");
-        }
-        
-        commandList.add("-c:a");
-        commandList.add("aac");
-        commandList.add("-map");
-        commandList.add("0:v:0");
-        commandList.add("-map");
-        commandList.add("1:a:0");
-        commandList.add("-shortest");
-        commandList.add("-y");
-        commandList.add(outputPath);
-        
-        String[] command = commandList.toArray(new String[0]);
-        Log.d("VideoProcessor", "合并音视频命令: " + String.join(" ", command));
-        FFmpegUtil.executeCommand(command, wrappedCallback, usableVideoPath, fileName);
-    }
-    
-    // 获取文件扩展名
+
+    // 获取视频文件扩展名 (根据格式)
     private static String getFileExtension(String format) {
+        if (format == null) return "mp4";
         switch (format.toLowerCase()) {
             case "mp4": return "mp4";
             case "mov": return "mov";
@@ -817,43 +103,267 @@ public class VideoProcessor {
             default: return "mp4";
         }
     }
-    
-    // 根据质量获取比特率
-    private static int getBitrateForQuality(int quality) {
-        if (quality >= 90) return 4000; // 高质量
-        if (quality >= 70) return 2000; // 中等质量
-        return 1000; // 低质量
+
+    // 默认音频编码器 (用于提取音频)
+    private static String getDefaultAudioCodec(String format) {
+        if (format == null) return "libmp3lame";
+        switch (format.toLowerCase()) {
+            case "mp3": return "libmp3lame";
+            case "aac": return "aac";
+            case "flac": return "flac";
+            case "wav": return "pcm_s16le";
+            case "ogg": return "libvorbis";
+            case "m4a": return "aac";
+            default: return "libmp3lame";
+        }
     }
 
-    // 获取输入视频的码率 (kbps)
-    private static int getVideoBitrate(String inputPath) {
-        try {
-            // 使用 FFprobeKit 获取媒体信息
-            com.arthenica.ffmpegkit.FFprobeSession session = 
-                com.arthenica.ffmpegkit.FFprobeKit.execute("-v quiet -select_streams v:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 \"" + inputPath + "\"");
-            
-            if (session == null) {
-                Log.w("VideoProcessor", "无法创建 FFprobe 会话，使用默认码率");
-                return 2000;
+    // 包装回调，确保缓存文件被清理
+    private static FFmpegUtil.FFmpegCallback wrapCallback(final FFmpegUtil.FFmpegCallback original,
+                                                         final String cachePath,
+                                                         final boolean isFromCache) {
+        if (!isFromCache || original == null) return original;
+        return new FFmpegUtil.FFmpegCallback() {
+            @Override
+            public void onProgress(int progress, long time) {
+                original.onProgress(progress, time);
             }
-            
-            String output = session.getOutput();
-            if (output != null && !output.trim().isEmpty()) {
-                // 输出格式是纯数字
-                String bitrateStr = output.trim();
-                Log.d("VideoProcessor", "检测到输入文件码率: " + bitrateStr + " bps");
-                
-                // 转换为 kbps
-                int bitrateBps = Integer.parseInt(bitrateStr);
-                return Math.max(100, bitrateBps / 1000); // 确保至少 100k
-            } else {
-                Log.w("VideoProcessor", "FFprobe 未返回码率信息，使用默认码率");
+            @Override
+            public void onComplete(boolean success, String message) {
+                CacheManager.releaseCacheFile(cachePath);
+                original.onComplete(success, message);
             }
-        } catch (Exception e) {
-            Log.e("VideoProcessor", "获取输入文件码率失败: " + e.getMessage(), e);
+            @Override
+            public void onError(String error) {
+                CacheManager.releaseCacheFile(cachePath);
+                original.onError(error);
+            }
+        };
+    }
+
+    // 转换视频
+    private static void executeConvert(String inputPath, String outputPath,
+                                       ParameterData params, Context context,
+                                       FFmpegUtil.FFmpegCallback callback, String fileName) {
+        boolean hw = ConfigManager.getInstance(context).isHardwareAccelerationEnabled();
+        boolean mt = ConfigManager.getInstance(context).isMultithreadingEnabled();
+
+        ArrayList<String> cmd = new ArrayList<>();
+        cmd.add("-i");
+        cmd.add(inputPath);
+        if (mt) { cmd.add("-threads"); cmd.add("0"); }
+        if (params.volume != 100) {
+            cmd.add("-af");
+            cmd.add("volume=" + (params.volume / 100.0));
         }
-        
-        // 如果获取失败，返回默认值
-        return 2000;
+
+        // 视频编码器
+        String vCodec = (params.videoCodec != null && !params.videoCodec.isEmpty())
+                ? params.videoCodec
+                : (hw ? "h264_mediacodec" : "libx264");
+        cmd.add("-c:v");
+        cmd.add(vCodec);
+
+        // 视频码率
+        if ("custom".equals(params.videoBitrateMode)) {
+            int val = params.videoBitrateValue;
+            String unit = params.videoBitrateUnit;
+            cmd.add("-b:v");
+            cmd.add(unit.equals("Mbps") ? val + "M" : val + "k");
+        } else {
+            // 原质量：使用 CRF 18
+            cmd.add("-crf");
+            cmd.add("18");
+        }
+
+        // 音频编码器
+        String aCodec = (params.audioCodec != null && !params.audioCodec.isEmpty())
+                ? params.audioCodec
+                : "aac";
+        cmd.add("-c:a");
+        cmd.add(aCodec);
+
+        if ("custom".equals(params.audioBitrateMode)) {
+            cmd.add("-b:a");
+            cmd.add(params.audioBitrateValue + "k");
+        }
+
+        // 容器格式 (非 MP4 需显式指定)
+        String format = params.outputFormat;
+        if (format != null && !"mp4".equals(format) && !"mov".equals(format)) {
+            cmd.add("-f");
+            cmd.add(format);
+        }
+
+        cmd.add("-y");
+        cmd.add(outputPath);
+
+        Log.d(TAG, "转换命令: " + String.join(" ", cmd));
+        FFmpegUtil.executeCommand(cmd.toArray(new String[0]), callback, inputPath, fileName);
+    }
+
+    // 压缩视频
+    private static void executeCompress(String inputPath, String outputPath,
+                                        ParameterData params, Context context,
+                                        FFmpegUtil.FFmpegCallback callback, String fileName) {
+        boolean hw = ConfigManager.getInstance(context).isHardwareAccelerationEnabled();
+        boolean mt = ConfigManager.getInstance(context).isMultithreadingEnabled();
+
+        ArrayList<String> cmd = new ArrayList<>();
+        cmd.add("-i");
+        cmd.add(inputPath);
+        if (mt) { cmd.add("-threads"); cmd.add("0"); }
+        if (params.volume != 100) {
+            cmd.add("-af");
+            cmd.add("volume=" + (params.volume / 100.0));
+        }
+
+        if (hw) {
+            cmd.add("-c:v");
+            cmd.add("h264_mediacodec");
+        } else {
+            cmd.add("-c:v");
+            cmd.add("libx264");
+            cmd.add("-preset");
+            cmd.add("medium");
+        }
+
+        if ("custom".equals(params.videoBitrateMode)) {
+            int val = params.videoBitrateValue;
+            String unit = params.videoBitrateUnit;
+            cmd.add("-b:v");
+            cmd.add(unit.equals("Mbps") ? val + "M" : val + "k");
+        } else {
+            // 原质量：CRF 23（中等压缩）
+            cmd.add("-crf");
+            cmd.add("23");
+        }
+
+        cmd.add("-c:a");
+        cmd.add("aac");
+        cmd.add("-b:a");
+        cmd.add("128k");
+        cmd.add("-movflags");
+        cmd.add("+faststart");
+        cmd.add("-y");
+        cmd.add(outputPath);
+
+        Log.d(TAG, "压缩命令: " + String.join(" ", cmd));
+        FFmpegUtil.executeCommand(cmd.toArray(new String[0]), callback, inputPath, fileName);
+    }
+
+    // 裁剪视频
+    private static void executeCutVideo(String inputPath, String outputPath,
+                                        ParameterData params, Context context,
+                                        FFmpegUtil.FFmpegCallback callback, String fileName) {
+        boolean hw = ConfigManager.getInstance(context).isHardwareAccelerationEnabled();
+        boolean mt = ConfigManager.getInstance(context).isMultithreadingEnabled();
+
+        ArrayList<String> cmd = new ArrayList<>();
+        cmd.add("-i");
+        cmd.add(inputPath);
+        if (mt) { cmd.add("-threads"); cmd.add("0"); }
+        if (params.volume != 100) {
+            cmd.add("-af");
+            cmd.add("volume=" + (params.volume / 100.0));
+        }
+        cmd.add("-ss");
+        cmd.add(params.cutStartTime);
+        cmd.add("-t");
+        cmd.add(params.cutDuration);
+
+        if (hw) {
+            cmd.add("-c:v");
+            cmd.add("h264_mediacodec");
+        } else {
+            cmd.add("-c:v");
+            cmd.add("libx264");
+            cmd.add("-preset");
+            cmd.add("fast");
+        }
+        cmd.add("-c:a");
+        cmd.add("aac");
+        cmd.add("-avoid_negative_ts");
+        cmd.add("make_zero");
+        cmd.add("-y");
+        cmd.add(outputPath);
+
+        Log.d(TAG, "裁剪命令: " + String.join(" ", cmd));
+        FFmpegUtil.executeCommand(cmd.toArray(new String[0]), callback, inputPath, fileName);
+    }
+
+    // 视频截图
+    private static void executeScreenshot(String inputPath, String outputPath,
+                                          ParameterData params, Context context,
+                                          FFmpegUtil.FFmpegCallback callback, String fileName) {
+        boolean mt = ConfigManager.getInstance(context).isMultithreadingEnabled();
+
+        ArrayList<String> cmd = new ArrayList<>();
+        cmd.add("-i");
+        cmd.add(inputPath);
+        if (mt) { cmd.add("-threads"); cmd.add("0"); }
+        cmd.add("-ss");
+        cmd.add(params.cutStartTime);
+        cmd.add("-vframes");
+        cmd.add("1");
+
+        if ("jpeg".equals(params.screenshotFormat)) {
+            cmd.add("-q:v");
+            cmd.add(String.valueOf(params.screenshotQuality));
+        }
+
+        String resolution = params.screenshotResolution;
+        if (resolution != null && !resolution.equals("original") && !resolution.isEmpty()) {
+            cmd.add("-vf");
+            cmd.add("scale=" + resolution.replace("x", ":"));
+        }
+
+        cmd.add("-y");
+        cmd.add(outputPath);
+
+        Log.d(TAG, "截图命令: " + String.join(" ", cmd));
+        FFmpegUtil.executeCommand(cmd.toArray(new String[0]), callback, inputPath, fileName);
+    }
+
+    // 从视频提取音频
+    private static void executeExtractAudio(String inputPath, String outputPath,
+                                            ParameterData params, Context context,
+                                            FFmpegUtil.FFmpegCallback callback, String fileName) {
+        boolean mt = ConfigManager.getInstance(context).isMultithreadingEnabled();
+
+        ArrayList<String> cmd = new ArrayList<>();
+        cmd.add("-i");
+        cmd.add(inputPath);
+        if (mt) { cmd.add("-threads"); cmd.add("0"); }
+        if (params.volume != 100) {
+            cmd.add("-af");
+            cmd.add("volume=" + (params.volume / 100.0));
+        }
+        cmd.add("-vn");
+
+        // 音频编码器
+        String aCodec = (params.audioCodec != null && !params.audioCodec.isEmpty())
+                ? params.audioCodec
+                : getDefaultAudioCodec(params.outputFormat);
+        cmd.add("-c:a");
+        cmd.add(aCodec);
+
+        if ("custom".equals(params.audioBitrateMode)) {
+            cmd.add("-b:a");
+            cmd.add(params.audioBitrateValue + "k");
+        }
+
+        // 输出格式默认为 mp3，如果指定了其他格式则使用
+        String format = params.outputFormat != null ? params.outputFormat : "mp3";
+        if (!format.equals("mp3") && !format.equals("wav")) {
+            cmd.add("-f");
+            cmd.add(format);
+        }
+
+        cmd.add("-y");
+        cmd.add(outputPath);
+
+        Log.d(TAG, "提取音频命令: " + String.join(" ", cmd));
+        FFmpegUtil.executeCommand(cmd.toArray(new String[0]), callback, inputPath, fileName);
     }
 }
