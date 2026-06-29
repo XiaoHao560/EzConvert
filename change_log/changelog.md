@@ -15,6 +15,7 @@
 
 ### 变更
 - 重构 `视频/音频 任务` UI/UX
+- 重构 FFmpeg 任务执行逻辑，使用 WorkManager 执行 FFmpeg 任务
 
 ### 移除
 - 移除 FFmpegKit 16kb 支持 (issue #166)

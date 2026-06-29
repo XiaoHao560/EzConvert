@@ -244,6 +244,8 @@ dependencies {
     implementation libs.androidx.material
     implementation libs.androidx.constraintlayout
     implementation libs.androidx.core.splashscreen
+    implementation libs.androidx.work.runtime
+    implementation libs.androidx.concurrent.futures
     
     // player
     implementation libs.androidx.media3.exoplayer
