@@ -12,6 +12,7 @@ import java.io.File;
  * 音频处理器
  * 命令生成逻辑已提取到 FfmpegCommandBuilder，本类保留向后兼容的同步执行接口
  */
+@Deprecated
 public class AudioProcessor {
 
     private static final String TAG = "AudioProcessor";
