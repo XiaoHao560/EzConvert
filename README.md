@@ -103,12 +103,12 @@ This project follows the **Semantic Versioning (SemVer)** specification for vers
 - [x] Settings
 - [x] Media file metadata display
 - [x] Theme settings
+- [x] Custom conversion quality
+- [x] Individual quality parameter adjustment
 - [ ] Multi-language support
 - [ ] Custom filename feature
 - [ ] Custom UI colors
-- [ ] Custom conversion quality
 - [ ] Support for more media formats
-- [ ] Individual quality parameter adjustment
 - [ ] Audio fade in/fade out
 - [ ] Video watermarking
 - [ ] Merge video and audio
