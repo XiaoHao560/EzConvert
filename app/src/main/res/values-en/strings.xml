@@ -1,0 +1,546 @@
+<resources>
+    <string name="app_name">EzConvert</string>
+    <string name="app_title">EzConvert Media Converter</string>
+    <string name="settings_title">App Settings</string>
+    <string name="transcode_settings_title">Transcoding Settings</string>
+    <string name="more_settings_title">General Settings</string>
+    <string name="log_settings_title">Log Settings</string>
+
+    <string name="unknown">Unknown</string>
+    <string name="none">None</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_cancel_dialog">Cancel</string>
+    <string name="btn_confirm_export">Confirm Export</string>
+    <string name="btn_save">Save</string>
+    <string name="dialog_close">Close</string>
+    <string name="update_dialog_close">Close</string>
+    <string name="btn_delete">Delete</string>
+    <string name="btn_reset">Reset</string>
+    <string name="btn_migrate">Migrate</string>
+    <string name="btn_skip">Skip</string>
+    <string name="btn_view_config_path">View Config Path</string>
+    <string name="btn_modify_path">Modify Path</string>
+    <string name="btn_save_settings">Save Settings</string>
+    <string name="btn_confirm_cancel">Confirm Cancel</string>
+    <string name="btn_continue_process">Continue Processing</string>
+    <string name="btn_cancel_ffmpeg">Cancel Operation</string>
+
+    <string name="status_select_file">Please select a media file to process</string>
+    <string name="progress_default">Progress: 0%</string>
+    <string name="progress_text">Progress: %1$d%%</string>
+
+    <string name="section_file_selection">File Selection</string>
+    <string name="section_video_processing">Video Processing</string>
+    <string name="section_audio_processing">Audio Processing</string>
+
+    <string name="btn_select_file">Select Media File</string>
+    <string name="btn_convert_format">Convert Format</string>
+    <string name="btn_compress_video">Compress Video</string>
+    <string name="btn_extract_audio">Extract Audio</string>
+    <string name="btn_cut_video">Cut Video</string>
+    <string name="btn_screenshot">Video Screenshot</string>
+    <string name="btn_convert_audio">Convert Audio Format</string>
+    <string name="btn_cut_audio">Cut Audio</string>
+
+    <string name="hint_output_location">Hint: Output files will be saved in the Downloads folder</string>
+
+    <string name="status_checking_permission">Checking permissions…</string>
+    <string name="status_permission_granted">Permission granted, please select a media file</string>
+    <string name="status_need_permission">Media access permission is required to use app features</string>
+    <string name="status_selected_files">Selected %1$d file(s), first: %2$s</string>
+    <string name="status_selected_file">Selected file: %1$s</string>
+    <string name="status_cannot_access_files">Cannot access selected files</string>
+    <string name="status_file_not_exist">Cannot access file or file does not exist</string>
+    <string name="status_all_complete">All files processed, total %1$d</string>
+    <string name="status_set_params">Please set parameters (item %1$d/%2$d)</string>
+    <string name="status_processing">Processing: %1$s (%2$d/%3$d)</string>
+    <string name="status_processing_complete">Processing complete</string>
+    <string name="status_restoring">Restoring task state…</string>
+    <string name="status_cancelled_cleaned">Operation cancelled, generated files cleaned up</string>
+    <string name="status_received_files">Received %1$d/%2$d shared file(s), first: %3$s</string>
+    <string name="status_received_share">Received share: %1$s</string>
+
+    <string name="error_cancelled">Operation cancelled</string>
+    <string name="error_unknown">Unknown error</string>
+    <string name="status_failed">Processing failed: %1$s</string>
+    <string name="status_error">Error: %1$s</string>
+
+    <string name="popup_preview">Preview</string>
+    <string name="popup_settings">Settings</string>
+
+    <string name="folder_output">EzConvert</string>
+    <string name="filename_suffix_converted">_converted_</string>
+    <string name="filename_suffix_share">_share_</string>
+    <string name="picker_title">Select Media Files (multiple allowed)</string>
+    <string name="picker_title_simple">Select Media File</string>
+    <string name="path_internal_storage">Internal Storage/</string>
+    <string name="path_internal_storage_short">Internal Storage</string>
+    <string name="path_sd_card_format">SD Card(%1$s)</string>
+    <string name="path_external_storage">External Storage</string>
+
+    <string name="dialog_title_cancel">Confirm Cancel?</string>
+    <string name="dialog_message_cancel">Are you sure you want to cancel the current operation?\n\nGenerated temporary files will be deleted.</string>
+
+    <string name="current_file_format">Current file: %1$s</string>
+    <string name="current_file_none">Current file: None</string>
+
+    <string name="video_params_title">Video Parameters</string>
+    <string name="hint_output_format">Output Format</string>
+    <string name="hint_video_codec">Video Codec</string>
+    <string name="hint_audio_codec">Audio Codec</string>
+    <string name="video_bitrate_title">Video Bitrate</string>
+    <string name="bitrate_original">Original Quality</string>
+    <string name="bitrate_custom">Custom</string>
+    <string name="default_bitrate_value">2000</string>
+    <string name="default_bitrate_unit">Mbps</string>
+    <string name="audio_bitrate_title">Audio Bitrate</string>
+    <string name="default_audio_bitrate_value">192</string>
+    <string name="bitrate_unit_kbps">Kbps</string>
+
+    <string name="screenshot_params_title">Screenshot Parameters</string>
+    <string name="hint_screenshot_format">Image Format</string>
+    <string name="hint_screenshot_time">Time point (e.g., 00:00:05)</string>
+    <string name="default_screenshot_time">00:00:05</string>
+    <string name="hint_screenshot_resolution">Resolution (e.g., 1920x1080 or original)</string>
+    <string name="default_screenshot_resolution">original</string>
+    <string name="hint_screenshot_quality">JPEG Quality (1-100)</string>
+    <string name="default_screenshot_quality">90</string>
+
+    <string name="cut_params_title">Cut Parameters</string>
+    <string name="hint_cut_start">Start Time (HH:MM:SS)</string>
+    <string name="default_cut_start">00:00:00</string>
+    <string name="hint_cut_duration">Duration (HH:MM:SS)</string>
+    <string name="default_cut_duration">00:00:10</string>
+
+    <string name="volume_title">Volume</string>
+    <string name="volume_min_percent">0%</string>
+    <string name="volume_default_percent">100%</string>
+    <string name="sync_all_files">Sync parameters to all files</string>
+    <string name="reset_default">Reset to Default</string>
+    <string name="start_process">Start Processing</string>
+
+    <string name="task_convert_video">Convert Video</string>
+    <string name="task_compress_video">Compress Video</string>
+    <string name="task_extract_audio">Extract Audio</string>
+    <string name="task_cut_video">Cut Video</string>
+    <string name="task_screenshot">Video Screenshot</string>
+    <string name="task_convert_audio">Convert Audio</string>
+    <string name="task_cut_audio">Cut Audio</string>
+    <string name="task_process_file">Process File</string>
+
+    <string name="preset_quick">Quick Preset</string>
+    <string name="preset_save">Save as Preset</string>
+    <string name="preset_delete">Delete Preset</string>
+    <string name="preset_default_name">Default</string>
+    <string name="toast_preset_saved">Preset saved: %1$s</string>
+    <string name="toast_preset_save_failed">Failed to save preset</string>
+    <string name="toast_preset_delete_default">Cannot delete default preset</string>
+    <string name="dialog_delete_preset_title">Delete Preset</string>
+    <string name="dialog_delete_preset_message">Are you sure you want to delete the preset \"%1$s\"?</string>
+    <string name="toast_preset_deleted">Preset deleted</string>
+    <string name="toast_preset_delete_failed">Delete failed</string>
+    <string name="dialog_reset_title">Reset to Default</string>
+    <string name="dialog_reset_message">All parameters will be reset to factory defaults. Continue?</string>
+    <string name="toast_reset_done">Reset to default parameters</string>
+
+    <string name="toast_select_output_format">Please select an output format</string>
+    <string name="toast_enter_screenshot_time">Please enter a screenshot time point</string>
+    <string name="toast_enter_cut_times">Please enter cut start time and duration</string>
+
+    <string name="current_bitrate_mbps">Current video bitrate: %1$s Mbps</string>
+    <string name="current_bitrate_kbps">Current video bitrate: %1$d Kbps</string>
+
+    <string name="title_preview">Preview</string>
+    <string name="empty_state_description">Select a video or audio file to preview and play</string>
+
+    <string name="toast_file_not_exist_or_inaccessible">Cannot access file or file does not exist</string>
+    <string name="toast_playback_error">Playback error: %s</string>
+
+    <string name="seek_back_format">Seek back %d seconds</string>
+    <string name="seek_forward_format">Seek forward %d seconds</string>
+
+    <string name="tooltip_fullscreen">Fullscreen</string>
+    <string name="tooltip_exit_fullscreen">Exit Fullscreen</string>
+    <string name="tooltip_pause">Pause</string>
+    <string name="tooltip_resume">Resume</string>
+
+    <string name="media_info_file">File: </string>
+    <string name="media_info_format">Format: </string>
+    <string name="media_info_duration">Duration: </string>
+    <string name="media_info_size">Size: </string>
+    <string name="media_info_bitrate">Total bitrate: </string>
+    <string name="media_info_video">Video: </string>
+    <string name="media_info_resolution">Resolution: </string>
+    <string name="media_info_framerate">Source framerate: </string>
+    <string name="media_info_pixel_format">Pixel format: </string>
+    <string name="media_info_audio">Audio: </string>
+    <string name="media_info_samplerate">Sample rate: </string>
+    <string name="media_info_channels">Channels: </string>
+    <string name="media_info_unknown">Unknown</string>
+    <string name="media_info_no_file">No file selected</string>
+    <string name="media_info_cannot_get">Cannot get media info</string>
+    <string name="media_info_parse_failed">Parse failed: </string>
+
+    <string name="media_info_realtime_title">── Real-time Stats ──</string>
+    <string name="media_info_position">Position: </string>
+    <string name="media_info_position_percent"> (%.1f%%)</string>
+    <string name="media_info_buffered_format">Buffered: %.1f s</string>
+    <string name="media_info_speed_format">Speed: %.2fx</string>
+    <string name="media_info_output_format">Output: %dx%d</string>
+    <string name="media_info_fps_format">Framerate: %.1f fps</string>
+    <string name="media_info_dropped_format">Dropped: %d</string>
+    <string name="media_info_skipped_format">Skipped: %d</string>
+
+    <string name="performance_options">Performance Options</string>
+    <string name="hardware_decode">Hardware Codec</string>
+    <string name="hardware_decode_desc">Use GPU acceleration for video processing</string>
+    <string name="multithreading_opt">Multi-threading Optimization</string>
+    <string name="multithreading_desc">Use multi-core CPU for parallel processing</string>
+    <string name="hardware_decode_explain_title">Hardware Codec Info</string>
+    <string name="hardware_decode_explain_content">Using GPU for video encoding/decoding can significantly speed up conversion, but may have compatibility issues on some devices. If conversion fails, try disabling this option.</string>
+    <string name="multithreading_explain_title">Multi-threading Info</string>
+    <string name="multithreading_explain_content">Using multi-core CPU for parallel video processing can improve conversion speed but will increase CPU usage and battery consumption.</string>
+
+    <string name="theme_settings_title">Theme Settings</string>
+    <string name="theme_follow_system">Follow System</string>
+    <string name="theme_follow_system_desc">Automatically switch between light and dark themes based on system settings</string>
+    <string name="theme_light">Light Mode</string>
+    <string name="theme_light_desc">Always use light theme</string>
+    <string name="theme_dark">Dark Mode</string>
+    <string name="theme_dark_desc">Always use dark theme</string>
+    <string name="dynamic_color">Dynamic Color</string>
+    <string name="dynamic_color_desc">Dynamically generate theme colors based on system wallpaper (Material You)</string>
+    <string name="theme_explanation">Choose the app\'s theme display mode. Follow System will automatically switch between light and dark themes according to your device\'s system settings. Dynamic Color requires Android 12 or above and will adjust the app\'s theme colors based on your wallpaper.</string>
+
+    <string name="notification_settings_title">Notification Settings</string>
+    <string name="notification_enable">Enable Notifications</string>
+    <string name="notification_enable_desc">Show conversion progress and completion alerts</string>
+    <string name="notification_explanation">When enabled, progress notifications will be shown during conversion, and success/failure alerts will be shown upon completion. System notification permission is required.</string>
+
+    <string name="update_settings_title">Update Settings</string>
+    <string name="auto_check_update">Auto-check for Updates</string>
+    <string name="auto_check_update_desc">Automatically check for version updates on startup</string>
+    <string name="check_prerelease">Check Prerelease Versions</string>
+    <string name="check_prerelease_desc">Include pre-release versions (may be unstable)</string>
+    <string name="check_frequency_label">Check Frequency</string>
+    <string name="update_explanation">When auto-check is enabled, the app will automatically check for version updates according to your selected frequency. When disabled, you can still manually check for updates on the About page.</string>
+
+    <string name="privacy_data_title">Privacy &amp; Data</string>
+    <string name="firebase_data_collection">Firebase Data Collection</string>
+    <string name="firebase_data_collection_desc">Send anonymous usage and crash reports</string>
+    <string name="firebase_explanation">When enabled, the app will collect anonymous usage statistics and crash reports to help us improve the app experience. This is important to us! It helps us catch issues that might otherwise go unreported. Of course, you can always report issues on GitHub as well.</string>
+
+    <string name="about_title">About</string>
+    <string name="about_app_name">EzConvert</string>
+    <string name="about_version_format">Version %1$s</string>
+    <string name="about_version_default">Version 0.0.0</string>
+    <string name="about_app_description">A simple and easy-to-use audio/video converter supporting format conversion, compression, cutting, and more.</string>
+    <string name="about_developer_info">Developer: XiaoHao\nEmail: wzdmymzyl@163.com</string>
+
+    <string name="about_info_section_title">Information</string>
+    <string name="about_source_code">Source Code</string>
+    <string name="about_source_code_desc">View source code on GitHub</string>
+    <string name="about_feedback">Report Issue</string>
+    <string name="about_feedback_desc">Report issues on GitHub</string>
+    <string name="about_check_update">Check for Updates</string>
+    <string name="about_update_status_default">Tap to check for updates</string>
+    <string name="about_test_update_title">Force Pull Latest Version</string>
+    <string name="about_test_update_desc">Only for testing version updates</string>
+    <string name="about_force_check_update_title">Force Check Update</string>
+    <string name="about_force_check_update_desc">Test official update dialog style</string>
+    <string name="about_developer_options">Developer Options</string>
+    <string name="about_developer_options_desc">Debug tools and advanced settings</string>
+
+    <string name="about_license_title">Open Source License</string>
+    <string name="about_license_content">EzConvert is open source under the GPLv3 license\n© 2026 XiaoHao. All rights reserved.</string>
+    <string name="about_credits_title">Credits</string>
+    <string name="about_credits_content">• FFmpegKit - core audio/video processing library\n• AndroidX - modern Android support libraries\n• Material Components - UI components</string>
+    <string name="about_footer_thanks">Thank you for using EzConvert</string>
+
+    <string name="run_log">Run Log</string>
+    <string name="log_level_verbose">Log Everything</string>
+    <string name="log_level_error">Log Errors Only</string>
+    <string name="view_log">View Log</string>
+    <string name="log_level_title">Log Level</string>
+    <string name="log_card_desc">View app run logs and error information for troubleshooting</string>
+    <string name="log_file_location_hint">Log files are stored in the app data directory and can be used for troubleshooting and debugging.</string>
+
+    <string name="device_info_title">Device Info</string>
+    <string name="tap_to_view_details">Tap to view details</string>
+    <string name="app_info_title">App Info</string>
+    <string name="app_log_title">App Log</string>
+    <string name="ffmpeg_log_title">FFmpeg Log</string>
+    <string name="log_count_default">Total 0 entries</string>
+    <string name="log_count_format">Total %1$d entries</string>
+    <string name="log_section_device_info">=== Device Info ===</string>
+    <string name="log_section_app_info">=== App Info ===</string>
+    <string name="log_section_app_logs">=== App Logs ===</string>
+
+    <string name="device_name_default">Device Name: </string>
+    <string name="device_model_default">Device Model: </string>
+    <string name="android_version_default">Android Version: </string>
+    <string name="system_version_default">System Version: </string>
+    <string name="cpu_arch_default">CPU Architecture: </string>
+    <string name="app_version_name_default">Version Name: </string>
+    <string name="app_version_code_default">Version Code: </string>
+    <string name="app_commit_hash_default">Commit: </string>
+    <string name="device_name_format">Device Name: %1$s</string>
+    <string name="device_model_format">Device Model: %1$s</string>
+    <string name="android_version_format">Android Version: %1$s</string>
+    <string name="system_version_format">System Version: %1$s</string>
+    <string name="cpu_arch_format">CPU Architecture: %1$s</string>
+    <string name="app_version_name_format">Version Name: %1$s</string>
+    <string name="app_version_code_format">Version Code: %1$d</string>
+    <string name="app_commit_hash_format">Commit: %1$s</string>
+    <string name="device_info_summary_format">%1$s | %2$s | v%3$s</string>
+
+    <string name="cd_export_log">Export Log</string>
+    <string name="cd_clear_log">Clear Log</string>
+    <string name="cd_copy_log">Copy Log</string>
+    <string name="hint_save_path">Save Path</string>
+    <string name="tap_to_select_dir">Tap to select save directory</string>
+    <string name="log_filename_format">logs_%1$s.zip</string>
+
+    <string name="dialog_title_export_log">Export Log</string>
+    <string name="dialog_message_export_log">Please select the directory to save log files</string>
+    <string name="dialog_message_export_confirm">Logs will be exported to the following directory:\n\n%1$s\n\nFile format: logs_timestamp.zip</string>
+
+    <string name="crash_title">App Crash</string>
+    <string name="crash_subtitle">Sorry, EzConvert encountered an unexpected error</string>
+    <string name="crash_type_label">Exception Type</string>
+    <string name="crash_message_label">Exception Message</string>
+    <string name="crash_location_label">Crash Location</string>
+    <string name="crash_report_title">Crash Report</string>
+    <string name="crash_restart_app">Restart App</string>
+    <string name="crash_export_logs">Export Logs</string>
+    <string name="crash_no_report">Unable to read crash report</string>
+    <string name="crash_read_failed">Read failed: </string>
+    <string name="crash_log_dir_missing">Log directory does not exist</string>
+    <string name="crash_dir_access_denied">Cannot access selected directory</string>
+    <string name="crash_create_file_failed">Cannot create file</string>
+    <string name="crash_open_stream_failed">Cannot open file output stream</string>
+    <string name="crash_export_success">Log exported to:\n%s</string>
+    <string name="crash_export_failed">Export failed: %s</string>
+
+    <string name="notification_permission_title">Enable Notifications</string>
+    <string name="notification_permission_message">Allow EzConvert to send notifications?\n\nNotifications are used to show conversion progress and completion alerts.</string>
+    <string name="notification_permission_go_settings">Go to Settings</string>
+    <string name="notification_permission_later">Not Now</string>
+
+    <string name="dialog_title_migration">Old Settings Detected</string>
+    <string name="dialog_message_migration">Found settings data from an older version. Would you like to migrate to the new JSON configuration file?\n\nNew location: Android/data/com.tech.ezconvert/files/config/\n\nOld configuration files will be automatically backed up after migration; no manual action is needed.</string>
+
+    <string name="toast_log_verbose">Verbose logging enabled</string>
+    <string name="toast_log_error">Error-only logging enabled</string>
+    <string name="toast_logs_cleared">Logs cleared</string>
+    <string name="toast_logs_copied">Logs copied to clipboard</string>
+    <string name="toast_select_dir_first">Please select a save directory first</string>
+    <string name="toast_log_dir_not_exist">Log directory does not exist</string>
+    <string name="toast_dir_access_denied">Cannot access selected directory</string>
+    <string name="toast_create_file_failed">Cannot create file</string>
+    <string name="toast_open_stream_failed">Cannot open file output stream</string>
+    <string name="toast_export_success">Log exported to:\n%1$s</string>
+    <string name="toast_export_failed">Export failed: %1$s</string>
+
+    <string name="toast_need_permission_select">Media access permission is required to select files</string>
+    <string name="toast_need_permission_full">Media access permission is required to select and process files</string>
+    <string name="toast_selected_files_count">Selected: %1$d file(s)</string>
+    <string name="toast_selected_file_name">Selected: %1$s</string>
+    <string name="toast_grant_permission_first">Please grant permission and select a file first</string>
+    <string name="toast_select_file_first">Please select a file first</string>
+    <string name="toast_grant_storage_permission">Please grant storage permission first</string>
+    <string name="toast_cannot_open_picker">Cannot open file picker</string>
+    <string name="toast_processing_complete">Processing complete! Output files\nsaved in: Download/EzConvert/</string>
+    <string name="toast_all_complete">All files processed!</string>
+    <string name="toast_all_complete_with_path">All files processed!\nOutput saved in: Download/EzConvert/</string>
+    <string name="toast_cancelled">Operation cancelled</string>
+    <string name="toast_delete_temp_failed">Failed to delete temporary files\nPlease delete manually</string>
+    <string name="toast_migration_complete">Settings migration complete</string>
+    <string name="toast_config_path">Config file path: %1$s</string>
+    <string name="toast_no_share_file">No shared file received</string>
+    <string name="toast_cannot_access_share">Cannot access selected shared file</string>
+    <string name="toast_received_files_count">Received: %1$d shared file(s)</string>
+    <string name="toast_partial_loaded">%1$d file(s) loaded, %2$d inaccessible</string>
+    <string name="toast_cannot_parse_share">Cannot parse shared file</string>
+    <string name="toast_received_share_file">Shared file received</string>
+    <string name="toast_settings_saved">Settings saved</string>
+    <string name="toast_dynamic_color_not_supported">Your device does not support Material You dynamic color</string>
+    <string name="toast_notification_permission_denied">Notification permission denied, notifications disabled</string>
+
+    <string name="toast_cannot_open_link">Cannot open link</string>
+    <string name="toast_checking_update">Checking for updates…</string>
+    <string name="toast_license_info">EzConvert is licensed under GPLv3</string>
+    <string name="toast_cannot_get_version">Cannot get latest version info\nThe latest version is a pre-release; please enable the relevant setting.</string>
+
+    <string name="update_network_unavailable">Network unavailable, please check your connection</string>
+    <string name="update_ignored_version">This version update has been ignored</string>
+    <string name="update_dev_version">Current version is a development build</string>
+    <string name="update_latest_prerelease">Already up to date (pre-release)</string>
+    <string name="update_latest">Already up to date</string>
+    <string name="update_newer_than_github">Current version is newer than GitHub release?</string>
+    <string name="update_new_version_found">New version found</string>
+    <string name="update_check_failed">Update check failed: %s</string>
+    <string name="update_no_update_found">No update available</string>
+    <string name="update_dev_version_alt">Development version</string>
+    <string name="update_cannot_open_link">Cannot open link</string>
+    <string name="update_dialog_title_stable">Update details: %s</string>
+    <string name="update_dialog_btn_download">Download</string>
+    <string name="update_dialog_btn_stable_only">Stable only</string>
+    <string name="update_dialog_btn_ignore">Ignore</string>
+    <string name="update_api_failed">API request failed: %d</string>
+    <string name="update_cannot_get_version">Cannot get current version information</string>
+
+    <string name="update_status_checking">Checking…</string>
+    <string name="update_status_dev_version">Development version</string>
+    <string name="update_status_new_version">New version %1$s available</string>
+    <string name="update_status_prerelease_suffix"> (pre-release)</string>
+    <string name="update_status_latest">Up to date</string>
+    <string name="update_status_newer_than_github">Newer than GitHub release?</string>
+    <string name="update_status_check_failed">Check failed</string>
+    <string name="update_status_no_update">No update available</string>
+
+    <string name="update_dialog_title">Update details: %1$s</string>
+    <string name="update_dialog_title_prerelease">Pre-release version: %1$s</string>
+    <string name="update_dialog_no_notes">No release notes</string>
+    <string name="update_dialog_download">Download</string>
+    <string name="update_dialog_stable_only">Stable only</string>
+
+    <string name="test_update_dialog_title">[TEST] %1$s</string>
+    <string name="test_update_dialog_title_prerelease">[TEST] Pre-release version: %1$s</string>
+    <string name="test_update_dialog_title_stable">[TEST] Update details: %1$s</string>
+    <string name="test_update_dialog_header">## ⚠️ TEST UPDATE DIALOG\n\n*For development testing only*\n\n</string>
+    <string name="test_update_dialog_go_github">Test Go to GitHub</string>
+    <string name="test_update_dialog_recheck">Recheck</string>
+
+    <string name="release_notes_dialog_title">Release Notes</string>
+    <string name="release_notes_dialog_btn_ok">OK</string>
+
+    <string name="version_text_default">EzConvert v0.0.0 | FFmpegKit: 6.0-2</string>
+    <string name="version_format">EzConvert v%1$s | FFmpeg: %2$s (Kit %3$s)</string>
+    <string name="version_fallback">EzConvert version unavailable | FFmpegKit: Unknown</string>
+    <string name="settings_version_format">EzConvert v%1$s</string>
+    <string name="settings_version_fallback">EzConvert v0.0.0</string>
+
+    <string name="settings_transcode">Transcoding</string>
+    <string name="settings_transcode_desc">Hardware acceleration, multi-threading, and other performance settings</string>
+    <string name="settings_general">General</string>
+    <string name="settings_general_desc">Interface, language, notifications, and other general settings</string>
+    <string name="settings_about">About</string>
+    <string name="settings_about_desc">Version info, help, and support</string>
+    <string name="settings_footer">EzConvert Settings Mode</string>
+
+    <string name="volume_setting">Volume Setting</string>
+    <string name="volume_normal">Normal (100%)</string>
+    <string name="volume_low">Lower (50%)</string>
+    <string name="volume_high">Higher (150%)</string>
+    <string name="volume_custom">Custom: %d%%</string>
+
+    <string name="check_frequency">Check Frequency</string>
+    <string name="select_frequency">Select frequency</string>
+
+    <string name="tooltip_exit">Exit App</string>
+    <string name="tooltip_back">Go Back</string>
+    <string name="tooltip_back_home">Go to Main Screen</string>
+    <string name="tooltip_menu">Menu</string>
+    <string name="tooltip_mediainfo">Media Info</string>
+    <string name="tooltip_folder">Select File</string>
+
+    <string name="notification_channel_progress_name">Conversion Progress</string>
+    <string name="notification_channel_progress_desc">Shows media file conversion progress</string>
+    <string name="notification_channel_complete_name">Conversion Complete</string>
+    <string name="notification_channel_complete_desc">Notifications for conversion success or failure</string>
+    <string name="notification_progress_title">Converting: %s</string>
+    <string name="notification_progress_text">Progress: %d%%</string>
+    <string name="notification_complete_title_success">Conversion Complete</string>
+    <string name="notification_complete_title_fail">Conversion Failed</string>
+    <string name="notification_complete_text_success">%s converted successfully</string>
+    <string name="notification_complete_text_fail">%s %s</string>
+    <string name="notification_cancelled_title">Operation Cancelled</string>
+    <string name="notification_cancelled_text">Processing of %s has been cancelled</string>
+    <string name="notification_file_placeholder">File</string>
+
+    <string name="codec_h264_hw_best">h264_mediacodec (HW) (Best)</string>
+    <string name="codec_hevc_hw">hevc_mediacodec (HW)</string>
+    <string name="codec_h264_sw">libx264 (SW)</string>
+    <string name="codec_h265_sw">libx265 (SW)</string>
+    <string name="codec_h264_sw_best">libx264 (SW) (Best)</string>
+    <string name="codec_h265_sw_best">libx265 (SW) (Best)</string>
+    <string name="codec_vp9_best">libvpx-vp9 (Best)</string>
+    <string name="codec_vp8">libvpx</string>
+    <string name="codec_mpeg4_best">mpeg4 (Best)</string>
+    <string name="codec_gif_best">gif (Best)</string>
+    <string name="codec_aac_best">aac (Best)</string>
+    <string name="codec_mp3_best">libmp3lame (Best)</string>
+    <string name="codec_opus_best">libopus (Best)</string>
+    <string name="codec_pcm_best">pcm_s16le (Best)</string>
+    <string name="codec_flac_best">flac (Best)</string>
+    <string name="codec_vorbis_best">libvorbis (Best)</string>
+    <string name="codec_default_best">libx264 (SW) (Best)</string>
+    <string name="codec_aac">aac</string>
+    <string name="codec_mp3">libmp3lame</string>
+
+    <string name="format_mp4">mp4</string>
+    <string name="format_mkv">mkv</string>
+    <string name="format_webm">webm</string>
+    <string name="format_avi">avi</string>
+    <string name="format_mov">mov</string>
+    <string name="format_flv">flv</string>
+    <string name="format_gif">gif</string>
+    <string name="format_mp3">mp3</string>
+    <string name="format_wav">wav</string>
+    <string name="format_aac">aac</string>
+    <string name="format_flac_audio">flac</string>
+    <string name="format_ogg">ogg</string>
+    <string name="format_m4a">m4a</string>
+    <string name="format_jpeg">jpeg</string>
+    <string name="format_png">png</string>
+
+    <string name="unit_mbps">Mbps</string>
+    <string name="unit_kbps">Kbps</string>
+    <string name="unit_percent">%</string>
+
+    <string-array name="update_frequency_options">
+        <item>Every 24 hours</item>
+        <item>Every time app opens</item>
+    </string-array>
+
+    <string-array name="video_formats">
+        <item>mp4</item>
+        <item>avi</item>
+        <item>mov</item>
+        <item>mkv</item>
+        <item>flv</item>
+        <item>webm</item>
+        <item>gif</item>
+    </string-array>
+
+    <string-array name="quality_options">
+        <item>Auto</item>
+        <item>High Quality</item>
+        <item>Medium Quality</item>
+        <item>Low Quality</item>
+    </string-array>
+
+    <string-array name="volume_options">
+        <item>Normal (100%)</item>
+        <item>Lower (50%)</item>
+        <item>Higher (150%)</item>
+        <item>Custom</item>
+    </string-array>
+
+    <string-array name="audio_formats">
+        <item>mp3</item>
+        <item>wav</item>
+        <item>aac</item>
+        <item>flac</item>
+        <item>ogg</item>
+        <item>m4a</item>
+    </string-array>
+
+    <string-array name="audio_quality_options">
+        <item>High (320k)</item>
+        <item>Medium (192k)</item>
+        <item>Standard (128k)</item>
+        <item>Low (64k)</item>
+    </string-array>
+</resources>
