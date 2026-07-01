@@ -20,6 +20,7 @@ import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.ConfigManager;
+import com.tech.ezconvert.utils.LanguageManager;
 import com.tech.ezconvert.utils.NotificationHelper;
 import com.tech.ezconvert.utils.ThemeManager;
 import com.tech.ezconvert.utils.ToastUtils;
@@ -53,6 +54,9 @@ public class MoreSettingsActivity extends BaseActivity {
     private RadioButton radioThemeSystem;
     private RadioButton radioThemeLight;
     private RadioButton radioThemeDark;
+    
+    // 语言设置相关视图
+    private MaterialAutoCompleteTextView languageSpinner;
     
     // 动态取色相关视图
     private LinearLayout itemDynamicColor;
@@ -109,6 +113,11 @@ public class MoreSettingsActivity extends BaseActivity {
         radioThemeLight = findViewById(R.id.radio_theme_light);
         radioThemeDark = findViewById(R.id.radio_theme_dark);
         
+        // 语言设置
+        languageSpinner = findViewById(R.id.language_spinner);
+        String[] languageItems = getResources().getStringArray(R.array.language_options);
+        setupSpinner(languageSpinner, languageItems, languageItems[0]);
+        
         // 动态取色开关
         itemDynamicColor = findViewById(R.id.item_dynamic_color);
         dynamicColorSwitch = findViewById(R.id.dynamic_color_switch);
@@ -159,6 +168,15 @@ public class MoreSettingsActivity extends BaseActivity {
         itemThemeLight.setOnClickListener(v -> setThemeMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO));
         itemThemeDark.setOnClickListener(v -> setThemeMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES));
         
+        // 语言选择监听
+        languageSpinner.setOnItemClickListener((parent, view, position, id) -> {
+            String languageCode = mapPositionToLanguage(position);
+            String currentLanguage = LanguageManager.getCurrentLanguage(this);
+            if (!currentLanguage.equals(languageCode)) {
+                LanguageManager.setAppLanguage(this, languageCode);
+            }
+        });
+
         // 动态取色开关监听: 保存后即时刷新当前 Activity
         dynamicColorSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             configManager.setDynamicColorEnabled(isChecked);
@@ -246,6 +264,12 @@ public class MoreSettingsActivity extends BaseActivity {
         // 加载主题设置
         int currentThemeMode = themeManager.getThemeMode();
         updateThemeRadioButtons(currentThemeMode);
+
+        // 加载语言设置
+        String currentLanguage = LanguageManager.getCurrentLanguage(this);
+        int langPosition = mapLanguageToPosition(currentLanguage);
+        String[] languageItems = getResources().getStringArray(R.array.language_options);
+        languageSpinner.setText(languageItems[langPosition], false);
         
         // 更新布局可见性
         updateFrequencyLayoutVisibility(autoCheckEnabled);
@@ -284,6 +308,34 @@ public class MoreSettingsActivity extends BaseActivity {
             configManager.setFirebaseAnalyticsEnabled(isChecked);
             FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(isChecked);
         });
+    }
+    
+    // 将下拉菜单位置映射为语言代码
+    private String mapPositionToLanguage(int position) {
+        switch (position) {
+            case 0: // 跟随系统
+                return LanguageManager.LANG_SYSTEM;
+            case 1: // 简体中文
+                return LanguageManager.LANG_ZH;
+            case 2: // English
+                return LanguageManager.LANG_EN;
+            default:
+                return LanguageManager.LANG_SYSTEM;
+        }
+    }
+
+    // 将语言代码映射为下拉菜单位置
+    private int mapLanguageToPosition(String languageCode) {
+        switch (languageCode) {
+            case "system":
+                return 0;
+            case "zh":
+                return 1;
+            case "en":
+                return 2;
+            default:
+                return 0;
+        }
     }
 
     // 更新频率选择区域的可见性

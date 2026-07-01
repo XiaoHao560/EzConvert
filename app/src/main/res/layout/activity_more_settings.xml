@@ -418,6 +418,129 @@
             app:cardBackgroundColor="@android:color/transparent"
             style="@style/Widget.Material3.CardView.Outlined"
             app:cardCornerRadius="12dp"
+            android:id="@+id/language_settings_card">
+
+            <LinearLayout
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:padding="16dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:layout_marginBottom="16dp"
+                        android:textSize="16sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="?attr/colorOnSurface"
+                        android:text="@string/language_settings_title" />
+
+                    <LinearLayout
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <FrameLayout
+                            android:layout_height="40dp"
+                            android:layout_width="40dp"
+                            android:layout_marginEnd="16dp"
+                            android:background="@drawable/circle_background_primary_container">
+
+                            <ImageView
+                                android:layout_height="24dp"
+                                android:layout_width="24dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/round_translate"
+                                app:tint="?attr/colorPrimary" />
+
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_height="wrap_content"
+                            android:layout_width="0dp"
+                            android:orientation="vertical"
+                            android:layout_weight="1">
+
+                            <TextView
+                                android:layout_height="wrap_content"
+                                android:layout_width="match_parent"
+                                android:textSize="14sp"
+                                android:fontFamily="sans-serif-medium"
+                                android:textColor="?attr/colorOnSurface"
+                                android:text="@string/language_settings_title" />
+
+                            <TextView
+                                android:layout_height="wrap_content"
+                                android:layout_width="match_parent"
+                                android:textSize="12sp"
+                                android:fontFamily="sans-serif"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:layout_marginTop="2dp"
+                                android:text="@string/language_settings_desc" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="16dp"
+                        app:hintEnabled="false"
+                        app:boxStrokeColor="?attr/colorOutline"
+                        app:boxStrokeWidthFocused="2dp"
+                        app:boxBackgroundColor="?attr/colorSurface"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                        app:boxStrokeWidth="1dp">
+
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                            android:layout_height="wrap_content"
+                            android:layout_width="match_parent"
+                            android:paddingVertical="12dp"
+                            android:textColor="?attr/colorOnSurface"
+                            android:inputType="none"
+                            android:id="@+id/language_spinner" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                </LinearLayout>
+
+                <com.google.android.material.divider.MaterialDivider
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    app:dividerColor="?attr/colorOutlineVariant"
+                    app:dividerThickness="1dp" />
+
+                <TextView
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:padding="16dp"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:lineSpacingExtra="2dp"
+                    android:text="@string/language_explanation" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_marginBottom="12dp"
+            app:strokeColor="?attr/colorOutline"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:cardBackgroundColor="@android:color/transparent"
+            style="@style/Widget.Material3.CardView.Outlined"
+            app:cardCornerRadius="12dp"
             android:id="@+id/notification_settings_card">
 
             <LinearLayout
