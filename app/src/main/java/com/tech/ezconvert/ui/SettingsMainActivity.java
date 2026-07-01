@@ -57,9 +57,9 @@ public class SettingsMainActivity extends BaseActivity {
     private void setVersionText() {
         try {
             String versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
-            versionText.setText("EzConvert v" + versionName);
+            versionText.setText(getString(R.string.settings_version_format, versionName));
         } catch (PackageManager.NameNotFoundException e) {
-            versionText.setText("EzConvert v0.0.0");
+            versionText.setText(getString(R.string.settings_version_fallback));
         }
     }
     

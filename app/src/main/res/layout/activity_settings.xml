@@ -21,7 +21,7 @@
             android:layout_marginBottom="16dp"
             android:background="@android:color/transparent"
             app:navigationIconTint="?attr/colorOnSurfaceVariant"
-            app:title="转码设置"
+            app:title="@string/transcode_settings_title"
             app:titleCentered="true"
             app:titleTextColor="?attr/colorPrimary"
             app:navigationIcon="@drawable/round_arrow_back"
@@ -54,7 +54,7 @@
                     android:textSize="16sp"
                     android:fontFamily="?attr/textAppearanceTitleMedium"
                     android:textColor="?attr/colorOnSurface"
-                    android:text="性能优化选项" />
+                    android:text="@string/performance_options" />
 
                 <LinearLayout
                     android:layout_height="wrap_content"
@@ -75,7 +75,7 @@
                             android:textSize="14sp"
                             android:fontFamily="?attr/textAppearanceTitleSmall"
                             android:textColor="?attr/colorOnSurface"
-                            android:text="硬件编解码" />
+                            android:text="@string/hardware_decode" />
 
                         <TextView
                             android:layout_height="wrap_content"
@@ -84,7 +84,7 @@
                             android:fontFamily="?attr/textAppearanceBodySmall"
                             android:textColor="?attr/colorOnSurfaceVariant"
                             android:layout_marginTop="2dp"
-                            android:text="使用GPU加速视频处理" />
+                            android:text="@string/hardware_decode_desc" />
 
                     </LinearLayout>
 
@@ -120,7 +120,7 @@
                             android:textSize="14sp"
                             android:fontFamily="?attr/textAppearanceTitleSmall"
                             android:textColor="?attr/colorOnSurface"
-                            android:text="多线程优化" />
+                            android:text="@string/multithreading_opt" />
 
                         <TextView
                             android:layout_height="wrap_content"
@@ -129,7 +129,7 @@
                             android:fontFamily="?attr/textAppearanceBodySmall"
                             android:textColor="?attr/colorOnSurfaceVariant"
                             android:layout_marginTop="2dp"
-                            android:text="使用多核CPU并行处理" />
+                            android:text="@string/multithreading_desc" />
 
                     </LinearLayout>
 
@@ -169,7 +169,7 @@
                     android:textSize="14sp"
                     android:fontFamily="?attr/textAppearanceTitleSmall"
                     android:textColor="?attr/colorOnSurface"
-                    android:text="硬件编解码说明" />
+                    android:text="@string/hardware_decode_explain_title" />
 
                 <TextView
                     android:layout_height="wrap_content"
@@ -178,7 +178,7 @@
                     android:fontFamily="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:lineSpacingExtra="2dp"
-                    android:text="使用GPU进行视频编解码，可以显著提升转换速度，但可能在某些设备上存在兼容性问题。如果遇到转换失败，请关闭此选项。" />
+                    android:text="@string/hardware_decode_explain_content" />
 
             </LinearLayout>
 
@@ -209,7 +209,7 @@
                     android:textSize="14sp"
                     android:fontFamily="?attr/textAppearanceTitleSmall"
                     android:textColor="?attr/colorOnSurface"
-                    android:text="多线程优化说明" />
+                    android:text="@string/multithreading_explain_title" />
 
                 <TextView
                     android:layout_height="wrap_content"
@@ -218,7 +218,7 @@
                     android:fontFamily="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:lineSpacingExtra="2dp"
-                    android:text="使用多核CPU并行处理视频，可以提升转换速度，但会增加CPU使用率和电池消耗。" />
+                    android:text="@string/multithreading_explain_content" />
 
             </LinearLayout>
 
@@ -230,7 +230,7 @@
             app:icon="@drawable/round_save"
             style="@style/Widget.Material3.Button.Icon"
             android:id="@+id/save_settings_btn"
-            android:text="保存设置"
+            android:text="@string/btn_save_settings"
             app:iconGravity="textStart" />
 
     </LinearLayout>

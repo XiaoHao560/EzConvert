@@ -82,7 +82,7 @@ public class LogSettingsActivity extends BaseActivity {
             FFmpegUtil.initLogging(this);
             
             // Toast
-            String message = verbose ? "已启用详细日志模式" : "已启用仅错误日志模式";
+            String message = verbose ? getString(R.string.toast_log_verbose) : getString(R.string.toast_log_error);
             ToastUtils.show(this, message);
         });
 

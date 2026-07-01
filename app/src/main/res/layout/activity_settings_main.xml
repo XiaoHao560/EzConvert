@@ -21,7 +21,7 @@
              android:layout_marginBottom="16dp"
              android:background="@android:color/transparent"
              app:navigationIconTint="?attr/colorOnSurfaceVariant"
-             app:title="应用设置"
+             app:title="@string/settings_title"
              app:titleCentered="true"
              app:titleTextColor="?attr/colorPrimary"
              app:navigationIcon="@drawable/round_arrow_back"
@@ -40,7 +40,7 @@
              android:fontFamily="?attr/textAppearanceLabelMedium"
              android:textColor="?attr/colorOnSurfaceVariant"
              android:id="@+id/version_text"
-             android:text="EzConvert v0.0.0" />
+             android:text="@string/settings_version_fallback" />
 
         <com.google.android.material.card.MaterialCardView
              android:layout_height="wrap_content"
@@ -99,7 +99,7 @@
                              android:textSize="16sp"
                              android:fontFamily="?attr/textAppearanceTitleMedium"
                              android:textColor="?attr/colorOnSurface"
-                             android:text="转码设置" />
+                             android:text="@string/settings_transcode" />
 
                         <TextView
                              android:layout_height="wrap_content"
@@ -107,7 +107,7 @@
                              android:textSize="14sp"
                              android:fontFamily="?attr/textAppearanceBodyMedium"
                              android:textColor="?attr/colorOnSurfaceVariant"
-                             android:text="硬件加速、多线程优化等性能设置" />
+                             android:text="@string/settings_transcode_desc" />
 
                     </LinearLayout>
 
@@ -165,7 +165,7 @@
                              android:textSize="16sp"
                              android:fontFamily="?attr/textAppearanceTitleMedium"
                              android:textColor="?attr/colorOnSurface"
-                             android:text="通用设置" />
+                             android:text="@string/settings_general" />
 
                         <TextView
                              android:layout_height="wrap_content"
@@ -173,7 +173,7 @@
                              android:textSize="14sp"
                              android:fontFamily="?attr/textAppearanceBodyMedium"
                              android:textColor="?attr/colorOnSurfaceVariant"
-                             android:text="界面、语言、通知等通用设置" />
+                             android:text="@string/settings_general_desc" />
 
                     </LinearLayout>
 
@@ -231,7 +231,7 @@
                              android:textSize="16sp"
                              android:fontFamily="?attr/textAppearanceTitleMedium"
                              android:textColor="?attr/colorOnSurface"
-                             android:text="关于" />
+                             android:text="@string/settings_about" />
 
                         <TextView
                              android:layout_height="wrap_content"
@@ -239,7 +239,7 @@
                              android:textSize="14sp"
                              android:fontFamily="?attr/textAppearanceBodyMedium"
                              android:textColor="?attr/colorOnSurfaceVariant"
-                             android:text="版本信息、帮助和支持" />
+                             android:text="@string/settings_about_desc" />
 
                     </LinearLayout>
 
@@ -263,7 +263,7 @@
              android:fontFamily="?attr/textAppearanceLabelSmall"
              android:textColor="?attr/colorOnSurfaceVariant"
              android:layout_marginTop="8dp"
-             android:text="EzConvert Settings Mode" />
+             android:text="@string/settings_footer" />
 
     </LinearLayout>
 

@@ -21,7 +21,7 @@
             android:layout_marginBottom="16dp"
             android:background="@android:color/transparent"
             app:navigationIconTint="?attr/colorOnSurfaceVariant"
-            app:title="通用设置"
+            app:title="@string/more_settings_title"
             app:titleCentered="true"
             app:titleTextColor="?attr/colorPrimary"
             app:navigationIcon="@drawable/round_arrow_back"
@@ -104,7 +104,7 @@
                     android:fontFamily="sans-serif"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:lineSpacingExtra="4dp"
-                    android:text="查看应用运行日志和错误信息，便于问题排查" />
+                    android:text="@string/log_card_desc" />
 
             </LinearLayout>
 
@@ -140,7 +140,7 @@
                         android:textSize="16sp"
                         android:fontFamily="sans-serif-medium"
                         android:textColor="?attr/colorOnSurface"
-                        android:text="主题设置" />
+                        android:text="@string/theme_settings_title" />
 
                     <LinearLayout
                         android:layout_height="72dp"
@@ -179,7 +179,7 @@
                                 android:textSize="14sp"
                                 android:fontFamily="sans-serif-medium"
                                 android:textColor="?attr/colorOnSurface"
-                                android:text="跟随系统" />
+                                android:text="@string/theme_follow_system" />
 
                             <TextView
                                 android:layout_height="wrap_content"
@@ -188,7 +188,7 @@
                                 android:fontFamily="sans-serif"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:layout_marginTop="2dp"
-                                android:text="根据系统设置自动切换深浅主题" />
+                                android:text="@string/theme_follow_system_desc" />
 
                         </LinearLayout>
 
@@ -239,7 +239,7 @@
                                 android:textSize="14sp"
                                 android:fontFamily="sans-serif-medium"
                                 android:textColor="?attr/colorOnSurface"
-                                android:text="浅色模式" />
+                                android:text="@string/theme_light" />
 
                             <TextView
                                 android:layout_height="wrap_content"
@@ -248,7 +248,7 @@
                                 android:fontFamily="sans-serif"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:layout_marginTop="2dp"
-                                android:text="始终使用浅色主题" />
+                                android:text="@string/theme_light_desc" />
 
                         </LinearLayout>
 
@@ -299,7 +299,7 @@
                                 android:textSize="14sp"
                                 android:fontFamily="sans-serif-medium"
                                 android:textColor="?attr/colorOnSurface"
-                                android:text="深色模式" />
+                                android:text="@string/theme_dark" />
 
                             <TextView
                                 android:layout_height="wrap_content"
@@ -308,7 +308,7 @@
                                 android:fontFamily="sans-serif"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:layout_marginTop="2dp"
-                                android:text="始终使用深色主题" />
+                                android:text="@string/theme_dark_desc" />
 
                         </LinearLayout>
 
@@ -366,7 +366,7 @@
                                 android:textSize="14sp"
                                 android:fontFamily="sans-serif-medium"
                                 android:textColor="?attr/colorOnSurface"
-                                android:text="自动取色" />
+                                android:text="@string/dynamic_color" />
 
                             <TextView
                                 android:layout_height="wrap_content"
@@ -375,7 +375,7 @@
                                 android:fontFamily="sans-serif"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:layout_marginTop="2dp"
-                                android:text="根据系统壁纸颜色动态生成主题色调（Material You）" />
+                                android:text="@string/dynamic_color_desc" />
 
                         </LinearLayout>
 
@@ -402,7 +402,7 @@
                     android:fontFamily="sans-serif"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:lineSpacingExtra="2dp"
-                    android:text="选择应用主题显示模式。跟随系统将根据设备的系统设置自动在浅色和深色主题间切换。自动取色功能需要 Android 12 及以上系统支持，开启后将根据壁纸颜色动态调整应用主题色调" />
+                    android:text="@string/theme_explanation" />
 
             </LinearLayout>
 
@@ -438,7 +438,7 @@
                         android:textSize="16sp"
                         android:fontFamily="sans-serif-medium"
                         android:textColor="?attr/colorOnSurface"
-                        android:text="通知设置" />
+                        android:text="@string/notification_settings_title" />
 
                     <LinearLayout
                         android:layout_height="wrap_content"
@@ -458,7 +458,7 @@
                                 android:textSize="14sp"
                                 android:fontFamily="sans-serif-medium"
                                 android:textColor="?attr/colorOnSurface"
-                                android:text="启用通知" />
+                                android:text="@string/notification_enable" />
 
                             <TextView
                                 android:layout_height="wrap_content"
@@ -467,7 +467,7 @@
                                 android:fontFamily="sans-serif"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:layout_marginTop="2dp"
-                                android:text="显示转换进度和完成提示" />
+                                android:text="@string/notification_enable_desc" />
 
                         </LinearLayout>
 
@@ -494,7 +494,7 @@
                     android:fontFamily="sans-serif"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:lineSpacingExtra="2dp"
-                    android:text="开启后，转换过程中会显示进度通知，完成后会显示成功或失败提示。需要系统通知权限" />
+                    android:text="@string/notification_explanation" />
 
             </LinearLayout>
 
@@ -530,7 +530,7 @@
                         android:textSize="16sp"
                         android:fontFamily="sans-serif-medium"
                         android:textColor="?attr/colorOnSurface"
-                        android:text="更新设置" />
+                        android:text="@string/update_settings_title" />
 
                     <LinearLayout
                         android:layout_height="wrap_content"
@@ -551,7 +551,7 @@
                                 android:textSize="14sp"
                                 android:fontFamily="sans-serif-medium"
                                 android:textColor="?attr/colorOnSurface"
-                                android:text="自动检测更新" />
+                                android:text="@string/auto_check_update" />
 
                             <TextView
                                 android:layout_height="wrap_content"
@@ -560,7 +560,7 @@
                                 android:fontFamily="sans-serif"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:layout_marginTop="2dp"
-                                android:text="启动时自动检查版本更新" />
+                                android:text="@string/auto_check_update_desc" />
 
                         </LinearLayout>
 
@@ -591,7 +591,7 @@
                                 android:textSize="14sp"
                                 android:fontFamily="sans-serif-medium"
                                 android:textColor="?attr/colorOnSurface"
-                                android:text="检测测试版更新" />
+                                android:text="@string/check_prerelease" />
 
                             <TextView
                                 android:layout_width="match_parent"
@@ -600,7 +600,7 @@
                                 android:fontFamily="sans-serif"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:layout_marginTop="2dp"
-                                android:text="包含预发布版本，可能不稳定" />
+                                android:text="@string/check_prerelease_desc" />
 
                         </LinearLayout>
 
@@ -632,7 +632,7 @@
                             android:textSize="14sp"
                             android:fontFamily="sans-serif-medium"
                             android:textColor="?attr/colorOnSurface"
-                            android:text="检测频率" />
+                            android:text="@string/check_frequency_label" />
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:layout_height="wrap_content"
@@ -672,7 +672,7 @@
                     android:fontFamily="sans-serif"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:lineSpacingExtra="2dp"
-                    android:text="开启自动检测后，应用会根据您选择的频率自动检查版本更新。关闭后，您仍可在关于页面手动检查更新" />
+                    android:text="@string/update_explanation" />
 
             </LinearLayout>
 
@@ -708,7 +708,7 @@
                         android:textSize="16sp"
                         android:fontFamily="sans-serif-medium"
                         android:textColor="?attr/colorOnSurface"
-                        android:text="隐私与数据" />
+                        android:text="@string/privacy_data_title" />
 
                     <LinearLayout
                         android:layout_height="wrap_content"
@@ -728,7 +728,7 @@
                                 android:textSize="14sp"
                                 android:fontFamily="sans-serif-medium"
                                 android:textColor="?attr/colorOnSurface"
-                                android:text="Firebase 数据收集" />
+                                android:text="@string/firebase_data_collection" />
 
                             <TextView
                                 android:layout_height="wrap_content"
@@ -737,7 +737,7 @@
                                 android:fontFamily="sans-serif"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:layout_marginTop="2dp"
-                                android:text="发送匿名使用情况和崩溃报告" />
+                                android:text="@string/firebase_data_collection_desc" />
 
                         </LinearLayout>
 
@@ -764,7 +764,7 @@
                     android:fontFamily="sans-serif"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:lineSpacingExtra="2dp"
-                    android:text="开启后应用会统计匿名的使用情况和崩溃报告，帮助我们改进应用体验。这对我们很重要！可以收集到未被报告的问题，当然你也可以在遇到问题后第一时间通过github反馈" />
+                    android:text="@string/firebase_explanation" />
 
             </LinearLayout>
 

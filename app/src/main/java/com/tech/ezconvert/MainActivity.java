@@ -151,7 +151,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
 
         // 初始按钮状态
         setFunctionButtonsEnabled(false);
-        updateStatus("正在检查权限...");
+        updateStatus(getString(R.string.status_checking_permission));
 
         // 检查权限状态
         checkPermissions();
@@ -196,7 +196,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                     if (!isTaskRunning) {
                         isTaskRunning = true;
                         showCancelButton();
-                        updateStatus("正在恢复任务状态...");
+                        updateStatus(getString(R.string.status_restoring));
                     }
                     return;
                 } else if (state == WorkInfo.State.SUCCEEDED) {
@@ -213,7 +213,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                 } else if (state == WorkInfo.State.FAILED) {
                     Data outputData = info.getOutputData();
                     String error = outputData.getString(FfmpegWorker.KEY_ERROR_MESSAGE);
-                    NotificationHelper.showCompleteNotification(this, "", false, error != null ? error : "未知错误");
+                    NotificationHelper.showCompleteNotification(this, "", false, error != null ? error : getString(R.string.error_unknown));
                     workManager.pruneWork();
                 }
             }
@@ -228,7 +228,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         hideCancelButton();
         progressBar.clearAnimation();
         progressBar.setProgress(0);
-        progressText.setText("进度: 0%");
+        progressText.setText(getString(R.string.progress_default));
         setFunctionButtonsEnabled(permissionsGranted && !selectedFilePaths.isEmpty());
     }
 
@@ -275,7 +275,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                                 if (!selectedFilePaths.isEmpty()) {
                                     currentInputPath = selectedFilePaths.get(0);
                                     String firstFileName = new File(currentInputPath).getName();
-                                    updateStatus("已选择 " + selectedFilePaths.size() + " 个文件，首个: " + firstFileName);
+                                    updateStatus(getString(R.string.status_selected_files, selectedFilePaths.size(), firstFileName));
 
                                     // 生成输出路径
                                     generateOutputPath();
@@ -284,10 +284,10 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                                     setFunctionButtonsEnabled(permissionsGranted);
 
                                     // ToastUtils.show(this, "已选择: " + selectedFilePaths.size() + " 个文件");
-                                    ToastUtils.showCustom(this, "已选择: " + selectedFilePaths.size() + " 个文件");
+                                    ToastUtils.showCustom(this, getString(R.string.toast_selected_files_count, selectedFilePaths.size()));
                                 } else {
-                                    updateStatus("无法访问选中的文件");
-                                    ToastUtils.showCustom(this, "无法访问选中的文件");
+                                    updateStatus(getString(R.string.status_cannot_access_files));
+                                    ToastUtils.showCustom(this, getString(R.string.status_cannot_access_files));
                                     currentInputPath = "";
                                     selectedFilePaths.clear();
                                     setFunctionButtonsEnabled(permissionsGranted);
@@ -301,7 +301,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                                     selectedFilePaths.add(path);
                                     currentInputPath = path;
                                     String fileName = new File(path).getName();
-                                    updateStatus("已选择文件: " + fileName);
+                                    updateStatus(getString(R.string.status_selected_file, fileName));
 
                                     // 生成输出路径
                                     generateOutputPath();
@@ -310,11 +310,11 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                                     setFunctionButtonsEnabled(permissionsGranted);
 
                                     // ToastUtils.show(this, "已选择: " + fileName);
-                                    ToastUtils.showCustom(this, "已选择: " + fileName);
+                                    ToastUtils.showCustom(this, getString(R.string.toast_selected_file_name, fileName));
                                 } else {
-                                    updateStatus("无法访问文件或文件不存在");
+                                    updateStatus(getString(R.string.status_file_not_exist));
                                     // ToastUtils.show(this, "无法访问文件或文件不存在");
-                                    ToastUtils.showCustom(this, "无法访问文件或文件不存在");
+                                    ToastUtils.showCustom(this, getString(R.string.status_file_not_exist));
                                     currentInputPath = "";
                                     selectedFilePaths.clear();
                                     setFunctionButtonsEnabled(permissionsGranted);
@@ -408,17 +408,17 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
 
             new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
                     .setIcon(R.drawable.round_warning)
-                    .setTitle("确认取消?")
-                    .setMessage("确定要取消当前操作吗？\n\n已生成的临时文件将被删除。")
-                    .setPositiveButton("确定取消", (dialog, which) -> {
+                    .setTitle(getString(R.string.dialog_title_cancel))
+                    .setMessage(getString(R.string.dialog_message_cancel))
+                    .setPositiveButton(getString(R.string.btn_confirm_cancel), (dialog, which) -> {
                         dialog.dismiss();
 
                         progressBar.clearAnimation();
                         progressBar.setProgress(0);
-                        progressText.setText("进度: 0%");
+                        progressText.setText(getString(R.string.progress_default));
                         performCancelAndCleanup();
                     })
-                    .setNegativeButton("继续处理", null)
+                    .setNegativeButton(getString(R.string.btn_continue_process), null)
                     .setCancelable(true)
                     .show();
         });
@@ -458,12 +458,12 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             currentInputPath = "";
 
             runOnUiThread(() -> {
-                updateStatus("操作已取消，已清理生成的文件");
+                updateStatus(getString(R.string.status_cancelled_cleaned));
 
                 // 重置进度显示
                 progressBar.clearAnimation();
                 progressBar.setProgress(0);
-                progressText.setText("进度: 0%");
+                progressText.setText(getString(R.string.progress_default));
 
                 // 恢复功能按钮可用状态
                 setFunctionButtonsEnabled(permissionsGranted);
@@ -486,7 +486,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             }
         } catch (Exception e) {
             Log.e("MainActivity", "删除文件失败: " + filePath, e);
-            ToastUtils.show(this, "删除临时文件失败\n请前往手动删除");
+            ToastUtils.show(this, getString(R.string.toast_delete_temp_failed));
         }
     }
 
@@ -511,12 +511,10 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             String versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
             String ffmpegKitVersion = FFmpegUtil.getFFmpegKitVersion();
             String ffmpegVersion = FFmpegUtil.getFFmpegVersion();
-            versionText.setText("EzConvert v" + versionName +
-                    " | FFmpeg: " + ffmpegVersion +
-                    " (Kit "+ ffmpegKitVersion + ")");
+            versionText.setText(getString(R.string.version_format, versionName, ffmpegVersion, ffmpegKitVersion));
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "版本号获取失败", e);
-            versionText.setText("EzConvert 版本获取失败 | FFmpegKit: Unknown");
+            versionText.setText(getString(R.string.version_fallback));
         }
     }
 
@@ -543,7 +541,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             if (permissionsGranted) {
                 openFilePicker();
             } else {
-                ToastUtils.show(this, "需要媒体访问权限才能选择文件");
+                ToastUtils.show(this, getString(R.string.toast_need_permission_select));
                 PermissionManager.requestInitialPermissions(this, PERMISSION_REQUEST_CODE);
             }
         });
@@ -554,10 +552,10 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             if (permissionsGranted && !selectedFilePaths.isEmpty()) {
                 handleFunctionButtonClick(v.getId());
             } else if (!permissionsGranted) {
-                ToastUtils.show(this, "请先授予权限并选择文件");
+                ToastUtils.show(this, getString(R.string.toast_grant_permission_first));
                 PermissionManager.requestInitialPermissions(this, PERMISSION_REQUEST_CODE);
             } else {
-                ToastUtils.show(this, "请先选择文件");
+                ToastUtils.show(this, getString(R.string.toast_select_file_first));
             }
         };
 
@@ -572,7 +570,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
 
     private void handleFunctionButtonClick(int viewId) {
         if (selectedFilePaths.isEmpty()) {
-            ToastUtils.show(this, "请先选择文件");
+            ToastUtils.show(this, getString(R.string.toast_select_file_first));
             return;
         }
 
@@ -604,8 +602,8 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     private void showDialogForCurrentFile() {
         if (currentQueueIndex >= selectedFilePaths.size()) {
             hideCancelButton();
-            updateStatus("所有文件处理完成，共 " + selectedFilePaths.size() + " 个");
-            ToastUtils.showLong(this, "所有文件处理完成!\n输出保存在: Download/简转/");
+            updateStatus(getString(R.string.status_all_complete, selectedFilePaths.size()));
+            ToastUtils.showLong(this, getString(R.string.toast_all_complete_with_path));
             selectedFilePaths.clear();
             currentInputPath = "";
             setFunctionButtonsEnabled(permissionsGranted);
@@ -616,7 +614,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         String fileName = new File(currentInputPath).getName();
 
         // 更新状态提示
-        updateStatus("请设置参数 (第 " + (currentQueueIndex + 1) + "/" + selectedFilePaths.size() + " 个)");
+        updateStatus(getString(R.string.status_set_params, currentQueueIndex + 1, selectedFilePaths.size()));
 
         ParameterDialogFragment dialog = ParameterDialogFragment.newInstance(
                 currentTaskType, currentInputPath, currentQueueIndex + 1, selectedFilePaths.size()
@@ -646,8 +644,8 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     private void processNextFileWithSameParams(ParameterData params) {
         if (currentQueueIndex >= selectedFilePaths.size()) {
             hideCancelButton();
-            updateStatus("所有文件处理完成");
-            ToastUtils.showLong(this, "所有文件处理完成!");
+            updateStatus(getString(R.string.toast_all_complete));
+            ToastUtils.showLong(this, getString(R.string.toast_all_complete));
             selectedFilePaths.clear();
             currentInputPath = "";
             setFunctionButtonsEnabled(permissionsGranted);
@@ -693,7 +691,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         // 提交任务
         workManager.enqueue(workRequest);
 
-        updateStatus("正在处理: " + fileName + " (" + (currentQueueIndex + 1) + "/" + selectedFilePaths.size() + ")");
+        updateStatus(getString(R.string.status_processing, fileName, currentQueueIndex + 1, selectedFilePaths.size()));
     }
 
     /**
@@ -726,22 +724,22 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                     String fileName = new File(outputPath).getName();
                     NotificationHelper.showCompleteNotification(this, fileName, true, "");
                 }
-                onWorkerComplete(true, "处理完成");
+                onWorkerComplete(true, getString(R.string.status_processing_complete));
             } else if (state == WorkInfo.State.FAILED) {
                 // 任务失败
                 Data outputData = workInfo.getOutputData();
                 String errorMessage = outputData.getString(FfmpegWorker.KEY_ERROR_MESSAGE);
-                if (errorMessage == null) errorMessage = "未知错误";
+                if (errorMessage == null) errorMessage = getString(R.string.error_unknown);
 
                 // 检查是否是取消操作
-                if ("操作已取消".equals(errorMessage)) {
-                    onWorkerComplete(false, "操作已取消");
+                if (getString(R.string.error_cancelled).equals(errorMessage)) {
+                    onWorkerComplete(false, getString(R.string.error_cancelled));
                 } else {
                     NotificationHelper.showCompleteNotification(this, "", false, errorMessage);
                     onWorkerComplete(false, errorMessage);
                 }
             } else if (state == WorkInfo.State.CANCELLED) {
-                onWorkerComplete(false, "操作已取消");
+                onWorkerComplete(false, getString(R.string.error_cancelled));
             }
         });
     }
@@ -756,15 +754,15 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                 // 继续处理下一个文件
                 progressBar.clearAnimation();
                 progressBar.setProgress(0);
-                progressText.setText("进度: 0%");
+                progressText.setText(getString(R.string.progress_default));
 
                 // 弹出下一个文件的参数对话框（逐个模式）
                 showDialogForCurrentFile();
             } else {
                 // 全部完成
                 hideCancelButton();
-                updateStatus("所有文件处理完成，共 " + selectedFilePaths.size() + " 个");
-                ToastUtils.showLong(this, "处理完成! 输出文件\n保存在: Download/简转/");
+                updateStatus(getString(R.string.status_all_complete, selectedFilePaths.size()));
+                ToastUtils.showLong(this, getString(R.string.toast_all_complete));
                 currentOutputFile = "";
                 completedOutputFiles.clear();
                 selectedFilePaths.clear();
@@ -774,12 +772,12 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             }
         } else {
             // 失败或取消
-            if ("操作已取消".equals(message)) {
-                updateStatus("操作已取消");
-                ToastUtils.show(this, "已取消操作");
+            if (getString(R.string.error_cancelled).equals(message)) {
+                updateStatus(getString(R.string.error_cancelled));
+                ToastUtils.show(this, getString(R.string.toast_cancelled));
                 progressBar.clearAnimation();
                 progressBar.setProgress(0);
-                progressText.setText("进度: 0%");
+                progressText.setText(getString(R.string.progress_default));
                 currentOutputFile = "";
                 selectedFilePaths.clear();
                 completedOutputFiles.clear();
@@ -788,11 +786,11 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                 setFunctionButtonsEnabled(permissionsGranted);
             } else {
                 hideCancelButton();
-                updateStatus("处理失败: " + message);
-                ToastUtils.show(this, "处理失败: " + message);
+                updateStatus(getString(R.string.status_failed, message));
+                ToastUtils.show(this, getString(R.string.status_failed, message));
                 progressBar.clearAnimation();
                 progressBar.setProgress(0);
-                progressText.setText("进度: 0%");
+                progressText.setText(getString(R.string.progress_default));
                 currentOutputFile = "";
                 currentWorkId = null;
             }
@@ -804,7 +802,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
      */
     private void updateProgressUI(int progress, long time) {
         AnimationUtils.animateProgressSmoothly(progressBar, progress);
-        progressText.setText("进度: " + progress + "%");
+        progressText.setText(getString(R.string.progress_text, progress));
         AnimationUtils.animateStatusUpdate(progressText);
 
         if (isTaskRunning && cancelBtn.getVisibility() != View.VISIBLE) {
@@ -822,7 +820,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
 
         // 只有在没有选择文件时才显示默认状态
         if (selectedFilePaths.isEmpty()) {
-            updateStatus("权限已授予，请选择媒体文件");
+            updateStatus(getString(R.string.status_permission_granted));
         }
         Log.d("MainActivity", "权限检测通过");
 
@@ -835,15 +833,14 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     public void onPermissionsDenied() {
         permissionsGranted = false;
         setFunctionButtonsEnabled(false);
-        updateStatus("需要媒体访问权限才能使用应用功能");
+        updateStatus(getString(R.string.status_need_permission));
         Log.d("MainActivity", "权限被拒绝");
 
         // 禁用选择文件按键
         selectFileBtn.setEnabled(false);
         selectFileBtn.setAlpha(0.5f);
 
-        ToastUtils.showLong(this,
-                "需要媒体访问权限才能选择和处理文件");
+        ToastUtils.showLong(this, getString(R.string.toast_need_permission_full));
     }
 
     // 状态更新方法（PermissionManager调用）
@@ -884,7 +881,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
 
     private void openFilePicker() {
         if (!permissionsGranted) {
-            ToastUtils.show(this, "请先授予存储权限");
+            ToastUtils.show(this, getString(R.string.toast_grant_storage_permission));
             PermissionManager.requestInitialPermissions(this, PERMISSION_REQUEST_CODE);
             return;
         }
@@ -898,9 +895,9 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
 
         try {
-            filePickerLauncher.launch(Intent.createChooser(intent, "选择媒体文件（可多选）"));
+            filePickerLauncher.launch(Intent.createChooser(intent, getString(R.string.picker_title)));
         } catch (Exception e) {
-            ToastUtils.show(this, "无法打开文件选择器");
+            ToastUtils.show(this, getString(R.string.toast_cannot_open_picker));
             Log.e("MainActivity", "打开文件选择器失败", e);
         }
     }
@@ -926,7 +923,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
 
         // 创建简转文件夹
         String outputDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + File.separator + "简转";
+                Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + File.separator + getString(R.string.folder_output);
 
         // 检查目录
         File outputDirFile = new File(outputDir);
@@ -935,7 +932,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         }
 
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-        currentOutputPath = outputDir + File.separator + baseName + "_converted_" + timestamp;
+        currentOutputPath = outputDir + File.separator + baseName + getString(R.string.filename_suffix_converted) + timestamp;
 
         Log.d("GeneratePath", "输出路径基础: " + currentOutputPath);
     }
@@ -945,7 +942,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     public void onProgress(int progress, long time) {
         runOnUiThread(() -> {
             AnimationUtils.animateProgressSmoothly(progressBar, progress);
-            progressText.setText("进度: " + progress + "%");
+            progressText.setText(getString(R.string.progress_text, progress));
 
             // 为进度文本添加微动画
             AnimationUtils.animateStatusUpdate(progressText);
@@ -961,12 +958,12 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     public void onComplete(boolean success, String message) {
         runOnUiThread(() -> {
             // 检查是否是取消操作（通过特定消息标识）
-            if (message != null && message.equals("操作已取消")) {
-                updateStatus("操作已取消");
-                ToastUtils.show(this, "已取消操作");
+            if (message != null && message.equals(getString(R.string.error_cancelled))) {
+                updateStatus(getString(R.string.error_cancelled));
+                ToastUtils.show(this, getString(R.string.toast_cancelled));
                 progressBar.clearAnimation();
                 progressBar.setProgress(0);
-                progressText.setText("进度: 0%");
+                progressText.setText(getString(R.string.progress_default));
                 currentOutputFile = "";
                 // 清空队列状态
                 selectedFilePaths.clear();
@@ -983,13 +980,12 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                     // 还有下一个文件，重置进度并继续处理
                     progressBar.clearAnimation();
                     progressBar.setProgress(0);
-                    progressText.setText("进度: 0%");
+                    progressText.setText(getString(R.string.progress_default));
                 } else {
                     // 全部完成
                     hideCancelButton();
-                    updateStatus("所有文件处理完成，共 " + selectedFilePaths.size() + " 个");
-                    ToastUtils.showLong(MainActivity.this,
-                            "处理完成! 输出文件\n保存在: Download/简转/");
+                    updateStatus(getString(R.string.status_all_complete, selectedFilePaths.size()));
+                    ToastUtils.showLong(MainActivity.this, getString(R.string.toast_processing_complete));
                     currentOutputFile = "";
                     completedOutputFiles.clear();
                     selectedFilePaths.clear();
@@ -997,13 +993,13 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                     setFunctionButtonsEnabled(permissionsGranted);
                 }
             } else {
-                updateStatus("处理失败: " + message);
-                ToastUtils.show(MainActivity.this, "处理失败: " + message);
+                updateStatus(getString(R.string.status_failed, message));
+                ToastUtils.show(MainActivity.this, getString(R.string.status_failed, message));
                 // 失败时停止队列处理，保留已完成的文件
                 hideCancelButton();
                 progressBar.clearAnimation();
                 progressBar.setProgress(0);
-                progressText.setText("进度: 0%");
+                progressText.setText(getString(R.string.progress_default));
                 currentOutputFile = "";
             }
         });
@@ -1015,13 +1011,13 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             // 隐藏取消按钮并重置任务状态
             hideCancelButton();
 
-            updateStatus("错误: " + error);
-            ToastUtils.showLong(MainActivity.this, "错误: " + error);
+            updateStatus(getString(R.string.status_error, error));
+            ToastUtils.showLong(MainActivity.this, getString(R.string.status_error, error));
 
             // 清除动画并重置进度
             progressBar.clearAnimation();
             progressBar.setProgress(0);
-            progressText.setText("进度: 0%");
+            progressText.setText(getString(R.string.progress_default));
 
             // 错误时停止队列处理
             currentOutputFile = "";
@@ -1138,7 +1134,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             }
 
             if (uriList == null || uriList.isEmpty()) {
-                ToastUtils.showCustom(this, "未接收到分享文件");
+                ToastUtils.showCustom(this, getString(R.string.toast_no_share_file));
                 return;
             }
 
@@ -1158,7 +1154,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             }
 
             if (selectedFilePaths.isEmpty()) {
-                ToastUtils.showCustom(this, "无法访问选中的分享文件");
+                ToastUtils.showCustom(this, getString(R.string.toast_cannot_access_share));
                 return;
             }
 
@@ -1167,13 +1163,13 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             currentOutputFile = generateShareOutputPath(currentInputPath);
 
             String firstFileName = new File(currentInputPath).getName();
-            updateStatus("已接收 " + successCount + "/" + uriList.size() + " 个分享文件，首个: " + firstFileName);
+            updateStatus(getString(R.string.status_received_files, successCount, uriList.size(), firstFileName));
             setFunctionButtonsEnabled(permissionsGranted);
 
             if (successCount < uriList.size()) {
-                ToastUtils.showCustom(this, successCount + " 个文件已加载，" + (uriList.size() - successCount) + " 个无法访问");
+                ToastUtils.showCustom(this, getString(R.string.toast_partial_loaded, successCount, uriList.size() - successCount));
             } else {
-                ToastUtils.showCustom(this, "已接收: " + successCount + " 个分享文件");
+                ToastUtils.showCustom(this, getString(R.string.toast_received_files_count, successCount));
             }
         }
         // 单文件分享
@@ -1193,11 +1189,11 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                     selectedFilePaths.add(path);
                     currentInputPath = path;
                     currentOutputPath = generateShareOutputPath(path);
-                    updateStatus("已接收分享: " + new File(path).getName());
+                    updateStatus(getString(R.string.status_received_share, new File(path).getName()));
                     setFunctionButtonsEnabled(permissionsGranted);
-                    ToastUtils.showCustom(this, "已接收分享文件");
+                    ToastUtils.showCustom(this, getString(R.string.toast_received_share_file));
                 } else {
-                    ToastUtils.showCustom(this, "无法解析分享文件");
+                    ToastUtils.showCustom(this, getString(R.string.toast_cannot_parse_share));
                 }
             }
         }
@@ -1210,26 +1206,24 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                 in.getName();
         String ts = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                .getAbsolutePath() + File.separator + "简转";
+                .getAbsolutePath() + File.separator + getString(R.string.folder_output);
         new File(dir).mkdir();
-        return dir + File.separator + base + "_share_" + ts;
+        return dir + File.separator + base + getString(R.string.filename_suffix_share) + ts;
     }
 
     private void showMigrationDialog() {
         new AlertDialog.Builder(this)
-                .setTitle("检测到旧版设置")
-                .setMessage("发现旧版本的设置数据，是否迁移到新的JSON配置文件？\n\n" +
-                        "新位置: Android/data/com.tech.ezconvert/files/config/\n\n" +
-                        "迁移后旧配置文件将自动备份，无需手动操作。")
-                .setPositiveButton("迁移", (dialog, which) -> {
+                .setTitle(getString(R.string.dialog_title_migration))
+                .setMessage(getString(R.string.dialog_message_migration))
+                .setPositiveButton(getString(R.string.btn_migrate), (dialog, which) -> {
                     ConfigManager.getInstance(this).migrateOldSettings();
-                    ToastUtils.show(this, "设置迁移完成");
+                    ToastUtils.show(this, getString(R.string.toast_migration_complete));
                 })
-                .setNegativeButton("跳过", null)
-                .setNeutralButton("查看配置文件路径", (dialog, which) -> {
+                .setNegativeButton(getString(R.string.btn_skip), null)
+                .setNeutralButton(getString(R.string.btn_view_config_path), (dialog, which) -> {
                     ConfigManager config = ConfigManager.getInstance(this);
                     String path = config.getConfigPath();
-                    ToastUtils.showLong(this, "配置文件路径: " + path);
+                    ToastUtils.showLong(this, getString(R.string.toast_config_path, path));
                 })
                 .show();
     }

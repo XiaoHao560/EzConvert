@@ -68,7 +68,7 @@
                                  android:layout_width="wrap_content"
                                  android:textSize="16sp"
                                  android:textColor="?attr/colorOnSurface"
-                                 android:text="设备信息"
+                                 android:text="@string/device_info_title"
                                  android:textStyle="bold" />
 
                             <TextView
@@ -78,7 +78,7 @@
                                  android:textColor="?attr/colorOnSurfaceVariant"
                                  android:layout_marginTop="2dp"
                                  android:id="@+id/device_info_summary"
-                                 android:text="点击查看详情" />
+                                 android:text="@string/tap_to_view_details" />
 
                         </LinearLayout>
 
@@ -105,7 +105,7 @@
                              android:layout_width="wrap_content"
                              android:textSize="14sp"
                              android:textColor="?attr/colorOnSurface"
-                             android:text="设备信息"
+                             android:text="@string/device_info_title"
                              android:textStyle="bold" />
 
                         <TextView
@@ -115,7 +115,7 @@
                              android:textColor="?attr/colorOnSurfaceVariant"
                              android:layout_marginTop="8dp"
                              android:id="@+id/device_name"
-                             android:text="设备名称: " />
+                             android:text="@string/device_name_default" />
 
                         <TextView
                              android:layout_height="wrap_content"
@@ -124,7 +124,7 @@
                              android:textColor="?attr/colorOnSurfaceVariant"
                              android:layout_marginTop="4dp"
                              android:id="@+id/device_model"
-                             android:text="设备型号: " />
+                             android:text="@string/device_model_default" />
 
                         <TextView
                              android:layout_height="wrap_content"
@@ -133,7 +133,7 @@
                              android:textColor="?attr/colorOnSurfaceVariant"
                              android:layout_marginTop="4dp"
                              android:id="@+id/android_version"
-                             android:text="安卓版本: " />
+                             android:text="@string/android_version_default" />
 
                         <TextView
                              android:layout_height="wrap_content"
@@ -142,7 +142,7 @@
                              android:textColor="?attr/colorOnSurfaceVariant"
                              android:layout_marginTop="4dp"
                              android:id="@+id/system_version"
-                             android:text="系统版本: " />
+                             android:text="@string/system_version_default" />
 
                         <TextView
                              android:layout_height="wrap_content"
@@ -151,7 +151,7 @@
                              android:textColor="?attr/colorOnSurfaceVariant"
                              android:layout_marginTop="4dp"
                              android:id="@+id/cpu_arch"
-                             android:text="CPU架构: " />
+                             android:text="@string/cpu_arch_default" />
 
                         <com.google.android.material.divider.MaterialDivider
                              android:layout_height="wrap_content"
@@ -163,7 +163,7 @@
                              android:layout_width="wrap_content"
                              android:textSize="14sp"
                              android:textColor="?attr/colorOnSurface"
-                             android:text="应用信息"
+                             android:text="@string/app_info_title"
                              android:textStyle="bold" />
 
                         <TextView
@@ -173,7 +173,7 @@
                              android:textColor="?attr/colorOnSurfaceVariant"
                              android:layout_marginTop="8dp"
                              android:id="@+id/app_version_name"
-                             android:text="版本名称: " />
+                             android:text="@string/app_version_name_default" />
 
                         <TextView
                              android:layout_height="wrap_content"
@@ -182,7 +182,7 @@
                              android:textColor="?attr/colorOnSurfaceVariant"
                              android:layout_marginTop="4dp"
                              android:id="@+id/app_version_code"
-                             android:text="版本号: " />
+                             android:text="@string/app_version_code_default" />
 
                         <TextView
                              android:layout_height="wrap_content"
@@ -191,7 +191,7 @@
                              android:textColor="?attr/colorOnSurfaceVariant"
                              android:layout_marginTop="4dp"
                              android:id="@+id/app_commit_hash"
-                             android:text="Commit: " />
+                             android:text="@string/app_commit_hash_default" />
 
                     </LinearLayout>
 
@@ -236,7 +236,7 @@
                                  android:layout_width="wrap_content"
                                  android:textSize="16sp"
                                  android:textColor="?attr/colorOnSurface"
-                                 android:text="应用日志"
+                                 android:text="@string/app_log_title"
                                  android:textStyle="bold" />
 
                             <TextView
@@ -246,7 +246,7 @@
                                  android:textColor="?attr/colorOnSurfaceVariant"
                                  android:layout_marginTop="2dp"
                                  android:id="@+id/app_log_count_text"
-                                 android:text="共 0 条" />
+                                 android:text="@string/log_count_default" />
 
                         </LinearLayout>
 
@@ -311,7 +311,7 @@
                                  android:layout_width="wrap_content"
                                  android:textSize="16sp"
                                  android:textColor="?attr/colorOnSurface"
-                                 android:text="FFmpeg日志"
+                                 android:text="@string/ffmpeg_log_title"
                                  android:textStyle="bold" />
 
                             <TextView
@@ -321,7 +321,7 @@
                                  android:textColor="?attr/colorOnSurfaceVariant"
                                  android:layout_marginTop="2dp"
                                  android:id="@+id/ffmpeg_log_count_text"
-                                 android:text="共 0 条" />
+                                 android:text="@string/log_count_default" />
 
                         </LinearLayout>
 
@@ -366,8 +366,8 @@
              android:layout_height="48dp"
              android:layout_width="48dp"
              app:icon="@drawable/backup"
-             android:contentDescription="导出日志"
-             android:tooltipText="导出日志"
+             android:contentDescription="@string/cd_export_log"
+             android:tooltipText="@string/cd_export_log"
              app:iconSize="24dp"
              style="@style/Widget.Material3.Button.IconButton.Filled"
              app:iconPadding="0dp"
@@ -383,8 +383,8 @@
              android:layout_height="48dp"
              android:layout_width="48dp"
              app:icon="@drawable/delete_outline"
-             android:contentDescription="清空日志"
-             android:tooltipText="清空日志"
+             android:contentDescription="@string/cd_clear_log"
+             android:tooltipText="@string/cd_clear_log"
              app:iconSize="24dp"
              style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
              app:iconPadding="0dp"
@@ -395,8 +395,8 @@
              android:layout_height="48dp"
              android:layout_width="48dp"
              app:icon="@drawable/vector_arrange_below"
-             android:contentDescription="复制日志"
-             android:tooltipText="复制日志"
+             android:contentDescription="@string/cd_copy_log"
+             android:tooltipText="@string/cd_copy_log"
              app:iconSize="24dp"
              style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
              app:iconPadding="0dp"

@@ -21,7 +21,7 @@
              android:layout_marginBottom="16dp"
              android:background="@android:color/transparent"
              app:navigationIconTint="?attr/colorOnSurfaceVariant"
-             app:title="关于"
+             app:title="@string/about_title"
              app:titleCentered="true"
              app:titleTextColor="?attr/colorPrimary"
              app:navigationIcon="@drawable/round_arrow_back"
@@ -67,7 +67,7 @@
                          android:textSize="24sp"
                          android:fontFamily="sans-serif-medium"
                          android:textColor="?attr/colorOnSurface"
-                         android:text="EzConvert"
+                         android:text="@string/about_app_name"
                          android:textStyle="bold" />
 
                     <TextView
@@ -78,7 +78,7 @@
                          android:textColor="?attr/colorOnSurfaceVariant"
                          android:layout_marginTop="4dp"
                          android:id="@+id/version_text"
-                         android:text="版本 0.9.0" />
+                         android:text="@string/about_version_default" />
 
                 </LinearLayout>
 
@@ -90,7 +90,7 @@
                      android:fontFamily="sans-serif"
                      android:textColor="?attr/colorOnSurface"
                      android:lineSpacingExtra="4dp"
-                     android:text="一个简单易用的音视频转换工具，支持多种格式转换、压缩、裁剪等功能。" />
+                     android:text="@string/about_app_description" />
 
                 <TextView
                      android:layout_height="wrap_content"
@@ -99,7 +99,7 @@
                      android:fontFamily="sans-serif"
                      android:textColor="?attr/colorOnSurfaceVariant"
                      android:lineSpacingExtra="4dp"
-                     android:text="开发者: XiaoHao\n邮箱: wzdmymzyl@163.com" />
+                     android:text="@string/about_developer_info" />
 
             </LinearLayout>
 
@@ -131,7 +131,7 @@
                      android:textColor="?attr/colorOnSurface"
                      android:layout_marginTop="8dp"
                      android:layout_marginStart="16dp"
-                     android:text="相关信息" />
+                     android:text="@string/about_info_section_title" />
 
                 <LinearLayout
                      android:layout_height="72dp"
@@ -172,7 +172,7 @@
                              android:textSize="16sp"
                              android:fontFamily="sans-serif-medium"
                              android:textColor="?attr/colorOnSurface"
-                             android:text="源代码" />
+                             android:text="@string/about_source_code" />
 
                         <TextView
                              android:layout_height="wrap_content"
@@ -180,7 +180,7 @@
                              android:textSize="12sp"
                              android:fontFamily="sans-serif"
                              android:textColor="?attr/colorOnSurfaceVariant"
-                             android:text="查看GitHub上的源代码" />
+                             android:text="@string/about_source_code_desc" />
 
                     </LinearLayout>
 
@@ -238,7 +238,7 @@
                              android:textSize="16sp"
                              android:fontFamily="sans-serif-medium"
                              android:textColor="?attr/colorOnSurface"
-                             android:text="问题反馈" />
+                             android:text="@string/about_feedback" />
 
                         <TextView
                              android:layout_height="wrap_content"
@@ -246,7 +246,7 @@
                              android:textSize="12sp"
                              android:fontFamily="sans-serif"
                              android:textColor="?attr/colorOnSurfaceVariant"
-                             android:text="在GitHub上报告问题" />
+                             android:text="@string/about_feedback_desc" />
 
                     </LinearLayout>
 
@@ -304,7 +304,7 @@
                              android:textSize="16sp"
                              android:fontFamily="sans-serif-medium"
                              android:textColor="?attr/colorOnSurface"
-                             android:text="检查更新" />
+                             android:text="@string/about_check_update" />
 
                         <TextView
                              android:layout_height="wrap_content"
@@ -315,7 +315,7 @@
                              android:textColor="?attr/colorOnSurfaceVariant"
                              android:focusable="true"
                              android:id="@+id/update_status_text"
-                             android:text="点击检查更新" />
+                             android:text="@string/about_update_status_default" />
 
                     </LinearLayout>
 
@@ -361,7 +361,7 @@
                              android:textSize="14sp"
                              android:fontFamily="sans-serif-medium"
                              android:textColor="?attr/colorPrimary"
-                             android:text="强制拉取最新版" />
+                             android:text="@string/about_test_update_title" />
 
                         <TextView
                              android:layout_height="wrap_content"
@@ -370,7 +370,7 @@
                              android:fontFamily="sans-serif"
                              android:textColor="?attr/colorOnSurfaceVariant"
                              android:layout_marginTop="2dp"
-                             android:text="仅做测试版本更新" />
+                             android:text="@string/about_test_update_desc" />
 
                     </LinearLayout>
 
@@ -410,7 +410,7 @@
                              android:textSize="14sp"
                              android:fontFamily="sans-serif-medium"
                              android:textColor="?attr/colorPrimary"
-                             android:text="强制检查更新" />
+                             android:text="@string/about_force_check_update_title" />
 
                         <TextView
                              android:layout_height="wrap_content"
@@ -419,7 +419,7 @@
                              android:fontFamily="sans-serif"
                              android:textColor="?attr/colorOnSurfaceVariant"
                              android:layout_marginTop="2dp"
-                             android:text="测试正式更新弹窗样式" />
+                             android:text="@string/about_force_check_update_desc" />
 
                     </LinearLayout>
 
@@ -465,7 +465,7 @@
                              android:textSize="16sp"
                              android:fontFamily="sans-serif-medium"
                              android:textColor="?attr/colorOnSurface"
-                             android:text="开发者选项" />
+                             android:text="@string/about_developer_options" />
 
                         <TextView
                              android:layout_height="wrap_content"
@@ -473,7 +473,7 @@
                              android:textSize="12sp"
                              android:fontFamily="sans-serif"
                              android:textColor="?attr/colorOnSurfaceVariant"
-                             android:text="调试工具与高级设置" />
+                             android:text="@string/about_developer_options_desc" />
 
                     </LinearLayout>
 
@@ -521,7 +521,7 @@
                          android:textSize="16sp"
                          android:fontFamily="sans-serif-medium"
                          android:textColor="?attr/colorOnSurface"
-                         android:text="开源许可证"
+                         android:text="@string/about_license_title"
                          android:textStyle="bold" />
 
                     <TextView
@@ -531,7 +531,7 @@
                          android:fontFamily="sans-serif"
                          android:textColor="?attr/colorOnSurface"
                          android:lineSpacingExtra="4dp"
-                         android:text="EzConvert 使用 GPLv3 许可证开源\n© 2026 XiaoHao. 保留所有权利。" />
+                         android:text="@string/about_license_content" />
 
                 </LinearLayout>
 
@@ -550,7 +550,7 @@
                      android:textSize="16sp"
                      android:fontFamily="sans-serif-medium"
                      android:textColor="?attr/colorOnSurface"
-                     android:text="鸣谢"
+                     android:text="@string/about_credits_title"
                      android:textStyle="bold" />
 
                 <TextView
@@ -560,7 +560,7 @@
                      android:fontFamily="sans-serif"
                      android:textColor="?attr/colorOnSurface"
                      android:lineSpacingExtra="4dp"
-                     android:text="• FFmpegKit - 音视频处理核心库\n• AndroidX - 现代Android支持库\n• Material Components - 界面组件" />
+                     android:text="@string/about_credits_content" />
 
             </LinearLayout>
 
@@ -574,7 +574,7 @@
              android:fontFamily="sans-serif"
              android:textColor="?attr/colorOnSurfaceVariant"
              android:layout_marginTop="16dp"
-             android:text="感谢使用 EzConvert" />
+             android:text="@string/about_footer_thanks" />
 
     </LinearLayout>
 

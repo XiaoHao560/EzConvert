@@ -190,9 +190,9 @@ public class ReleaseNotesManager {
         messageView.setMaxHeight(maxHeight);
         
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(activity);
-        builder.setTitle("更新日志");
+        builder.setTitle(context.getString(R.string.release_notes_dialog_title));
         builder.setView(messageView);
-        builder.setPositiveButton("知道了", (dialog, which) -> {
+        builder.setPositiveButton(context.getString(R.string.release_notes_dialog_btn_ok), (dialog, which) -> {
             saveLastSeenVersion(context, currentVersion);
             dialog.dismiss();
         });

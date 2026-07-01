@@ -21,7 +21,7 @@
             android:layout_marginBottom="16dp"
             android:background="@android:color/transparent"
             app:navigationIconTint="?attr/colorOnSurfaceVariant"
-            app:title="日志设置"
+            app:title="@string/log_settings_title"
             app:titleCentered="true"
             app:titleTextColor="?attr/colorPrimary"
             app:navigationIcon="@drawable/round_arrow_back"
@@ -111,7 +111,7 @@
             android:textColor="?attr/colorOnSurfaceVariant"
             android:layout_marginTop="16dp"
             android:lineSpacingExtra="4dp"
-            android:text="日志文件保存在应用数据目录中，可用于问题排查和调试" />
+            android:text="@string/log_file_location_hint" />
 
     </LinearLayout>
 

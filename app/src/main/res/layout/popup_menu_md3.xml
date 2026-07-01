@@ -28,7 +28,7 @@
              style="@style/Widget.Material3.Button.TextButton"
              android:paddingHorizontal="12dp"
              android:id="@+id/action_preview"
-             android:text="预览"
+             android:text="@string/popup_preview"
              app:iconGravity="textStart" />
 
         <com.google.android.material.divider.MaterialDivider
@@ -50,7 +50,7 @@
              style="@style/Widget.Material3.Button.TextButton"
              android:paddingHorizontal="12dp"
              android:id="@+id/action_settings"
-             android:text="设置"
+             android:text="@string/popup_settings"
              app:iconGravity="textStart" />
 
     </LinearLayout>

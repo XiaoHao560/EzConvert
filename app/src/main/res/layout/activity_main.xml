@@ -21,7 +21,7 @@
              android:layout_marginBottom="16dp"
              android:background="@android:color/transparent"
              app:navigationIconTint="?attr/colorOnSurfaceVariant"
-             app:title="EzConvert 媒体转换器"
+             app:title="@string/app_title"
              app:titleCentered="true"
              app:titleTextColor="?attr/colorPrimary"
              app:navigationIcon="@drawable/round_menu"
@@ -40,7 +40,7 @@
              android:fontFamily="?attr/textAppearanceLabelMedium"
              android:textColor="?attr/colorOnSurfaceVariant"
              android:id="@+id/version_text"
-             android:text="EzConvert v0.0.0 | FFmpegKit: 6.0-2" />
+             android:text="@string/version_text_default" />
 
         <com.google.android.material.card.MaterialCardView
              android:layout_height="wrap_content"
@@ -68,7 +68,7 @@
                      android:fontFamily="?attr/textAppearanceTitleMedium"
                      android:textColor="?attr/colorOnSurface"
                      android:id="@+id/status_text"
-                     android:text="请选择要处理的媒体文件" />
+                     android:text="@string/status_select_file" />
 
                 <com.google.android.material.progressindicator.LinearProgressIndicator
                      android:layout_height="wrap_content"
@@ -90,7 +90,7 @@
                      android:fontFamily="?attr/textAppearanceLabelSmall"
                      android:textColor="?attr/colorOnSurfaceVariant"
                      android:id="@+id/progress_text"
-                     android:text="进度: 0%" />
+                     android:text="@string/progress_default" />
 
                 <Button
                      android:layout_height="48dp"
@@ -101,7 +101,7 @@
                      style="@style/Widget.Material3.Button.TonalButton.Icon"
                      android:layout_marginTop="16dp"
                      android:id="@+id/cancel_btn"
-                     android:text="取消操作"
+                     android:text="@string/btn_cancel_ffmpeg"
                      app:iconGravity="textStart" />
 
             </LinearLayout>
@@ -133,7 +133,7 @@
                      android:textSize="16sp"
                      android:fontFamily="?attr/textAppearanceTitleMedium"
                      android:textColor="?attr/colorOnSurface"
-                     android:text="文件选择" />
+                     android:text="@string/section_file_selection" />
 
                 <Button
                      android:layout_height="48dp"
@@ -141,7 +141,7 @@
                      app:icon="@drawable/round_folder"
                      style="@style/Widget.Material3.Button.Icon"
                      android:id="@+id/select_file_btn"
-                     android:text="选择媒体文件"
+                     android:text="@string/btn_select_file"
                      app:iconGravity="textStart" />
 
             </LinearLayout>
@@ -173,7 +173,7 @@
                      android:textSize="16sp"
                      android:fontFamily="?attr/textAppearanceTitleMedium"
                      android:textColor="?attr/colorOnSurface"
-                     android:text="视频处理" />
+                     android:text="@string/section_video_processing" />
 
                 <Button
                      android:layout_height="48dp"
@@ -182,7 +182,7 @@
                      app:icon="@drawable/round_transform"
                      style="@style/Widget.Material3.Button.Icon"
                      android:id="@+id/convert_btn"
-                     android:text="转换格式"
+                     android:text="@string/btn_convert_format"
                      app:iconGravity="textStart" />
 
                 <Button
@@ -192,7 +192,7 @@
                      app:icon="@drawable/compress"
                      style="@style/Widget.Material3.Button.OutlinedButton.Icon"
                      android:id="@+id/compress_btn"
-                     android:text="压缩视频"
+                     android:text="@string/btn_compress_video"
                      app:iconGravity="textStart" />
 
                 <Button
@@ -202,7 +202,7 @@
                      app:icon="@drawable/round_audiotrack"
                      style="@style/Widget.Material3.Button.OutlinedButton.Icon"
                      android:id="@+id/extract_audio_btn"
-                     android:text="提取音频"
+                     android:text="@string/btn_extract_audio"
                      app:iconGravity="textStart" />
 
                 <Button
@@ -212,7 +212,7 @@
                      app:icon="@drawable/round_content_cut"
                      style="@style/Widget.Material3.Button.OutlinedButton.Icon"
                      android:id="@+id/cut_video_btn"
-                     android:text="裁剪视频"
+                     android:text="@string/btn_cut_video"
                      app:iconGravity="textStart" />
 
                 <Button
@@ -221,7 +221,7 @@
                      app:icon="@drawable/round_camera_alt"
                      style="@style/Widget.Material3.Button.OutlinedButton.Icon"
                      android:id="@+id/screenshot_btn"
-                     android:text="视频截图"
+                     android:text="@string/btn_screenshot"
                      app:iconGravity="textStart" />
 
             </LinearLayout>
@@ -253,7 +253,7 @@
                      android:textSize="16sp"
                      android:fontFamily="?attr/textAppearanceTitleMedium"
                      android:textColor="?attr/colorOnSurface"
-                     android:text="音频处理" />
+                     android:text="@string/section_audio_processing" />
 
                 <Button
                      android:layout_height="48dp"
@@ -262,7 +262,7 @@
                      app:icon="@drawable/round_audiotrack"
                      style="@style/Widget.Material3.Button.Icon"
                      android:id="@+id/convert_audio_btn"
-                     android:text="转换音频格式"
+                     android:text="@string/btn_convert_audio"
                      app:iconGravity="textStart" />
 
                 <Button
@@ -271,7 +271,7 @@
                      app:icon="@drawable/round_audiotrack"
                      style="@style/Widget.Material3.Button.OutlinedButton.Icon"
                      android:id="@+id/cut_audio_btn"
-                     android:text="裁剪音频"
+                     android:text="@string/btn_cut_audio"
                      app:iconGravity="textStart" />
 
             </LinearLayout>
@@ -286,7 +286,7 @@
              android:fontFamily="?attr/textAppearanceLabelSmall"
              android:textColor="?attr/colorOnSurfaceVariant"
              android:layout_marginTop="8dp"
-             android:text="提示: 输出文件将保存在下载文件夹中" />
+             android:text="@string/hint_output_location" />
 
     </LinearLayout>
 
