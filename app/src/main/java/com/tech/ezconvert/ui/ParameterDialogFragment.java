@@ -54,7 +54,7 @@ public class ParameterDialogFragment extends DialogFragment {
 
     private ParameterPresetManager presetManager;
     private ParameterData currentParams;
-    private String selectedPresetName = "默认";
+    private String selectedPresetName;
     private boolean isSyncAll = true;
     private int currentVideoBitrateKbps = 0; // 当前文件视频码率（用于压缩任务显示）
 
@@ -107,12 +107,13 @@ public class ParameterDialogFragment extends DialogFragment {
         }
         presetManager = new ParameterPresetManager(requireContext());
         // 加载默认预设
-        currentParams = presetManager.loadPreset("默认");
+        String defaultPresetName = getString(R.string.preset_default_name);
+        selectedPresetName = defaultPresetName;
+        currentParams = presetManager.loadPreset(defaultPresetName);
         if (currentParams == null) {
             currentParams = ParameterData.createDefault();
-            presetManager.savePreset("默认", currentParams);
+            presetManager.savePreset(defaultPresetName, currentParams);
         }
-        selectedPresetName = "默认";
 
         // 如果是压缩任务，获取当前视频码率
         if (isCompressTask && currentFilePath != null) {
@@ -258,14 +259,14 @@ public class ParameterDialogFragment extends DialogFragment {
 
     private String getTaskTypeDisplayName(String type) {
         switch (type) {
-            case "convert": return "转换视频";
-            case "compress": return "压缩视频";
-            case "extract_audio": return "提取音频";
-            case "cut_video": return "裁剪视频";
-            case "screenshot": return "视频截图";
-            case "convert_audio": return "转换音频";
-            case "cut_audio": return "裁剪音频";
-            default: return "处理文件";
+            case "convert": return getString(R.string.task_convert_video);
+            case "compress": return getString(R.string.task_compress_video);
+            case "extract_audio": return getString(R.string.task_extract_audio);
+            case "cut_video": return getString(R.string.task_cut_video);
+            case "screenshot": return getString(R.string.task_screenshot);
+            case "convert_audio": return getString(R.string.task_convert_audio);
+            case "cut_audio": return getString(R.string.task_cut_audio);
+            default: return getString(R.string.task_process_file);
         }
     }
 
@@ -285,9 +286,10 @@ public class ParameterDialogFragment extends DialogFragment {
 
     private void refreshPresetList() {
         List<String> names = presetManager.listPresetNames();
+        String defaultPresetName = getString(R.string.preset_default_name);
         if (names.isEmpty()) {
             // 创建默认预设
-            presetManager.savePreset("默认", ParameterData.createDefault());
+            presetManager.savePreset(defaultPresetName, ParameterData.createDefault());
             names = presetManager.listPresetNames();
         }
         int defaultPos = names.indexOf(selectedPresetName);
@@ -340,7 +342,7 @@ public class ParameterDialogFragment extends DialogFragment {
 
         // 音量
         sliderVolume.setValue(data.volume);
-        tvVolumePercent.setText(data.volume + "%");
+        tvVolumePercent.setText(data.volume + getString(R.string.unit_percent));
 
         // 同步开关
         switchSync.setChecked(isSyncAll);
@@ -364,16 +366,16 @@ public class ParameterDialogFragment extends DialogFragment {
         setupSpinner(spinnerOutputFormat, formats, formats[0]);
 
         // 视频编码器（动态更新）
-        setupSpinner(spinnerVideoCodec, new String[]{"H.264 (HW)"}, "H.264 (HW)");
+        setupSpinner(spinnerVideoCodec, new String[]{getString(R.string.codec_h264_hw_best)}, getString(R.string.codec_h264_hw_best));
 
         // 音频编码器
-        setupSpinner(spinnerAudioCodec, new String[]{"AAC"}, "AAC");
+        setupSpinner(spinnerAudioCodec, new String[]{getString(R.string.codec_aac_best)}, getString(R.string.codec_aac_best));
 
         // 码率单位
-        setupSpinner(spinnerBitrateUnit, new String[]{"Kbps", "Mbps"}, "Mbps");
+        setupSpinner(spinnerBitrateUnit, new String[]{getString(R.string.unit_kbps), getString(R.string.unit_mbps)}, getString(R.string.unit_mbps));
 
         // 截图格式
-        setupSpinner(spinnerScreenshotFormat, new String[]{"jpeg", "png"}, "jpeg");
+        setupSpinner(spinnerScreenshotFormat, new String[]{getString(R.string.format_jpeg), getString(R.string.format_png)}, getString(R.string.format_jpeg));
 
         // 输出格式切换时更新编码器列表
         spinnerOutputFormat.setOnItemClickListener((parent, view, position, id) -> {
@@ -384,12 +386,30 @@ public class ParameterDialogFragment extends DialogFragment {
 
     private String[] getOutputFormatsForTask() {
         if ("extract_audio".equals(taskType) || "convert_audio".equals(taskType) || "cut_audio".equals(taskType)) {
-            return new String[]{"mp3", "wav", "aac", "flac", "ogg", "m4a"};
+            return new String[]{
+                getString(R.string.format_mp3),
+                getString(R.string.format_wav),
+                getString(R.string.format_aac),
+                getString(R.string.format_flac_audio),
+                getString(R.string.format_ogg),
+                getString(R.string.format_m4a)
+            };
         }
         if ("screenshot".equals(taskType)) {
-            return new String[]{"jpeg", "png"};
+            return new String[]{
+                getString(R.string.format_jpeg),
+                getString(R.string.format_png)
+            };
         }
-        return new String[]{"mp4", "mkv", "webm", "avi", "mov", "flv", "gif"};
+        return new String[]{
+            getString(R.string.format_mp4),
+            getString(R.string.format_mkv),
+            getString(R.string.format_webm),
+            getString(R.string.format_avi),
+            getString(R.string.format_mov),
+            getString(R.string.format_flv),
+            getString(R.string.format_gif)
+        };
     }
 
     private void setupSpinner(MaterialAutoCompleteTextView spinner, String[] items, String defaultVal) {
@@ -417,26 +437,55 @@ public class ParameterDialogFragment extends DialogFragment {
             case "mp4":
             case "mov":
                 if (hwAccel) {
-                    return new String[]{"h264_mediacodec (HW) (最佳)", "hevc_mediacodec (HW)", "libx264 (SW)", "libx265 (SW)"};
+                    return new String[]{
+                        getString(R.string.codec_h264_hw_best),
+                        getString(R.string.codec_hevc_hw),
+                        getString(R.string.codec_h264_sw),
+                        getString(R.string.codec_h265_sw)
+                    };
                 } else {
-                    return new String[]{"libx264 (SW) (最佳)", "libx265 (SW)", "h264_mediacodec (HW)", "hevc_mediacodec (HW)"};
+                    return new String[]{
+                        getString(R.string.codec_h264_sw_best),
+                        getString(R.string.codec_h265_sw),
+                        getString(R.string.codec_h264_hw_best),
+                        getString(R.string.codec_hevc_hw)
+                    };
                 }
             case "mkv":
-                return new String[]{"libx265 (SW) (最佳)", "libx264 (SW)"};
+                return new String[]{
+                    getString(R.string.codec_h265_sw_best),
+                    getString(R.string.codec_h264_sw)
+                };
             case "webm":
-                return new String[]{"libvpx-vp9 (最佳)", "libvpx"};
+                return new String[]{
+                    getString(R.string.codec_vp9_best),
+                    getString(R.string.codec_vp8)
+                };
             case "avi":
-                return new String[]{"mpeg4 (最佳)", "libx264 (SW)"};
+                return new String[]{
+                    getString(R.string.codec_mpeg4_best),
+                    getString(R.string.codec_h264_sw)
+                };
             case "flv":
                 if (hwAccel) {
-                    return new String[]{"h264_mediacodec (HW) (最佳)", "libx264 (SW)"};
+                    return new String[]{
+                        getString(R.string.codec_h264_hw_best),
+                        getString(R.string.codec_h264_sw)
+                    };
                 } else {
-                    return new String[]{"libx264 (SW) (最佳)", "h264_mediacodec (HW)"};
+                    return new String[]{
+                        getString(R.string.codec_h264_sw_best),
+                        getString(R.string.codec_h264_hw_best)
+                    };
                 }
             case "gif":
-                return new String[]{"gif (最佳)"};
+                return new String[]{
+                    getString(R.string.codec_gif_best)
+                };
             default:
-                return new String[]{"libx264 (SW) (最佳)"};
+                return new String[]{
+                    getString(R.string.codec_default_best)
+                };
         }
     }
 
@@ -445,27 +494,52 @@ public class ParameterDialogFragment extends DialogFragment {
             case "mp4":
             case "mov":
             case "flv":
-                return new String[]{"aac (最佳)", "libmp3lame"};
+                return new String[]{
+                    getString(R.string.codec_aac_best),
+                    getString(R.string.codec_mp3)
+                };
             case "mkv":
-                return new String[]{"libopus (最佳)", "aac", "libmp3lame"};
+                return new String[]{
+                    getString(R.string.codec_opus_best),
+                    getString(R.string.codec_aac),
+                    getString(R.string.codec_mp3)
+                };
             case "webm":
-                return new String[]{"libopus (最佳)"};
+                return new String[]{
+                    getString(R.string.codec_opus_best)
+                };
             case "avi":
-                return new String[]{"libmp3lame (最佳)"};
+                return new String[]{
+                    getString(R.string.codec_mp3_best)
+                };
             case "mp3":
-                return new String[]{"libmp3lame (最佳)"};
+                return new String[]{
+                    getString(R.string.codec_mp3_best)
+                };
             case "wav":
-                return new String[]{"pcm_s16le (最佳)"};
+                return new String[]{
+                    getString(R.string.codec_pcm_best)
+                };
             case "aac":
-                return new String[]{"aac (最佳)"};
+                return new String[]{
+                    getString(R.string.codec_aac_best)
+                };
             case "flac":
-                return new String[]{"flac (最佳)"};
+                return new String[]{
+                    getString(R.string.codec_flac_best)
+                };
             case "ogg":
-                return new String[]{"libvorbis (最佳)"};
+                return new String[]{
+                    getString(R.string.codec_vorbis_best)
+                };
             case "m4a":
-                return new String[]{"aac (最佳)"};
+                return new String[]{
+                    getString(R.string.codec_aac_best)
+                };
             default:
-                return new String[]{"aac (最佳)"};
+                return new String[]{
+                    getString(R.string.codec_aac_best)
+                };
         }
     }
 
@@ -496,7 +570,7 @@ public class ParameterDialogFragment extends DialogFragment {
     private void setupSliders() {
         sliderVolume.addOnChangeListener((slider, value, fromUser) -> {
             int vol = (int) value;
-            tvVolumePercent.setText(vol + "%");
+            tvVolumePercent.setText(vol + getString(R.string.unit_percent));
             currentParams.volume = vol;
         });
     }
@@ -514,49 +588,50 @@ public class ParameterDialogFragment extends DialogFragment {
                     presetAdapter.selectPosition(pos);
                     selectedPresetName = newName;
                 }
-                ToastUtils.show(requireActivity(), "预设已保存: " + newName);
+                ToastUtils.show(requireActivity(), getString(R.string.toast_preset_saved, newName));
             } else {
-                ToastUtils.show(requireActivity(), "保存预设失败");
+                ToastUtils.show(requireActivity(), getString(R.string.toast_preset_save_failed));
             }
         });
 
         btnDeletePreset.setOnClickListener(v -> {
-            if ("默认".equals(selectedPresetName)) {
-                ToastUtils.show(requireActivity(), "不能删除默认预设");
+            String defaultPresetName = getString(R.string.preset_default_name);
+            if (defaultPresetName.equals(selectedPresetName)) {
+                ToastUtils.show(requireActivity(), getString(R.string.toast_preset_delete_default));
                 return;
             }
             new MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("删除预设")
-                    .setMessage("确定要删除预设 \"" + selectedPresetName + "\" 吗？")
-                    .setPositiveButton("删除", (dialog, which) -> {
+                    .setTitle(R.string.dialog_delete_preset_title)
+                    .setMessage(getString(R.string.dialog_delete_preset_message, selectedPresetName))
+                    .setPositiveButton(R.string.btn_delete, (dialog, which) -> {
                         if (presetManager.deletePreset(selectedPresetName)) {
                             refreshPresetList();
                             // 切换到默认
-                            int pos = presetManager.listPresetNames().indexOf("默认");
+                            int pos = presetManager.listPresetNames().indexOf(defaultPresetName);
                             if (pos >= 0) {
                                 presetAdapter.selectPosition(pos);
-                                selectedPresetName = "默认";
-                                loadPreset("默认");
+                                selectedPresetName = defaultPresetName;
+                                loadPreset(defaultPresetName);
                             }
-                            ToastUtils.show(requireActivity(), "预设已删除");
+                            ToastUtils.show(requireActivity(), getString(R.string.toast_preset_deleted));
                         } else {
-                            ToastUtils.show(requireActivity(), "删除失败");
+                            ToastUtils.show(requireActivity(), getString(R.string.toast_preset_delete_failed));
                         }
                     })
-                    .setNegativeButton("取消", null)
+                    .setNegativeButton(R.string.btn_cancel, null)
                     .show();
         });
 
         btnReset.setOnClickListener(v -> {
             new MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("重置为默认")
-                    .setMessage("将重置所有参数为出厂默认值，确认继续？")
-                    .setPositiveButton("重置", (dialog, which) -> {
+                    .setTitle(R.string.dialog_reset_title)
+                    .setMessage(R.string.dialog_reset_message)
+                    .setPositiveButton(R.string.btn_reset, (dialog, which) -> {
                         currentParams = ParameterData.createDefault();
-                        loadPreset("默认");
-                        ToastUtils.show(requireActivity(), "已重置为默认参数");
+                        loadPreset(getString(R.string.preset_default_name));
+                        ToastUtils.show(requireActivity(), getString(R.string.toast_reset_done));
                     })
-                    .setNegativeButton("取消", null)
+                    .setNegativeButton(R.string.btn_cancel, null)
                     .show();
         });
 
@@ -638,18 +713,18 @@ public class ParameterDialogFragment extends DialogFragment {
     private boolean validateParams() {
         // 验证必要参数
         if (spinnerOutputFormat.getText().toString().isEmpty()) {
-            ToastUtils.show(requireActivity(), "请选择输出格式");
+            ToastUtils.show(requireActivity(), getString(R.string.toast_select_output_format));
             return false;
         }
         if ("screenshot".equals(taskType)) {
             if (etScreenshotTime.getText().toString().isEmpty()) {
-                ToastUtils.show(requireActivity(), "请输入截图时间点");
+                ToastUtils.show(requireActivity(), getString(R.string.toast_enter_screenshot_time));
                 return false;
             }
         }
         if ("cut_video".equals(taskType) || "cut_audio".equals(taskType)) {
             if (etCutStart.getText().toString().isEmpty() || etCutDuration.getText().toString().isEmpty()) {
-                ToastUtils.show(requireActivity(), "请输入裁剪开始时间和持续时间");
+                ToastUtils.show(requireActivity(), getString(R.string.toast_enter_cut_times));
                 return false;
             }
         }
@@ -660,18 +735,18 @@ public class ParameterDialogFragment extends DialogFragment {
         // 显示当前文件信息
         if (currentFilePath != null) {
             String fileName = new File(currentFilePath).getName();
-            tvFileInfo.setText("当前文件: " + fileName);
+            tvFileInfo.setText(getString(R.string.current_file_format, fileName));
         } else {
-            tvFileInfo.setText("当前文件: 无");
+            tvFileInfo.setText(R.string.current_file_none);
         }
         
         // 如果是压缩任务，显示当前码率
         if (isCompressTask && currentVideoBitrateKbps > 0) {
             tvCurrentBitrate.setVisibility(View.VISIBLE);
             if (currentVideoBitrateKbps >= 1000) {
-                tvCurrentBitrate.setText("当前视频码率: " + (currentVideoBitrateKbps / 1000.0) + " Mbps");
+                tvCurrentBitrate.setText(getString(R.string.current_bitrate_mbps, String.valueOf(currentVideoBitrateKbps / 1000.0)));
             } else {
-                tvCurrentBitrate.setText("当前视频码率: " + currentVideoBitrateKbps + " Kbps");
+                tvCurrentBitrate.setText(getString(R.string.current_bitrate_kbps, currentVideoBitrateKbps));
             }
         } else {
             tvCurrentBitrate.setVisibility(View.GONE);
@@ -691,7 +766,10 @@ public class ParameterDialogFragment extends DialogFragment {
                 screenshotContainer.setVisibility(View.VISIBLE);
                 cutContainer.setVisibility(View.GONE);
                 // 设置输出格式为图片格式
-                setupSpinner(spinnerOutputFormat, new String[]{"jpeg", "png"}, "jpeg");
+                setupSpinner(spinnerOutputFormat, new String[]{
+                    getString(R.string.format_jpeg),
+                    getString(R.string.format_png)
+                }, getString(R.string.format_jpeg));
                 break;
             
             case "cut_video":

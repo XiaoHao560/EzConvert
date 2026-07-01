@@ -114,7 +114,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                     Uri.parse("https://github.com/XiaoHao560/EzConvert"));
                 startActivity(intent);
             } catch (Exception e) {
-                ToastUtils.show(this, "无法打开链接");
+                ToastUtils.show(this, getString(R.string.toast_cannot_open_link));
             }
         });
         
@@ -126,15 +126,15 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                     Uri.parse("https://github.com/XiaoHao560/EzConvert/issues"));
                 startActivity(intent);
             } catch (Exception e) {
-                ToastUtils.show(this, "无法打开链接");
+                ToastUtils.show(this, getString(R.string.toast_cannot_open_link));
             }
         });
         
         // 检查更新
         LinearLayout checkUpdateItem = findViewById(R.id.check_update_item);
         checkUpdateItem.setOnClickListener(v -> {
-            ToastUtils.show(this, "正在检查更新...");
-            updateStatusText.setText("正在检查...");
+            ToastUtils.show(this, getString(R.string.toast_checking_update));
+            updateStatusText.setText(R.string.update_status_checking);
             updateStatusText.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray));
             checkForUpdates();
         });
@@ -142,7 +142,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
         // 开源许可证
         LinearLayout licenseItem = findViewById(R.id.license_item);
         licenseItem.setOnClickListener(v -> {
-            ToastUtils.showLong(this, "EzConvert 使用 GPLv3 开源许可证");
+            ToastUtils.showLong(this, getString(R.string.toast_license_info));
         });
         
         // 测试更新（强制拉取最新版）
@@ -155,7 +155,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                     updateChecker.getHtmlUrlFromGitHub()
                 );
             } else {
-                ToastUtils.show(this, "无法获取最后一个版本信息\n最后一个版本是测试版本，请打开相关设置");
+                ToastUtils.show(this, getString(R.string.toast_cannot_get_version));
             }
         });
         
@@ -170,7 +170,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                     updateChecker.getHtmlUrlFromGitHub()
                 );
             } else {
-                ToastUtils.show(this, "无法获取最后一个版本信息\n最后一个版本是测试版本，请打开相关设置");
+                ToastUtils.show(this, getString(R.string.toast_cannot_get_version));
             }
         });
         
@@ -194,7 +194,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                 pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
             }
             String version = pInfo.versionName;
-            versionText.setText("版本 " + version);
+            versionText.setText(getString(R.string.about_version_format, version));
             
             // 开发版本检测逻辑
             isDevelopmentVersion = updateChecker != null && updateChecker.isDevelopmentVersion(version);
@@ -205,7 +205,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
             updateTestItemsVisibility();
             
         } catch (PackageManager.NameNotFoundException e) {
-            versionText.setText("版本 0.0.0");
+            versionText.setText(R.string.about_version_default);
             isDevelopmentVersion = true;
             updateTestItemsVisibility();
         }
@@ -244,9 +244,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
             // 首先处理开发者版本的状态显示
             if (isDevelopmentVersion) {
                 // 开发者版本始终显示"当前为开发版本"
-                String statusText = "当前是开发版本";
-                
-                updateStatusText.setText(statusText);
+                updateStatusText.setText(R.string.update_status_dev_version);
                 updateStatusText.setTextColor(ContextCompat.getColor(this, android.R.color.holo_blue_dark));
                 updateStatusText.setOnClickListener(null);
                 
@@ -269,9 +267,9 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                 showUpdateDialog(releaseName, ReleaseNotes, isPrerelease, htmlUrl);
                 
                 // 更新状态文本
-                String statusText = "有新版本 " + latestVersion;
+                String statusText = getString(R.string.update_status_new_version, latestVersion);
                 if (isPrerelease) {
-                    statusText += " (预发布)";
+                    statusText += getString(R.string.update_status_prerelease_suffix);
                 }
                 updateStatusText.setText(statusText);
                 updateStatusText.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark));
@@ -287,9 +285,9 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                 developerItem.setVisibility(View.GONE);
             } else if (comparisonResult == 0) {
                 // 版本相同
-                String statusText = "已是最新版本";
+                String statusText = getString(R.string.update_status_latest);
                 if (isPrerelease) {
-                    statusText += " (预发布)";
+                    statusText += getString(R.string.update_status_prerelease_suffix);
                 }
                 updateStatusText.setText(statusText);
                 updateStatusText.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray));
@@ -301,7 +299,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                 developerItem.setVisibility(View.GONE);
             } else {
                 // 当前版本比找到的版本更新
-                updateStatusText.setText("当前版本比 github 上更新?");
+                updateStatusText.setText(R.string.update_status_newer_than_github);
                 updateStatusText.setTextColor(ContextCompat.getColor(this, android.R.color.holo_red_light));
                 updateStatusText.setOnClickListener(null);
                 
@@ -319,7 +317,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
     @Override
     public void onUpdateCheckError(String errorMessage) {
         runOnUiThread(() -> {
-            updateStatusText.setText("检查失败");
+            updateStatusText.setText(R.string.update_status_check_failed);
             updateStatusText.setTextColor(ContextCompat.getColor(this, android.R.color.holo_red_dark));
             updateStatusText.setOnClickListener(null);
             testUpdateItem.setVisibility(View.GONE);
@@ -331,7 +329,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
     @Override
     public void onNoUpdateAvailable() {
         runOnUiThread(() -> {
-            updateStatusText.setText("没有可用更新");
+            updateStatusText.setText(R.string.update_status_no_update);
             updateStatusText.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray));
             updateStatusText.setOnClickListener(null);
             
@@ -352,7 +350,9 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                                  boolean isPrerelease, String htmlUrl) {
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
         
-        String title = isPrerelease ? "预发布版本: " + releaseName : "更新详情: " + releaseName;
+        String title = isPrerelease 
+            ? getString(R.string.update_dialog_title_prerelease, releaseName) 
+            : getString(R.string.update_dialog_title, releaseName);
         builder.setTitle(title);
         
         TextView messageView = new TextView(this);
@@ -362,7 +362,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
         
         String markdownContent = releaseNotes;
         if (markdownContent == null || markdownContent.trim().isEmpty()) {
-            markdownContent = "暂无更新说明";
+            markdownContent = getString(R.string.update_dialog_no_notes);
         }
         
         markwon.setMarkdown(messageView, markdownContent);
@@ -372,23 +372,23 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
         
         builder.setView(messageView);
         
-        builder.setPositiveButton("下载", (dialog, which) -> {
+        builder.setPositiveButton(R.string.update_dialog_download, (dialog, which) -> {
             try {
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(htmlUrl));
                 startActivity(intent);
             } catch (Exception e) {
-                ToastUtils.show(this, "无法打开链接");
+                ToastUtils.show(this, getString(R.string.toast_cannot_open_link));
             }
         });
         
         if (isPrerelease) {
-            builder.setNeutralButton("仅正式版", (dialog, which) -> {
+            builder.setNeutralButton(R.string.update_dialog_stable_only, (dialog, which) -> {
                 // 更新全局设置
                 settingsManager.setIncludePrerelease(false);
                 if (updateChecker != null) {
                     updateChecker.setIncludePrerelease(false);
                 }
-                updateStatusText.setText("正在检查...");
+                updateStatusText.setText(R.string.update_status_checking);
                 testUpdateItem.setVisibility(View.GONE);
                 forceCheckUpdateItem.setVisibility(View.GONE);
                 developerItem.setVisibility(View.GONE);
@@ -396,7 +396,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
             });
         }
         
-        builder.setNegativeButton("关闭", null);
+        builder.setNegativeButton(R.string.update_dialog_close, null);
         
         try {
             androidx.appcompat.app.AlertDialog dialog = builder.show();
@@ -414,7 +414,12 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
                                      boolean isPrerelease, String htmlUrl) {
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
         
-        String title = "[测试] " + (isPrerelease ? "预发布版本: " + releaseName : "更新详情: " + releaseName);
+        String title;
+        if (isPrerelease) {
+            title = getString(R.string.test_update_dialog_title_prerelease, releaseName);
+        } else {
+            title = getString(R.string.test_update_dialog_title_stable, releaseName);
+        }
         builder.setTitle(title);
         
         TextView messageView = new TextView(this);
@@ -424,10 +429,10 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
         
         String markdownContent = releaseNotes;
         if (markdownContent == null || markdownContent.trim().isEmpty()) {
-            markdownContent = "暂无更新说明";
+            markdownContent = getString(R.string.update_dialog_no_notes);
         }
         
-        markdownContent = "## ⚠️ 测试更新对话框\n\n*仅用于开发版本测试*\n\n" + markdownContent;
+        markdownContent = getString(R.string.test_update_dialog_header) + markdownContent;
         
         markwon.setMarkdown(messageView, markdownContent);
         
@@ -436,21 +441,21 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
         
         builder.setView(messageView);
         
-        builder.setPositiveButton("测试前往GitHub", (dialog, which) -> {
+        builder.setPositiveButton(R.string.test_update_dialog_go_github, (dialog, which) -> {
             try {
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(htmlUrl));
                 startActivity(intent);
             } catch (Exception e) {
-                ToastUtils.show(this, "无法打开链接");
+                ToastUtils.show(this, getString(R.string.toast_cannot_open_link));
             }
         });
         
-        builder.setNeutralButton("重新检查", (dialog, which) -> {
-            updateStatusText.setText("正在检查...");
+        builder.setNeutralButton(R.string.test_update_dialog_recheck, (dialog, which) -> {
+            updateStatusText.setText(R.string.update_status_checking);
             checkForUpdates();
         });
         
-        builder.setNegativeButton("关闭", null);
+        builder.setNegativeButton(R.string.update_dialog_close, null);
         
         try {
             androidx.appcompat.app.AlertDialog dialog = builder.show();

@@ -235,7 +235,7 @@
                  android:layout_marginBottom="8dp"
                  android:textAppearance="?attr/textAppearanceHeadlineSmall"
                  android:textColor="?attr/colorOnSurface"
-                 android:text="选择媒体文件" />
+                 android:text="@string/btn_select_file" />
 
             <TextView
                  android:layout_height="wrap_content"
@@ -244,7 +244,7 @@
                  android:gravity="center"
                  android:textAppearance="?attr/textAppearanceBodyMedium"
                  android:textColor="?attr/colorOnSurfaceVariant"
-                 android:text="选择视频或音频文件进行预览播放" />
+                 android:text="@string/empty_state_description" />
 
             <com.google.android.material.button.MaterialButton
                  android:layout_height="56dp"
@@ -252,7 +252,7 @@
                  app:icon="@drawable/round_folder"
                  style="@style/Widget.Material3.Button.Icon"
                  android:id="@+id/select_file_btn"
-                 android:text="选择文件"
+                 android:text="@string/btn_select_file"
                  app:iconGravity="textStart" />
 
         </LinearLayout>

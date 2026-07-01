@@ -29,20 +29,20 @@ public class NotificationHelper {
             // 进度通知渠道
             NotificationChannel progressChannel = new NotificationChannel(
                     CHANNEL_ID_PROGRESS,
-                    "转换进度",
+                    context.getString(R.string.notification_channel_progress_name),
                     NotificationManager.IMPORTANCE_LOW
             );
-            progressChannel.setDescription("显示媒体文件转换进度");
+            progressChannel.setDescription(context.getString(R.string.notification_channel_progress_desc));
             progressChannel.setSound(null, null);
             progressChannel.enableVibration(false);
 
             // 完成通知渠道
             NotificationChannel completeChannel = new NotificationChannel(
                     CHANNEL_ID_COMPLETE,
-                    "转换完成",
+                    context.getString(R.string.notification_channel_complete_name),
                     NotificationManager.IMPORTANCE_DEFAULT
             );
-            completeChannel.setDescription("转换成功或失败的通知");
+            completeChannel.setDescription(context.getString(R.string.notification_channel_complete_desc));
 
             manager.createNotificationChannel(progressChannel);
             manager.createNotificationChannel(completeChannel);
@@ -60,10 +60,13 @@ public class NotificationHelper {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
+        String title = context.getString(R.string.notification_progress_title, fileName);
+        String text = context.getString(R.string.notification_progress_text, progress);
+
         return new NotificationCompat.Builder(context, CHANNEL_ID_PROGRESS)
                 .setSmallIcon(R.drawable.ic_splash_logo)
-                .setContentTitle("正在转换: " + fileName)
-                .setContentText("进度: " + progress + "%")
+                .setContentTitle(title)
+                .setContentText(text)
                 .setProgress(100, progress, false)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setOngoing(true)
@@ -89,13 +92,22 @@ public class NotificationHelper {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
-        String title = success ? "转换完成" : "转换失败";
+        String title = success ? 
+            context.getString(R.string.notification_complete_title_success) :
+            context.getString(R.string.notification_complete_title_fail);
         int icon = success ? R.drawable.play_outline : R.drawable.alert_circle;
+
+        String contentText;
+        if (success) {
+            contentText = context.getString(R.string.notification_complete_text_success, fileName);
+        } else {
+            contentText = context.getString(R.string.notification_complete_text_fail, fileName, message);
+        }
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID_COMPLETE)
                 .setSmallIcon(icon)
                 .setContentTitle(title)
-                .setContentText(fileName + (success ? " 转换成功" : " " + message))
+                .setContentText(contentText)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
@@ -118,8 +130,9 @@ public class NotificationHelper {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
-        String title = "操作已取消";
-        String content = (fileName != null && !fileName.isEmpty() ? fileName : "文件") + " 的处理已取消";
+        String title = context.getString(R.string.notification_cancelled_title);
+        String fileNameDisplay = (fileName != null && !fileName.isEmpty()) ? fileName : context.getString(R.string.notification_file_placeholder);
+        String content = context.getString(R.string.notification_cancelled_text, fileNameDisplay);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID_COMPLETE)
                 .setSmallIcon(R.drawable.ic_splash_logo)

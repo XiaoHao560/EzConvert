@@ -119,7 +119,7 @@ public class LogViewerActivity extends BaseActivity {
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("运行日志");
+            getSupportActionBar().setTitle(getString(R.string.run_log));
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
@@ -141,13 +141,13 @@ public class LogViewerActivity extends BaseActivity {
                 runOnUiThread(() -> {
                     if ("FFmpegLog".equals(entry.tag)) {
                         ffmpegLogAdapter.appendSingle(entry.getFormattedMessage());
-                        ffmpegLogCountText.setText("共 " + logManager.getFfmpegLogCount() + " 条");
+                        ffmpegLogCountText.setText(getString(R.string.log_count_format, logManager.getFfmpegLogCount()));
                         if (isFfmpegLogExpanded) {
                             ffmpegLogRecyclerView.scrollToPosition(ffmpegLogAdapter.getItemCount() - 1);
                         }
                     } else {
                         appLogAdapter.appendSingle(entry.getFormattedMessage());
-                        appLogCountText.setText("共 " + logManager.getAppLogCount() + " 条");
+                        appLogCountText.setText(getString(R.string.log_count_format, logManager.getAppLogCount()));
                         if (isAppLogExpanded) {
                             appLogRecyclerView.scrollToPosition(appLogAdapter.getItemCount() - 1);
                         }
@@ -199,7 +199,7 @@ public class LogViewerActivity extends BaseActivity {
                 // 尝试判断存储位置
                 String uriString = uri.toString();
                 if (uriString.contains("primary")) {
-                    return "内部存储/" + displayName;
+                    return getString(R.string.path_internal_storage) + displayName;
                 } else {
                     // 尝试提取 SD 卡名称
                     String volumeName = extractVolumeName(uriString);
@@ -251,14 +251,14 @@ public class LogViewerActivity extends BaseActivity {
                     }
                     
                     if ("primary".equals(volumeId)) {
-                        return "内部存储";
+                        return getString(R.string.path_internal_storage_short);
                     } else {
-                        return "SD卡(" + volumeId + ")";
+                        return getString(R.string.path_sd_card_format, volumeId);
                     }
                 }
             }
         }
-        return "外部存储";
+        return getString(R.string.path_external_storage);
     }
 
     // 应用日志
@@ -323,11 +323,11 @@ public class LogViewerActivity extends BaseActivity {
         String systemVersion = Build.DISPLAY;
         String cpuArch = Build.SUPPORTED_ABIS.length > 0 ? Build.SUPPORTED_ABIS[0] : Build.CPU_ABI;
 
-        deviceNameText.setText("设备名称: " + deviceName);
-        deviceModelText.setText("设备型号: " + deviceModel);
-        androidVersionText.setText("安卓版本: " + androidVersion);
-        systemVersionText.setText("系统版本: " + systemVersion);
-        cpuArchText.setText("CPU架构: " + cpuArch);
+        deviceNameText.setText(getString(R.string.device_name_format, deviceName));
+        deviceModelText.setText(getString(R.string.device_model_format, deviceModel));
+        androidVersionText.setText(getString(R.string.android_version_format, androidVersion));
+        systemVersionText.setText(getString(R.string.system_version_format, systemVersion));
+        cpuArchText.setText(getString(R.string.cpu_arch_format, cpuArch));
 
         // 应用信息
         String versionName = BuildConfig.VERSION_NAME;
@@ -335,12 +335,12 @@ public class LogViewerActivity extends BaseActivity {
         // 从 BuildConfig 获取 commit hash，如果没有则显示 "null"
         String commitHash = getCommitHash();
 
-        appVersionNameText.setText("版本名称: " + versionName);
-        appVersionCodeText.setText("版本号: " + versionCode);
-        appCommitHashText.setText("Commit: " + commitHash);
+        appVersionNameText.setText(getString(R.string.app_version_name_format, versionName));
+        appVersionCodeText.setText(getString(R.string.app_version_code_format, versionCode));
+        appCommitHashText.setText(getString(R.string.app_commit_hash_format, commitHash));
         
         // 更新摘要显示
-        deviceInfoSummary.setText(deviceName + " | " + cpuArch + " | v" + versionName);
+        deviceInfoSummary.setText(getString(R.string.device_info_summary_format, deviceName, cpuArch, versionName));
     }
     
     // 获取 Commit Hash
@@ -377,7 +377,7 @@ public class LogViewerActivity extends BaseActivity {
         btnClearLog.setOnClickListener(v -> {
             logManager.clearAllLogs();
             refreshLogDisplay();
-            ToastUtils.show(this, "日志已清除");
+            ToastUtils.show(this, getString(R.string.toast_logs_cleared));
         });
 
         // 复制按钮
@@ -416,7 +416,7 @@ public class LogViewerActivity extends BaseActivity {
         // 应用日志：全量刷新，用于初始化或清除后重建
         List<String> appLogs = logManager.getAppLogsFromMemory();
         appLogAdapter.updateData(appLogs);
-        appLogCountText.setText("共 " + logManager.getAppLogCount() + " 条");
+        appLogCountText.setText(getString(R.string.log_count_format, logManager.getAppLogCount()));
         if (!appLogs.isEmpty() && isAppLogExpanded) {
             appLogRecyclerView.scrollToPosition(appLogs.size() - 1);
         }
@@ -424,7 +424,7 @@ public class LogViewerActivity extends BaseActivity {
         // FFmpeg日志：全量刷新
         List<String> ffmpegLogs = logManager.getFfmpegLogsFromMemory();
         ffmpegLogAdapter.updateData(ffmpegLogs);
-        ffmpegLogCountText.setText("共 " + logManager.getFfmpegLogCount() + " 条");
+        ffmpegLogCountText.setText(getString(R.string.log_count_format, logManager.getFfmpegLogCount()));
         if (!ffmpegLogs.isEmpty() && isFfmpegLogExpanded) {
             ffmpegLogRecyclerView.scrollToPosition(ffmpegLogs.size() - 1);
         }
@@ -433,17 +433,17 @@ public class LogViewerActivity extends BaseActivity {
     private void copyAllLogs() {
         StringBuilder sb = new StringBuilder();
         
-        sb.append("=== 设备信息 ===\n");
+        sb.append(getString(R.string.log_section_device_info)).append("\n");
         sb.append(deviceNameText.getText().toString()).append("\n");
         sb.append(deviceModelText.getText().toString()).append("\n");
         sb.append(androidVersionText.getText().toString()).append("\n");
         sb.append(systemVersionText.getText().toString()).append("\n");
         sb.append(cpuArchText.getText().toString()).append("\n");
-        sb.append("\n=== 应用信息 ===\n");
+        sb.append("\n").append(getString(R.string.log_section_app_info)).append("\n");
         sb.append(appVersionNameText.getText().toString()).append("\n");
         sb.append(appVersionCodeText.getText().toString()).append("\n");
         sb.append(appCommitHashText.getText().toString()).append("\n");
-        sb.append("\n=== 应用日志 ===\n");
+        sb.append("\n").append(getString(R.string.log_section_app_logs)).append("\n");
         
         List<String> allLogs = logManager.getAllLogs();
         sb.append(String.join("\n", allLogs));
@@ -451,7 +451,7 @@ public class LogViewerActivity extends BaseActivity {
         ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText("AllLogs", sb.toString());
         cm.setPrimaryClip(clip);
-        ToastUtils.show(this, "日志已复制到剪贴板");
+        ToastUtils.show(this, getString(R.string.toast_logs_copied));
     }
 
     // 根据是否已保存路径决定显示哪个对话框
@@ -493,8 +493,8 @@ public class LogViewerActivity extends BaseActivity {
         TextInputLayout textInputLayout = dialogView.findViewById(R.id.text_input_layout);
         pathEditText = dialogView.findViewById(R.id.path_edit_text);
         
-        textInputLayout.setHint("保存路径");
-        pathEditText.setText("点击选择保存目录");
+        textInputLayout.setHint(getString(R.string.hint_save_path));
+        pathEditText.setText(getString(R.string.tap_to_select_dir));
         pathEditText.setFocusable(false);
         pathEditText.setClickable(true);
         
@@ -508,19 +508,19 @@ public class LogViewerActivity extends BaseActivity {
         });
 
         MaterialAlertDialogBuilder dialogBuilder = new MaterialAlertDialogBuilder(this)
-            .setTitle("导出日志")
-            .setMessage("请选择保存日志文件的目录")
+            .setTitle(getString(R.string.dialog_title_export_log))
+            .setMessage(getString(R.string.dialog_message_export_log))
             .setView(dialogView)
-            .setPositiveButton("保存", (dialog, which) -> {
+            .setPositiveButton(getString(R.string.btn_save), (dialog, which) -> {
                 if (selectedTreeUri == null) {
-                    ToastUtils.show(this, "请先选择保存目录");
+                    ToastUtils.show(this, getString(R.string.toast_select_dir_first));
                     return;
                 }
                 // 保存路径到 SharedPreferences
                 prefs.edit().putString(KEY_EXPORT_URI, selectedTreeUri.toString()).apply();
                 performExportToTreeUri(selectedTreeUri);
             })
-            .setNegativeButton("取消", null);
+            .setNegativeButton(getString(R.string.btn_cancel_dialog), null);
             
         AlertDialog dialog = dialogBuilder.create();
         dialog.show();
@@ -533,7 +533,7 @@ public class LogViewerActivity extends BaseActivity {
             
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                boolean hasPath = s != null && !s.toString().equals("点击选择保存目录");
+                boolean hasPath = s != null && !s.toString().equals(getString(R.string.tap_to_select_dir));
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(hasPath);
             }
             
@@ -547,13 +547,13 @@ public class LogViewerActivity extends BaseActivity {
         String readablePath = getReadablePathFromUri(savedUri);
         
         new MaterialAlertDialogBuilder(this)
-            .setTitle("导出日志")
-            .setMessage("日志将导出到以下目录：\n\n" + readablePath + "\n\n文件格式：logs_时间戳.zip")
-            .setPositiveButton("确认导出", (dialog, which) -> {
+            .setTitle(getString(R.string.dialog_title_export_log))
+            .setMessage(getString(R.string.dialog_message_export_confirm, readablePath))
+            .setPositiveButton(getString(R.string.btn_confirm_export), (dialog, which) -> {
                 performExportToTreeUri(savedUri);
             })
-            .setNegativeButton("取消", null)
-            .setNeutralButton("修改路径", (dialog, which) -> {
+            .setNegativeButton(getString(R.string.btn_cancel_dialog), null)
+            .setNeutralButton(getString(R.string.btn_modify_path), (dialog, which) -> {
                 // 清除保存的路径并显示选择对话框
                 prefs.edit().remove(KEY_EXPORT_URI).apply();
                 showPathSelectionDialog();
@@ -568,30 +568,30 @@ public class LogViewerActivity extends BaseActivity {
                 // 源日志目录：Android/data/包名/files/logs/
                 File logDir = new File(getExternalFilesDir(null), "logs");
                 if (!logDir.exists() || !logDir.isDirectory()) {
-                    runOnUiThread(() -> ToastUtils.show(this, "日志目录不存在"));
+                    runOnUiThread(() -> ToastUtils.show(this, getString(R.string.toast_log_dir_not_exist)));
                     return;
                 }
 
                 DocumentFile pickedDir = DocumentFile.fromTreeUri(this, treeUri);
                 if (pickedDir == null || !pickedDir.canWrite()) {
-                    runOnUiThread(() -> ToastUtils.show(this, "无法访问所选目录"));
+                    runOnUiThread(() -> ToastUtils.show(this, getString(R.string.toast_dir_access_denied)));
                     return;
                 }
 
                 // 生成带时间戳的文件名
                 String timeStamp = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss", Locale.getDefault()).format(new Date());
-                String fileName = "logs_" + timeStamp + ".zip";
+                String fileName = getString(R.string.log_filename_format, timeStamp);
 
                 DocumentFile newFile = pickedDir.createFile("application/zip", fileName);
                 if (newFile == null) {
-                    runOnUiThread(() -> ToastUtils.show(this, "无法创建文件"));
+                    runOnUiThread(() -> ToastUtils.show(this, getString(R.string.toast_create_file_failed)));
                     return;
                 }
 
                 // 打开输出流并写入
                 try (OutputStream os = getContentResolver().openOutputStream(newFile.getUri())) {
                     if (os == null) {
-                        runOnUiThread(() -> ToastUtils.show(this, "无法打开文件输出流"));
+                        runOnUiThread(() -> ToastUtils.show(this, getString(R.string.toast_open_stream_failed)));
                         return;
                     }
                     
@@ -600,11 +600,11 @@ public class LogViewerActivity extends BaseActivity {
                 }
 
                 final String successPath = pickedDir.getName() + "/" + fileName;
-                runOnUiThread(() -> ToastUtils.show(this, "日志已导出到:\n" + successPath));
+                runOnUiThread(() -> ToastUtils.show(this, getString(R.string.toast_export_success, successPath)));
 
             } catch (Exception e) {
                 e.printStackTrace();
-                runOnUiThread(() -> ToastUtils.show(this, "导出失败: " + e.getMessage()));
+                runOnUiThread(() -> ToastUtils.show(this, getString(R.string.toast_export_failed, e.getMessage())));
             }
         }).start();
     }

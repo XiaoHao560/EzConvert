@@ -121,7 +121,7 @@ public class MoreSettingsActivity extends BaseActivity {
             dynamicColorSwitch.setEnabled(false);
             // 点击整个行时提示用户设备不支持
             itemDynamicColor.setOnClickListener(v -> {
-                ToastUtils.show(this, "当前设备不支持 Material You 动态取色功能");
+                ToastUtils.show(this, getString(R.string.toast_dynamic_color_not_supported));
             });
         }
         
@@ -254,7 +254,7 @@ public class MoreSettingsActivity extends BaseActivity {
         autoUpdateSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            	configManager.setAutoCheckUpdateEnabled(isChecked);
+                configManager.setAutoCheckUpdateEnabled(isChecked);
                 updateFrequencyLayoutVisibility(isChecked);
             }
         });
@@ -266,7 +266,7 @@ public class MoreSettingsActivity extends BaseActivity {
         notificationSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton ButtonView, boolean isChecked) {
-            	if (isHandlingNotificationSwitch) return;
+                if (isHandlingNotificationSwitch) return;
                 if (isChecked) {
                     handleNotificationEnable();
                 } else {
@@ -389,7 +389,7 @@ public class MoreSettingsActivity extends BaseActivity {
                 configManager.setNotificationEnabled(false);
                 isHandlingNotificationSwitch = false;
                 
-                ToastUtils.show(this, "未获得通知权限，已关闭通知功能");
+                ToastUtils.show(this, getString(R.string.toast_notification_permission_denied));
             }
         }
     }

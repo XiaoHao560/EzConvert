@@ -146,9 +146,9 @@ public class UpdateChecker {
     public void checkForManualUpdate() {
         if (!isNetworkAvailable()) {
             mainHandler.post(() -> {
-                ToastUtils.show(context, "网络不可用，请检查网络连接");
+                ToastUtils.show(context, context.getString(R.string.update_network_unavailable));
                 if (updateCheckListener != null) {
-                    updateCheckListener.onUpdateCheckError("网络不可用");
+                    updateCheckListener.onUpdateCheckError(context.getString(R.string.update_network_unavailable));
                 }
             });
             return;
@@ -216,7 +216,7 @@ public class UpdateChecker {
                 // 获取当前版本信息
                 String currentVersion = getCurrentVersion();
                 if (currentVersion == null) {
-                    handleError("无法获取当前版本信息", showToast);
+                    handleError(context.getString(R.string.update_cannot_get_version), showToast);
                     return;
                 }
                 
@@ -234,7 +234,7 @@ public class UpdateChecker {
                 int responseCode = conn.getResponseCode();
                 
                 if (responseCode != 200) {
-                    handleError("API请求失败: " + responseCode, showToast);
+                    handleError(context.getString(R.string.update_api_failed, responseCode), showToast);
                     return;
                 }
                 
@@ -324,7 +324,7 @@ public class UpdateChecker {
                         Log.d(TAG, "版本 " + latestVersion + " 已被用户忽略");
                         if (showToast && isManual) {
                             mainHandler.post(() -> 
-                                ToastUtils.show(context, "已忽略此版本更新"));
+                                ToastUtils.show(context, context.getString(R.string.update_ignored_version)));
                         }
                     }
                 } else {
@@ -341,15 +341,15 @@ public class UpdateChecker {
                         String toastMessage = null;
                         // 优先判断是否为开发版本
                         if (finalIsDevelopmentVersion) {
-                            toastMessage = "当前是开发版本";
+                            toastMessage = context.getString(R.string.update_dev_version);
                         } else if (finalComparison == 0) {
                             toastMessage = finalIsPrerelease ? 
-                                "已是最新版本 (预发布)" : "已是最新版本";
+                                context.getString(R.string.update_latest_prerelease) : context.getString(R.string.update_latest);
                         } else if (finalComparison > 0) {
-                            toastMessage = "当前版本比 github 上更新?";
+                            toastMessage = context.getString(R.string.update_newer_than_github);
                         } else {
                             // finalComparison < 0
-                            toastMessage = "发现新版本";
+                            toastMessage = context.getString(R.string.update_new_version_found);
                         }
                         if (toastMessage != null) {
                             final String finalToastMessage = toastMessage;
@@ -364,7 +364,7 @@ public class UpdateChecker {
                 
             } catch (Exception e) {
                 Log.e(TAG, "检查更新失败", e);
-                handleError("检查更新失败: " + e.getMessage(), showToast);
+                handleError(context.getString(R.string.update_check_failed, e.getMessage()), showToast);
             } finally {
                 isChecking = false;
             }
@@ -395,9 +395,9 @@ public class UpdateChecker {
         }
         
         if (showToast && isManual) {
-            String message = "没有找到可用的更新";
+            String message = context.getString(R.string.update_no_update_found);
             if (isDevelopmentVersion) {
-                message = "当前为开发版本";
+                message = context.getString(R.string.update_dev_version_alt);
             }
             final String finalMessage = message;
             mainHandler.post(() -> 
@@ -483,7 +483,9 @@ public class UpdateChecker {
             
             MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(activity);
             
-            String title = finalIsPrerelease ? "预发布版本: " + finalReleaseName : "更新详情: " + finalReleaseName;
+            String title = finalIsPrerelease ? 
+                context.getString(R.string.update_dialog_title_prerelease, finalReleaseName) :
+                context.getString(R.string.update_dialog_title_stable, finalReleaseName);
             builder.setTitle(title);
             
             TextView messageView = new TextView(activity);
@@ -494,7 +496,7 @@ public class UpdateChecker {
             
             String markdownContent = finalReleaseNotes;
             if (markdownContent == null || markdownContent.trim().isEmpty()) {
-                markdownContent = "暂无更新说明";
+                markdownContent = context.getString(R.string.update_dialog_no_notes);
             }
             
             markwon.setMarkdown(messageView, markdownContent);
@@ -504,27 +506,27 @@ public class UpdateChecker {
             
             builder.setView(messageView);
             
-            builder.setPositiveButton("下载", (dialog, which) -> {
+            builder.setPositiveButton(context.getString(R.string.update_dialog_btn_download), (dialog, which) -> {
                 try {
                     Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(finalHtmlUrl));
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     activity.startActivity(intent);
                 } catch (Exception e) {
-                    ToastUtils.show(activity, "无法打开链接");
+                    ToastUtils.show(activity, context.getString(R.string.update_cannot_open_link));
                 }
             });
             
             if (finalIsPrerelease) {
-                builder.setNeutralButton("仅正式版", (dialog, which) -> {
+                builder.setNeutralButton(context.getString(R.string.update_dialog_btn_stable_only), (dialog, which) -> {
                     includePrerelease = false;
                     settingsManager.setIncludePrerelease(false);
                     checkForManualUpdate();
                 });
             }
             
-            builder.setNegativeButton("忽略", (dialog, which) -> {
+            builder.setNegativeButton(context.getString(R.string.update_dialog_btn_ignore), (dialog, which) -> {
                 ignoreVersion(latestVersionFromGitHub);
-                ToastUtils.show(activity, "已忽略此版本更新");
+                ToastUtils.show(activity, context.getString(R.string.update_ignored_version));
             });
             
             try {

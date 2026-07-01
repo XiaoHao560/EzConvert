@@ -1,18 +1,309 @@
 <resources>
     <string name="app_name">简转</string>
+    <string name="app_title">EzConvert 媒体转换器</string>
+    <string name="settings_title">应用设置</string>
+    <string name="transcode_settings_title">转码设置</string>
+    <string name="more_settings_title">通用设置</string>
+    <string name="log_settings_title">日志设置</string>
+
+    <string name="unknown">未知</string>
+    <string name="none">无</string>
+    <string name="btn_cancel">取消</string>
+    <string name="btn_cancel_dialog">取消</string>
+    <string name="btn_confirm_export">确认导出</string>
+    <string name="btn_save">保存</string>
+    <string name="dialog_close">关闭</string>
+    <string name="update_dialog_close">关闭</string>
+    <string name="btn_delete">删除</string>
+    <string name="btn_reset">重置</string>
+    <string name="btn_migrate">迁移</string>
+    <string name="btn_skip">跳过</string>
+    <string name="btn_view_config_path">查看配置文件路径</string>
+    <string name="btn_modify_path">修改路径</string>
+    <string name="btn_save_settings">保存设置</string>
+    <string name="btn_confirm_cancel">确定取消</string>
+    <string name="btn_continue_process">继续处理</string>
+    <string name="btn_cancel_ffmpeg">取消操作</string>
+
+    <string name="status_select_file">请选择要处理的媒体文件</string>
+    <string name="progress_default">进度: 0%</string>
+    <string name="progress_text">进度: %1$d%%</string>
+
+    <string name="section_file_selection">文件选择</string>
+    <string name="section_video_processing">视频处理</string>
+    <string name="section_audio_processing">音频处理</string>
+
+    <string name="btn_select_file">选择媒体文件</string>
+    <string name="btn_convert_format">转换格式</string>
+    <string name="btn_compress_video">压缩视频</string>
+    <string name="btn_extract_audio">提取音频</string>
+    <string name="btn_cut_video">裁剪视频</string>
+    <string name="btn_screenshot">视频截图</string>
+    <string name="btn_convert_audio">转换音频格式</string>
+    <string name="btn_cut_audio">裁剪音频</string>
+
+    <string name="hint_output_location">提示: 输出文件将保存在下载文件夹中</string>
+
+    <string name="status_checking_permission">正在检查权限...</string>
+    <string name="status_permission_granted">权限已授予，请选择媒体文件</string>
+    <string name="status_need_permission">需要媒体访问权限才能使用应用功能</string>
+    <string name="status_selected_files">已选择 %1$d 个文件，首个: %2$s</string>
+    <string name="status_selected_file">已选择文件: %1$s</string>
+    <string name="status_cannot_access_files">无法访问选中的文件</string>
+    <string name="status_file_not_exist">无法访问文件或文件不存在</string>
+    <string name="status_all_complete">所有文件处理完成，共 %1$d 个</string>
+    <string name="status_set_params">请设置参数 (第 %1$d/%2$d 个)</string>
+    <string name="status_processing">正在处理: %1$s (%2$d/%3$d)</string>
+    <string name="status_processing_complete">处理完成</string>
+    <string name="status_restoring">正在恢复任务状态...</string>
+    <string name="status_cancelled_cleaned">操作已取消，已清理生成的文件</string>
+    <string name="status_received_files">已接收 %1$d/%2$d 个分享文件，首个: %3$s</string>
+    <string name="status_received_share">已接收分享: %1$s</string>
+
+    <string name="error_cancelled">操作已取消</string>
+    <string name="error_unknown">未知错误</string>
+    <string name="status_failed">处理失败: %1$s</string>
+    <string name="status_error">错误: %1$s</string>
+
+    <string name="popup_preview">预览</string>
+    <string name="popup_settings">设置</string>
+
+    <string name="folder_output">简转</string>
+    <string name="filename_suffix_converted">_converted_</string>
+    <string name="filename_suffix_share">_share_</string>
+    <string name="picker_title">选择媒体文件（可多选）</string>
+    <string name="picker_title_simple">选择媒体文件</string>
+    <string name="path_internal_storage">内部存储/</string>
+    <string name="path_internal_storage_short">内部存储</string>
+    <string name="path_sd_card_format">SD卡(%1$s)</string>
+    <string name="path_external_storage">外部存储</string>
+
+    <string name="dialog_title_cancel">确认取消?</string>
+    <string name="dialog_message_cancel">确定要取消当前操作吗？\n\n已生成的临时文件将被删除。</string>
+
+    <string name="current_file_format">当前文件: %1$s</string>
+    <string name="current_file_none">当前文件: 无</string>
+
+    <string name="video_params_title">视频参数</string>
+    <string name="hint_output_format">输出格式</string>
+    <string name="hint_video_codec">视频编码器</string>
+    <string name="hint_audio_codec">音频编码器</string>
+    <string name="video_bitrate_title">视频码率</string>
+    <string name="bitrate_original">原质量</string>
+    <string name="bitrate_custom">自定义</string>
+    <string name="default_bitrate_value">2000</string>
+    <string name="default_bitrate_unit">Mbps</string>
+    <string name="audio_bitrate_title">音频码率</string>
+    <string name="default_audio_bitrate_value">192</string>
+    <string name="bitrate_unit_kbps">Kbps</string>
+
+    <string name="screenshot_params_title">截图参数</string>
+    <string name="hint_screenshot_format">图片格式</string>
+    <string name="hint_screenshot_time">时间点 (如 00:00:05)</string>
+    <string name="default_screenshot_time">00:00:05</string>
+    <string name="hint_screenshot_resolution">分辨率 (如 1920x1080 或 original)</string>
+    <string name="default_screenshot_resolution">original</string>
+    <string name="hint_screenshot_quality">JPEG质量 (1-100)</string>
+    <string name="default_screenshot_quality">90</string>
+
+    <string name="cut_params_title">裁剪参数</string>
+    <string name="hint_cut_start">开始时间 (HH:MM:SS)</string>
+    <string name="default_cut_start">00:00:00</string>
+    <string name="hint_cut_duration">持续时间 (HH:MM:SS)</string>
+    <string name="default_cut_duration">00:00:10</string>
+
+    <string name="volume_title">音量</string>
+    <string name="volume_min_percent">0%</string>
+    <string name="volume_default_percent">100%</string>
+    <string name="sync_all_files">参数同步至所有文件</string>
+    <string name="reset_default">重置为默认</string>
+    <string name="start_process">开始处理</string>
+
+    <string name="task_convert_video">转换视频</string>
+    <string name="task_compress_video">压缩视频</string>
+    <string name="task_extract_audio">提取音频</string>
+    <string name="task_cut_video">裁剪视频</string>
+    <string name="task_screenshot">视频截图</string>
+    <string name="task_convert_audio">转换音频</string>
+    <string name="task_cut_audio">裁剪音频</string>
+    <string name="task_process_file">处理文件</string>
+
+    <string name="preset_quick">快速预设</string>
+    <string name="preset_save">保存为预设</string>
+    <string name="preset_delete">删除预设</string>
+    <string name="preset_default_name">默认</string>
+    <string name="toast_preset_saved">预设已保存: %1$s</string>
+    <string name="toast_preset_save_failed">保存预设失败</string>
+    <string name="toast_preset_delete_default">不能删除默认预设</string>
+    <string name="dialog_delete_preset_title">删除预设</string>
+    <string name="dialog_delete_preset_message">确定要删除预设 \"%1$s\" 吗？</string>
+    <string name="toast_preset_deleted">预设已删除</string>
+    <string name="toast_preset_delete_failed">删除失败</string>
+    <string name="dialog_reset_title">重置为默认</string>
+    <string name="dialog_reset_message">将重置所有参数为出厂默认值，确认继续？</string>
+    <string name="toast_reset_done">已重置为默认参数</string>
+
+    <string name="toast_select_output_format">请选择输出格式</string>
+    <string name="toast_enter_screenshot_time">请输入截图时间点</string>
+    <string name="toast_enter_cut_times">请输入裁剪开始时间和持续时间</string>
+
+    <string name="current_bitrate_mbps">当前视频码率: %1$s Mbps</string>
+    <string name="current_bitrate_kbps">当前视频码率: %1$d Kbps</string>
+
+    <string name="title_preview">预览</string>
+    <string name="empty_state_description">选择视频或音频文件进行预览播放</string>
+
+    <string name="toast_file_not_exist_or_inaccessible">无法访问文件或文件不存在</string>
+    <string name="toast_playback_error">播放错误: %s</string>
+
+    <string name="seek_back_format">快退 %d 秒</string>
+    <string name="seek_forward_format">快进 %d 秒</string>
+
+    <string name="tooltip_fullscreen">全屏</string>
+    <string name="tooltip_exit_fullscreen">退出全屏</string>
+    <string name="tooltip_pause">暂停</string>
+    <string name="tooltip_resume">继续</string>
+
+    <string name="media_info_file">文件: </string>
+    <string name="media_info_format">格式: </string>
+    <string name="media_info_duration">时长: </string>
+    <string name="media_info_size">大小: </string>
+    <string name="media_info_bitrate">总码率: </string>
+    <string name="media_info_video">视频: </string>
+    <string name="media_info_resolution">分辨率: </string>
+    <string name="media_info_framerate">源帧率: </string>
+    <string name="media_info_pixel_format">像素格式: </string>
+    <string name="media_info_audio">音频: </string>
+    <string name="media_info_samplerate">采样率: </string>
+    <string name="media_info_channels">声道: </string>
+    <string name="media_info_unknown">未知</string>
+    <string name="media_info_no_file">未选择文件</string>
+    <string name="media_info_cannot_get">无法获取媒体信息</string>
+    <string name="media_info_parse_failed">解析失败: </string>
+
+    <string name="media_info_realtime_title">── 实时统计 ──</string>
+    <string name="media_info_position">位置: </string>
+    <string name="media_info_position_percent"> (%.1f%%)</string>
+    <string name="media_info_buffered_format">缓冲: %.1f s</string>
+    <string name="media_info_speed_format">速度: %.2fx</string>
+    <string name="media_info_output_format">输出: %dx%d</string>
+    <string name="media_info_fps_format">帧率: %.1f fps</string>
+    <string name="media_info_dropped_format">丢帧: %d</string>
+    <string name="media_info_skipped_format">跳帧: %d</string>
+
+    <string name="performance_options">性能优化选项</string>
+    <string name="hardware_decode">硬件编解码</string>
+    <string name="hardware_decode_desc">使用GPU加速视频处理</string>
+    <string name="multithreading_opt">多线程优化</string>
+    <string name="multithreading_desc">使用多核CPU并行处理</string>
+    <string name="hardware_decode_explain_title">硬件编解码说明</string>
+    <string name="hardware_decode_explain_content">使用GPU进行视频编解码，可以显著提升转换速度，但可能在某些设备上存在兼容性问题。如果遇到转换失败，请关闭此选项。</string>
+    <string name="multithreading_explain_title">多线程优化说明</string>
+    <string name="multithreading_explain_content">使用多核CPU并行处理视频，可以提升转换速度，但会增加CPU使用率和电池消耗。</string>
+
+    <string name="theme_settings_title">主题设置</string>
+    <string name="theme_follow_system">跟随系统</string>
+    <string name="theme_follow_system_desc">根据系统设置自动切换深浅主题</string>
+    <string name="theme_light">浅色模式</string>
+    <string name="theme_light_desc">始终使用浅色主题</string>
+    <string name="theme_dark">深色模式</string>
+    <string name="theme_dark_desc">始终使用深色主题</string>
+    <string name="dynamic_color">自动取色</string>
+    <string name="dynamic_color_desc">根据系统壁纸颜色动态生成主题色调（Material You）</string>
+    <string name="theme_explanation">选择应用主题显示模式。跟随系统将根据设备的系统设置自动在浅色和深色主题间切换。自动取色功能需要 Android 12 及以上系统支持，开启后将根据壁纸颜色动态调整应用主题色调</string>
+
+    <string name="notification_settings_title">通知设置</string>
+    <string name="notification_enable">启用通知</string>
+    <string name="notification_enable_desc">显示转换进度和完成提示</string>
+    <string name="notification_explanation">开启后，转换过程中会显示进度通知，完成后会显示成功或失败提示。需要系统通知权限</string>
+
+    <string name="update_settings_title">更新设置</string>
+    <string name="auto_check_update">自动检测更新</string>
+    <string name="auto_check_update_desc">启动时自动检查版本更新</string>
+    <string name="check_prerelease">检测测试版更新</string>
+    <string name="check_prerelease_desc">包含预发布版本，可能不稳定</string>
+    <string name="check_frequency_label">检测频率</string>
+    <string name="update_explanation">开启自动检测后，应用会根据您选择的频率自动检查版本更新。关闭后，您仍可在关于页面手动检查更新</string>
+
+    <string name="privacy_data_title">隐私与数据</string>
+    <string name="firebase_data_collection">Firebase 数据收集</string>
+    <string name="firebase_data_collection_desc">发送匿名使用情况和崩溃报告</string>
+    <string name="firebase_explanation">开启后应用会统计匿名的使用情况和崩溃报告，帮助我们改进应用体验。这对我们很重要！可以收集到未被报告的问题，当然你也可以在遇到问题后第一时间通过github反馈</string>
+
+    <string name="about_title">关于</string>
+    <string name="about_app_name">EzConvert</string>
+    <string name="about_version_format">版本 %1$s</string>
+    <string name="about_version_default">版本 0.0.0</string>
+    <string name="about_app_description">一个简单易用的音视频转换工具，支持多种格式转换、压缩、裁剪等功能。</string>
+    <string name="about_developer_info">开发者: XiaoHao\n邮箱: wzdmymzyl@163.com</string>
+
+    <string name="about_info_section_title">相关信息</string>
+    <string name="about_source_code">源代码</string>
+    <string name="about_source_code_desc">查看GitHub上的源代码</string>
+    <string name="about_feedback">问题反馈</string>
+    <string name="about_feedback_desc">在GitHub上报告问题</string>
+    <string name="about_check_update">检查更新</string>
+    <string name="about_update_status_default">点击检查更新</string>
+    <string name="about_test_update_title">强制拉取最新版</string>
+    <string name="about_test_update_desc">仅做测试版本更新</string>
+    <string name="about_force_check_update_title">强制检查更新</string>
+    <string name="about_force_check_update_desc">测试正式更新弹窗样式</string>
+    <string name="about_developer_options">开发者选项</string>
+    <string name="about_developer_options_desc">调试工具与高级设置</string>
+
+    <string name="about_license_title">开源许可证</string>
+    <string name="about_license_content">EzConvert 使用 GPLv3 许可证开源\n© 2026 XiaoHao. 保留所有权利。</string>
+    <string name="about_credits_title">鸣谢</string>
+    <string name="about_credits_content">• FFmpegKit - 音视频处理核心库\n• AndroidX - 现代Android支持库\n• Material Components - 界面组件</string>
+    <string name="about_footer_thanks">感谢使用 EzConvert</string>
+
     <string name="run_log">运行日志</string>
     <string name="log_level_verbose">记录全部日志</string>
     <string name="log_level_error">记录错误日志</string>
     <string name="view_log">查看日志</string>
     <string name="log_level_title">日志等级</string>
+    <string name="log_card_desc">查看应用运行日志和错误信息，便于问题排查</string>
+    <string name="log_file_location_hint">日志文件保存在应用数据目录中，可用于问题排查和调试</string>
 
-    <string name="volume_setting">音量设置</string>
-    <string name="volume_normal">正常（100%）</string>
-    <string name="volume_low">较低（50%）</string>
-    <string name="volume_high">较高（150%）</string>
-    <string name="volume_custom">自定义：%d%%</string>
-    <string name="check_frequency">检测频率</string>
-    <string name="select_frequency">选择频率</string>
+    <string name="device_info_title">设备信息</string>
+    <string name="tap_to_view_details">点击查看详情</string>
+    <string name="app_info_title">应用信息</string>
+    <string name="app_log_title">应用日志</string>
+    <string name="ffmpeg_log_title">FFmpeg日志</string>
+    <string name="log_count_default">共 0 条</string>
+    <string name="log_count_format">共 %1$d 条</string>
+    <string name="log_section_device_info">=== 设备信息 ===</string>
+    <string name="log_section_app_info">=== 应用信息 ===</string>
+    <string name="log_section_app_logs">=== 应用日志 ===</string>
+
+    <string name="device_name_default">设备名称: </string>
+    <string name="device_model_default">设备型号: </string>
+    <string name="android_version_default">安卓版本: </string>
+    <string name="system_version_default">系统版本: </string>
+    <string name="cpu_arch_default">CPU架构: </string>
+    <string name="app_version_name_default">版本名称: </string>
+    <string name="app_version_code_default">版本号: </string>
+    <string name="app_commit_hash_default">Commit: </string>
+    <string name="device_name_format">设备名称: %1$s</string>
+    <string name="device_model_format">设备型号: %1$s</string>
+    <string name="android_version_format">安卓版本: %1$s</string>
+    <string name="system_version_format">系统版本: %1$s</string>
+    <string name="cpu_arch_format">CPU架构: %1$s</string>
+    <string name="app_version_name_format">版本名称: %1$s</string>
+    <string name="app_version_code_format">版本号: %1$d</string>
+    <string name="app_commit_hash_format">Commit: %1$s</string>
+    <string name="device_info_summary_format">%1$s | %2$s | v%3$s</string>
+
+    <string name="cd_export_log">导出日志</string>
+    <string name="cd_clear_log">清空日志</string>
+    <string name="cd_copy_log">复制日志</string>
+    <string name="hint_save_path">保存路径</string>
+    <string name="tap_to_select_dir">点击选择保存目录</string>
+    <string name="log_filename_format">logs_%1$s.zip</string>
+
+    <string name="dialog_title_export_log">导出日志</string>
+    <string name="dialog_message_export_log">请选择保存日志文件的目录</string>
+    <string name="dialog_message_export_confirm">日志将导出到以下目录：\n\n%1$s\n\n文件格式：logs_时间戳.zip</string>
 
     <string name="crash_title">应用崩溃</string>
     <string name="crash_subtitle">很抱歉，EzConvert 发生了意外错误</string>
@@ -22,8 +313,6 @@
     <string name="crash_report_title">崩溃报告</string>
     <string name="crash_restart_app">重启应用</string>
     <string name="crash_export_logs">打包日志</string>
-    <string name="unknown">未知</string>
-    <string name="none">无</string>
     <string name="crash_no_report">无法读取崩溃报告</string>
     <string name="crash_read_failed">读取失败: </string>
     <string name="crash_log_dir_missing">日志目录不存在</string>
@@ -38,18 +327,183 @@
     <string name="notification_permission_go_settings">去开启</string>
     <string name="notification_permission_later">暂不</string>
 
+    <string name="dialog_title_migration">检测到旧版设置</string>
+    <string name="dialog_message_migration">发现旧版本的设置数据，是否迁移到新的JSON配置文件？\n\n新位置: Android/data/com.tech.ezconvert/files/config/\n\n迁移后旧配置文件将自动备份，无需手动操作。</string>
+
+    <string name="toast_log_verbose">已启用详细日志模式</string>
+    <string name="toast_log_error">已启用仅错误日志模式</string>
+    <string name="toast_logs_cleared">日志已清除</string>
+    <string name="toast_logs_copied">日志已复制到剪贴板</string>
+    <string name="toast_select_dir_first">请先选择保存目录</string>
+    <string name="toast_log_dir_not_exist">日志目录不存在</string>
+    <string name="toast_dir_access_denied">无法访问所选目录</string>
+    <string name="toast_create_file_failed">无法创建文件</string>
+    <string name="toast_open_stream_failed">无法打开文件输出流</string>
+    <string name="toast_export_success">日志已导出到:\n%1$s</string>
+    <string name="toast_export_failed">导出失败: %1$s</string>
+
+    <string name="toast_need_permission_select">需要媒体访问权限才能选择文件</string>
+    <string name="toast_need_permission_full">需要媒体访问权限才能选择和处理文件</string>
+    <string name="toast_selected_files_count">已选择: %1$d 个文件</string>
+    <string name="toast_selected_file_name">已选择: %1$s</string>
+    <string name="toast_grant_permission_first">请先授予权限并选择文件</string>
+    <string name="toast_select_file_first">请先选择文件</string>
+    <string name="toast_grant_storage_permission">请先授予存储权限</string>
+    <string name="toast_cannot_open_picker">无法打开文件选择器</string>
+    <string name="toast_processing_complete">处理完成! 输出文件\n保存在: Download/简转/</string>
+    <string name="toast_all_complete">所有文件处理完成!</string>
+    <string name="toast_all_complete_with_path">所有文件处理完成!\n输出保存在: Download/简转/</string>
+    <string name="toast_cancelled">已取消操作</string>
+    <string name="toast_delete_temp_failed">删除临时文件失败\n请前往手动删除</string>
+    <string name="toast_migration_complete">设置迁移完成</string>
+    <string name="toast_config_path">配置文件路径: %1$s</string>
+    <string name="toast_no_share_file">未接收到分享文件</string>
+    <string name="toast_cannot_access_share">无法访问选中的分享文件</string>
+    <string name="toast_received_files_count">已接收: %1$d 个分享文件</string>
+    <string name="toast_partial_loaded">%1$d 个文件已加载，%2$d 个无法访问</string>
+    <string name="toast_cannot_parse_share">无法解析分享文件</string>
+    <string name="toast_received_share_file">已接收分享文件</string>
+    <string name="toast_settings_saved">设置已保存</string>
+    <string name="toast_dynamic_color_not_supported">当前设备不支持 Material You 动态取色功能</string>
+    <string name="toast_notification_permission_denied">未获得通知权限，已关闭通知功能</string>
+
+    <string name="toast_cannot_open_link">无法打开链接</string>
+    <string name="toast_checking_update">正在检查更新...</string>
+    <string name="toast_license_info">EzConvert 使用 GPLv3 开源许可证</string>
+    <string name="toast_cannot_get_version">无法获取最后一个版本信息\n最后一个版本是测试版本，请打开相关设置</string>
+
+    <string name="update_network_unavailable">网络不可用，请检查网络连接</string>
+    <string name="update_ignored_version">已忽略此版本更新</string>
+    <string name="update_dev_version">当前是开发版本</string>
+    <string name="update_latest_prerelease">已是最新版本 (预发布)</string>
+    <string name="update_latest">已是最新版本</string>
+    <string name="update_newer_than_github">当前版本比 github 上更新?</string>
+    <string name="update_new_version_found">发现新版本</string>
+    <string name="update_check_failed">检查更新失败: %s</string>
+    <string name="update_no_update_found">没有找到可用的更新</string>
+    <string name="update_dev_version_alt">当前为开发版本</string>
+    <string name="update_cannot_open_link">无法打开链接</string>
+    <string name="update_dialog_title_stable">更新详情: %s</string>
+    <string name="update_dialog_btn_download">下载</string>
+    <string name="update_dialog_btn_stable_only">仅正式版</string>
+    <string name="update_dialog_btn_ignore">忽略</string>
+    <string name="update_api_failed">API请求失败: %d</string>
+    <string name="update_cannot_get_version">无法获取当前版本信息</string>
+
+    <string name="update_status_checking">正在检查...</string>
+    <string name="update_status_dev_version">当前是开发版本</string>
+    <string name="update_status_new_version">有新版本 %1$s</string>
+    <string name="update_status_prerelease_suffix"> (预发布)</string>
+    <string name="update_status_latest">已是最新版本</string>
+    <string name="update_status_newer_than_github">当前版本比 github 上更新?</string>
+    <string name="update_status_check_failed">检查失败</string>
+    <string name="update_status_no_update">没有可用更新</string>
+
+    <string name="update_dialog_title">更新详情: %1$s</string>
+    <string name="update_dialog_title_prerelease">预发布版本: %1$s</string>
+    <string name="update_dialog_no_notes">暂无更新说明</string>
+    <string name="update_dialog_download">下载</string>
+    <string name="update_dialog_stable_only">仅正式版</string>
+
+    <string name="test_update_dialog_title">[测试] %1$s</string>
+    <string name="test_update_dialog_title_prerelease">[测试] 预发布版本: %1$s</string>
+    <string name="test_update_dialog_title_stable">[测试] 更新详情: %1$s</string>
+    <string name="test_update_dialog_header">## ⚠️ 测试更新对话框\n\n*仅用于开发版本测试*\n\n</string>
+    <string name="test_update_dialog_go_github">测试前往GitHub</string>
+    <string name="test_update_dialog_recheck">重新检查</string>
+
+    <string name="release_notes_dialog_title">更新日志</string>
+    <string name="release_notes_dialog_btn_ok">知道了</string>
+
+    <string name="version_text_default">EzConvert v0.0.0 | FFmpegKit: 6.0-2</string>
+    <string name="version_format">EzConvert v%1$s | FFmpeg: %2$s (Kit %3$s)</string>
+    <string name="version_fallback">EzConvert 版本获取失败 | FFmpegKit: Unknown</string>
+    <string name="settings_version_format">EzConvert v%1$s</string>
+    <string name="settings_version_fallback">EzConvert v0.0.0</string>
+
+    <string name="settings_transcode">转码设置</string>
+    <string name="settings_transcode_desc">硬件加速、多线程优化等性能设置</string>
+    <string name="settings_general">通用设置</string>
+    <string name="settings_general_desc">界面、语言、通知等通用设置</string>
+    <string name="settings_about">关于</string>
+    <string name="settings_about_desc">版本信息、帮助和支持</string>
+    <string name="settings_footer">EzConvert Settings Mode</string>
+
+    <string name="volume_setting">音量设置</string>
+    <string name="volume_normal">正常（100%）</string>
+    <string name="volume_low">较低（50%）</string>
+    <string name="volume_high">较高（150%）</string>
+    <string name="volume_custom">自定义：%d%%</string>
+
+    <string name="check_frequency">检测频率</string>
+    <string name="select_frequency">选择频率</string>
+
     <string name="tooltip_exit">退出应用</string>
     <string name="tooltip_back">返回上一层级</string>
     <string name="tooltip_back_home">返回主界面</string>
     <string name="tooltip_menu">菜单</string>
     <string name="tooltip_mediainfo">媒体信息</string>
     <string name="tooltip_folder">选择文件</string>
-    
+
+    <string name="notification_channel_progress_name">转换进度</string>
+    <string name="notification_channel_progress_desc">显示媒体文件转换进度</string>
+    <string name="notification_channel_complete_name">转换完成</string>
+    <string name="notification_channel_complete_desc">转换成功或失败的通知</string>
+    <string name="notification_progress_title">正在转换: %s</string>
+    <string name="notification_progress_text">进度: %d%%</string>
+    <string name="notification_complete_title_success">转换完成</string>
+    <string name="notification_complete_title_fail">转换失败</string>
+    <string name="notification_complete_text_success">%s 转换成功</string>
+    <string name="notification_complete_text_fail">%s %s</string>
+    <string name="notification_cancelled_title">操作已取消</string>
+    <string name="notification_cancelled_text">%s 的处理已取消</string>
+    <string name="notification_file_placeholder">文件</string>
+
+    <string name="codec_h264_hw_best">h264_mediacodec (HW) (最佳)</string>
+    <string name="codec_hevc_hw">hevc_mediacodec (HW)</string>
+    <string name="codec_h264_sw">libx264 (SW)</string>
+    <string name="codec_h265_sw">libx265 (SW)</string>
+    <string name="codec_h264_sw_best">libx264 (SW) (最佳)</string>
+    <string name="codec_h265_sw_best">libx265 (SW) (最佳)</string>
+    <string name="codec_vp9_best">libvpx-vp9 (最佳)</string>
+    <string name="codec_vp8">libvpx</string>
+    <string name="codec_mpeg4_best">mpeg4 (最佳)</string>
+    <string name="codec_gif_best">gif (最佳)</string>
+    <string name="codec_aac_best">aac (最佳)</string>
+    <string name="codec_mp3_best">libmp3lame (最佳)</string>
+    <string name="codec_opus_best">libopus (最佳)</string>
+    <string name="codec_pcm_best">pcm_s16le (最佳)</string>
+    <string name="codec_flac_best">flac (最佳)</string>
+    <string name="codec_vorbis_best">libvorbis (最佳)</string>
+    <string name="codec_default_best">libx264 (SW) (最佳)</string>
+    <string name="codec_aac">aac</string>
+    <string name="codec_mp3">libmp3lame</string>
+
+    <string name="format_mp4">mp4</string>
+    <string name="format_mkv">mkv</string>
+    <string name="format_webm">webm</string>
+    <string name="format_avi">avi</string>
+    <string name="format_mov">mov</string>
+    <string name="format_flv">flv</string>
+    <string name="format_gif">gif</string>
+    <string name="format_mp3">mp3</string>
+    <string name="format_wav">wav</string>
+    <string name="format_aac">aac</string>
+    <string name="format_flac_audio">flac</string>
+    <string name="format_ogg">ogg</string>
+    <string name="format_m4a">m4a</string>
+    <string name="format_jpeg">jpeg</string>
+    <string name="format_png">png</string>
+
+    <string name="unit_mbps">Mbps</string>
+    <string name="unit_kbps">Kbps</string>
+    <string name="unit_percent">%</string>
+
     <string-array name="update_frequency_options">
         <item>每24小时检测</item>
         <item>每次进入应用检测</item>
     </string-array>
-    
+
     <string-array name="video_formats">
         <item>mp4</item>
         <item>avi</item>
@@ -59,7 +513,7 @@
         <item>webm</item>
         <item>gif</item>
     </string-array>
-    
+
     <string-array name="quality_options">
         <item>自动</item>
         <item>高质量</item>
@@ -73,7 +527,7 @@
         <item>较高（150%）</item>
         <item>自定义</item>
     </string-array>
-    
+
     <string-array name="audio_formats">
         <item>mp3</item>
         <item>wav</item>
@@ -82,7 +536,7 @@
         <item>ogg</item>
         <item>m4a</item>
     </string-array>
-    
+
     <string-array name="audio_quality_options">
         <item>高音质 (320k)</item>
         <item>中等音质 (192k)</item>

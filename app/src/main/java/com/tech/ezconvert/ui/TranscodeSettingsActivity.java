@@ -77,7 +77,7 @@ public class TranscodeSettingsActivity extends BaseActivity {
         configManager.setHardwareAccelerationEnabled(hardwareAccelerationSwitch.isChecked());
         configManager.setMultithreadingEnabled(multithreadingSwitch.isChecked());
         
-        ToastUtils.show(this, "设置已保存");
+        ToastUtils.show(this, getString(R.string.toast_settings_saved));
         finish();
     }
     
