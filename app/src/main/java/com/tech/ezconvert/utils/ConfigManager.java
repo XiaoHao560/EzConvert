@@ -61,6 +61,10 @@ public class ConfigManager {
     public static final String KEY_THEME_MODE = "theme_mode";
     public static final String KEY_DYNAMIC_COLOR = "dynamic_color";
     public static final String KEY_FIREBASE_ANALYTICS = "firebase_analytics_enabled";
+    public static final String KEY_LANGUAGE = "app_language";
+    public static final String LANGUAGE_SYSTEM = "system"; // 跟随系统
+    public static final String LANGUAGE_ZH = "zh"; // 中文
+    public static final String LANGUAGE_EN = "en"; // 英文
     
     private ConfigManager(Context context) {
         this.context = context.getApplicationContext();
@@ -222,6 +226,11 @@ public class ConfigManager {
                     "  - `1` = 浅色模式\n" +
                     "  - `2` = 深色模式\n" +
                     "- `dynamic_color`: 自动取色 (true/false)，根据系统壁纸动态生成主题色调，需要 Android 12+ 设备支持\n\n" +
+                    "### 语言设置说明\\n" +
+                    "- `app_language`: 应用显示语言\\n" +
+                    " - `system` = 跟随系统 (默认)\\n" +
+                    " - `zh` = 简体中文\\n" +
+                    " - `en` = 英文\\n" +
                     "### Firebase 设置 (firebase_settings)\n" +
                     "- `analytics_enabled`: Firebase 分析数据收集 (true/false)，默认开启\n" +
                     "  - 用于收集匿名应用使用统计和崩溃报告，帮助改进应用体验\n" +
@@ -291,6 +300,11 @@ public class ConfigManager {
         themeSettings.put("theme_mode", -1); // -1 = 跟随系统, 1 = 浅色, 2 = 深色
         themeSettings.put("dynamic_color", true); // true = 启用自动取色 (Material You)
         settingsMap.put("theme_settings", themeSettings);
+        
+        // 默认语言设置
+        Map<String, Object> languageSettings = new HashMap<>();
+        languageSettings.put("app_language", LANGUAGE_SYSTEM);
+        settingsMap.put("language_settings", languageSettings);
         
         // 默认更新设置
         Map<String, Object> updateSettings = new HashMap<>();
@@ -555,6 +569,15 @@ public class ConfigManager {
     
     public void setThemeMode(int mode) {
         setSetting("theme_settings", "theme_mode", mode);
+    }
+    
+    // 语言设置
+    public String getAppLanguage() {
+        return getSetting("language_settings", "app_language", LANGUAGE_SYSTEM);
+    }
+    
+    public void setAppLanguage(String language) {
+        setSetting("language_settings", "app_language", language);
     }
     
     // 动态取色设置

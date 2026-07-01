@@ -212,6 +212,16 @@
     <string name="dynamic_color_desc">根据系统壁纸颜色动态生成主题色调（Material You）</string>
     <string name="theme_explanation">选择应用主题显示模式。跟随系统将根据设备的系统设置自动在浅色和深色主题间切换。自动取色功能需要 Android 12 及以上系统支持，开启后将根据壁纸颜色动态调整应用主题色调</string>
 
+    <string name="language_settings_title">语言设置</string>
+    <string name="language_settings_desc">选择应用显示语言</string>
+    <string name="language_explanation">切换语言后，应用界面将立即更新。部分界面可能需要重新进入才能完全生效</string>
+
+    <string-array name="language_options">
+        <item>跟随系统</item>
+        <item>简体中文</item>
+        <item>English</item>
+    </string-array>
+
     <string name="notification_settings_title">通知设置</string>
     <string name="notification_enable">启用通知</string>
     <string name="notification_enable_desc">显示转换进度和完成提示</string>

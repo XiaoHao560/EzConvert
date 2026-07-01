@@ -20,6 +20,7 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import com.google.android.material.color.DynamicColors;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.tech.ezconvert.R;
+import com.tech.ezconvert.utils.LanguageManager;
 import com.tech.ezconvert.utils.ThemeManager;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,6 +59,13 @@ public abstract class BaseActivity extends AppCompatActivity {
         
         // 根据主题设置自动切换状态栏/导航栏图标颜色
         setupSystemBarAppearance();
+    }
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        // 应用保存的语言设置
+        Context context = LanguageManager.applySavedLanguage(newBase);
+        super.attachBaseContext(context);
     }
 
     @Override
