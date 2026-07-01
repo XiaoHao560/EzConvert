@@ -105,7 +105,7 @@ This project follows the **Semantic Versioning (SemVer)** specification for vers
 - [x] Theme settings
 - [x] Custom conversion quality
 - [x] Individual quality parameter adjustment
-- [ ] Multi-language support
+- [x] Multi-language support
 - [ ] Custom filename feature
 - [ ] Custom UI colors
 - [ ] Support for more media formats
