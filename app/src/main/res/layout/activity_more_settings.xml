@@ -17,14 +17,15 @@
             android:id="@+id/title_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="0dp"
+            android:layout_marginBottom="8dp"
             android:background="@android:color/transparent"
             app:navigationIcon="@drawable/round_arrow_back"
             app:navigationIconTint="?attr/colorOnSurfaceVariant"
             app:navigationContentDescription="@string/tooltip_back"
             app:title="@string/more_settings_title"
-            app:titleCentered="true"
+            app:titleCentered="false"
             app:titleTextColor="?attr/colorPrimary"
+            app:titleMarginTop="17dp"
             style="@style/Widget.Material3.Toolbar.Surface" />
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -40,7 +41,7 @@
             android:id="@+id/scroll_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="8dp"
+            android:paddingTop="16dp"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
             android:paddingBottom="16dp"

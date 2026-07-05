@@ -24,6 +24,7 @@
              app:title="@string/settings_title"
              app:titleCentered="true"
              app:titleTextColor="?attr/colorPrimary"
+             app:titleMarginTop="17dp"
              app:navigationIcon="@drawable/round_arrow_back"
              style="@style/Widget.Material3.Toolbar.Surface"
              app:navigationContentDescription="@string/tooltip_back"
