@@ -253,7 +253,8 @@ dependencies {
     implementation libs.androidx.media3.common
     
     // FFmpeg
-    implementation libs.ffmpeg.kit.full.gpl
+    implementation libs.ffmpeg.kit.next
+    // implementation libs.ffmpeg.kit.full.gpl
     // implementation libs.ffmpeg.kit16kb
     
     // Markwon bundle
