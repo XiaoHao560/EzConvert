@@ -16,6 +16,7 @@ concurrent-futures = "1.1.0"
 exoplayer = "1.3.1"
 
 # FFmpeg
+ffmpeg-kit-next = "8.1.0"
 ffmpeg-kit = "6.0-2"
 ffmpeg-kit16kb = "6.1.1"
 
@@ -51,6 +52,7 @@ androidx-media3-ui = { group = "androidx.media3", name = "media3-ui", version.re
 androidx-media3-common = { group = "androidx.media3", name = "media3-common", version.ref = "exoplayer" }
 
 # FFmpeg
+ffmpeg-kit-next = { group = "com.arthenica", name = "ffmpeg-kit-next", version.ref = "ffmpeg-kit-next" }
 ffmpeg-kit-full-gpl = { group = "com.arthenica", name = "ffmpeg-kit-full-gpl", version.ref = "ffmpeg-kit" }
 ffmpeg-kit16kb = { group = "com.moizhassan.ffmpeg", name = "ffmpeg-kit-16kb", version.ref = "ffmpeg-kit16kb" }
 

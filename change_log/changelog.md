@@ -1,12 +1,14 @@
-## [changelog] 2026-07-01
+## [changelog] 2026-07-13
 
 ### 新增
+- 适配 `Android 15` 16kb页大小
 
 ### 修复
 
 ### 优化
 
 ### 变更
+- 迁移项目至 [ffmpeg-kit-next:8.1.0](https://github.com/arthenica/ffmpeg-kit-next) (issue #179)
 
 ### 移除
 
