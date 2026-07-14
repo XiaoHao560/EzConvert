@@ -14,33 +14,16 @@ jobs:
        with:
          fetch-depth: 0
          
-     - name: 下载 FFmpegKit AAR
+     - name: 下载 FFmpegKit AAR (gh)
        env:
-         REPO_TOKEN: ${{ secrets.REPO_READ_TOKEN }}
-         FFMPEG_REPO: "XiaoHao560/ffmpeg-kit-next"
-         FFMPEG_TAG: "v8.1.0"
+         GITHUB_TOKEN: ${{ secrets.REPO_READ_TOKEN }}
        run: |
          mkdir -p libs
-         echo "正在从 $FFMPEG_REPO 拉取 Release: $FFMPEG_TAG ..."
-       
-         API_URL="https://api.github.com/repos/$FFMPEG_REPO/releases/tags/$FFMPEG_TAG"
-         DOWNLOAD_URL=$(curl -s -H "Authorization: token $REPO_TOKEN" $API_URL \
-         | grep -o '"browser_download_url": *"[^"]*"' \
-         | head -1 \
-         | sed 's/"browser_download_url": *"//;s/"//')
-         
-         if [ -z "$DOWNLOAD_URL" ]; then
-         echo "错误：未找到该 Tag 的 Release"
-         exit 1
-         fi
-         
-         curl -L -H "Authorization: token $REPO_TOKEN" -o ffmpeg-kit-next.zip "$DOWNLOAD_URL"
-       
+         gh release download v8.1.0 \
+         --repo XiaoHao560/ffmpeg-kit-next \
+         --pattern "*.zip" \
+         --output ffmpeg-kit-next.zip
          unzip -q ffmpeg-kit-next.zip -d libs/
-         
-         echo "✅ FFmpeg AAR 已解压到 libs/，目录结构如下："
-         find libs -type f -name "*.aar" | head -5
-         ls -la libs/
 
      - name: 配置 JDK 17
        uses: actions/setup-java@v4
