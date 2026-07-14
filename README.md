@@ -62,6 +62,8 @@ This project follows the **Semantic Versioning (SemVer)** specification for vers
 
 3. Configure the FFmpeg dependency, then connect an Android device or emulator to run.
 
+For all notes and caveats, please refer to the [Build Guide](BUILDING_en.md).
+
 ## Usage
 
 1. Launch the EzConvert app
