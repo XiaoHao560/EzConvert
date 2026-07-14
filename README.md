@@ -136,7 +136,7 @@ This project is licensed under the [GNU General Public License v3.0](LICENSE).
 ## Acknowledgements
 
 - [FFmpegKit](https://github.com/arthenica/ffmpeg-kit)
-- [FFmpegKit-16kb](https://github.com/moizhassankh/ffmpeg-kit-android-16KB)
+- [FFmpegKitNext](https://github.com/arthenica/ffmpeg-kit-next)
 
 ## Contact & Feedback
 
