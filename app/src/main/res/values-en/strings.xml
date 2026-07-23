@@ -197,9 +197,9 @@
     <string name="multithreading_opt">Multi-threading Optimization</string>
     <string name="multithreading_desc">Use multi-core CPU for parallel processing</string>
     <string name="hardware_decode_explain_title">Hardware Codec Info</string>
-    <string name="hardware_decode_explain_content">Using GPU for video encoding/decoding can significantly speed up conversion, but may have compatibility issues on some devices. If conversion fails, try disabling this option.</string>
+    <string name="hardware_decode_explain_content">When enabled, hardware codecs will be preferred: using the GPU for video encoding/decoding can significantly improve conversion speed, but there may be compatibility issues on some devices.</string>
     <string name="multithreading_explain_title">Multi-threading Info</string>
-    <string name="multithreading_explain_content">Using multi-core CPU for parallel video processing can improve conversion speed but will increase CPU usage and battery consumption.</string>
+    <string name="multithreading_explain_content">When enabled, multi-core CPU parallel processing will be used for video: this can improve conversion speed, but will increase CPU usage and battery consumption.</string>
 
     <string name="theme_settings_title">Theme Settings</string>
     <string name="theme_follow_system">Follow System</string>
