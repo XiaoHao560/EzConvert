@@ -11,6 +11,7 @@
 
 ### 变更
 - 修改 Toolbar 为固定
+- 修改 `转码设置界面` 部分文本说明
 - 迁移项目至 [ffmpeg-kit-next:8.1.0](https://github.com/arthenica/ffmpeg-kit-next) (issue #179)
 
 ### 移除
