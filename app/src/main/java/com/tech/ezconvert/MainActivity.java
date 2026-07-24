@@ -394,6 +394,10 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                 Intent previewIntent = new Intent(MainActivity.this, PreviewActivity.class);
                 if (!currentInputPath.isEmpty()) {
                     previewIntent.putExtra("file_path", currentInputPath);
+                    Uri uri = pathToUriMap.get(currentInputPath);
+                    if (uri != null) {
+                        previewIntent.putExtra("file_uri", uri.toString());
+                    }
                 }
                 ActivityOptionsCompat options = ActivityOptionsCompat.makeCustomAnimation(
                         MainActivity.this,
