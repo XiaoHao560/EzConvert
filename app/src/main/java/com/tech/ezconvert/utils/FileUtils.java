@@ -238,7 +238,7 @@ public class FileUtils {
         FileOutputStream fos = null;
         InputStream is = null;
         try {
-            String fileName = getFileName(context, uri);
+            String fileName = getDisplayName(context, uri);
             Log.d(TAG, "文件名: " + fileName);
             if (fileName == null || fileName.isEmpty()) {
                 fileName = "temp_" + System.currentTimeMillis();
@@ -307,8 +307,10 @@ public class FileUtils {
         }
     }
     
-    // 从 URI 获取文件名
-    private static String getFileName(Context context, Uri uri) {
+    /**
+     * 从 Uri 获取显示名称
+     */
+    public static String getDisplayName(Context context, Uri uri) {
         Log.d(TAG, "获取文件名, URI: " + uri);
         String result = null;
         Cursor cursor = null;

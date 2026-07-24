@@ -1,6 +1,7 @@
 package com.tech.ezconvert.utils;
 
 import android.content.Context;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import com.tech.ezconvert.utils.Log;
@@ -8,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -31,37 +33,29 @@ public class CacheManager {
     }
     
     // 检查文件是否可以直接访问，如果不能则复制到缓存目录下
-    public static AccessResult prepareFileForProcessing(Context context, String inputPath) {
-        if (inputPath == null || inputPath.isEmpty()) {
-            Log.e(TAG, "输入路径为空");
+    public static AccessResult prepareFileForProcessing(Context context, String inputPath, Uri contentUri) {
+        if (inputPath == null && contentUri == null) {
+            Log.e(TAG, "输入路径和Uri均为空");
             return null;
         }
         
-        File originalFile = new File(inputPath);
-        
-        // 首先检查文件是否存在
-        if (!originalFile.exists()) {
-            Log.e(TAG, "文件不存在: " + inputPath);
-            return null;
+        // 1. 优先尝试直接访问路径（仅对 Android 10 以下或真实文件路径有效）
+        if (inputPath != null && isFileDirectlyAccessible(inputPath)) {
+            File file = new File(inputPath);
+            Log.d(TAG, "文件可直接访问，使用原始路径: " + inputPath);
+            return new AccessResult(inputPath, false, file.length());
         }
         
-        long fileSize = originalFile.length();
-        Log.d(TAG, "准备处理文件: " + inputPath + ", 大小: " + formatFileSize(fileSize));
-        
-        // 检查是否可以直接访问
-        if (isFileDirectlyAccessible(inputPath)) {
-            Log.d(TAG, "文件可直接访问，使用原始路径");
-            return new AccessResult(inputPath, false, fileSize);
-        }
-        
-        // 无法直接访问，需要复制到缓存
-        Log.w(TAG, "文件无法直接访问，准备复制到缓存目录");
-        String cachePath = copyToCache(context, originalFile);
+        // 2. 无法直接访问，必须通过 Uri 复制到缓存
+        Log.w(TAG, "路径不可直接访问，尝试使用 ContentResolver 复制 (Uri: " + contentUri + ")");
+        String cachePath = copyToCache(context, contentUri, inputPath);
         
         if (cachePath != null) {
             Log.d(TAG, "文件已复制到缓存: " + cachePath);
-            activeCacheFiles.put(cachePath, inputPath); // 记录映射关系
-            return new AccessResult(cachePath, true, fileSize);
+            // 记录映射关系（原始路径存为 key）
+            activeCacheFiles.put(cachePath, inputPath != null ? inputPath : (contentUri != null ? contentUri.toString() : "unknown"));
+            File cacheFile = new File(cachePath);
+            return new AccessResult(cachePath, true, cacheFile.length());
         } else {
             Log.e(TAG, "复制到缓存失败");
             return null;
@@ -109,80 +103,69 @@ public class CacheManager {
     }
     
     // 将文件复制到应用的私有缓存目录
-    private static String copyToCache(Context context, File sourceFile) {
-        if (context == null || sourceFile == null) {
+    private static String copyToCache(Context context, Uri contentUri, String fallbackPath) {
+        if (context == null) {
             return null;
         }
         
-        // 检查缓存空间
-        if (!ensureCacheSpace(context, sourceFile.length())) {
-            Log.e(TAG, "缓存空间不足");
-            return null;
-        }
-        
+        // 创建缓存目录
         File cacheDir = new File(context.getCacheDir(), CACHE_SUB_DIR);
         if (!cacheDir.exists()) {
             cacheDir.mkdirs();
         }
         
-        // 生成缓存文件名：原始文件名_时间戳.扩展名
-        String originalName = sourceFile.getName();
-        String fileNameWithoutExt = originalName;
-        String extension = "";
-        int lastDot = originalName.lastIndexOf('.');
-        if (lastDot > 0) {
-            fileNameWithoutExt = originalName.substring(0, lastDot);
-            extension = originalName.substring(lastDot);
+        // 生成缓存文件名（优先从 Uri 获取，否则从 fallbackPath 解析）
+        String fileName = "temp_" + System.currentTimeMillis();
+        if (contentUri != null) {
+            String name = FileUtils.getDisplayName(context, contentUri);
+            if (name != null && !name.isEmpty()) {
+                fileName = name;
+            }
+        } else if (fallbackPath != null) {
+            File src = new File(fallbackPath);
+            fileName = src.getName();
+            if (fileName.isEmpty()) {
+                fileName = "temp_" + System.currentTimeMillis();
+            }
+        }
+        File cacheFile = new File(cacheDir, fileName);
+        
+        // 检查缓存空间（粗略估计）
+        if (!ensureCacheSpace(context, 10 * 1024 * 1024)) {
+            Log.e(TAG, "缓存空间不足");
+            return null;
         }
         
-        String cacheFileName = fileNameWithoutExt + "_" + System.currentTimeMillis() + extension;
-        File cacheFile = new File(cacheDir, cacheFileName);
-        
-        FileChannel sourceChannel = null;
-        FileChannel destChannel = null;
-        FileInputStream fis = null;
-        FileOutputStream fos = null;
-        
-        try {
-            // 使用 FileChannel 进行零拷贝（如果系统支持）或快速复制
-            fis = new FileInputStream(sourceFile);
-            fos = new FileOutputStream(cacheFile);
-            sourceChannel = fis.getChannel();
-            destChannel = fos.getChannel();
+        // 使用 ContentResolver 打开输入流
+        try (InputStream inputStream = (contentUri != null) 
+                ? context.getContentResolver().openInputStream(contentUri) 
+                : new FileInputStream(new File(fallbackPath))) {
             
-            long transferred = 0;
-            long size = sourceChannel.size();
-            long startTime = System.currentTimeMillis();
-            
-            // 分段复制大文件，避免内存问题
-            while (transferred < size) {
-                long count = Math.min(size - transferred, 64 * 1024 * 1024); // 每次最多 64MB
-                transferred += destChannel.transferFrom(sourceChannel, transferred, count);
+            if (inputStream == null) {
+                Log.e(TAG, "无法打开输入流");
+                return null;
             }
             
-            long duration = System.currentTimeMillis() - startTime;
-            Log.d(TAG, String.format("文件复制完成: %s -> %s (%.1f MB, %d ms)", 
-                sourceFile.getAbsolutePath(), 
-                cacheFile.getAbsolutePath(),
-                size / (1024.0 * 1024.0),
-                duration));
-            
-            return cacheFile.getAbsolutePath();
-            
+            try (FileOutputStream fos = new FileOutputStream(cacheFile)) {
+                byte[] buffer = new byte[64 * 1024];
+                int len;
+                long total = 0;
+                long startTime = System.currentTimeMillis();
+                while ((len = inputStream.read(buffer)) != -1) {
+                    fos.write(buffer, 0, len);
+                    total += len;
+                }
+                long duration = System.currentTimeMillis() - startTime;
+                Log.d(TAG, String.format("文件复制完成: %s (%.1f MB, %d ms)", 
+                    cacheFile.getAbsolutePath(), total / (1024.0 * 1024.0), duration));
+                return cacheFile.getAbsolutePath();
+            }
         } catch (IOException e) {
             Log.e(TAG, "复制文件失败: " + e.getMessage(), e);
-            // 清理失败的文件
             if (cacheFile.exists()) {
                 cacheFile.delete();
             }
             return null;
-        } finally {
-            try {
-                if (sourceChannel != null) sourceChannel.close();
-                if (destChannel != null) destChannel.close();
-                if (fis != null) fis.close();
-                if (fos != null) fos.close();
-            } catch (IOException ignored) {}
         }
     }
     
