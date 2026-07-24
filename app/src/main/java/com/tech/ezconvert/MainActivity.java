@@ -1205,17 +1205,19 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             for (Uri uri : uriList) {
                 if (uri == null) continue;
 
-                // 获取显示名称
+                // 获取显示名称（可能为 null）
                 String displayName = FileUtils.getDisplayName(this, uri);
                 if (displayName == null || displayName.isEmpty()) {
                     displayName = "share_" + System.currentTimeMillis();
                 }
-                // 尝试解析路径
-                String filePath = FileUtils.getPath(this, uri);
-                String key = (filePath != null && !filePath.isEmpty()) ? filePath : displayName;
+
+                // 生成唯一 key（避免重复）
+                String key = displayName;
                 if (selectedFilePaths.contains(key)) {
                     key = key + "_" + System.currentTimeMillis();
                 }
+
+                // 直接加入列表，不检查路径是否存在，由 CacheManager 处理实际访问
                 selectedFilePaths.add(key);
                 pathToUriMap.put(key, uri);
                 successCount++;
@@ -1254,23 +1256,18 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             if (uri != null) {
                 String displayName = FileUtils.getDisplayName(this, uri);
                 if (displayName == null) displayName = "share";
-                String filePath = FileUtils.getPath(this, uri);
-                String key = (filePath != null && !filePath.isEmpty()) ? filePath : displayName;
-                try {
-                    // 验证可读性
-                    getContentResolver().openInputStream(uri).close();
-                    selectedFilePaths.clear();
-                    pathToUriMap.clear();
-                    selectedFilePaths.add(key);
-                    pathToUriMap.put(key, uri);
-                    currentInputPath = key;
-                    currentOutputPath = generateShareOutputPath(key);
-                    updateStatus(getString(R.string.status_received_share, displayName));
-                    setFunctionButtonsEnabled(permissionsGranted);
-                    ToastUtils.showCustom(this, getString(R.string.toast_received_share_file));
-                } catch (Exception e) {
-                    ToastUtils.showCustom(this, getString(R.string.toast_cannot_parse_share));
-                }
+
+                // 直接使用 Uri，不检查路径
+                String key = displayName;
+                selectedFilePaths.clear();
+                pathToUriMap.clear();
+                selectedFilePaths.add(key);
+                pathToUriMap.put(key, uri);
+                currentInputPath = key;
+                currentOutputPath = generateShareOutputPath(key);
+                updateStatus(getString(R.string.status_received_share, displayName));
+                setFunctionButtonsEnabled(permissionsGranted);
+                ToastUtils.showCustom(this, getString(R.string.toast_received_share_file));
             } else {
                 ToastUtils.showCustom(this, getString(R.string.toast_cannot_parse_share));
             }
@@ -1293,10 +1290,11 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                 base = "shared";
             }
         } else {
-            File in = new File(inputKey);
-            base = in.getName().contains(".") ?
-                    in.getName().substring(0, in.getName().lastIndexOf('.')) :
-                    in.getName();
+            // 直接使用 key
+            base = inputKey;
+            if (base.contains(".")) {
+                base = base.substring(0, base.lastIndexOf('.'));
+            }
         }
         String ts = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
