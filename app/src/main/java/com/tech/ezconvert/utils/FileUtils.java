@@ -17,6 +17,11 @@ import java.io.InputStream;
 public class FileUtils {
     private static final String TAG = "FileUtils";
     
+    // getPath 不可用在选择文件以及接受分享等场景
+    // 在选择无法访问的文件的情况下，会直接复制到缓存目录
+    // 如果一次性选择大量文件，会全部复制到缓存目录，占用大量本地空间
+    // 对于以上操作应该使用 CacheManager 在对文件操作时动态复制到缓存目录
+    @Deprecated
     public static String getPath(Context context, Uri uri) {
         Log.d(TAG, "开始解析URI: " + uri.toString());
         Log.d(TAG, "URI Scheme: " + uri.getScheme() + ", Authority: " + uri.getAuthority());
