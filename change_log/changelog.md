@@ -5,6 +5,7 @@
 
 ### 修复
 - 修复 `Android 11+` 分区存储导致的 EACCES 权限错误
+- 修复 ExoPlayer 无法处理 MainActivity 传递的媒体文件路径导致的 `Source error`
 
 ### 优化
 

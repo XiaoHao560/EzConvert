@@ -85,6 +85,7 @@ public class PreviewActivity extends BaseActivity {
     private long lastStatsUpdateTime = 0;
     private String cachedStaticMediaInfo = "";
     private String currentFilePath = "";
+    private Uri currentFileUri = null;
 
     // 手势与定时器
     private GestureDetector gestureDetector;
@@ -111,7 +112,7 @@ public class PreviewActivity extends BaseActivity {
         setupListeners();
         startProgressUpdateLoop();
 
-        // 检查是否有传入的文件路径
+        // 检查是否有传入的文件
         handleIntent(getIntent());
     }
 
@@ -122,13 +123,11 @@ public class PreviewActivity extends BaseActivity {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     Uri uri = result.getData().getData();
                     if (uri != null) {
-                        String path = FileUtils.getPath(this, uri);
-                        if (path != null && new File(path).exists()) {
-                            loadMedia(path);
-                        } else {
-                            ToastUtils.show(this, getString(R.string.toast_file_not_exist_or_inaccessible));
-                            Log.e("PreviewActivity", "无法访问文件");
-                        }
+                        // 直接使用 Uri 加载
+                        loadMedia(uri);
+                    } else {
+                        ToastUtils.show(this, getString(R.string.toast_file_not_exist_or_inaccessible));
+                        Log.e("PreviewActivity", "无法访问文件");
                     }
                 }
             }
@@ -228,11 +227,13 @@ public class PreviewActivity extends BaseActivity {
 
     // 显示媒体信息悬浮层
     private void showMediaInfo() {
-        if (currentFilePath.isEmpty() || mediaInfoText == null) return;
+        if (currentFileUri == null || mediaInfoText == null) return;
 
-        // 首次显示时加载静态信息
-        if (cachedStaticMediaInfo.isEmpty()) {
+        // 首次显示时加载静态信息（只有路径有效时才加载）
+        if (cachedStaticMediaInfo.isEmpty() && currentFilePath != null && !currentFilePath.isEmpty()) {
             loadMediaInfoStatic();
+        } else if (cachedStaticMediaInfo.isEmpty()) {
+            cachedStaticMediaInfo = getString(R.string.media_info_no_file);
         }
 
         // 取消可能正在进行的隐藏动画
@@ -294,9 +295,9 @@ public class PreviewActivity extends BaseActivity {
         }
     }
 
-    // 使用 FFprobe 加载文件静态信息
+    // 使用 FFprobe 加载文件静态信息（仅当 currentFilePath 有效时）
     private void loadMediaInfoStatic() {
-        if (currentFilePath.isEmpty()) {
+        if (currentFilePath == null || currentFilePath.isEmpty()) {
             cachedStaticMediaInfo = getString(R.string.media_info_no_file);
             return;
         }
@@ -324,8 +325,9 @@ public class PreviewActivity extends BaseActivity {
 
             if (root.has("format")) {
                 org.json.JSONObject format = root.getJSONObject("format");
+                String fileName = currentFilePath != null ? new File(currentFilePath).getName() : "?";
                 info.append(getString(R.string.media_info_file))
-                    .append(new File(currentFilePath).getName()).append("\n");
+                    .append(fileName).append("\n");
                 info.append(getString(R.string.media_info_format))
                     .append(format.optString("format_name", unknown)).append("\n");
                 info.append(getString(R.string.media_info_duration))
@@ -529,7 +531,7 @@ public class PreviewActivity extends BaseActivity {
 
             @Override
             public boolean onDoubleTap(@NonNull MotionEvent e) {
-                if (exoPlayer == null || currentFilePath.isEmpty()) return false;
+                if (exoPlayer == null || currentFileUri == null) return false;
 
                 float x = e.getX();
                 float width = playerContainer.getWidth();
@@ -673,21 +675,37 @@ public class PreviewActivity extends BaseActivity {
         }
     }
 
-    private void loadMedia(String filePath) {
-        if (filePath == null || filePath.isEmpty()) return;
+    // 使用 Uri 加载媒体
+    private void loadMedia(Uri uri) {
+        if (uri == null) return;
+        currentFileUri = uri;
 
-        currentFilePath = filePath;
-        File file = new File(filePath);
+        // 尝试获取显示名称
+        String displayName = FileUtils.getDisplayName(this, uri);
+        if (displayName == null || displayName.isEmpty()) {
+            displayName = uri.getLastPathSegment();
+            if (displayName == null) displayName = "file";
+        }
 
         // 设置标题
-        toolbar.setTitle(file.getName());
+        toolbar.setTitle(displayName);
+
+        // 尝试获取文件路径（用于 FFprobe 信息，可能为 null）
+        String filePath = FileUtils.getPath(this, uri);
+        currentFilePath = (filePath != null && !filePath.isEmpty()) ? filePath : null;
+        // 如果路径为空，则清空静态缓存
+        if (currentFilePath == null) {
+            cachedStaticMediaInfo = getString(R.string.media_info_no_file);
+        } else {
+            cachedStaticMediaInfo = ""; // 延迟加载
+        }
 
         // 显示加载指示器
         loadingIndicator.setVisibility(View.VISIBLE);
         hideCenterButtons();
 
-        // 构建 MediaItem 并准备播放
-        MediaItem mediaItem = MediaItem.fromUri(Uri.fromFile(file));
+        // 使用 Uri 构建 MediaItem
+        MediaItem mediaItem = MediaItem.fromUri(uri);
         exoPlayer.setMediaItem(mediaItem);
         exoPlayer.prepare();
 
@@ -696,6 +714,15 @@ public class PreviewActivity extends BaseActivity {
 
         // 自动开始播放
         exoPlayer.play();
+    }
+
+    // 保留原有 loadMedia(String) 作为兼容，内部调用新方法
+    private void loadMedia(String filePath) {
+        if (filePath == null || filePath.isEmpty()) return;
+        // 尝试将路径转换为 Uri
+        File file = new File(filePath);
+        Uri uri = Uri.fromFile(file);
+        loadMedia(uri);
     }
 
     // 返回空状态界面 (选择文件卡片)，停止当前播放
@@ -730,6 +757,7 @@ public class PreviewActivity extends BaseActivity {
 
         // 重置状态
         currentFilePath = "";
+        currentFileUri = null;
         isPlaying = false;
 
         // 如果当前是全屏状态，先退出全屏
@@ -1035,7 +1063,15 @@ public class PreviewActivity extends BaseActivity {
     }
 
     private void handleIntent(Intent intent) {
-        if (intent != null && intent.hasExtra("file_path")) {
+        if (intent != null) {
+            // 优先使用 file_uri
+            String uriString = intent.getStringExtra("file_uri");
+            if (uriString != null && !uriString.isEmpty()) {
+                Uri uri = Uri.parse(uriString);
+                loadMedia(uri);
+                return;
+            }
+            // 兼容旧版 file_path
             String path = intent.getStringExtra("file_path");
             if (path != null && !path.isEmpty()) {
                 loadMedia(path);
@@ -1052,7 +1088,7 @@ public class PreviewActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (exoPlayer != null && !currentFilePath.isEmpty() && !isPlaying) {
+        if (exoPlayer != null && currentFileUri != null && !isPlaying) {
             // 不自动播放，等待操作
         }
     }
