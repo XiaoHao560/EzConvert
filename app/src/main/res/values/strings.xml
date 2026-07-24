@@ -197,9 +197,9 @@
     <string name="multithreading_opt">多线程优化</string>
     <string name="multithreading_desc">使用多核CPU并行处理</string>
     <string name="hardware_decode_explain_title">硬件编解码说明</string>
-    <string name="hardware_decode_explain_content">使用GPU进行视频编解码，可以显著提升转换速度，但可能在某些设备上存在兼容性问题。如果遇到转换失败，请关闭此选项。</string>
+    <string name="hardware_decode_explain_content">开启后，会优先选择使用硬件编解码器：使用GPU进行视频编解码，可以显著提升转换速度，但可能在某些设备上存在兼容性问题</string>
     <string name="multithreading_explain_title">多线程优化说明</string>
-    <string name="multithreading_explain_content">使用多核CPU并行处理视频，可以提升转换速度，但会增加CPU使用率和电池消耗。</string>
+    <string name="multithreading_explain_content">开启后，会使用多核CPU并行处理视频：可以提升转换速度，但会增加CPU使用率和电池消耗</string>
 
     <string name="theme_settings_title">主题设置</string>
     <string name="theme_follow_system">跟随系统</string>
