@@ -271,18 +271,18 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                                 pathToUriMap.clear(); // 清空映射
                                 for (int i = 0; i < clipData.getItemCount(); i++) {
                                     Uri uri = clipData.getItemAt(i).getUri();
+                                    if (uri == null) continue;
+                                    
                                     // 获取显示名称
                                     String displayName = FileUtils.getDisplayName(this, uri);
                                     if (displayName == null || displayName.isEmpty()) {
                                         displayName = "file_" + System.currentTimeMillis();
                                     }
-                                    // 尝试解析路径（可能为null）
-                                    String filePath = FileUtils.getPath(this, uri);
-                                    // 用路径做key，没有则用显示名
-                                    String key = (filePath != null && !filePath.isEmpty()) ? filePath : displayName;
+                                    // 生成唯一 key
+                                    String key = displayName;
                                     // 如果key已存在，添加后缀避免覆盖
                                     if (selectedFilePaths.contains(key)) {
-                                        key = key + "_" + i;
+                                        key = key + "_" + System.currentTimeMillis();
                                     }
                                     selectedFilePaths.add(key);
                                     pathToUriMap.put(key, uri);
@@ -291,7 +291,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                                     // 取第一个作为 currentInputPath（仅用于显示）
                                     currentInputPath = selectedFilePaths.get(0);
                                     String firstFileName = FileUtils.getDisplayName(this, pathToUriMap.get(currentInputPath));
-                                    if (firstFileName == null) firstFileName = new File(currentInputPath).getName();
+                                    if (firstFileName == null) firstFileName = "file";
                                     updateStatus(getString(R.string.status_selected_files, selectedFilePaths.size(), firstFileName));
 
                                     // 生成输出路径
@@ -313,13 +313,12 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                             } else if (data.getData() != null) {
                                 // 单选兼容
                                 Uri uri = data.getData();
-                                String displayName = FileUtils.getDisplayName(this, uri);
-                                if (displayName == null) displayName = "file";
-                                String filePath = FileUtils.getPath(this, uri);
-                                String key = (filePath != null && !filePath.isEmpty()) ? filePath : displayName;
-                                // 检查文件是否存在（通过Uri可读）
-                                try {
-                                    getContentResolver().openInputStream(uri).close();
+                                if (uri != null) {
+                                    String displayName = FileUtils.getDisplayName(this, uri);
+                                    if (displayName == null) displayName = "file";
+                                    
+                                    // 直接使用 uri，不解析路径
+                                    String key = displayName;
                                     selectedFilePaths.clear();
                                     pathToUriMap.clear();
                                     selectedFilePaths.add(key);
@@ -335,7 +334,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
 
                                     // ToastUtils.show(this, "已选择: " + fileName);
                                     ToastUtils.showCustom(this, getString(R.string.toast_selected_file_name, displayName));
-                                } catch (Exception e) {
+                                } else {
                                     // ToastUtils.show(this, "无法访问文件或文件不存在");
                                     updateStatus(getString(R.string.status_file_not_exist));
                                     ToastUtils.showCustom(this, getString(R.string.status_file_not_exist));
@@ -958,7 +957,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     private void generateOutputPath() {
         if (currentInputPath.isEmpty()) return;
 
-        // 尝试从映射获取Uri来获取更友好的文件名
+        // 从映射获取 Uri，然后通过 FileUtils 获取文件名
         Uri uri = pathToUriMap.get(currentInputPath);
         String baseName;
         if (uri != null) {
@@ -973,10 +972,11 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                 baseName = "file";
             }
         } else {
-            File inputFile = new File(currentInputPath);
-            String fileName = inputFile.getName();
-            baseName = fileName.contains(".") ?
-                    fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
+            // 使用 currentInputPath
+            baseName = currentInputPath;
+            if (baseName.contains(".")) {
+                baseName = baseName.substring(0, baseName.lastIndexOf('.'));
+            }
         }
 
         // 创建简转文件夹
