@@ -3,6 +3,7 @@ package com.tech.ezconvert.worker;
 import android.app.Notification;
 import android.content.Context;
 import android.content.pm.ServiceInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -40,6 +41,7 @@ public class FfmpegWorker extends ListenableWorker {
 
     // InputData keys
     public static final String KEY_INPUT_PATH = "input_path";
+    public static final String KEY_INPUT_URI = "input_uri";
     public static final String KEY_OUTPUT_PATH_BASE = "output_path_base";
     public static final String KEY_PARAMS_JSON = "params_json";
     public static final String KEY_FILE_NAME = "file_name";
@@ -75,13 +77,15 @@ public class FfmpegWorker extends ListenableWorker {
             Data inputData = getInputData();
 
             String inputPath = inputData.getString(KEY_INPUT_PATH);
+            String inputUriString = inputData.getString(KEY_INPUT_URI);
+            Uri inputUri = (inputUriString != null && !inputUriString.isEmpty()) ? Uri.parse(inputUriString) : null;
             String outputPathBase = inputData.getString(KEY_OUTPUT_PATH_BASE);
             String paramsJson = inputData.getString(KEY_PARAMS_JSON);
             String fileName = inputData.getString(KEY_FILE_NAME);
             int taskIndex = inputData.getInt(KEY_TASK_INDEX, 1);
             int totalTasks = inputData.getInt(KEY_TOTAL_TASKS, 1);
 
-            if (inputPath == null || outputPathBase == null || paramsJson == null) {
+            if ((inputPath == null && inputUri == null) || outputPathBase == null || paramsJson == null) {
                 Log.e(TAG, "Worker 参数缺失");
                 completer.set(Result.failure(new Data.Builder()
                         .putString(KEY_ERROR_MESSAGE, "Worker 参数缺失")
@@ -101,7 +105,7 @@ public class FfmpegWorker extends ListenableWorker {
             );
 
             // 准备缓存文件
-            CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath);
+            CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath, inputUri);
             if (accessResult == null) {
                 LogManager.getInstance(context).appendFfmpegLog(
                         "=== Task [" + workIdStr + "] END (FAILED: 无法访问输入文件) ===",

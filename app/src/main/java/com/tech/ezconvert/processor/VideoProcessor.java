@@ -25,7 +25,7 @@ public class VideoProcessor {
                                     ParameterData params, Context context,
                                     FFmpegUtil.FFmpegCallback callback) {
         // 检查并准备文件路径
-        CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath);
+        CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath, null);
         if (accessResult == null) {
             callback.onError("无法访问输入文件");
             return;
