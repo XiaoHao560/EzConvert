@@ -1,6 +1,9 @@
 package com.tech.ezconvert.utils;
 
 import android.content.Context;
+import com.arthenica.ffmpegkit.FFprobeKit;
+import com.arthenica.ffmpegkit.FFprobeSession;
+import com.arthenica.ffmpegkit.ReturnCode;
 import java.util.ArrayList;
 
 /**
@@ -78,13 +81,13 @@ public class FfmpegCommandBuilder {
 
         switch (params.taskType) {
             case "convert":
-                buildConvertArgs(cmd, params, hw);
+                buildConvertArgs(cmd, params, inputPath, hw);
                 break;
             case "compress":
-                buildCompressArgs(cmd, params, hw);
+                buildCompressArgs(cmd, params, inputPath, hw);
                 break;
             case "cut_video":
-                buildCutVideoArgs(cmd, params, hw);
+                buildCutVideoArgs(cmd, params, inputPath, hw);
                 break;
             case "screenshot":
                 buildScreenshotArgs(cmd, params);
@@ -108,6 +111,9 @@ public class FfmpegCommandBuilder {
             cmd.add("-threads");
             cmd.add("0");
         }
+        
+        // 音频任务禁用视频流
+        cmd.add("-vn");
 
         if (params.volume != 100) {
             cmd.add("-af");
@@ -116,13 +122,13 @@ public class FfmpegCommandBuilder {
 
         switch (params.taskType) {
             case "convert_audio":
-                buildConvertAudioArgs(cmd, params);
+                buildConvertAudioArgs(cmd, params, inputPath);
                 break;
             case "cut_audio":
-                buildCutAudioArgs(cmd, params);
+                buildCutAudioArgs(cmd, params, inputPath);
                 break;
             case "extract_audio":
-                buildExtractAudioArgs(cmd, params);
+                buildExtractAudioArgs(cmd, params, inputPath);
                 break;
         }
 
@@ -133,7 +139,7 @@ public class FfmpegCommandBuilder {
     }
 
     // 视频任务参数构建
-    private static void buildConvertArgs(ArrayList<String> cmd, ParameterData params, boolean hw) {
+    private static void buildConvertArgs(ArrayList<String> cmd, ParameterData params, String inputPath, boolean hw) {
         // 视频编码器
         String vCodec = (params.videoCodec != null && !params.videoCodec.isEmpty())
                 ? params.videoCodec
@@ -142,7 +148,16 @@ public class FfmpegCommandBuilder {
         cmd.add(vCodec);
 
         // 视频码率
-        if ("custom".equals(params.videoBitrateMode)) {
+        if ("original".equals(params.videoBitrateMode)) {
+            int origBitrate = getOriginalVideoBitrate(inputPath);
+            if (origBitrate > 0) {
+                cmd.add("-b:v");
+                cmd.add(origBitrate + "k");
+            } else {
+                cmd.add("-crf");
+                cmd.add("18");
+            }
+        } else if ("custom".equals(params.videoBitrateMode)) {
             int val = params.videoBitrateValue;
             String unit = params.videoBitrateUnit;
             cmd.add("-b:v");
@@ -158,8 +173,15 @@ public class FfmpegCommandBuilder {
                 : "aac";
         cmd.add("-c:a");
         cmd.add(aCodec);
-
-        if ("custom".equals(params.audioBitrateMode)) {
+        
+        // 音频码率
+        if ("original".equals(params.audioBitrateMode)) {
+            int origBitrate = getOriginalAudioBitrate(inputPath);
+            if (origBitrate > 0) {
+                cmd.add("-b:a");
+                cmd.add(origBitrate + "k");
+            }
+        } else if ("custom".equals(params.audioBitrateMode)) {
             cmd.add("-b:a");
             cmd.add(params.audioBitrateValue + "k");
         }
@@ -172,18 +194,29 @@ public class FfmpegCommandBuilder {
         }
     }
 
-    private static void buildCompressArgs(ArrayList<String> cmd, ParameterData params, boolean hw) {
-        if (hw) {
-            cmd.add("-c:v");
-            cmd.add("h264_mediacodec");
-        } else {
-            cmd.add("-c:v");
-            cmd.add("libx264");
+    private static void buildCompressArgs(ArrayList<String> cmd, ParameterData params, String inputPath, boolean hw) {
+        String vCodec = (params.videoCodec != null && !params.videoCodec.isEmpty())
+                ? params.videoCodec
+                : (hw ? "h264_mediacodec" : "libx264");
+        cmd.add("-c:v");
+        cmd.add(vCodec);
+
+        if (!hw && !"copy".equals(vCodec)) {
             cmd.add("-preset");
             cmd.add("medium");
         }
-
-        if ("custom".equals(params.videoBitrateMode)) {
+        
+        // 视频码率
+        if ("original".equals(params.videoBitrateMode)) {
+            int origBitrate = getOriginalVideoBitrate(inputPath);
+            if (origBitrate > 0) {
+                cmd.add("-b:v");
+                cmd.add(origBitrate + "k");
+            } else {
+                cmd.add("-crf");
+                cmd.add("23");
+            }
+        } else if ("custom".equals(params.videoBitrateMode)) {
             int val = params.videoBitrateValue;
             String unit = params.videoBitrateUnit;
             cmd.add("-b:v");
@@ -193,31 +226,95 @@ public class FfmpegCommandBuilder {
             cmd.add("23");
         }
 
+        String aCodec = (params.audioCodec != null && !params.audioCodec.isEmpty())
+                ? params.audioCodec
+                : "aac";
         cmd.add("-c:a");
-        cmd.add("aac");
-        cmd.add("-b:a");
-        cmd.add("128k");
+        cmd.add(aCodec);
+        
+        // 音频码率
+        if ("original".equals(params.audioBitrateMode)) {
+            int origBitrate = getOriginalAudioBitrate(inputPath);
+            if (origBitrate > 0) {
+                cmd.add("-b:a");
+                cmd.add(origBitrate + "k");
+            } else {
+                cmd.add("-b:a");
+                cmd.add("128k");
+            }
+        } else if ("custom".equals(params.audioBitrateMode)) {
+            cmd.add("-b:a");
+            cmd.add(params.audioBitrateValue + "k");
+        } else {
+            cmd.add("-b:a");
+            cmd.add("128k");
+        }
+        
         cmd.add("-movflags");
         cmd.add("+faststart");
     }
 
-    private static void buildCutVideoArgs(ArrayList<String> cmd, ParameterData params, boolean hw) {
+    private static void buildCutVideoArgs(ArrayList<String> cmd, ParameterData params, String inputPath, boolean hw) {
         cmd.add("-ss");
         cmd.add(params.cutStartTime);
         cmd.add("-t");
         cmd.add(params.cutDuration);
 
-        if (hw) {
-            cmd.add("-c:v");
-            cmd.add("h264_mediacodec");
-        } else {
-            cmd.add("-c:v");
-            cmd.add("libx264");
+        String vCodec = (params.videoCodec != null && !params.videoCodec.isEmpty())
+                ? params.videoCodec
+                : (hw ? "h264_mediacodec" : "libx264");
+        cmd.add("-c:v");
+        cmd.add(vCodec);
+
+        if (!hw && !"copy".equals(vCodec)) {
             cmd.add("-preset");
             cmd.add("fast");
         }
+        
+        // 视频码率
+        if ("original".equals(params.videoBitrateMode)) {
+            int origBitrate = getOriginalVideoBitrate(inputPath);
+            if (origBitrate > 0) {
+                cmd.add("-b:v");
+                cmd.add(origBitrate + "k");
+            } else {
+                cmd.add("-crf");
+                cmd.add("18");
+            }
+        } else if ("custom".equals(params.videoBitrateMode)) {
+            int val = params.videoBitrateValue;
+            String unit = params.videoBitrateUnit;
+            cmd.add("-b:v");
+            cmd.add(unit.equals("Mbps") ? val + "M" : val + "k");
+        } else {
+            cmd.add("-crf");
+            cmd.add("18");
+        }
+
+        String aCodec = (params.audioCodec != null && !params.audioCodec.isEmpty())
+                ? params.audioCodec
+                : "aac";
         cmd.add("-c:a");
-        cmd.add("aac");
+        cmd.add(aCodec);
+        
+        // 音频码率
+        if ("original".equals(params.audioBitrateMode)) {
+            int origBitrate = getOriginalAudioBitrate(inputPath);
+            if (origBitrate > 0) {
+                cmd.add("-b:a");
+                cmd.add(origBitrate + "k");
+            } else {
+                cmd.add("-b:a");
+                cmd.add("128k");
+            }
+        } else if ("custom".equals(params.audioBitrateMode)) {
+            cmd.add("-b:a");
+            cmd.add(params.audioBitrateValue + "k");
+        } else {
+            cmd.add("-b:a");
+            cmd.add("128k");
+        }
+        
         cmd.add("-avoid_negative_ts");
         cmd.add("make_zero");
     }
@@ -240,18 +337,26 @@ public class FfmpegCommandBuilder {
         }
     }
 
-    private static void buildExtractAudioArgs(ArrayList<String> cmd, ParameterData params) {
-        cmd.add("-vn");
-
+    private static void buildExtractAudioArgs(ArrayList<String> cmd, ParameterData params, String inputPath) {
         String aCodec = (params.audioCodec != null && !params.audioCodec.isEmpty())
                 ? params.audioCodec
                 : getDefaultAudioCodec(params.outputFormat);
         cmd.add("-c:a");
         cmd.add(aCodec);
 
-        if ("custom".equals(params.audioBitrateMode)) {
+        // 音频码率
+        if ("original".equals(params.audioBitrateMode)) {
+            int origBitrate = getOriginalAudioBitrate(inputPath);
+            if (origBitrate > 0) {
+                cmd.add("-b:a");
+                cmd.add(origBitrate + "k");
+            }
+        } else if ("custom".equals(params.audioBitrateMode)) {
             cmd.add("-b:a");
             cmd.add(params.audioBitrateValue + "k");
+        } else {
+            cmd.add("-b:a");
+            cmd.add("192k");
         }
 
         String format = params.outputFormat != null ? params.outputFormat : "mp3";
@@ -262,16 +367,26 @@ public class FfmpegCommandBuilder {
     }
 
     // 音频任务参数构建
-    private static void buildConvertAudioArgs(ArrayList<String> cmd, ParameterData params) {
+    private static void buildConvertAudioArgs(ArrayList<String> cmd, ParameterData params, String inputPath) {
         String aCodec = (params.audioCodec != null && !params.audioCodec.isEmpty())
                 ? params.audioCodec
                 : getDefaultAudioCodec(params.outputFormat);
         cmd.add("-c:a");
         cmd.add(aCodec);
 
-        if ("custom".equals(params.audioBitrateMode)) {
+        // 音频码率
+        if ("original".equals(params.audioBitrateMode)) {
+            int origBitrate = getOriginalAudioBitrate(inputPath);
+            if (origBitrate > 0) {
+                cmd.add("-b:a");
+                cmd.add(origBitrate + "k");
+            }
+        } else if ("custom".equals(params.audioBitrateMode)) {
             cmd.add("-b:a");
             cmd.add(params.audioBitrateValue + "k");
+        } else {
+            cmd.add("-b:a");
+            cmd.add("192k");
         }
 
         String format = params.outputFormat != null ? params.outputFormat : "mp3";
@@ -281,30 +396,77 @@ public class FfmpegCommandBuilder {
         }
     }
 
-    private static void buildCutAudioArgs(ArrayList<String> cmd, ParameterData params) {
+    private static void buildCutAudioArgs(ArrayList<String> cmd, ParameterData params, String inputPath) {
         cmd.add("-ss");
         cmd.add(params.cutStartTime);
         cmd.add("-t");
         cmd.add(params.cutDuration);
-        
+
         String aCodec = (params.audioCodec != null && !params.audioCodec.isEmpty())
                 ? params.audioCodec
-                : "libmp3lame";
+                : getDefaultAudioCodec(params.outputFormat);
         cmd.add("-c:a");
         cmd.add(aCodec);
-        
-        if ("custom".equals(params.audioBitrateMode)) {
-            cmd.add("-b:a");
-            cmd.add(params.audioBitrateValue + "k");
-        } else {
-            if ("libmp3lame".equals(aCodec)) {
+
+        // 音频码率
+        if ("original".equals(params.audioBitrateMode)) {
+            int origBitrate = getOriginalAudioBitrate(inputPath);
+            if (origBitrate > 0) {
                 cmd.add("-b:a");
-                cmd.add("192k");
-            } else if ("aac".equals(aCodec)) {
+                cmd.add(origBitrate + "k");
+            } else {
                 cmd.add("-b:a");
                 cmd.add("192k");
             }
+        } else if ("custom".equals(params.audioBitrateMode)) {
+            cmd.add("-b:a");
+            cmd.add(params.audioBitrateValue + "k");
+        } else {
+            cmd.add("-b:a");
+            cmd.add("192k");
         }
+    }
+    
+    /**
+     * 获取原始视频码率 (kbps) ，获取失败返回 -1
+     */
+    private static int getOriginalVideoBitrate(String inputPath) {
+        if (inputPath == null || inputPath.isEmpty()) return -1;
+        try {
+            String probeCmd = "-v quiet -select_streams v:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 \"" + inputPath + "\"";
+            FFprobeSession session = FFprobeKit.execute(probeCmd);
+            if (session != null && ReturnCode.isSuccess(session.getReturnCode())) {
+                String output = session.getOutput();
+                if (output != null && !output.trim().isEmpty()) {
+                    int bps = Integer.parseInt(output.trim());
+                    return bps / 1000;
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "获取原始视频码率失败: " + inputPath, e);
+        }
+        return -1;
+    }
+    
+    /**
+     * 获取原始音频码率 (kbps) ，获取失败返回 -1
+     */
+    private static int getOriginalAudioBitrate(String inputPath) {
+        if (inputPath == null || inputPath.isEmpty()) return -1;
+        try {
+            String probeCmd = "-v quiet -select_streams a:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 \"" + inputPath + "\"";
+            FFprobeSession session = FFprobeKit.execute(probeCmd);
+            if (session != null && ReturnCode.isSuccess(session.getReturnCode())) {
+                String output = session.getOutput();
+                if (output != null && !output.trim().isEmpty()) {
+                    int bps = Integer.parseInt(output.trim());
+                    return bps / 1000;
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "获取原始音频码率失败: " + inputPath, e);
+        }
+        return -1;
     }
 
     /**
