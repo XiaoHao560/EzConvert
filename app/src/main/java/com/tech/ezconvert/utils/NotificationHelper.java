@@ -21,10 +21,21 @@ public class NotificationHelper {
     private static final int NOTIFICATION_ID_COMPLETE_BASE = 2000;
 
     private static int completeNotificationId = NOTIFICATION_ID_COMPLETE_BASE;
+    private static volatile boolean channelsCreated = false;
 
-    public static void createNotificationChannels(Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    /**
+     * 确保通知渠道已创建（懒加载，幂等）
+     * 调用方永远不需要手动调用，所有发通知的方法内部会自动处理
+     */
+    private static void ensureChannelsCreated(Context context) {
+        if (channelsCreated) return;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
+
+        synchronized (NotificationHelper.class) {
+            if (channelsCreated) return;
+
             NotificationManager manager = context.getSystemService(NotificationManager.class);
+            if (manager == null) return;
 
             // 进度通知渠道
             NotificationChannel progressChannel = new NotificationChannel(
@@ -46,13 +57,17 @@ public class NotificationHelper {
 
             manager.createNotificationChannel(progressChannel);
             manager.createNotificationChannel(completeChannel);
+            channelsCreated = true;
         }
     }
 
     /**
      * 构建进度通知（供 Worker 的 ForegroundInfo 使用）
+     * 前台服务通知不依赖 POST_NOTIFICATIONS 权限
      */
     public static Notification buildProgressNotification(Context context, String fileName, int progress) {
+        ensureChannelsCreated(context);
+
         Intent intent = new Intent(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(
@@ -77,13 +92,18 @@ public class NotificationHelper {
 
     public static void showProgressNotification(Context context, String fileName, int progress) {
         if (!ConfigManager.getInstance(context).isNotificationEnabled()) return;
+        if (!areNotificationsEnabled(context)) return;
 
+        ensureChannelsCreated(context);
         Notification notification = buildProgressNotification(context, fileName, progress);
         NotificationManagerCompat.from(context).notify(NOTIFICATION_ID_PROGRESS, notification);
     }
 
     public static void showCompleteNotification(Context context, String fileName, boolean success, String message) {
         if (!ConfigManager.getInstance(context).isNotificationEnabled()) return;
+        if (!areNotificationsEnabled(context)) return;
+
+        ensureChannelsCreated(context);
 
         Intent intent = new Intent(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -122,6 +142,9 @@ public class NotificationHelper {
     // 显示取消通知
     public static void showCancelledNotification(Context context, String fileName) {
         if (!ConfigManager.getInstance(context).isNotificationEnabled()) return;
+        if (!areNotificationsEnabled(context)) return;
+
+        ensureChannelsCreated(context);
 
         Intent intent = new Intent(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
