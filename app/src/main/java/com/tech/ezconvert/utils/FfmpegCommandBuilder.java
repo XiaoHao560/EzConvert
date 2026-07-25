@@ -428,16 +428,28 @@ public class FfmpegCommandBuilder {
     }
     
     /**
-     * 获取原始视频码率 (kbps) ，获取失败返回 -1
+     * 获取原始视频码率 (kbps)，获取失败返回 -1
      */
     private static int getOriginalVideoBitrate(String inputPath) {
         if (inputPath == null || inputPath.isEmpty()) return -1;
         try {
+            // 先尝试流级码率
             String probeCmd = "-v quiet -select_streams v:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 \"" + inputPath + "\"";
             FFprobeSession session = FFprobeKit.execute(probeCmd);
             if (session != null && ReturnCode.isSuccess(session.getReturnCode())) {
                 String output = session.getOutput();
-                if (output != null && !output.trim().isEmpty()) {
+                if (output != null && !output.trim().isEmpty() && !"N/A".equals(output.trim())) {
+                    int bps = Integer.parseInt(output.trim());
+                    return bps / 1000;
+                }
+            }
+            
+            // 流级获取失败或返回 N/A，尝试容器级总码率
+            probeCmd = "-v quiet -show_entries format=bit_rate -of default=noprint_wrappers=1:nokey=1 \"" + inputPath + "\"";
+            session = FFprobeKit.execute(probeCmd);
+            if (session != null && ReturnCode.isSuccess(session.getReturnCode())) {
+                String output = session.getOutput();
+                if (output != null && !output.trim().isEmpty() && !"N/A".equals(output.trim())) {
                     int bps = Integer.parseInt(output.trim());
                     return bps / 1000;
                 }
@@ -449,16 +461,28 @@ public class FfmpegCommandBuilder {
     }
     
     /**
-     * 获取原始音频码率 (kbps) ，获取失败返回 -1
+     * 获取原始音频码率 (kbps)，获取失败返回 -1
      */
     private static int getOriginalAudioBitrate(String inputPath) {
         if (inputPath == null || inputPath.isEmpty()) return -1;
         try {
+            // 先尝试流级码率
             String probeCmd = "-v quiet -select_streams a:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 \"" + inputPath + "\"";
             FFprobeSession session = FFprobeKit.execute(probeCmd);
             if (session != null && ReturnCode.isSuccess(session.getReturnCode())) {
                 String output = session.getOutput();
-                if (output != null && !output.trim().isEmpty()) {
+                if (output != null && !output.trim().isEmpty() && !"N/A".equals(output.trim())) {
+                    int bps = Integer.parseInt(output.trim());
+                    return bps / 1000;
+                }
+            }
+            
+            // 流级获取失败或返回 N/A，尝试容器级总码率（减去视频估算）
+            probeCmd = "-v quiet -show_entries format=bit_rate -of default=noprint_wrappers=1:nokey=1 \"" + inputPath + "\"";
+            session = FFprobeKit.execute(probeCmd);
+            if (session != null && ReturnCode.isSuccess(session.getReturnCode())) {
+                String output = session.getOutput();
+                if (output != null && !output.trim().isEmpty() && !"N/A".equals(output.trim())) {
                     int bps = Integer.parseInt(output.trim());
                     return bps / 1000;
                 }
