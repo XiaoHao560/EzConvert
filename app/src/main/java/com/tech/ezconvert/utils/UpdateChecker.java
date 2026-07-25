@@ -491,7 +491,6 @@ public class UpdateChecker {
             TextView messageView = new TextView(activity);
             messageView.setPadding(50, 30, 50, 30);
             messageView.setTextSize(14);
-            messageView.setTextColor(ContextCompat.getColor(activity, android.R.color.black));
             messageView.setMovementMethod(LinkMovementMethod.getInstance());
             
             String markdownContent = finalReleaseNotes;
