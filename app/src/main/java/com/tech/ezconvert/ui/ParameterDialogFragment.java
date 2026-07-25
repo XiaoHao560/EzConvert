@@ -778,14 +778,24 @@ public class ParameterDialogFragment extends DialogFragment {
                 break;
             
             case "cut_video":
-            case "cut_audio":
-                // 裁剪任务：显示视频参数（或音频参数）和裁剪参数，隐藏截图参数
+                // 视频裁剪：显示视频参数和裁剪参数，隐藏截图参数
                 videoParamsContainer.setVisibility(View.VISIBLE);
+                ((View) requireView().findViewById(R.id.spinner_video_codec).getParent()).setVisibility(View.VISIBLE);
+                requireView().findViewById(R.id.video_bitrate_layout).setVisibility(View.VISIBLE);
                 volumeContainer.setVisibility(View.VISIBLE);
                 screenshotContainer.setVisibility(View.GONE);
                 cutContainer.setVisibility(View.VISIBLE);
                 break;
             
+            case "cut_audio":
+                // 音频裁剪: 只显示音频参数和裁剪参数
+                videoParamsContainer.setVisibility(View.VISIBLE);
+                ((View) requireView().findViewById(R.id.spinner_video_codec).getParent()).setVisibility(View.GONE);
+                requireView().findViewById(R.id.video_bitrate_layout).setVisibility(View.GONE);
+                volumeContainer.setVisibility(View.GONE);
+                cutContainer.setVisibility(View.VISIBLE);
+                break;
+                
             case "extract_audio":
             case "convert_audio":
                 // 纯音频任务：显示音频相关参数（视频编码器隐藏），隐藏截图和裁剪
