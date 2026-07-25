@@ -196,11 +196,6 @@ public class FFmpegUtil {
         
         isCancelled = false;
         
-        // 创建通知渠道（首次执行时）
-        if (appContext != null) {
-            NotificationHelper.createNotificationChannels(appContext);
-        }
-        
         Log.d(TAG, "执行命令: " + String.join(" ", command));
         
         // 先获取输入文件的总时长（用于计算进度百分比）
