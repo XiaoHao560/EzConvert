@@ -23,7 +23,7 @@
             app:navigationIconTint="?attr/colorOnSurfaceVariant"
             app:navigationContentDescription="@string/tooltip_back"
             app:title="@string/more_settings_title"
-            app:titleCentered="false"
+            app:titleCentered="true"
             app:titleTextColor="?attr/colorPrimary"
             app:titleMarginTop="17dp"
             style="@style/Widget.Material3.Toolbar.Surface" />

@@ -1,118 +1,140 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_height="match_parent"
     android:layout_width="match_parent"
-    android:background="?attr/colorSurfaceContainerLowest"
-    android:scrollbarStyle="outsideOverlay"
-    android:fadeScrollbars="true">
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:background="?attr/colorSurfaceContainerLowest">
 
-    <LinearLayout
-        android:layout_height="wrap_content"
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:padding="16dp"
-        android:orientation="vertical"
-        android:id="@+id/scroll_content">
+        android:layout_height="wrap_content"
+        android:fitsSystemWindows="true"
+        android:background="@android:color/transparent"
+        android:elevation="0dp"
+        app:elevation="0dp">
 
         <com.google.android.material.appbar.MaterialToolbar
-            android:layout_height="wrap_content"
+            android:id="@+id/title_container"
             android:layout_width="match_parent"
-            android:layout_marginBottom="16dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
             android:background="@android:color/transparent"
+            app:navigationIcon="@drawable/round_arrow_back"
             app:navigationIconTint="?attr/colorOnSurfaceVariant"
+            app:navigationContentDescription="@string/tooltip_back"
             app:title="@string/log_settings_title"
             app:titleCentered="true"
+            app:titleMarginTop="17dp"
             app:titleTextColor="?attr/colorPrimary"
-            app:navigationIcon="@drawable/round_arrow_back"
-            app:navigationContentDescription="@string/tooltip_back"
-            style="@style/Widget.Material3.Toolbar.Surface"
-            android:id="@+id/title_container" />
+            style="@style/Widget.Material3.Toolbar.Surface" />
 
-        <com.google.android.material.card.MaterialCardView
-            android:layout_height="wrap_content"
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbarStyle="outsideOverlay"
+        android:fadeScrollbars="true"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:id="@+id/scroll_content"
             android:layout_width="match_parent"
-            android:layout_marginBottom="16dp"
-            app:strokeColor="?attr/colorOutline"
-            app:cardElevation="0dp"
-            app:strokeWidth="1dp"
-            app:cardBackgroundColor="@android:color/transparent"
-            style="@style/Widget.Material3.CardView.Outlined"
-            app:cardCornerRadius="12dp"
-            android:id="@+id/log_level_card">
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="16dp"
+            android:orientation="vertical">
 
-            <LinearLayout
-                android:layout_height="wrap_content"
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/log_level_card"
                 android:layout_width="match_parent"
-                android:padding="16dp"
-                android:orientation="vertical">
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                style="@style/Widget.Material3.CardView.Outlined"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeColor="?attr/colorOutline"
+                app:strokeWidth="1dp">
 
-                <TextView
-                    android:layout_height="wrap_content"
-                    android:layout_width="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:textSize="16sp"
-                    android:fontFamily="sans-serif-medium"
-                    android:textColor="?attr/colorOnSurface"
-                    android:text="@string/log_level_title" />
-
-                <RadioGroup
-                    android:layout_height="wrap_content"
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:orientation="vertical"
-                    android:id="@+id/rg_log_level">
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:orientation="vertical">
 
-                    <com.google.android.material.radiobutton.MaterialRadioButton
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_width="match_parent"
-                        android:paddingVertical="12dp"
-                        android:textSize="14sp"
+                        android:layout_marginBottom="16dp"
+                        android:textSize="16sp"
+                        android:fontFamily="sans-serif-medium"
                         android:textColor="?attr/colorOnSurface"
-                        android:id="@+id/rb_log_all"
-                        android:text="@string/log_level_verbose" />
+                        android:text="@string/log_level_title" />
 
-                    <com.google.android.material.divider.MaterialDivider
-                        android:layout_height="wrap_content"
+                    <RadioGroup
+                        android:id="@+id/rg_log_level"
                         android:layout_width="match_parent"
-                        app:dividerColor="?attr/colorOutlineVariant"
-                        app:dividerThickness="1dp"
-                        android:layout_marginStart="40dp" />
-
-                    <com.google.android.material.radiobutton.MaterialRadioButton
                         android:layout_height="wrap_content"
-                        android:layout_width="match_parent"
-                        android:paddingVertical="12dp"
-                        android:textSize="14sp"
-                        android:textColor="?attr/colorOnSurface"
-                        android:id="@+id/rb_log_error"
-                        android:text="@string/log_level_error" />
+                        android:orientation="vertical">
 
-                </RadioGroup>
+                        <com.google.android.material.radiobutton.MaterialRadioButton
+                            android:id="@+id/rb_log_all"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingVertical="12dp"
+                            android:textSize="14sp"
+                            android:textColor="?attr/colorOnSurface"
+                            android:text="@string/log_level_verbose" />
 
-            </LinearLayout>
+                        <com.google.android.material.divider.MaterialDivider
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:dividerColor="?attr/colorOutlineVariant"
+                            app:dividerThickness="1dp"
+                            android:layout_marginStart="40dp" />
 
-        </com.google.android.material.card.MaterialCardView>
+                        <com.google.android.material.radiobutton.MaterialRadioButton
+                            android:id="@+id/rb_log_error"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingVertical="12dp"
+                            android:textSize="14sp"
+                            android:textColor="?attr/colorOnSurface"
+                            android:text="@string/log_level_error" />
 
-        <Button
-            android:layout_height="48dp"
-            android:layout_width="match_parent"
-            app:icon="@drawable/round_description"
-            style="@style/Widget.Material3.Button.Icon"
-            android:id="@+id/btn_view_log"
-            android:text="@string/view_log"
-            app:iconGravity="textStart" />
+                    </RadioGroup>
 
-        <TextView
-            android:layout_height="wrap_content"
-            android:layout_width="match_parent"
-            android:gravity="center"
-            android:textSize="12sp"
-            android:fontFamily="sans-serif"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            android:layout_marginTop="16dp"
-            android:lineSpacingExtra="4dp"
-            android:text="@string/log_file_location_hint" />
+                </LinearLayout>
 
-    </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-</ScrollView>
+            <Button
+                android:id="@+id/btn_view_log"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="@string/view_log"
+                style="@style/Widget.Material3.Button.Icon"
+                app:icon="@drawable/round_description"
+                app:iconGravity="textStart" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginTop="16dp"
+                android:lineSpacingExtra="4dp"
+                android:text="@string/log_file_location_hint" />
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
