@@ -1,294 +1,313 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-     xmlns:android="http://schemas.android.com/apk/res/android"
-     xmlns:app="http://schemas.android.com/apk/res-auto"
-     android:layout_height="match_parent"
-     android:layout_width="match_parent"
-     android:background="?attr/colorSurfaceContainerLowest"
-     android:scrollbarStyle="outsideOverlay"
-     android:fadeScrollbars="true">
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:background="?attr/colorSurfaceContainerLowest">
 
-    <LinearLayout
-         android:layout_height="wrap_content"
-         android:layout_width="match_parent"
-         android:padding="16dp"
-         android:orientation="vertical"
-         android:id="@+id/scroll_content">
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fitsSystemWindows="true"
+        android:background="@android:color/transparent"
+        android:elevation="0dp"
+        app:elevation="0dp">
 
         <com.google.android.material.appbar.MaterialToolbar
-             android:layout_height="wrap_content"
-             android:layout_width="match_parent"
-             android:layout_marginBottom="16dp"
-             android:background="@android:color/transparent"
-             app:navigationIconTint="?attr/colorOnSurfaceVariant"
-             app:title="@string/app_title"
-             app:titleCentered="true"
-             app:titleTextColor="?attr/colorPrimary"
-             app:titleMarginTop="17dp"
-             app:navigationIcon="@drawable/round_menu"
-             style="@style/Widget.Material3.Toolbar.Surface"
-             app:navigationContentDescription="@string/tooltip_menu"
-             android:id="@+id/title_container">
+            android:id="@+id/title_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:background="@android:color/transparent"
+            app:navigationIcon="@drawable/round_menu"
+            app:navigationIconTint="?attr/colorOnSurfaceVariant"
+            app:navigationContentDescription="@string/tooltip_menu"
+            app:title="@string/app_title"
+            app:titleCentered="true"
+            app:titleTextColor="?attr/colorPrimary"
+            app:titleMarginTop="17dp"
+            style="@style/Widget.Material3.Toolbar.Surface" />
 
-        </com.google.android.material.appbar.MaterialToolbar>
+    </com.google.android.material.appbar.AppBarLayout>
 
-        <TextView
-             android:layout_height="wrap_content"
-             android:layout_width="match_parent"
-             android:layout_marginBottom="24dp"
-             android:gravity="center"
-             android:textSize="12sp"
-             android:fontFamily="?attr/textAppearanceLabelMedium"
-             android:textColor="?attr/colorOnSurfaceVariant"
-             android:id="@+id/version_text"
-             android:text="@string/version_text_default" />
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbarStyle="outsideOverlay"
+        android:fadeScrollbars="true"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <com.google.android.material.card.MaterialCardView
-             android:layout_height="wrap_content"
-             android:layout_width="match_parent"
-             android:layout_marginBottom="12dp"
-             app:strokeColor="?attr/colorOutline"
-             app:cardElevation="0dp"
-             app:strokeWidth="1dp"
-             app:cardBackgroundColor="@android:color/transparent"
-             style="@style/Widget.Material3.CardView.Outlined"
-             app:cardCornerRadius="12dp"
-             android:id="@+id/status_card">
+        <LinearLayout
+            android:id="@+id/scroll_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="16dp"
+            android:orientation="vertical">
 
-            <LinearLayout
-                 android:layout_height="wrap_content"
-                 android:layout_width="match_parent"
-                 android:padding="16dp"
-                 android:orientation="vertical">
+            <TextView
+                android:id="@+id/version_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:fontFamily="?attr/textAppearanceLabelMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:text="@string/version_text_default" />
 
-                <TextView
-                     android:layout_height="wrap_content"
-                     android:layout_width="match_parent"
-                     android:layout_marginBottom="16dp"
-                     android:textSize="16sp"
-                     android:fontFamily="?attr/textAppearanceTitleMedium"
-                     android:textColor="?attr/colorOnSurface"
-                     android:id="@+id/status_text"
-                     android:text="@string/status_select_file" />
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/status_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                style="@style/Widget.Material3.CardView.Outlined"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeColor="?attr/colorOutline"
+                app:strokeWidth="1dp">
 
-                <com.google.android.material.progressindicator.LinearProgressIndicator
-                     android:layout_height="wrap_content"
-                     android:layout_width="match_parent"
-                     android:layout_marginBottom="8dp"
-                     app:trackColor="?attr/colorSurfaceContainerHighest"
-                     app:trackCornerRadius="2dp"
-                     style="@style/Widget.Material3.LinearProgressIndicator"
-                     android:progress="0"
-                     app:trackThickness="4dp"
-                     android:id="@+id/progress_bar"
-                     app:indicatorColor="?attr/colorPrimary" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:orientation="vertical">
 
-                <TextView
-                     android:layout_height="wrap_content"
-                     android:layout_width="match_parent"
-                     android:gravity="center"
-                     android:textSize="12sp"
-                     android:fontFamily="?attr/textAppearanceLabelSmall"
-                     android:textColor="?attr/colorOnSurfaceVariant"
-                     android:id="@+id/progress_text"
-                     android:text="@string/progress_default" />
+                    <TextView
+                        android:id="@+id/status_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:textSize="16sp"
+                        android:fontFamily="?attr/textAppearanceTitleMedium"
+                        android:textColor="?attr/colorOnSurface"
+                        android:text="@string/status_select_file" />
 
-                <Button
-                     android:layout_height="48dp"
-                     android:layout_width="match_parent"
-                     android:visibility="gone"
-                     app:icon="@drawable/round_close"
-                     android:backgroundTint="?attr/colorErrorContainer"
-                     style="@style/Widget.Material3.Button.TonalButton.Icon"
-                     android:layout_marginTop="16dp"
-                     android:id="@+id/cancel_btn"
-                     android:text="@string/btn_cancel_ffmpeg"
-                     app:iconGravity="textStart" />
+                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                        android:id="@+id/progress_bar"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:progress="0"
+                        style="@style/Widget.Material3.LinearProgressIndicator"
+                        app:indicatorColor="?attr/colorPrimary"
+                        app:trackColor="?attr/colorSurfaceContainerHighest"
+                        app:trackCornerRadius="2dp"
+                        app:trackThickness="4dp" />
 
-            </LinearLayout>
+                    <TextView
+                        android:id="@+id/progress_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:textSize="12sp"
+                        android:fontFamily="?attr/textAppearanceLabelSmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:text="@string/progress_default" />
 
-        </com.google.android.material.card.MaterialCardView>
+                    <Button
+                        android:id="@+id/cancel_btn"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="16dp"
+                        android:visibility="gone"
+                        android:backgroundTint="?attr/colorErrorContainer"
+                        android:text="@string/btn_cancel_ffmpeg"
+                        style="@style/Widget.Material3.Button.TonalButton.Icon"
+                        app:icon="@drawable/round_close"
+                        app:iconGravity="textStart" />
 
-        <com.google.android.material.card.MaterialCardView
-             android:layout_height="wrap_content"
-             android:layout_width="match_parent"
-             android:layout_marginBottom="12dp"
-             app:strokeColor="?attr/colorOutline"
-             app:cardElevation="0dp"
-             app:strokeWidth="1dp"
-             app:cardBackgroundColor="@android:color/transparent"
-             style="@style/Widget.Material3.CardView.Outlined"
-             app:cardCornerRadius="12dp"
-             android:id="@+id/file_selection_card">
+                </LinearLayout>
 
-            <LinearLayout
-                 android:layout_height="wrap_content"
-                 android:layout_width="match_parent"
-                 android:padding="16dp"
-                 android:orientation="vertical">
+            </com.google.android.material.card.MaterialCardView>
 
-                <TextView
-                     android:layout_height="wrap_content"
-                     android:layout_width="match_parent"
-                     android:layout_marginBottom="16dp"
-                     android:textSize="16sp"
-                     android:fontFamily="?attr/textAppearanceTitleMedium"
-                     android:textColor="?attr/colorOnSurface"
-                     android:text="@string/section_file_selection" />
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/file_selection_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                style="@style/Widget.Material3.CardView.Outlined"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeColor="?attr/colorOutline"
+                app:strokeWidth="1dp">
 
-                <Button
-                     android:layout_height="48dp"
-                     android:layout_width="match_parent"
-                     app:icon="@drawable/round_folder"
-                     style="@style/Widget.Material3.Button.Icon"
-                     android:id="@+id/select_file_btn"
-                     android:text="@string/btn_select_file"
-                     app:iconGravity="textStart" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:orientation="vertical">
 
-            </LinearLayout>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:textSize="16sp"
+                        android:fontFamily="?attr/textAppearanceTitleMedium"
+                        android:textColor="?attr/colorOnSurface"
+                        android:text="@string/section_file_selection" />
 
-        </com.google.android.material.card.MaterialCardView>
+                    <Button
+                        android:id="@+id/select_file_btn"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:text="@string/btn_select_file"
+                        style="@style/Widget.Material3.Button.Icon"
+                        app:icon="@drawable/round_folder"
+                        app:iconGravity="textStart" />
 
-        <com.google.android.material.card.MaterialCardView
-             android:layout_height="wrap_content"
-             android:layout_width="match_parent"
-             android:layout_marginBottom="12dp"
-             app:strokeColor="?attr/colorOutline"
-             app:cardElevation="0dp"
-             app:strokeWidth="1dp"
-             app:cardBackgroundColor="@android:color/transparent"
-             style="@style/Widget.Material3.CardView.Outlined"
-             app:cardCornerRadius="12dp"
-             android:id="@+id/video_processing_card">
+                </LinearLayout>
 
-            <LinearLayout
-                 android:layout_height="wrap_content"
-                 android:layout_width="match_parent"
-                 android:padding="16dp"
-                 android:orientation="vertical">
+            </com.google.android.material.card.MaterialCardView>
 
-                <TextView
-                     android:layout_height="wrap_content"
-                     android:layout_width="match_parent"
-                     android:layout_marginBottom="16dp"
-                     android:textSize="16sp"
-                     android:fontFamily="?attr/textAppearanceTitleMedium"
-                     android:textColor="?attr/colorOnSurface"
-                     android:text="@string/section_video_processing" />
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/video_processing_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                style="@style/Widget.Material3.CardView.Outlined"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeColor="?attr/colorOutline"
+                app:strokeWidth="1dp">
 
-                <Button
-                     android:layout_height="48dp"
-                     android:layout_width="match_parent"
-                     android:layout_marginBottom="8dp"
-                     app:icon="@drawable/round_transform"
-                     style="@style/Widget.Material3.Button.Icon"
-                     android:id="@+id/convert_btn"
-                     android:text="@string/btn_convert_format"
-                     app:iconGravity="textStart" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:orientation="vertical">
 
-                <Button
-                     android:layout_height="48dp"
-                     android:layout_width="match_parent"
-                     android:layout_marginBottom="8dp"
-                     app:icon="@drawable/compress"
-                     style="@style/Widget.Material3.Button.OutlinedButton.Icon"
-                     android:id="@+id/compress_btn"
-                     android:text="@string/btn_compress_video"
-                     app:iconGravity="textStart" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:textSize="16sp"
+                        android:fontFamily="?attr/textAppearanceTitleMedium"
+                        android:textColor="?attr/colorOnSurface"
+                        android:text="@string/section_video_processing" />
 
-                <Button
-                     android:layout_height="48dp"
-                     android:layout_width="match_parent"
-                     android:layout_marginBottom="8dp"
-                     app:icon="@drawable/round_audiotrack"
-                     style="@style/Widget.Material3.Button.OutlinedButton.Icon"
-                     android:id="@+id/extract_audio_btn"
-                     android:text="@string/btn_extract_audio"
-                     app:iconGravity="textStart" />
+                    <Button
+                        android:id="@+id/convert_btn"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/btn_convert_format"
+                        style="@style/Widget.Material3.Button.Icon"
+                        app:icon="@drawable/round_transform"
+                        app:iconGravity="textStart" />
 
-                <Button
-                     android:layout_height="48dp"
-                     android:layout_width="match_parent"
-                     android:layout_marginBottom="8dp"
-                     app:icon="@drawable/round_content_cut"
-                     style="@style/Widget.Material3.Button.OutlinedButton.Icon"
-                     android:id="@+id/cut_video_btn"
-                     android:text="@string/btn_cut_video"
-                     app:iconGravity="textStart" />
+                    <Button
+                        android:id="@+id/compress_btn"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/btn_compress_video"
+                        style="@style/Widget.Material3.Button.OutlinedButton.Icon"
+                        app:icon="@drawable/compress"
+                        app:iconGravity="textStart" />
 
-                <Button
-                     android:layout_height="48dp"
-                     android:layout_width="match_parent"
-                     app:icon="@drawable/round_camera_alt"
-                     style="@style/Widget.Material3.Button.OutlinedButton.Icon"
-                     android:id="@+id/screenshot_btn"
-                     android:text="@string/btn_screenshot"
-                     app:iconGravity="textStart" />
+                    <Button
+                        android:id="@+id/extract_audio_btn"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/btn_extract_audio"
+                        style="@style/Widget.Material3.Button.OutlinedButton.Icon"
+                        app:icon="@drawable/round_audiotrack"
+                        app:iconGravity="textStart" />
 
-            </LinearLayout>
+                    <Button
+                        android:id="@+id/cut_video_btn"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/btn_cut_video"
+                        style="@style/Widget.Material3.Button.OutlinedButton.Icon"
+                        app:icon="@drawable/round_content_cut"
+                        app:iconGravity="textStart" />
 
-        </com.google.android.material.card.MaterialCardView>
+                    <Button
+                        android:id="@+id/screenshot_btn"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:text="@string/btn_screenshot"
+                        style="@style/Widget.Material3.Button.OutlinedButton.Icon"
+                        app:icon="@drawable/round_camera_alt"
+                        app:iconGravity="textStart" />
 
-        <com.google.android.material.card.MaterialCardView
-             android:layout_height="wrap_content"
-             android:layout_width="match_parent"
-             android:layout_marginBottom="12dp"
-             app:strokeColor="?attr/colorOutline"
-             app:cardElevation="0dp"
-             app:strokeWidth="1dp"
-             app:cardBackgroundColor="@android:color/transparent"
-             style="@style/Widget.Material3.CardView.Outlined"
-             app:cardCornerRadius="12dp"
-             android:id="@+id/audio_processing_card">
+                </LinearLayout>
 
-            <LinearLayout
-                 android:layout_height="wrap_content"
-                 android:layout_width="match_parent"
-                 android:padding="16dp"
-                 android:orientation="vertical">
+            </com.google.android.material.card.MaterialCardView>
 
-                <TextView
-                     android:layout_height="wrap_content"
-                     android:layout_width="match_parent"
-                     android:layout_marginBottom="16dp"
-                     android:textSize="16sp"
-                     android:fontFamily="?attr/textAppearanceTitleMedium"
-                     android:textColor="?attr/colorOnSurface"
-                     android:text="@string/section_audio_processing" />
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/audio_processing_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                style="@style/Widget.Material3.CardView.Outlined"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeColor="?attr/colorOutline"
+                app:strokeWidth="1dp">
 
-                <Button
-                     android:layout_height="48dp"
-                     android:layout_width="match_parent"
-                     android:layout_marginBottom="8dp"
-                     app:icon="@drawable/round_audiotrack"
-                     style="@style/Widget.Material3.Button.Icon"
-                     android:id="@+id/convert_audio_btn"
-                     android:text="@string/btn_convert_audio"
-                     app:iconGravity="textStart" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:orientation="vertical">
 
-                <Button
-                     android:layout_height="48dp"
-                     android:layout_width="match_parent"
-                     app:icon="@drawable/round_audiotrack"
-                     style="@style/Widget.Material3.Button.OutlinedButton.Icon"
-                     android:id="@+id/cut_audio_btn"
-                     android:text="@string/btn_cut_audio"
-                     app:iconGravity="textStart" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:textSize="16sp"
+                        android:fontFamily="?attr/textAppearanceTitleMedium"
+                        android:textColor="?attr/colorOnSurface"
+                        android:text="@string/section_audio_processing" />
 
-            </LinearLayout>
+                    <Button
+                        android:id="@+id/convert_audio_btn"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/btn_convert_audio"
+                        style="@style/Widget.Material3.Button.Icon"
+                        app:icon="@drawable/round_audiotrack"
+                        app:iconGravity="textStart" />
 
-        </com.google.android.material.card.MaterialCardView>
+                    <Button
+                        android:id="@+id/cut_audio_btn"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:text="@string/btn_cut_audio"
+                        style="@style/Widget.Material3.Button.OutlinedButton.Icon"
+                        app:icon="@drawable/round_audiotrack"
+                        app:iconGravity="textStart" />
 
-        <TextView
-             android:layout_height="wrap_content"
-             android:layout_width="match_parent"
-             android:gravity="center"
-             android:textSize="12sp"
-             android:fontFamily="?attr/textAppearanceLabelSmall"
-             android:textColor="?attr/colorOnSurfaceVariant"
-             android:layout_marginTop="8dp"
-             android:text="@string/hint_output_location" />
+                </LinearLayout>
 
-    </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-</ScrollView>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:fontFamily="?attr/textAppearanceLabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginTop="8dp"
+                android:text="@string/hint_output_location" />
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
