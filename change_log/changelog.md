@@ -7,6 +7,7 @@
 - 修复 `Android 11+` 分区存储导致的 EACCES 权限错误
 - 修复 ExoPlayer 无法处理 MainActivity 传递的媒体文件路径导致的 `Source error`
 - 修复 没有创建通知渠道导致的崩溃 (issue #184)
+- 修复 因为预设系统导致的无法正确处理音频相关任务 (issue #181)
 
 ### 优化
 

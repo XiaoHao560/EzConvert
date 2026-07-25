@@ -29,7 +29,7 @@ public class FfmpegCommandBuilder {
                 ext = params.screenshotFormat != null ? params.screenshotFormat : "jpeg";
                 break;
             case "extract_audio":
-                ext = "mp3";
+                ext = getAudioFileExtension(params.outputFormat);
                 break;
             case "convert_audio":
             case "cut_audio":
@@ -55,8 +55,7 @@ public class FfmpegCommandBuilder {
 
     private static boolean isVideoTask(String taskType) {
         return "convert".equals(taskType) || "compress".equals(taskType) ||
-               "cut_video".equals(taskType) || "screenshot".equals(taskType) ||
-               "extract_audio".equals(taskType);
+               "cut_video".equals(taskType) || "screenshot".equals(taskType);
     }
 
     private static String[] buildVideoCommand(String inputPath, String outputPath, ParameterData params, Context context) {
@@ -90,9 +89,6 @@ public class FfmpegCommandBuilder {
             case "screenshot":
                 buildScreenshotArgs(cmd, params);
                 break;
-            case "extract_audio":
-                buildExtractAudioArgs(cmd, params);
-                break;
         }
 
         cmd.add("-y");
@@ -124,6 +120,9 @@ public class FfmpegCommandBuilder {
                 break;
             case "cut_audio":
                 buildCutAudioArgs(cmd, params);
+                break;
+            case "extract_audio":
+                buildExtractAudioArgs(cmd, params);
                 break;
         }
 

@@ -114,6 +114,7 @@ public class ParameterDialogFragment extends DialogFragment {
             currentParams = ParameterData.createDefault();
             presetManager.savePreset(defaultPresetName, currentParams);
         }
+        currentParams.taskType = taskType;
 
         // 如果是压缩任务，获取当前视频码率
         if (isCompressTask && currentFilePath != null) {
@@ -348,6 +349,8 @@ public class ParameterDialogFragment extends DialogFragment {
         switchSync.setChecked(isSyncAll);
 
         updateCodecOptions(data.outputFormat);
+        
+        currentParams.taskType = taskType;
     }
 
     private void setSpinnerValue(MaterialAutoCompleteTextView spinner, String value) {
@@ -651,6 +654,8 @@ public class ParameterDialogFragment extends DialogFragment {
     }
 
     private void collectParamsFromUI() {
+        currentParams.taskType = taskType;
+        
         // 输出格式
         currentParams.outputFormat = spinnerOutputFormat.getText().toString();
 
