@@ -286,10 +286,25 @@ public class FfmpegCommandBuilder {
         cmd.add(params.cutStartTime);
         cmd.add("-t");
         cmd.add(params.cutDuration);
+        
+        String aCodec = (params.audioCodec != null && !params.audioCodec.isEmpty())
+                ? params.audioCodec
+                : "libmp3lame";
         cmd.add("-c:a");
-        cmd.add("libmp3lame");
-        cmd.add("-b:a");
-        cmd.add("192k");
+        cmd.add(aCodec);
+        
+        if ("custom".equals(params.audioBitrateMode)) {
+            cmd.add("-b:a");
+            cmd.add(params.audioBitrateValue + "k");
+        } else {
+            if ("libmp3lame".equals(aCodec)) {
+                cmd.add("-b:a");
+                cmd.add("192k");
+            } else if ("aac".equals(aCodec)) {
+                cmd.add("-b:a");
+                cmd.add("192k");
+            }
+        }
     }
 
     /**
