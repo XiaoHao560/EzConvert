@@ -386,8 +386,6 @@ public class MoreSettingsActivity extends BaseActivity {
     
     // 处理用户开启通知
     private void handleNotificationEnable() {
-        // 创建通知渠道
-        NotificationHelper.createNotificationChannels(this);
         
         // 检查是否已有权限
         if (NotificationHelper.areNotificationsEnabled(this)) {
