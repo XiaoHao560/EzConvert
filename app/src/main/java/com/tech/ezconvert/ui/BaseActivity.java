@@ -6,8 +6,11 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Filter;
+import android.widget.ListView;
+import android.widget.ScrollView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,12 +19,15 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.core.widget.NestedScrollView;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.color.DynamicColors;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.LanguageManager;
 import com.tech.ezconvert.utils.ThemeManager;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -114,10 +120,64 @@ public abstract class BaseActivity extends AppCompatActivity {
         }
     }
 
+    // 自动分配稳定 ID
     @Override
     public void setContentView(int layoutResID) {
         super.setContentView(layoutResID);
+        // 为滚动容器分配基于路径的稳定 ID
+        assignStableIdsToScrollables(findViewById(android.R.id.content), new StringBuilder());
+        // 沉浸式内边距处理
         applyWindowInsets();
+    }
+
+    /**
+     * 递归遍历 View 树，为所有未设置 ID 的滚动容器分配稳定 ID
+     * ID 基于“当前 Activity 类名 + 视图树路径”生成，保证跨重建和进程重启不变
+     *
+     * @param view 当前遍历的 View
+     * @param path 从根到当前节点的路径描述，用于区分同一布局中的多个滚动控件
+     */
+    private void assignStableIdsToScrollables(View view, StringBuilder path) {
+        if (view == null) return;
+
+        // 构建当前节点的路径片段：父布局中的索引 + 类名
+        String currentSegment;
+        if (view.getParent() instanceof ViewGroup) {
+            ViewGroup parent = (ViewGroup) view.getParent();
+            int index = parent.indexOfChild(view);
+            currentSegment = index + "_" + view.getClass().getSimpleName();
+        } else {
+            currentSegment = "root_" + view.getClass().getSimpleName();
+        }
+
+        int pathLen = path.length();
+        if (pathLen > 0) path.append("_");
+        path.append(currentSegment);
+
+        // 如果当前 View 是滚动容器且没有 ID，则分配一个稳定的 ID
+        if ((view instanceof ScrollView || view instanceof NestedScrollView ||
+             view instanceof RecyclerView || view instanceof ListView) &&
+             view.getId() == View.NO_ID) {
+
+            String uniqueKey = getClass().getName() + "_" + path.toString();
+            int stableId = uniqueKey.hashCode();
+            // 确保 ID 不是 -1（View.NO_ID），且为正数
+            if (stableId == View.NO_ID) stableId = 1;
+            if (stableId < 0) stableId = -stableId;
+
+            view.setId(stableId);
+        }
+
+        // 递归遍历子 View
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                assignStableIdsToScrollables(group.getChildAt(i), path);
+            }
+        }
+
+        // 回溯，恢复路径到当前节点之前的状态
+        path.setLength(pathLen);
     }
 
     // 动态获取Padding内边距
