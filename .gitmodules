@@ -1,0 +1,9 @@
+[submodule "imagecodec/src/main/cpp/third_party/libjpeg-turbo"]
+	path = imagecodec/src/main/cpp/third_party/libjpeg-turbo
+	url = https://github.com/libjpeg-turbo/libjpeg-turbo.git
+[submodule "imagecodec/src/main/cpp/third_party/libpng"]
+	path = imagecodec/src/main/cpp/third_party/libpng
+	url = https://github.com/pnggroup/libpng.git
+[submodule "imagecodec/src/main/cpp/third_party/libwebp"]
+	path = imagecodec/src/main/cpp/third_party/libwebp
+	url = https://chromium.googlesource.com/webm/libwebp.git

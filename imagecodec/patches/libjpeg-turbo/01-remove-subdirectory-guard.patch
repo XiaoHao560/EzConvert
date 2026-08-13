@@ -1,0 +1,17 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index a1293dbb..958c10e5 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -66,9 +66,9 @@ endif()
+ # ExternalProject_Add() or make downstream modifications to the libjpeg-turbo
+ # build system to suit their specific needs.  Please do not file bug reports,
+ # feature requests, or pull requests regarding this.
+-if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+-  message(FATAL_ERROR "The ${CMAKE_PROJECT_NAME} build system cannot be integrated into another build system using add_subdirectory().  Use ExternalProject_Add() instead.")
+-endif()
++#if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
++#  message(FATAL_ERROR "The ${CMAKE_PROJECT_NAME} build system cannot be integrated into another build system using add_subdirectory().  Use ExternalProject_Add() instead.")
++#endif()
+ 
+ # CMake 3.14 and later sets CMAKE_MACOSX_BUNDLE to TRUE by default when
+ # CMAKE_SYSTEM_NAME is iOS, tvOS, or watchOS, which breaks the libjpeg-turbo
