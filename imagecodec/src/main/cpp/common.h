@@ -5,9 +5,25 @@
 #include <android/log.h>
 #include <vector>
 #include <cstdint>
+#include <string>
 
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "ImageCodec", __VA_ARGS__)
-#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "ImageCodec", __VA_ARGS__)
+// 日志级别，与 Java 层对应
+enum LogLevel {
+    LOG_VERBOSE = 0,
+    LOG_DEBUG = 1,
+    LOG_INFO = 2,
+    LOG_WARN = 3,
+    LOG_ERROR = 4
+};
+
+// 日志函数声明
+void codecLog(LogLevel level, const char* fmt, ...);
+void codecLog(LogLevel level, const std::string& message);
+void initCodecLogger(JavaVM* vm);
+void cacheLogMethod(JNIEnv* env);
+
+// 获取格式名称
+const char* getFormatName(int format);
 
 struct RawImage {
     int width = 0;
