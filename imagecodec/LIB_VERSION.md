@@ -1,5 +1,5 @@
 # Third_party library version
 
-jpeg-turbo = "3.0.4"
-pnggroup = "1.6.47"
-webp = "1.5.0"
+jpeg-turbo = "3.2.0"
+pnggroup = "1.6.58"
+webp = "1.6.0"

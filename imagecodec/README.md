@@ -215,9 +215,9 @@ public class MainActivity extends AppCompatActivity {
 2. 统一中间格式：所有解码器输出统一转换为 RGBA8888 内存布局，编码器从 RGBA 读取。这种设计使得任意格式之间可以无损转换。
 
 3. Native 库集成：
-   - libjpeg-turbo 3.0.4：提供 TurboJPEG API，支持 NEON SIMD 加速
-   - libpng 1.6.47：标准 PNG 编解码，支持所有颜色类型转换
-   - libwebp 1.5.0：Google 官方实现，支持有损/无损编码
+   - libjpeg-turbo 3.2.0：提供 TurboJPEG API，支持 NEON SIMD 加速
+   - libpng 1.6.58：标准 PNG 编解码，支持所有颜色类型转换
+   - libwebp 1.6.0：Google 官方实现，支持有损/无损编码
 
 4. 16KB Page Size：通过 CMake 链接器标志 `-Wl,-z,max-page-size=16384` 确保 `.so` 文件在 Android 15+ 设备上正常加载。
 
