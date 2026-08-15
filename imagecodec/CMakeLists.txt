@@ -107,3 +107,12 @@ target_link_libraries(imagecodec
     webpdecoder
     ${log-lib}
 )
+
+# ========== 构建后打反向补丁 ==========
+add_custom_command(TARGET imagecodec POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E echo "反向应用补丁..."
+    COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/third_party/libjpeg-turbo && git apply -R ${CMAKE_CURRENT_SOURCE_DIR}/patches/libjpeg-turbo/*.patch 2>/dev/null
+    COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/third_party/libpng && git apply -R ${CMAKE_CURRENT_SOURCE_DIR}/patches/libpng/*.patch 2>/dev/null
+  #  COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/third_party/libwebp && git apply -R ${CMAKE_CURRENT_SOURCE_DIR}/patches/libwebp/*.patch 2>/dev/null
+    COMMENT "反向补丁成功！"
+)
