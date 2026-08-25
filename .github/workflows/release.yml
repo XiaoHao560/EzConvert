@@ -19,7 +19,7 @@ jobs:
          GITHUB_TOKEN: ${{ secrets.REPO_READ_TOKEN }}
        run: |
          mkdir -p libs
-         gh release download v8.1.1 \
+         gh release download v9.0.0 \
          --repo XiaoHao560/ffmpeg-kit-next \
          --pattern "*.zip" \
          --output ffmpeg-kit-next.zip
