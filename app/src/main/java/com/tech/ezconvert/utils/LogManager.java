@@ -47,7 +47,7 @@ public class LogManager {
         }
 
         public String getFormattedMessage() {
-            String timeStr = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", 
+            String timeStr = new java.text.SimpleDateFormat("MM-dd HH:mm:ss.SSS", 
                 java.util.Locale.getDefault()).format(new java.util.Date(timestamp));
             String levelStr = getLevelString(level);
             StringBuilder sb = new StringBuilder();
@@ -375,7 +375,7 @@ public class LogManager {
     }
 
     private String formatLogLine(String message, Level level) {
-        String timestamp = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", 
+        String timestamp = new java.text.SimpleDateFormat("MM-dd HH:mm:ss.SSS", 
             java.util.Locale.getDefault()).format(new java.util.Date());
         return String.format("[%s] [%s] %s", timestamp, levelToString(level), message);
     }
