@@ -69,7 +69,6 @@
     <string name="popup_settings">设置</string>
 
     <string name="folder_output">简转</string>
-    <string name="filename_suffix_converted">_converted_</string>
     <string name="filename_suffix_share">_share_</string>
     <string name="picker_title">选择媒体文件（可多选）</string>
     <string name="picker_title_simple">选择媒体文件</string>

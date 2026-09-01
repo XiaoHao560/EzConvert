@@ -69,7 +69,6 @@
     <string name="popup_settings">Settings</string>
 
     <string name="folder_output">EzConvert</string>
-    <string name="filename_suffix_converted">_converted_</string>
     <string name="filename_suffix_share">_share_</string>
     <string name="picker_title">Select Media Files (multiple allowed)</string>
     <string name="picker_title_simple">Select Media File</string>
