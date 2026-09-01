@@ -295,7 +295,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                                     updateStatus(getString(R.string.status_selected_files, selectedFilePaths.size(), firstFileName));
 
                                     // 生成输出路径
-                                    generateOutputPath();
+                                    generateOutputPath(null);
 
                                     // 更新按键状态
                                     setFunctionButtonsEnabled(permissionsGranted);
@@ -327,7 +327,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
                                     updateStatus(getString(R.string.status_selected_file, displayName));
 
                                     // 生成输出路径
-                                    generateOutputPath();
+                                    generateOutputPath(null);
 
                                     // 更新按键状态
                                     setFunctionButtonsEnabled(permissionsGranted);
@@ -694,7 +694,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
      * 提交 Worker 处理当前文件
      */
     private void submitWorkerForCurrentFile(ParameterData params) {
-        generateOutputPath();
+        generateOutputPath(params.taskType);
         String outputPath = FfmpegCommandBuilder.buildOutputPath(currentOutputPath, params);
         currentOutputFile = outputPath;
 
@@ -954,7 +954,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         }
     }
 
-    private void generateOutputPath() {
+    private void generateOutputPath(String taskType) {
         if (currentInputPath.isEmpty()) return;
 
         // 从映射获取 Uri，然后通过 FileUtils 获取文件名
@@ -990,9 +990,24 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         }
 
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-        currentOutputPath = outputDir + File.separator + baseName + getString(R.string.filename_suffix_converted) + timestamp;
+        String prefix = getPrefixTaskType(taskType);
+        currentOutputPath = outputDir + File.separator + baseName + "_" + prefix + timestamp;
 
         Log.d("GeneratePath", "输出路径基础: " + currentOutputPath);
+    }
+    
+    private String getPrefixTaskType(String taskType) {
+        if (taskType == null) return "converted_";
+        switch (taskType) {
+            case "convert": return "converted_";
+            case "compress" : return "compressed_";
+            case "cut_video": return "cut_";
+            case "screenshot": return "screenshot_";
+            case "extract_audio": return "extract_audio_";
+            case "convert_audio": return "convert_audio_";
+            case "cut_audio": return "cut_audio_";
+            default: return "converted_";
+        }
     }
 
     // FFmpegCallback 实现
