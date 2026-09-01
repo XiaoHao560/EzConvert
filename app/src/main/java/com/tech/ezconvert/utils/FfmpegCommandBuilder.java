@@ -188,6 +188,9 @@ public class FfmpegCommandBuilder {
 
         // 容器格式
         String format = params.outputFormat;
+        if ("mkv".equalsIgnoreCase(format)) {
+            format = "matroska";
+        }
         if (format != null && !"mp4".equals(format) && !"mov".equals(format)) {
             cmd.add("-f");
             cmd.add(format);
