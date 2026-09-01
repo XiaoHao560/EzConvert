@@ -133,8 +133,8 @@ private:
                 // 格式化日志行
                 char header[128];
                 tm* ltm = localtime(&pkt.timestamp);
-                snprintf(header, sizeof(header), "[%04d-%02d-%02d %02d:%02d:%02d] [%c] [%s] ", 
-                        1900+ltm->tm_year, 1+ltm->tm_mon, ltm->tm_mday,
+                snprintf(header, sizeof(header), "[%02d-%02d %02d:%02d:%02d] [%c] [%s] ", 
+                        1+ltm->tm_mon, ltm->tm_mday,
                         ltm->tm_hour, ltm->tm_min, ltm->tm_sec,
                         pkt.level, pkt.tag.c_str());
                 
