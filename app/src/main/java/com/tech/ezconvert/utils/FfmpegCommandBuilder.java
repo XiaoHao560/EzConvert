@@ -23,10 +23,10 @@ public class FfmpegCommandBuilder {
                 ext = getVideoFileExtension(params.outputFormat);
                 break;
             case "compress":
-                ext = "mp4";
+                ext = getVideoFileExtension(params.outputFormat);
                 break;
             case "cut_video":
-                ext = "mp4";
+                ext = getVideoFileExtension(params.outputFormat);
                 break;
             case "screenshot":
                 ext = params.screenshotFormat != null ? params.screenshotFormat : "jpeg";
