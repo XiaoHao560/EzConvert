@@ -932,7 +932,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true); // 支持多选
 
-        String[] mimeTypes = {"video/*", "audio/*"};
+        String[] mimeTypes = {"video/*", "audio/*", "image/*"};
         intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
 
         try {
@@ -1194,7 +1194,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         String type = intent.getType();
 
         // 类型校验: 只处理视频/音频
-        if (type == null || (!type.startsWith("video/") && !type.startsWith("audio/"))) {
+        if (type == null || (!type.startsWith("video/") && !type.startsWith("audio/") && !type.startsWith("image/"))) {
             return;
         }
 
