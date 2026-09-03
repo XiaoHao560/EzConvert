@@ -1,6 +1,9 @@
 package com.tech.ezconvert.ui;
 
 import android.app.Dialog;
+import android.graphics.Bitmap;
+import android.media.MediaMetadataRetriever;
+import android.net.Uri;
 import android.view.Window;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.ViewCompat;
@@ -10,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -27,27 +31,33 @@ import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.arthenica.ffmpegkit.FFprobeKit;
+import com.arthenica.ffmpegkit.ReturnCode;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.ConfigManager;
+import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.utils.ParameterData;
 import com.tech.ezconvert.utils.ParameterPresetManager;
 import com.tech.ezconvert.utils.ToastUtils;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import android.graphics.BitmapFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class ParameterDialogFragment extends DialogFragment {
     private static final String ARG_TASK_TYPE = "task_type";
     private static final String ARG_FILE_PATH = "file_path";
+    private static final String ARG_FILE_URI = "file_uri"; // 用于图片预览
     private static final String ARG_FILE_INDEX = "file_index";
     private static final String ARG_TOTAL_FILES = "total_files";
     private static final String ARG_IS_COMPRESS = "is_compress";
 
     private String taskType;
     private String currentFilePath;
+    private Uri currentFileUri; // 图片文件的 Uri
     private int fileIndex;
     private int totalFiles;
     private boolean isCompressTask = false;
@@ -72,6 +82,19 @@ public class ParameterDialogFragment extends DialogFragment {
     private LinearLayout customBitrateLayout, customAudioBitrateLayout, screenshotSection, cutSection;
     private LinearLayout videoParamsContainer, volumeContainer, screenshotContainer, cutContainer;
     private MaterialAutoCompleteTextView spinnerScreenshotFormat;
+    private LinearLayout imageParamsContainer;
+    private ImageView ivImagePreview;
+    private TextView tvImageInfo;
+    private MaterialAutoCompleteTextView spinnerImageFormat;
+    private ChipGroup chipImageQualityGroup;
+    private Chip chipImageQualityOriginal, chipImageQualityCustom;
+    private TextInputLayout imageQualityInputLayout;
+    private TextInputEditText etImageQuality;
+    private LinearLayout imageQualityLayout;
+    private ChipGroup chipImageResolutionGroup;
+    private Chip chipImageResolutionOriginal, chipImageResolutionCustom;
+    private TextInputEditText etImageWidth, etImageHeight; // 宽高分别输入
+    private LinearLayout imageResolutionInputLayout;
 
     private OnParameterConfirmListener listener;
 
@@ -79,11 +102,12 @@ public class ParameterDialogFragment extends DialogFragment {
         void onConfirm(ParameterData params, boolean syncAll);
     }
 
-    public static ParameterDialogFragment newInstance(String taskType, String filePath, int index, int total) {
+    public static ParameterDialogFragment newInstance(String taskType, String filePath, Uri fileUri, int index, int total) {
         ParameterDialogFragment f = new ParameterDialogFragment();
         Bundle args = new Bundle();
         args.putString(ARG_TASK_TYPE, taskType);
         args.putString(ARG_FILE_PATH, filePath);
+        args.putParcelable(ARG_FILE_URI, fileUri);
         args.putInt(ARG_FILE_INDEX, index);
         args.putInt(ARG_TOTAL_FILES, total);
         f.setArguments(args);
@@ -101,6 +125,7 @@ public class ParameterDialogFragment extends DialogFragment {
         if (getArguments() != null) {
             taskType = getArguments().getString(ARG_TASK_TYPE);
             currentFilePath = getArguments().getString(ARG_FILE_PATH);
+            currentFileUri = getArguments().getParcelable(ARG_FILE_URI); // 获取 Uri
             fileIndex = getArguments().getInt(ARG_FILE_INDEX);
             totalFiles = getArguments().getInt(ARG_TOTAL_FILES);
             isCompressTask = "compress".equals(taskType);
@@ -243,9 +268,26 @@ public class ParameterDialogFragment extends DialogFragment {
         cutContainer = view.findViewById(R.id.cut_container);
         spinnerScreenshotFormat = view.findViewById(R.id.spinner_screenshot_format);
 
-        // 默认选中原质量
+        imageParamsContainer = view.findViewById(R.id.image_params_container);
+        ivImagePreview = view.findViewById(R.id.iv_image_preview);
+        tvImageInfo = view.findViewById(R.id.tv_image_info);
+        spinnerImageFormat = view.findViewById(R.id.spinner_image_format);
+        chipImageQualityGroup = view.findViewById(R.id.chip_image_quality_group);
+        chipImageQualityOriginal = view.findViewById(R.id.chip_image_quality_original);
+        chipImageQualityCustom = view.findViewById(R.id.chip_image_quality_custom);
+        etImageQuality = view.findViewById(R.id.et_image_quality);
+        imageQualityInputLayout = view.findViewById(R.id.image_quality_input_layout);
+        imageQualityLayout = view.findViewById(R.id.image_quality_layout);
+        chipImageResolutionGroup = view.findViewById(R.id.chip_image_resolution_group);
+        chipImageResolutionOriginal = view.findViewById(R.id.chip_image_resolution_original);
+        chipImageResolutionCustom = view.findViewById(R.id.chip_image_resolution_custom);
+        etImageWidth = view.findViewById(R.id.et_image_width);
+        etImageHeight = view.findViewById(R.id.et_image_height);
+        imageResolutionInputLayout = view.findViewById(R.id.image_resolution_input_layout);
         chipVideoBitrateGroup.check(R.id.chip_bitrate_original);
         chipAudioBitrateGroup.check(R.id.chip_audio_original);
+        chipImageQualityGroup.check(R.id.chip_image_quality_original);
+        chipImageResolutionGroup.check(R.id.chip_image_resolution_original);
     }
 
     private void setupToolbar(View view) {
@@ -267,6 +309,7 @@ public class ParameterDialogFragment extends DialogFragment {
             case "screenshot": return getString(R.string.task_screenshot);
             case "convert_audio": return getString(R.string.task_convert_audio);
             case "cut_audio": return getString(R.string.task_cut_audio);
+            case "convert_image": return getString(R.string.task_convert_image);
             default: return getString(R.string.task_process_file);
         }
     }
@@ -348,9 +391,60 @@ public class ParameterDialogFragment extends DialogFragment {
         // 同步开关
         switchSync.setChecked(isSyncAll);
 
+        // 加载图片参数
+        if (spinnerImageFormat != null) {
+            String imgFormat = data.outputFormat;
+            // 如果是图片任务，但是预设格式不是图片格式，强制使用jpg
+            if ("convert_image".equals(taskType) && !isImageFormat(imgFormat)) {
+                imgFormat = "jpg";
+            }
+            setSpinnerValue(spinnerImageFormat, imgFormat);
+            
+            // 同步 currentParams 中图片质量的数值
+            currentParams.imageQualityMode = data.imageQualityMode != null ? data.imageQualityMode : "original";
+            currentParams.imageQuality = data.imageQuality;
+            
+            // 设置输入框文本
+            if ("custom".equals(currentParams.imageQualityMode)) {
+                etImageQuality.setText(String.valueOf(data.imageQuality));
+            } else {
+                etImageQuality.setText("90");
+            }
+            
+            // 根据格式和模式更新 UI
+            updateImageQualityVisibility(imgFormat);
+        }
+        if ("original".equals(data.imageResolutionMode)) {
+            chipImageResolutionGroup.check(R.id.chip_image_resolution_original);
+            imageResolutionInputLayout.setVisibility(View.GONE);
+        } else {
+            chipImageResolutionGroup.check(R.id.chip_image_resolution_custom);
+            imageResolutionInputLayout.setVisibility(View.VISIBLE);
+            // 尝试解析宽高
+            String res = data.imageResolution;
+            if (res != null && res.contains("x")) {
+                String[] parts = res.split("x");
+                if (parts.length == 2) {
+                    etImageWidth.setText(parts[0].trim());
+                    etImageHeight.setText(parts[1].trim());
+                } else {
+                    etImageWidth.setText(res);
+                    etImageHeight.setText("");
+                }
+            } else {
+                etImageWidth.setText(res != null ? res : "");
+                etImageHeight.setText("");
+            }
+        }
+
         updateCodecOptions(data.outputFormat);
         
         currentParams.taskType = taskType;
+
+        // 如果任务为图片，加载预览
+        if ("convert_image".equals(taskType)) {
+            loadImagePreview();
+        }
     }
 
     private void setSpinnerValue(MaterialAutoCompleteTextView spinner, String value) {
@@ -380,11 +474,29 @@ public class ParameterDialogFragment extends DialogFragment {
         // 截图格式
         setupSpinner(spinnerScreenshotFormat, new String[]{getString(R.string.format_jpeg), getString(R.string.format_png)}, getString(R.string.format_jpeg));
 
+        // 图片格式
+        String[] imageFormats = getImageFormats();
+        setupSpinner(spinnerImageFormat, imageFormats, imageFormats[0]);
+        // 监听图片格式变化，更新质量可见性
+        spinnerImageFormat.setOnItemClickListener((parent, view, position, id) -> {
+            String format = parent.getAdapter().getItem(position).toString().toLowerCase();
+            updateImageQualityVisibility(format);
+        });
+        // 初始触发一次，保证加载时状态正确
+        updateImageQualityVisibility(spinnerImageFormat.getText().toString().toLowerCase());
+
         // 输出格式切换时更新编码器列表
         spinnerOutputFormat.setOnItemClickListener((parent, view, position, id) -> {
             String format = parent.getAdapter().getItem(position).toString();
             updateCodecOptions(format);
         });
+    }
+
+    // 获取图片格式列表
+    private String[] getImageFormats() {
+        return new String[]{
+            "jpg", "jpeg", "png", "webp", "bmp", "tiff", "heif", "heic", "avif"
+        };
     }
 
     private String[] getOutputFormatsForTask() {
@@ -403,6 +515,9 @@ public class ParameterDialogFragment extends DialogFragment {
                 getString(R.string.format_jpeg),
                 getString(R.string.format_png)
             };
+        }
+        if ("convert_image".equals(taskType)) {
+            return getImageFormats();
         }
         return new String[]{
             getString(R.string.format_mp4),
@@ -568,6 +683,28 @@ public class ParameterDialogFragment extends DialogFragment {
                 currentParams.audioBitrateMode = "custom";
             }
         });
+
+        // 图片质量 Chip 切换
+        chipImageQualityGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.chip_image_quality_original) {
+                imageQualityInputLayout.setVisibility(View.GONE);
+                currentParams.imageQualityMode = "original";
+            } else {
+                imageQualityInputLayout.setVisibility(View.VISIBLE);
+                currentParams.imageQualityMode = "custom";
+            }
+        });
+
+        // 图片分辨率 Chip 切换
+        chipImageResolutionGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.chip_image_resolution_original) {
+                imageResolutionInputLayout.setVisibility(View.GONE);
+                currentParams.imageResolutionMode = "original";
+            } else {
+                imageResolutionInputLayout.setVisibility(View.VISIBLE);
+                currentParams.imageResolutionMode = "custom";
+            }
+        });
     }
 
     private void setupSliders() {
@@ -705,6 +842,39 @@ public class ParameterDialogFragment extends DialogFragment {
         } catch (NumberFormatException e) {
             currentParams.screenshotQuality = 90;
         }
+
+        // 图片参数
+        if (taskType != null && taskType.equals("convert_image")) {
+            currentParams.outputFormat = spinnerImageFormat.getText().toString().toLowerCase();
+            // 质量
+            int checkedQualityId = chipImageQualityGroup.getCheckedChipId();
+            if (checkedQualityId == R.id.chip_image_quality_original) {
+                currentParams.imageQualityMode = "original";
+            } else {
+                currentParams.imageQualityMode = "custom";
+                try {
+                    currentParams.imageQuality = Integer.parseInt(etImageQuality.getText().toString());
+                } catch (NumberFormatException e) {
+                    currentParams.imageQuality = 90;
+                }
+            }
+            // 分辨率
+            int checkedResId = chipImageResolutionGroup.getCheckedChipId();
+            if (checkedResId == R.id.chip_image_resolution_original) {
+                currentParams.imageResolutionMode = "original";
+                currentParams.imageResolution = "original";
+            } else {
+                currentParams.imageResolutionMode = "custom";
+                String width = etImageWidth.getText().toString().trim();
+                String height = etImageHeight.getText().toString().trim();
+                if (width.isEmpty() || height.isEmpty()) {
+                    currentParams.imageResolution = "original";
+                    currentParams.imageResolutionMode = "original";
+                } else {
+                    currentParams.imageResolution = width + "x" + height;
+                }
+            }
+        }
     }
 
     private String extractCodecName(String fullName) {
@@ -762,6 +932,7 @@ public class ParameterDialogFragment extends DialogFragment {
         volumeContainer.setVisibility(View.GONE);
         screenshotContainer.setVisibility(View.GONE);
         cutContainer.setVisibility(View.GONE);
+        imageParamsContainer.setVisibility(View.GONE);
         
         switch (taskType) {
             case "screenshot":
@@ -807,6 +978,18 @@ public class ParameterDialogFragment extends DialogFragment {
                 screenshotContainer.setVisibility(View.GONE);
                 cutContainer.setVisibility(View.GONE);
                 break;
+
+            // 图片转换任务
+            case "convert_image":
+                // 图片转换：显示图片参数容器，隐藏其他
+                imageParamsContainer.setVisibility(View.VISIBLE);
+                videoParamsContainer.setVisibility(View.GONE);
+                volumeContainer.setVisibility(View.GONE);
+                screenshotContainer.setVisibility(View.GONE);
+                cutContainer.setVisibility(View.GONE);
+                // 加载预览
+                loadImagePreview();
+                break;
             
             default:
                 // 视频转换/压缩：显示所有参数
@@ -815,6 +998,119 @@ public class ParameterDialogFragment extends DialogFragment {
                 screenshotContainer.setVisibility(View.GONE);
                 cutContainer.setVisibility(View.GONE);
                 break;
+        }
+    }
+
+    // 加载图片预览和分辨率
+    private void loadImagePreview() {
+        if (currentFileUri == null) {
+            tvImageInfo.setText(R.string.unknown_resolution);
+            ivImagePreview.setImageDrawable(null);
+            return;
+        }
+    
+        new Thread(() -> {
+            try {
+                // 获取尺寸：使用 BitmapFactory 解析边界
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inJustDecodeBounds = true;
+                // 通过 ContentResolver 打开输入流
+                try (InputStream is = requireContext().getContentResolver().openInputStream(currentFileUri)) {
+                    if (is == null) {
+                        requireActivity().runOnUiThread(() -> tvImageInfo.setText(R.string.unknown_resolution));
+                        return;
+                    }
+                    BitmapFactory.decodeStream(is, null, options);
+                }
+                int width = options.outWidth;
+                int height = options.outHeight;
+                requireActivity().runOnUiThread(() -> {
+                    if (width > 0 && height > 0) {
+                        tvImageInfo.setText(getString(R.string.image_info_resolution, width, height));
+                    } else {
+                        tvImageInfo.setText(R.string.unknown_resolution);
+                    }
+                });
+
+                // 加载缩略图（采样）
+                options.inJustDecodeBounds = false;
+                int targetSize = 400;
+                int sampleSize = 1;
+                if (width > targetSize || height > targetSize) {
+                    sampleSize = Math.max(width, height) / targetSize;
+                    sampleSize = Math.max(1, sampleSize);
+                }
+                options.inSampleSize = sampleSize;
+                Bitmap bitmap;
+                try (InputStream is = requireContext().getContentResolver().openInputStream(currentFileUri)) {
+                    if (is == null) {
+                        requireActivity().runOnUiThread(() -> ivImagePreview.setImageDrawable(null));
+                        return;
+                    }
+                    bitmap = BitmapFactory.decodeStream(is, null, options);
+                }
+                if (bitmap != null) {
+                    final Bitmap finalBitmap = bitmap;
+                    requireActivity().runOnUiThread(() -> {
+                        ivImagePreview.setImageBitmap(finalBitmap);
+                    });
+                } else {
+                    requireActivity().runOnUiThread(() -> {
+                        ivImagePreview.setImageDrawable(null);
+                    });
+                }
+            } catch (Exception e) {
+                Log.e("ParameterDialog", "加载图片预览失败", e);
+                requireActivity().runOnUiThread(() -> {
+                    tvImageInfo.setText(R.string.unknown_resolution);
+                    ivImagePreview.setImageDrawable(null);
+                });
+            }
+        }).start();
+    }
+
+    // 根据格式控制质量选项可见性
+    private void updateImageQualityVisibility(String format) {
+        boolean isLossy = isLossyFormat(format);
+        imageQualityLayout.setVisibility(isLossy ? View.VISIBLE : View.GONE);
+        if (!isLossy) {
+            // 无损格式：强制原始质量，隐藏输入框
+            chipImageQualityGroup.check(R.id.chip_image_quality_original);
+            imageQualityInputLayout.setVisibility(View.GONE);
+            currentParams.imageQualityMode = "original";
+        } else {
+            // 有损格式：根据当前模式恢复状态
+            if ("custom".equals(currentParams.imageQualityMode)) {
+                chipImageQualityGroup.check(R.id.chip_image_quality_custom);
+                imageQualityInputLayout.setVisibility(View.VISIBLE);
+            } else {
+                chipImageQualityGroup.check(R.id.chip_image_quality_original);
+                imageQualityInputLayout.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private boolean isImageFormat(String format) {
+        if (format == null) return false;
+        String[] imageFormats = getImageFormats();
+        for (String f : imageFormats) {
+            if (f.equalsIgnoreCase(format)) return true;
+        }
+        return false;
+    }
+
+    private boolean isLossyFormat(String format) {
+        if (format == null) return false;
+        switch (format.toLowerCase()) {
+            case "jpg":
+            case "jpeg":
+            case "webp":
+            case "heif":
+            case "heic":
+            case "avif":
+                return true;
+            default:
+                return false;
         }
     }
 
@@ -833,6 +1129,6 @@ public class ParameterDialogFragment extends DialogFragment {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return 2000; // 默认
+        return -1; // 返回 -1 则不会显示码率
     }
 }

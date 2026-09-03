@@ -39,6 +39,9 @@ public class FfmpegCommandBuilder {
                 String format = params.outputFormat != null ? params.outputFormat : "mp3";
                 ext = getAudioFileExtension(format);
                 break;
+            case "convert_image":
+                ext = getImageFileExtension(params.outputFormat);
+                break;
             default:
                 ext = "mp4";
         }
@@ -49,7 +52,9 @@ public class FfmpegCommandBuilder {
      * 根据任务类型生成 FFmpeg 命令数组
      */
     public static String[] buildCommand(String inputPath, String outputPath, ParameterData params, Context context) {
-        if (isVideoTask(params.taskType)) {
+        if ("convert_image".equals(params.taskType)) {
+            return buildImageCommand(inputPath, outputPath, params);
+        } else if (isVideoTask(params.taskType)) {
             return buildVideoCommand(inputPath, outputPath, params, context);
         } else {
             return buildAudioCommand(inputPath, outputPath, params, context);
@@ -135,6 +140,50 @@ public class FfmpegCommandBuilder {
         cmd.add("-y");
         cmd.add(outputPath);
 
+        return cmd.toArray(new String[0]);
+    }
+    
+    private static String[] buildImageCommand(String inputPath, String outputPath, ParameterData params) {
+        ArrayList<String> cmd = new ArrayList<>();
+        cmd.add("-i");
+        cmd.add(inputPath);
+        
+        String format = params.outputFormat.toLowerCase();
+        
+        // 质量控制 (仅针对有损格式)
+        if ("custom".equals(params.imageQualityMode)) {
+            int quality = Math.min(100, Math.max(1, params.imageQuality));
+            switch (format) {
+                case "jpg":
+                case "jpeg":
+                    cmd.add("-q:v");
+                    cmd.add(String.valueOf(quality));
+                    break;
+                case "webp":
+                    cmd.add("-quality");
+                    cmd.add(String.valueOf(quality));
+                    break;
+                case "heif":
+                case "heic":
+                    cmd.add("-quality");
+                    cmd.add(String.valueOf(quality));
+                    break;
+                case "avif":
+                    cmd.add("-quality");
+                    cmd.add(String.valueOf(quality));
+                    break;
+            }
+        }
+        
+        // 分辨率
+        if ("custom".equals(params.imageResolutionMode) && params.imageResolution != null && !params.imageResolution.isEmpty() && !"original".equalsIgnoreCase(params.imageResolution)) {
+            cmd.add("-vf");
+            cmd.add("scale=" + params.imageResolution + ":flags=lanczos");
+        }
+        
+        cmd.add("-y");
+        cmd.add(outputPath);
+        
         return cmd.toArray(new String[0]);
     }
 
@@ -536,6 +585,22 @@ public class FfmpegCommandBuilder {
             case "ogg": return "libvorbis";
             case "m4a": return "aac";
             default: return "libmp3lame";
+        }
+    }
+
+    private static String getImageFileExtension(String format) {
+        if (format == null) return "jpg";
+        switch (format.toLowerCase()) {
+            case "jpg":
+            case "jpeg": return "jpg";
+            case "png": return "png";
+            case "webp": return "webp";
+            case "bmp": return "bmp";
+            case "tiff": return "tiff";
+            case "heif": return "heif";
+            case "heic": return "heic";
+            case "avif": return "avif";
+            default: return "jpg";
         }
     }
 }

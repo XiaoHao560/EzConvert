@@ -32,6 +32,7 @@
     <string name="section_file_selection">文件选择</string>
     <string name="section_video_processing">视频处理</string>
     <string name="section_audio_processing">音频处理</string>
+    <string name="section_image_processing">图片处理</string>
 
     <string name="btn_select_file">选择媒体文件</string>
     <string name="btn_convert_format">转换格式</string>
@@ -41,6 +42,7 @@
     <string name="btn_screenshot">视频截图</string>
     <string name="btn_convert_audio">转换音频格式</string>
     <string name="btn_cut_audio">裁剪音频</string>
+    <string name="btn_convert_image">转换格式</string>
 
     <string name="hint_output_location">提示: 输出文件将保存在下载文件夹中</string>
 
@@ -111,6 +113,12 @@
     <string name="hint_cut_duration">持续时间 (HH:MM:SS)</string>
     <string name="default_cut_duration">00:00:10</string>
 
+    <string name="image_params_title">图片参数</string>
+    <string name="image_quality_title">质量</string>
+    <string name="image_resolution_title">分辨率</string>
+    <string name="width_hint">宽</string>
+    <string name="height_hint">高</string>
+
     <string name="volume_title">音量</string>
     <string name="volume_min_percent">0%</string>
     <string name="volume_default_percent">100%</string>
@@ -125,6 +133,7 @@
     <string name="task_screenshot">视频截图</string>
     <string name="task_convert_audio">转换音频</string>
     <string name="task_cut_audio">裁剪音频</string>
+    <string name="task_convert_image">图片转换</string>
     <string name="task_process_file">处理文件</string>
 
     <string name="preset_quick">快速预设</string>
@@ -151,6 +160,7 @@
 
     <string name="title_preview">预览</string>
     <string name="empty_state_description">选择视频或音频文件进行预览播放</string>
+    <string name="image_preview_desc">图片预览</string>
 
     <string name="toast_file_not_exist_or_inaccessible">无法访问文件或文件不存在</string>
     <string name="toast_playback_error">播放错误: %s</string>
@@ -176,9 +186,11 @@
     <string name="media_info_samplerate">采样率: </string>
     <string name="media_info_channels">声道: </string>
     <string name="media_info_unknown">未知</string>
+    <string name="unknown_resolution">未知分辨率</string>
     <string name="media_info_no_file">未选择文件</string>
     <string name="media_info_cannot_get">无法获取媒体信息</string>
     <string name="media_info_parse_failed">解析失败: </string>
+    <string name="image_info_resolution">分辨率: %dx%d</string>
 
     <string name="media_info_realtime_title">── 实时统计 ──</string>
     <string name="media_info_position">位置: </string>

@@ -91,7 +91,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     private ProgressBar progressBar;
     private Button selectFileBtn, convertBtn, compressBtn, extractAudioBtn;
     private Button cutVideoBtn, screenshotBtn, convertAudioBtn, cutAudioBtn;
-    private Button cancelBtn;
+    private Button convertImageBtn, cancelBtn;
     private String currentInputPath = "";
     private String currentOutputPath = "";
     private String currentOutputFile = "";
@@ -366,6 +366,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         screenshotBtn = findViewById(R.id.screenshot_btn);
         convertAudioBtn = findViewById(R.id.convert_audio_btn);
         cutAudioBtn = findViewById(R.id.cut_audio_btn);
+        convertImageBtn = findViewById(R.id.convert_image_btn);
 
         com.google.android.material.appbar.MaterialToolbar toolbar = findViewById(R.id.title_container);
         toolbar.setNavigationOnClickListener(v -> {
@@ -596,6 +597,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         screenshotBtn.setOnClickListener(functionButtonListener);
         convertAudioBtn.setOnClickListener(functionButtonListener);
         cutAudioBtn.setOnClickListener(functionButtonListener);
+        convertImageBtn.setOnClickListener(functionButtonListener);
     }
 
     private void handleFunctionButtonClick(int viewId) {
@@ -619,6 +621,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         if (viewId == R.id.screenshot_btn) return "screenshot";
         if (viewId == R.id.convert_audio_btn) return "convert_audio";
         if (viewId == R.id.cut_audio_btn) return "cut_audio";
+        if (viewId == R.id.convert_image_btn) return "convert_image";
         return null;
     }
 
@@ -651,7 +654,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         updateStatus(getString(R.string.status_set_params, currentQueueIndex + 1, selectedFilePaths.size()));
 
         ParameterDialogFragment dialog = ParameterDialogFragment.newInstance(
-                currentTaskType, currentInputPath, currentQueueIndex + 1, selectedFilePaths.size()
+                currentTaskType, currentInputPath, uri ,currentQueueIndex + 1, selectedFilePaths.size()
         );
         dialog.setListener((params, syncAll) -> {
             // 点击"开始处理"后才锁定UI
@@ -909,6 +912,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         screenshotBtn.setEnabled(enabled && hasFileSelected);
         convertAudioBtn.setEnabled(enabled && hasFileSelected);
         cutAudioBtn.setEnabled(enabled && hasFileSelected);
+        convertImageBtn.setEnabled(enabled && hasFileSelected);
 
         float alpha = (enabled && hasFileSelected) ? 1.0f : 0.5f;
         convertBtn.setAlpha(alpha);
@@ -918,6 +922,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
         screenshotBtn.setAlpha(alpha);
         convertAudioBtn.setAlpha(alpha);
         cutAudioBtn.setAlpha(alpha);
+        convertImageBtn.setAlpha(alpha);
     }
 
     private void openFilePicker() {
@@ -1006,6 +1011,7 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             case "extract_audio": return "extract_audio_";
             case "convert_audio": return "convert_audio_";
             case "cut_audio": return "cut_audio_";
+            case "convert_image" : return "convert_image_";
             default: return "converted_";
         }
     }

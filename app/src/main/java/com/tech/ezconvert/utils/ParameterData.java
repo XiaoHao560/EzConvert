@@ -8,11 +8,11 @@ public class ParameterData {
 
     // 通用
     @SerializedName("task_type")
-    public String taskType; // "convert", "compress", "extract_audio", "cut_video", "screenshot", "convert_audio", "cut_audio"
+    public String taskType; // "convert", "compress", "extract_audio", "cut_video", "screenshot", "convert_audio", "cut_audio", "convert_image"
 
     // 视频参数
     @SerializedName("output_format")
-    public String outputFormat; // mp4, mkv, webm, avi, mov, flv, gif, mp3, wav, aac, flac, ogg, m4a
+    public String outputFormat; // mp4, mkv, webm, avi, mov, flv, gif, mp3, wav, aac, flac, ogg, m4a, jpg, png, webp, bmp, tiff, heif, heic, avif
 
     @SerializedName("video_codec")
     public String videoCodec; // 编码器名称
@@ -59,6 +59,19 @@ public class ParameterData {
     @SerializedName("volume")
     public int volume; // 0-200
 
+    // 图片转换参数
+    @SerializedName("image_quality_mode")
+    public String imageQualityMode; // "original" 或 "custom"
+
+    @SerializedName("image_quality")
+    public int imageQuality; // 1-100，仅当 mode 为 custom 时有效
+
+    @SerializedName("image_resolution_mode")
+    public String imageResolutionMode; // "original" 或 "custom"
+
+    @SerializedName("image_resolution")
+    public String imageResolution; // 如 "1920x1080"
+
     // 默认构造
     public ParameterData() {
         // 设置默认值
@@ -79,6 +92,10 @@ public class ParameterData {
         cutStartTime = "00:00:00";
         cutDuration = "00:00:10";
         volume = 100;
+        imageQualityMode = "original";
+        imageQuality = 90;
+        imageResolutionMode = "original";
+        imageResolution = "original";
     }
 
     // 拷贝构造
@@ -101,6 +118,10 @@ public class ParameterData {
         copy.cutStartTime = this.cutStartTime;
         copy.cutDuration = this.cutDuration;
         copy.volume = this.volume;
+        copy.imageQualityMode = this.imageQualityMode;
+        copy.imageQuality = this.imageQuality;
+        copy.imageResolutionMode = this.imageResolutionMode;
+        copy.imageResolution = this.imageResolution;
         return copy;
     }
 
