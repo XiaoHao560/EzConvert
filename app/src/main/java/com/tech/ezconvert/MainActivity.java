@@ -110,6 +110,8 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     private int currentQueueIndex = 0;
     private String currentTaskType = "";
     private final Map<String, Uri> pathToUriMap = new HashMap<>();
+    private boolean isSyncMode = false;
+    private ParameterData syncParams = null;
 
     // WorkManager 相关
     private WorkManager workManager;
@@ -488,6 +490,8 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             currentInputPath = "";
 
             runOnUiThread(() -> {
+                isSyncMode = false;
+                syncParams = null;
                 updateStatus(getString(R.string.status_cancelled_cleaned));
 
                 // 重置进度显示
@@ -660,8 +664,12 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             // 点击"开始处理"后才锁定UI
             showCancelButton();
             if (syncAll) {
+                isSyncMode = true;
+                syncParams = params;
                 processAllFilesWithParams(params);
             } else {
+                isSyncMode = false;
+                syncParams = null;
                 processSingleFileWithParams(params);
             }
         });
@@ -792,19 +800,25 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
     private void onWorkerComplete(boolean success, String message) {
         if (success) {
             currentQueueIndex++;
+            progressBar.clearAnimation();
+            progressBar.setProgress(0);
+            progressText.setText(getString(R.string.progress_default));
+            
             if (currentQueueIndex < selectedFilePaths.size()) {
-                // 继续处理下一个文件
-                progressBar.clearAnimation();
-                progressBar.setProgress(0);
-                progressText.setText(getString(R.string.progress_default));
-
-                // 弹出下一个文件的参数对话框（逐个模式）
-                showDialogForCurrentFile();
+                if (isSyncMode && syncParams != null) {
+                    // 同步模式: 直接使用相同参数处理下一个文件
+                    processNextFileWithSameParams(syncParams);
+                } else {
+                    // 逐个模式: 弹出参数弹窗
+                    showDialogForCurrentFile();
+                }
             } else {
                 // 全部完成
                 hideCancelButton();
                 updateStatus(getString(R.string.status_all_complete, selectedFilePaths.size()));
                 ToastUtils.showLong(this, getString(R.string.toast_all_complete));
+                isSyncMode = false;
+                syncParams = null;
                 currentOutputFile = "";
                 completedOutputFiles.clear();
                 selectedFilePaths.clear();
@@ -815,6 +829,8 @@ public class MainActivity extends BaseActivity implements FFmpegUtil.FFmpegCallb
             }
         } else {
             // 失败或取消
+            isSyncMode = false;
+            syncParams = null;
             if (getString(R.string.error_cancelled).equals(message)) {
                 updateStatus(getString(R.string.error_cancelled));
                 ToastUtils.show(this, getString(R.string.toast_cancelled));
