@@ -29,13 +29,15 @@ EzConvert is a transcoding and media extraction tool designed for the Android pl
 
 ## Features
 
-- Supports transcoding between mainstream audio and video formats
+- Supports transcoding between mainstream audio,video and image formats
   - Video formats: mp4, avi, mov, mkv, flv, webm, gif
   - Audio formats: mp3, wav, aac, flac, ogg, m4a
+  - Image formats: jpg, png, webp, bmp, tiff, avif
 - Supports media content extraction (e.g., audio tracks, video streams)
 - Supports video compression
 - Supports trimming/cropping of video and audio files
 - Supports extracting video frames as images
+- Support batch operations
 - Clean and intuitive Material Design 3 UI
 - Powered by FFmpeg for efficient conversion with controllable quality
 - Continuously updated—welcome to participate in testing and feedback
@@ -87,6 +89,7 @@ For all notes and caveats, please refer to the [Build Guide](BUILDING_en.md).
 - [x] Hardware encoding/decoding & multi-threading optimization
 - [x] Video format conversion
 - [x] Audio format conversion
+- [x] Image format conversion
 - [x] Video compression
 - [x] Video extraction
 - [x] Audio extraction
@@ -107,6 +110,7 @@ For all notes and caveats, please refer to the [Build Guide](BUILDING_en.md).
 - [x] Custom conversion quality
 - [x] Individual quality parameter adjustment
 - [x] Multi-language support
+- [x] Batch operations
 - [ ] Custom filename feature
 - [ ] Custom UI colors
 - [ ] Support for more media formats
