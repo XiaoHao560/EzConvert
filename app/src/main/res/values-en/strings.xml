@@ -32,6 +32,7 @@
     <string name="section_file_selection">File Selection</string>
     <string name="section_video_processing">Video Processing</string>
     <string name="section_audio_processing">Audio Processing</string>
+    <string name="section_image_processing">Image Processing</string>
 
     <string name="btn_select_file">Select Media File</string>
     <string name="btn_convert_format">Convert Format</string>
@@ -41,6 +42,7 @@
     <string name="btn_screenshot">Video Screenshot</string>
     <string name="btn_convert_audio">Convert Audio Format</string>
     <string name="btn_cut_audio">Cut Audio</string>
+    <string name="btn_convert_image">Convert Format</string>
 
     <string name="hint_output_location">Hint: Output files will be saved in the Downloads folder</string>
 
@@ -111,6 +113,12 @@
     <string name="hint_cut_duration">Duration (HH:MM:SS)</string>
     <string name="default_cut_duration">00:00:10</string>
 
+    <string name="image_params_title">Image Parameters</string>
+    <string name="image_quality_title">Quality</string>
+    <string name="image_resolution_title">Resolution</string>
+    <string name="width_hint">width</string>
+    <string name="height_hint">height</string>
+
     <string name="volume_title">Volume</string>
     <string name="volume_min_percent">0%</string>
     <string name="volume_default_percent">100%</string>
@@ -125,6 +133,7 @@
     <string name="task_screenshot">Video Screenshot</string>
     <string name="task_convert_audio">Convert Audio</string>
     <string name="task_cut_audio">Cut Audio</string>
+    <string name="task_convert_image">Image Convert</string>
     <string name="task_process_file">Process File</string>
 
     <string name="preset_quick">Quick Preset</string>
@@ -151,6 +160,7 @@
 
     <string name="title_preview">Preview</string>
     <string name="empty_state_description">Select a video or audio file to preview and play</string>
+    <string name="image_preview_desc">Image Preview</string>
 
     <string name="toast_file_not_exist_or_inaccessible">Cannot access file or file does not exist</string>
     <string name="toast_playback_error">Playback error: %s</string>
@@ -176,9 +186,11 @@
     <string name="media_info_samplerate">Sample rate: </string>
     <string name="media_info_channels">Channels: </string>
     <string name="media_info_unknown">Unknown</string>
+    <string name="unknown_resolution">Unknown resolution</string>
     <string name="media_info_no_file">No file selected</string>
     <string name="media_info_cannot_get">Cannot get media info</string>
     <string name="media_info_parse_failed">Parse failed: </string>
+    <string name="image_info_resolution">Resolution: %dx%d</string>
 
     <string name="media_info_realtime_title">── Real-time Stats ──</string>
     <string name="media_info_position">Position: </string>
