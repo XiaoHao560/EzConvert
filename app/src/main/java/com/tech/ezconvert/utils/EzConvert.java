@@ -56,10 +56,8 @@ public class EzConvert extends Application {
             @Override public void onActivityDestroyed(Activity a) {}
         });
         
-        // 清理可能残留的处理缓存 (后台线程)
-        new Thread(() -> {
-            CacheManager.cleanupAllCache(this);
-        }).start();
+        // 仅清理长期残留的缓存，不能在启动时删除仍可能被 WorkManager 使用的输入缓存
+        new Thread(() -> CacheManager.cleanupAllCache(this)).start();
         
         // 初始化 mmap 日志（4MB 缓冲区，单文件 50MB 滚动）
         File logDir = new File(getExternalFilesDir(null), "logs");

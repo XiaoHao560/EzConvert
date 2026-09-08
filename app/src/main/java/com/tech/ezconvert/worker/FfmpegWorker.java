@@ -45,6 +45,7 @@ public class FfmpegWorker extends ListenableWorker {
     public static final String KEY_OUTPUT_PATH_BASE = "output_path_base";
     public static final String KEY_PARAMS_JSON = "params_json";
     public static final String KEY_FILE_NAME = "file_name";
+    public static final String KEY_SESSION_ID = "session_id";
     public static final String KEY_TASK_INDEX = "task_index";
     public static final String KEY_TOTAL_TASKS = "total_tasks";
 
@@ -89,6 +90,7 @@ public class FfmpegWorker extends ListenableWorker {
                 Log.e(TAG, "Worker 参数缺失");
                 completer.set(Result.failure(new Data.Builder()
                         .putString(KEY_ERROR_MESSAGE, "Worker 参数缺失")
+                        .putInt(KEY_TASK_INDEX, taskIndex)
                         .build()));
                 return "ffmpeg-work";
             }
@@ -145,7 +147,7 @@ public class FfmpegWorker extends ListenableWorker {
                 setForegroundAsync(foregroundInfo);
 
                 // 执行 FFmpeg
-                executeFfmpeg(commandString, fileName, outputPath, usablePath, isFromCache, workIdStr, completer);
+                executeFfmpeg(commandString, fileName, outputPath, usablePath, isFromCache, workIdStr, taskIndex, completer);
             });
 
             return "ffmpeg-work";
@@ -153,7 +155,7 @@ public class FfmpegWorker extends ListenableWorker {
     }
 
     private void executeFfmpeg(String commandString, String fileName, String outputPath,
-                               String usablePath, boolean isFromCache, String workIdStr,
+                               String usablePath, boolean isFromCache, String workIdStr, int taskIndex,
                                CallbackToFutureAdapter.Completer<Result> completer) {
 
         Context context = getApplicationContext();
@@ -179,6 +181,7 @@ public class FfmpegWorker extends ListenableWorker {
                     );
                     completer.set(Result.failure(new Data.Builder()
                             .putString(KEY_ERROR_MESSAGE, "操作已取消")
+                            .putInt(KEY_TASK_INDEX, taskIndex)
                             .build()));
                     return;
                 }
@@ -190,6 +193,7 @@ public class FfmpegWorker extends ListenableWorker {
                     );
                     completer.set(Result.success(new Data.Builder()
                             .putString(KEY_OUTPUT_PATH, outputPath)
+                            .putInt(KEY_TASK_INDEX, taskIndex)
                             .build()));
                 } else {
                     String errorMessage = "处理失败";
@@ -204,6 +208,7 @@ public class FfmpegWorker extends ListenableWorker {
                     );
                     completer.set(Result.failure(new Data.Builder()
                             .putString(KEY_ERROR_MESSAGE, errorMessage)
+                            .putInt(KEY_TASK_INDEX, taskIndex)
                             .build()));
                 }
             }
