@@ -40,9 +40,10 @@ public class MediaSelectionManager {
 
     /** 打开系统文件选择器，支持一次选择多个视频、音频或图片文件 */
     public void openFilePicker(ActivityResultLauncher<Intent> launcher) {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.setType("*/*");
         intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"video/*", "audio/*", "image/*"});
         try {
@@ -126,6 +127,7 @@ public class MediaSelectionManager {
         if (uris != null) {
             for (Uri uri : uris) {
                 if (uri == null) continue;
+                persistReadPermission(uri);
                 String displayName = FileUtils.getDisplayName(context, uri);
                 if (displayName == null || displayName.isEmpty()) displayName = "file_" + System.currentTimeMillis();
                 String key = makeUniqueKey(displayName, keys);
@@ -146,6 +148,17 @@ public class MediaSelectionManager {
         List<Uri> uris = new ArrayList<>();
         for (int i = 0; i < clipData.getItemCount(); i++) uris.add(clipData.getItemAt(i).getUri());
         return loadUris(uris);
+    }
+
+    private void persistReadPermission(Uri uri) {
+        try {
+            context.getContentResolver().takePersistableUriPermission(
+                    uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        } catch (SecurityException ignored) {
+            // Share Intent 或不支持持久化权限的 Provider 无法持久化，这类文件会在 Worker 中尽快复制到缓存
+        } catch (UnsupportedOperationException ignored) {
+            // 某些 Provider 不支持持久化权限
+        }
     }
 
     private String makeUniqueKey(String name, List<String> existing) {

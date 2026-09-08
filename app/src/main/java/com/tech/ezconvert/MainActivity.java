@@ -15,7 +15,6 @@ import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.work.WorkInfo;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
@@ -113,7 +112,7 @@ public class MainActivity extends BaseActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        queueManager = new ConversionQueueManager();
+        queueManager = new ConversionQueueManager(this);
         outputPathManager = new OutputPathManager(this);
         conversionManager = new ConversionManager(this, queueManager, this);
         mediaSelectionManager = new MediaSelectionManager(this, queueManager, this);
@@ -476,11 +475,12 @@ public class MainActivity extends BaseActivity implements
     }
 
     @Override
-    public void onRestored(WorkInfo workInfo) {
+    public void onRestored() {
         runOnUiThread(() -> {
             isTaskRunning = true;
             showCancelButton();
             updateStatus(getString(R.string.status_restoring));
+            // WorkManager 已经保存了真实进度，随后 onProgress 会刷新进度条
         });
     }
 

@@ -13,14 +13,9 @@ import com.tech.ezconvert.utils.Log;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 public class FileUtils {
     private static final String TAG = "FileUtils";
-    // URI 的显示名称在一次应用运行期间通常不会变化。缓存它可以避免 Activity/Manager
-    // 在同一个转换流程中重复查询 ContentResolver，并减少重复日志。
-    private static final ConcurrentMap<String, String> DISPLAY_NAME_CACHE = new ConcurrentHashMap<>();
     
     // getPath 不可用在选择文件以及接受分享等场景
     // 在选择无法访问的文件的情况下，会直接复制到缓存目录
@@ -321,14 +316,6 @@ public class FileUtils {
      * 从 Uri 获取显示名称
      */
     public static String getDisplayName(Context context, Uri uri) {
-        if (uri == null) return null;
-
-        String cacheKey = uri.toString();
-        String cached = DISPLAY_NAME_CACHE.get(cacheKey);
-        if (cached != null) {
-            return cached;
-        }
-
         Log.d(TAG, "获取文件名, URI: " + uri);
         String result = null;
         Cursor cursor = null;
@@ -338,9 +325,6 @@ public class FileUtils {
                 int index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                 if (index >= 0) {
                     result = cursor.getString(index);
-                    if (result != null && !result.isEmpty()) {
-                        DISPLAY_NAME_CACHE.putIfAbsent(cacheKey, result);
-                    }
                     Log.d(TAG, "从 OpenableColumns 获取文件名: " + result);
                 } else {
                     Log.w(TAG, "DISPLAY_NAME 列不存在");

@@ -253,24 +253,26 @@ public class CacheManager {
     public static void cleanupAllCache(Context context) {
         File cacheDir = new File(context.getCacheDir(), CACHE_SUB_DIR);
         if (!cacheDir.exists()) return;
-        
+
+        // 进程重启后 activeCacheFiles 会丢失，不能据此判断文件是否仍被 WorkManager 使用
+        // 因此启动清理只删除长期残留文件，避免误删正在恢复的转换输入
+        final long staleBefore = System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000;
         File[] files = cacheDir.listFiles();
         if (files != null) {
             int count = 0;
             long totalSize = 0;
             for (File file : files) {
-                if (!activeCacheFiles.containsKey(file.getAbsolutePath())) {
-                    long size = file.length();
-                    if (file.delete()) {
-                        count++;
-                        totalSize += size;
-                    }
+                if (activeCacheFiles.containsKey(file.getAbsolutePath())) continue;
+                if (file.lastModified() > staleBefore) continue;
+                long size = file.length();
+                if (file.delete()) {
+                    count++;
+                    totalSize += size;
                 }
             }
-            Log.d(TAG, String.format("清理缓存完成: %d 个文件, 共 %s", 
-                count, formatFileSize(totalSize)));
+            Log.d(TAG, String.format("清理长期残留缓存: %d 个文件, 共 %s",
+                    count, formatFileSize(totalSize)));
         }
-        activeCacheFiles.clear();
     }
     
     // 检查文件是否在缓存目录中

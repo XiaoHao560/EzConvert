@@ -5,7 +5,6 @@ import android.net.Uri;
 
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
-import androidx.core.content.ContextCompat;
 import androidx.work.Data;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkInfo;
@@ -20,9 +19,7 @@ import com.tech.ezconvert.utils.ParameterData;
 import com.tech.ezconvert.worker.FfmpegWorker;
 
 import java.io.File;
-import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 /**
  * WorkManager 转换任务的生命周期管理，Activity 只负责接收结果并更新 UI
@@ -31,7 +28,7 @@ public class ConversionManager {
     public interface Listener {
         void onProgress(int progress, long time);
         void onCompleted(boolean success, String message, String outputPath);
-        void onRestored(WorkInfo workInfo);
+        void onRestored();
         void onIdleAfterRestore();
     }
 
@@ -45,8 +42,6 @@ public class ConversionManager {
     private final Listener listener;
     private LiveData<WorkInfo> currentWorkLiveData;
     private UUID currentWorkId;
-    /** 被用户主动取消的任务 ID，其终态回调不能再驱动 Activity 的队列 */
-    private UUID ignoredCancelledWorkId;
 
     public ConversionManager(Context context, ConversionQueueManager queue, Listener listener) {
         this.context = context.getApplicationContext();
@@ -59,7 +54,7 @@ public class ConversionManager {
     public UUID getCurrentWorkId() {
         return currentWorkId;
     }
-
+    
     /**
      * 创建并提交当前队列项对应的 OneTimeWorkRequest
      * Activity 不直接接触 WorkManager，只把已经准备好的参数交给这里
@@ -78,6 +73,7 @@ public class ConversionManager {
                 .putString(FfmpegWorker.KEY_OUTPUT_PATH_BASE, outputBasePath)
                 .putString(FfmpegWorker.KEY_PARAMS_JSON, gson.toJson(params))
                 .putString(FfmpegWorker.KEY_FILE_NAME, fileName)
+                .putString(FfmpegWorker.KEY_SESSION_ID, queue.getSessionId())
                 .putInt(FfmpegWorker.KEY_TASK_INDEX, queue.getCurrentPosition())
                 .putInt(FfmpegWorker.KEY_TOTAL_TASKS, queue.size())
                 .build();
@@ -86,70 +82,107 @@ public class ConversionManager {
                 .setInputData(inputData)
                 .addTag(WORK_TAG_QUEUE)
                 .addTag(WORK_TAG_CURRENT)
+                .addTag("ezconvert_session_" + queue.getSessionId())
+                .addTag("ezconvert_task_" + queue.getCurrentPosition())
                 .build();
 
         currentWorkId = workRequest.getId();
+        queue.setCurrentWorkId(currentWorkId.toString());
         observe(currentWorkId, owner);
         workManager.enqueue(workRequest);
     }
 
-    /**
-     * 只在 Activity 启动时做一次“快照式”恢复检查
-     *
-     * 不能长期 observe WORK_TAG_CURRENT：新提交的 Worker 也带有这个 tag，
-     * 长期观察会把刚刚提交的正常任务误判成“恢复任务”，并且每次 WorkInfo 更新
-     * 都会重复触发恢复 UI
-     */
     public void restoreRunningWorker(LifecycleOwner owner) {
-        final com.google.common.util.concurrent.ListenableFuture<List<WorkInfo>> future =
-                workManager.getWorkInfosByTag(WORK_TAG_CURRENT);
-
-        future.addListener(() -> {
-            final List<WorkInfo> workInfos;
-            try {
-                workInfos = future.get();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                Log.e("ConversionManager", "读取后台任务状态被中断", e);
-                return;
-            } catch (ExecutionException e) {
-                Log.e("ConversionManager", "读取后台任务状态失败", e);
+        // 这里只做一次恢复快照，避免持续监听整个 tag 导致旧任务/新任务互相干扰
+        LiveData<java.util.List<WorkInfo>> liveData = workManager.getWorkInfosByTagLiveData(WORK_TAG_CURRENT);
+        liveData.observe(owner, workInfos -> {
+            liveData.removeObservers(owner);
+            if (workInfos == null || workInfos.isEmpty()) {
+                listener.onIdleAfterRestore();
                 return;
             }
 
-            WorkInfo activeWork = null;
+            WorkInfo activeInfo = null;
+            WorkInfo latestTerminal = null;
             for (WorkInfo info : workInfos) {
+                if (!isCurrentSessionWork(info)) continue;
                 WorkInfo.State state = info.getState();
-                if (state == WorkInfo.State.RUNNING || state == WorkInfo.State.ENQUEUED ||
-                        state == WorkInfo.State.BLOCKED) {
-                    activeWork = info;
+                if (state == WorkInfo.State.RUNNING || state == WorkInfo.State.ENQUEUED || state == WorkInfo.State.BLOCKED) {
+                    activeInfo = info;
                     break;
                 }
+                if (state == WorkInfo.State.SUCCEEDED || state == WorkInfo.State.FAILED || state == WorkInfo.State.CANCELLED) {
+                    latestTerminal = info;
+                }
             }
 
-            final WorkInfo restored = activeWork;
-            ContextCompat.getMainExecutor(context).execute(() -> {
-                if (restored != null) {
-                    currentWorkId = restored.getId();
-                    observe(currentWorkId, owner);
-                    listener.onRestored(restored);
-                } else {
-                    listener.onIdleAfterRestore();
-                }
+            if (activeInfo != null) {
+                currentWorkId = activeInfo.getId();
+                queue.setCurrentWorkId(currentWorkId.toString());
+                syncQueueIndexFromTags(activeInfo);
+                observe(currentWorkId, owner);
+                listener.onRestored();
+                return;
+            }
 
-                // 已结束的历史任务不需要长期保留。这里仅在启动恢复检查完成后清理
-                workManager.pruneWork();
-            });
-        }, ContextCompat.getMainExecutor(context));
+            // Activity 可能在 Worker 完成回调之前被杀死，此时让 Activity 按正常完成流程推进一次队列
+            if (latestTerminal != null) {
+                Data output = latestTerminal.getOutputData();
+                int taskIndex = output.getInt(FfmpegWorker.KEY_TASK_INDEX, -1);
+                boolean isCurrentItem = taskIndex > 0
+                        && taskIndex <= queue.size()
+                        && taskIndex - 1 == queue.getCurrentIndex();
+                if (isCurrentItem) {
+                    if (latestTerminal.getState() == WorkInfo.State.SUCCEEDED) {
+                        String path = output.getString(FfmpegWorker.KEY_OUTPUT_PATH);
+                        if (path != null) queue.addCompletedOutput(path);
+                        queue.setCurrentWorkId("");
+                        currentWorkId = null;
+                        listener.onCompleted(true, context.getString(R.string.status_processing_complete), path);
+                        return;
+                    } else if (latestTerminal.getState() == WorkInfo.State.FAILED) {
+                        String error = output.getString(FfmpegWorker.KEY_ERROR_MESSAGE);
+                        if (error == null) error = context.getString(R.string.error_unknown);
+                        queue.setCurrentWorkId("");
+                        currentWorkId = null;
+                        listener.onCompleted(false, error, null);
+                        return;
+                    }
+                }
+            }
+
+            queue.setCurrentWorkId("");
+            currentWorkId = null;
+            listener.onIdleAfterRestore();
+        });
+    }
+
+    private boolean isCurrentSessionWork(WorkInfo info) {
+        String sessionId = queue.getSessionId();
+        return sessionId != null && !sessionId.isEmpty()
+                && info.getTags().contains("ezconvert_session_" + sessionId);
+    }
+
+    private void syncQueueIndexFromTags(WorkInfo info) {
+        for (String tag : info.getTags()) {
+            if (tag != null && tag.startsWith("ezconvert_task_")) {
+                try {
+                    int position = Integer.parseInt(tag.substring("ezconvert_task_".length()));
+                    if (position > 0 && position <= queue.size()) queue.setCurrentIndex(position - 1);
+                } catch (NumberFormatException ignored) {
+                    Log.w("ConversionManager", "无法解析任务序号: " + tag);
+                }
+            }
+        }
     }
 
     /**
-     * 取消当前 Worker，先记录主动取消的 ID，防止随后收到 CANCELLED 状态时重复通知 Activity
+     * 取消当前 Worker
      */
     public void cancelCurrent() {
         if (currentWorkId != null) {
-            ignoredCancelledWorkId = currentWorkId;
             workManager.cancelWorkById(currentWorkId);
+            queue.setCurrentWorkId("");
             currentWorkId = null;
         }
     }
@@ -160,10 +193,8 @@ public class ConversionManager {
     }
 
     private void observe(UUID workId, LifecycleOwner owner) {
-        // Activity 在切换到下一个队列任务时会再次调用 observe，必须主动移除旧 observer，
-        // 否则同一个 Activity 会同时监听多个历史 Worker，取消时尤其容易出现重复回调
         if (currentWorkLiveData != null) {
-            currentWorkLiveData.removeObservers(owner);
+            // Observer 的移除由 LifecycleOwner 的销毁处理，在此处只需替换 LiveData 即可
         }
         currentWorkLiveData = workManager.getWorkInfoByIdLiveData(workId);
         currentWorkLiveData.observe(owner, workInfo -> {
@@ -180,17 +211,10 @@ public class ConversionManager {
                     queue.addCompletedOutput(path);
                     NotificationHelper.showCompleteNotification(context, new File(path).getName(), true, "");
                 }
+                queue.setCurrentWorkId("");
                 currentWorkId = null;
                 listener.onCompleted(true, context.getString(R.string.status_processing_complete), path);
             } else if (state == WorkInfo.State.FAILED || state == WorkInfo.State.CANCELLED) {
-                // 用户主动取消后，Activity 的取消流程负责清理文件和 UI
-                // 不再让 Worker 的终态回调再次触发“操作已取消”，避免重复日志/Toast
-                if (workId.equals(ignoredCancelledWorkId)) {
-                    ignoredCancelledWorkId = null;
-                    if (workId.equals(currentWorkId)) currentWorkId = null;
-                    return;
-                }
-
                 Data output = workInfo.getOutputData();
                 String error = output.getString(FfmpegWorker.KEY_ERROR_MESSAGE);
                 if (state == WorkInfo.State.CANCELLED || context.getString(R.string.error_cancelled).equals(error)) {
@@ -201,6 +225,7 @@ public class ConversionManager {
                 if (!context.getString(R.string.error_cancelled).equals(error)) {
                     NotificationHelper.showCompleteNotification(context, "", false, error);
                 }
+                queue.setCurrentWorkId("");
                 currentWorkId = null;
                 listener.onCompleted(false, error, null);
             }
