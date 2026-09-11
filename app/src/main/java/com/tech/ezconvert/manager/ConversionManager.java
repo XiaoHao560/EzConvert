@@ -93,64 +93,86 @@ public class ConversionManager {
     }
 
     public void restoreRunningWorker(LifecycleOwner owner) {
-        // 这里只做一次恢复快照，避免持续监听整个 tag 导致旧任务/新任务互相干扰
-        LiveData<java.util.List<WorkInfo>> liveData = workManager.getWorkInfosByTagLiveData(WORK_TAG_CURRENT);
-        liveData.observe(owner, workInfos -> {
+        /*
+         * 只有已经真正提交过 WorkRequest 的会话才允许恢复
+         *
+         * 文件选择时 queue 会持久化所选文件，但 currentWorkId 此时仍为空
+         * 因此“仅选择文件后闪退/进程被杀”重新启动时，必须直接进入空闲状态
+         * 不能因为本地仍有文件队列就触发恢复机制
+         *
+         * 同时使用精确的 currentWorkId 查询，而不是扫描 WORK_TAG_CURRENT
+         * 避免恢复到其他历史会话的 Worker
+         */
+        String persistedWorkId = queue.getCurrentWorkId();
+        if (persistedWorkId == null || persistedWorkId.isEmpty()) {
+            currentWorkId = null;
+            listener.onIdleAfterRestore();
+            return;
+        }
+
+        final UUID workId;
+        try {
+            workId = UUID.fromString(persistedWorkId);
+        } catch (IllegalArgumentException e) {
+            Log.w("ConversionManager", "持久化的 Worker ID 无效，跳过恢复: " + persistedWorkId);
+            queue.setCurrentWorkId("");
+            currentWorkId = null;
+            listener.onIdleAfterRestore();
+            return;
+        }
+
+        LiveData<WorkInfo> liveData = workManager.getWorkInfoByIdLiveData(workId);
+        liveData.observe(owner, workInfo -> {
             liveData.removeObservers(owner);
-            if (workInfos == null || workInfos.isEmpty()) {
+
+            if (workInfo == null) {
+                // Worker 已不存在时，清理残留的恢复标记，避免下次启动反复进入恢复流程
+                queue.setCurrentWorkId("");
+                currentWorkId = null;
                 listener.onIdleAfterRestore();
                 return;
             }
 
-            WorkInfo activeInfo = null;
-            WorkInfo latestTerminal = null;
-            for (WorkInfo info : workInfos) {
-                if (!isCurrentSessionWork(info)) continue;
-                WorkInfo.State state = info.getState();
-                if (state == WorkInfo.State.RUNNING || state == WorkInfo.State.ENQUEUED || state == WorkInfo.State.BLOCKED) {
-                    activeInfo = info;
-                    break;
-                }
-                if (state == WorkInfo.State.SUCCEEDED || state == WorkInfo.State.FAILED || state == WorkInfo.State.CANCELLED) {
-                    latestTerminal = info;
-                }
-            }
+            WorkInfo.State state = workInfo.getState();
 
-            if (activeInfo != null) {
-                currentWorkId = activeInfo.getId();
-                queue.setCurrentWorkId(currentWorkId.toString());
-                syncQueueIndexFromTags(activeInfo);
+            if (state == WorkInfo.State.RUNNING
+                    || state == WorkInfo.State.ENQUEUED
+                    || state == WorkInfo.State.BLOCKED) {
+                currentWorkId = workInfo.getId();
+                syncQueueIndexFromTags(workInfo);
                 observe(currentWorkId, owner);
                 listener.onRestored();
                 return;
             }
 
             // Activity 可能在 Worker 完成回调之前被杀死，此时让 Activity 按正常完成流程推进一次队列
-            if (latestTerminal != null) {
-                Data output = latestTerminal.getOutputData();
+            if (state == WorkInfo.State.SUCCEEDED || state == WorkInfo.State.FAILED) {
+                Data output = workInfo.getOutputData();
                 int taskIndex = output.getInt(FfmpegWorker.KEY_TASK_INDEX, -1);
                 boolean isCurrentItem = taskIndex > 0
                         && taskIndex <= queue.size()
                         && taskIndex - 1 == queue.getCurrentIndex();
+
                 if (isCurrentItem) {
-                    if (latestTerminal.getState() == WorkInfo.State.SUCCEEDED) {
+                    if (state == WorkInfo.State.SUCCEEDED) {
                         String path = output.getString(FfmpegWorker.KEY_OUTPUT_PATH);
                         if (path != null) queue.addCompletedOutput(path);
                         queue.setCurrentWorkId("");
                         currentWorkId = null;
                         listener.onCompleted(true, context.getString(R.string.status_processing_complete), path);
                         return;
-                    } else if (latestTerminal.getState() == WorkInfo.State.FAILED) {
-                        String error = output.getString(FfmpegWorker.KEY_ERROR_MESSAGE);
-                        if (error == null) error = context.getString(R.string.error_unknown);
-                        queue.setCurrentWorkId("");
-                        currentWorkId = null;
-                        listener.onCompleted(false, error, null);
-                        return;
                     }
+
+                    String error = output.getString(FfmpegWorker.KEY_ERROR_MESSAGE);
+                    if (error == null) error = context.getString(R.string.error_unknown);
+                    queue.setCurrentWorkId("");
+                    currentWorkId = null;
+                    listener.onCompleted(false, error, null);
+                    return;
                 }
             }
 
+            // CANCELLED 或者无法与当前队列项对应的终态都不应继续恢复
             queue.setCurrentWorkId("");
             currentWorkId = null;
             listener.onIdleAfterRestore();
