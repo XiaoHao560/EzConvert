@@ -73,9 +73,12 @@ public class ConversionQueueManager {
         syncMode = false;
         syncParams = null;
         completedOutputFiles.clear();
+        // 文件选择本身不是可恢复任务：在用户真正开始转换之前，不要把选择结果写入持久化会话
+        // 这样即使用户在选择文件后闪退/被系统杀死，重新启动也不会加载这批“未开始”的文件
         currentWorkId = "";
         sessionId = UUID.randomUUID().toString();
-        saveState();
+        // 新的文件选择会话尚未开始任务，必须移除上一会话可能遗留的可恢复状态
+        prefs.edit().remove(KEY_STATE).apply();
     }
 
     public synchronized void clearSelection() {
@@ -242,7 +245,26 @@ public class ConversionQueueManager {
             syncParams = state.syncParams;
             sessionId = state.sessionId == null ? "" : state.sessionId;
             currentWorkId = state.currentWorkId == null ? "" : state.currentWorkId;
-            Log.d(TAG, "已恢复队列: " + selectedFilePaths.size() + " 个文件, currentIndex=" + currentIndex);
+
+            // 只有已经创建 Worker 的会话才属于“可恢复任务”
+            // 旧版本/异常退出可能只留下了选中的文件，但没有真正开始任务
+            // 这类状态必须视为临时选择并丢弃，避免下次启动误触发恢复流程
+            if (currentWorkId.isEmpty()) {
+                selectedFilePaths.clear();
+                pathToUriMap.clear();
+                completedOutputFiles.clear();
+                currentIndex = 0;
+                taskType = "";
+                syncMode = false;
+                syncParams = null;
+                sessionId = "";
+                Log.d(TAG, "发现未启动任务的残留文件选择，已丢弃，不进入恢复流程");
+                prefs.edit().remove(KEY_STATE).apply();
+                return;
+            }
+
+            Log.d(TAG, "已加载可恢复任务: " + selectedFilePaths.size() + " 个文件, currentIndex=" + currentIndex
+                    + ", currentWorkId=" + currentWorkId);
         } catch (Exception e) {
             Log.e(TAG, "恢复队列状态失败", e);
         }
