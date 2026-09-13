@@ -72,6 +72,20 @@
 
     <string name="folder_output">EzConvert</string>
     <string name="filename_suffix_share">_share_</string>
+
+    <string name="output_path_settings_title">Output file location</string>
+    <string name="output_path_settings_desc">Choose where converted files are saved</string>
+    <string name="output_path_download">Download directory</string>
+    <string name="output_path_download_desc">Internal storage/Download/EzConvert</string>
+    <string name="output_path_dcim">Pictures directory</string>
+    <string name="output_path_dcim_desc">Internal storage/DCIM/EzConvert</string>
+    <string name="output_path_custom">Custom output directory</string>
+    <string name="output_path_custom_hint">Tap to choose an output directory</string>
+    <string name="output_path_settings_explanation">The custom directory must be on internal shared storage. All converted files will be saved there.</string>
+    <string name="output_path_internal_storage">Internal storage</string>
+    <string name="toast_cannot_open_folder_picker">Unable to open folder picker</string>
+    <string name="toast_folder_permission_failed">Unable to access the selected directory</string>
+    <string name="toast_output_path_primary_storage_only">Please select a directory on internal shared storage</string>
     <string name="picker_title">Select Media Files (multiple allowed)</string>
     <string name="picker_title_simple">Select Media File</string>
     <string name="path_internal_storage">Internal Storage/</string>

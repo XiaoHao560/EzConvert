@@ -2,10 +2,12 @@ package com.tech.ezconvert.manager;
 
 import android.content.Context;
 import android.net.Uri;
+import android.provider.DocumentsContract;
 import android.os.Environment;
 
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.FileUtils;
+import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.FfmpegCommandBuilder;
 import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.utils.ParameterData;
@@ -57,8 +59,45 @@ public class OutputPathManager {
     }
 
     private File getOutputDir() {
-        return new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                context.getString(R.string.folder_output));
+        ConfigManager configManager = ConfigManager.getInstance(context);
+        String mode = configManager.getOutputPathMode();
+
+        File baseDir;
+        if (ConfigManager.OUTPUT_PATH_DCIM.equals(mode)) {
+            baseDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+        } else if (ConfigManager.OUTPUT_PATH_CUSTOM.equals(mode)) {
+            File customDir = resolveCustomOutputDir(configManager.getCustomOutputUri());
+            if (customDir != null) return customDir;
+            Log.w("OutputPathManager", "自定义输出目录不可用，回退到下载目录");
+            baseDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        } else {
+            baseDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        }
+        return new File(baseDir, "EzConvert");
+    }
+
+    private File resolveCustomOutputDir(String uriString) {
+        if (uriString == null || uriString.isEmpty()) return null;
+        try {
+            Uri treeUri = Uri.parse(uriString);
+            if (!"content".equalsIgnoreCase(treeUri.getScheme())) return null;
+            String documentId = DocumentsContract.getTreeDocumentId(treeUri);
+            if (documentId == null || documentId.isEmpty()) return null;
+
+            String[] split = documentId.split(":", 2);
+            if (split.length != 2 || !"primary".equalsIgnoreCase(split[0])) {
+                Log.w("OutputPathManager", "暂不支持非主内部存储自定义目录: " + documentId);
+                return null;
+            }
+
+            File root = Environment.getExternalStorageDirectory();
+            File result = split[1].isEmpty() ? root : new File(root, split[1]);
+            if (!result.exists() && !result.mkdirs()) return null;
+            return result;
+        } catch (Exception e) {
+            Log.e("OutputPathManager", "解析自定义输出目录失败", e);
+            return null;
+        }
     }
 
     // Uri 能提供真实显示名称时优先使用，否则回退到队列中的 key
