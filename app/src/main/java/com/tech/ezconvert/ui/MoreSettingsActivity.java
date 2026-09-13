@@ -1,8 +1,11 @@
 package com.tech.ezconvert.ui;
 
 import android.content.Intent;
+import android.content.ActivityNotFoundException;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.net.Uri;
+import android.provider.DocumentsContract;
 import android.provider.Settings;
 import android.view.View;
 import android.widget.AdapterView;
@@ -62,6 +65,16 @@ public class MoreSettingsActivity extends BaseActivity {
     private LinearLayout itemDynamicColor;
     private MaterialSwitch dynamicColorSwitch;
     
+    // 输出目录设置
+    private LinearLayout itemOutputDownload;
+    private LinearLayout itemOutputDcim;
+    private LinearLayout itemOutputCustom;
+    private RadioButton radioOutputDownload;
+    private RadioButton radioOutputDcim;
+    private RadioButton radioOutputCustom;
+    private android.widget.TextView customOutputPathText;
+    private static final int REQUEST_OUTPUT_DIRECTORY = 1001;
+
     // 标记是否正在处理开关变化，防止循环触发
     private boolean isHandlingNotificationSwitch = false;
     // 标记是否刚从权限设置返回，需要检查权限状态
@@ -118,6 +131,15 @@ public class MoreSettingsActivity extends BaseActivity {
         String[] languageItems = getResources().getStringArray(R.array.language_options);
         setupSpinner(languageSpinner, languageItems, languageItems[0]);
         
+        // 输出目录设置
+        itemOutputDownload = findViewById(R.id.item_output_download);
+        itemOutputDcim = findViewById(R.id.item_output_dcim);
+        itemOutputCustom = findViewById(R.id.item_output_custom);
+        radioOutputDownload = findViewById(R.id.radio_output_download);
+        radioOutputDcim = findViewById(R.id.radio_output_dcim);
+        radioOutputCustom = findViewById(R.id.radio_output_custom);
+        customOutputPathText = findViewById(R.id.custom_output_path);
+
         // 动态取色开关
         itemDynamicColor = findViewById(R.id.item_dynamic_color);
         dynamicColorSwitch = findViewById(R.id.dynamic_color_switch);
@@ -167,6 +189,11 @@ public class MoreSettingsActivity extends BaseActivity {
         itemThemeSystem.setOnClickListener(v -> setThemeMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM));
         itemThemeLight.setOnClickListener(v -> setThemeMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO));
         itemThemeDark.setOnClickListener(v -> setThemeMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES));
+
+        // 输出目录选择
+        itemOutputDownload.setOnClickListener(v -> selectOutputPath(ConfigManager.OUTPUT_PATH_DOWNLOAD));
+        itemOutputDcim.setOnClickListener(v -> selectOutputPath(ConfigManager.OUTPUT_PATH_DCIM));
+        itemOutputCustom.setOnClickListener(v -> openOutputDirectoryPicker());
         
         // 语言选择监听
         languageSpinner.setOnItemClickListener((parent, view, position, id) -> {
@@ -244,6 +271,8 @@ public class MoreSettingsActivity extends BaseActivity {
         boolean notificationEnabled = configManager.isNotificationEnabled();
         boolean dynamicColorEnabled = configManager.isDynamicColorEnabled();
         boolean firebaseEnabled = configManager.isFirebaseAnalyticsEnabled();
+
+        updateOutputPathUi(configManager.getOutputPathMode(), configManager.getCustomOutputUri());
         
         // 更新开关状态
         autoUpdateSwitch.setChecked(autoCheckEnabled);
@@ -310,6 +339,84 @@ public class MoreSettingsActivity extends BaseActivity {
         });
     }
     
+    private void selectOutputPath(String mode) {
+        configManager.setOutputPathMode(mode);
+        updateOutputPathUi(mode, configManager.getCustomOutputUri());
+    }
+
+    private void openOutputDirectoryPicker() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+                | Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
+        try {
+            startActivityForResult(intent, REQUEST_OUTPUT_DIRECTORY);
+        } catch (ActivityNotFoundException e) {
+            ToastUtils.show(this, getString(R.string.toast_cannot_open_folder_picker));
+        }
+    }
+
+    private void updateOutputPathUi(String mode, String customUri) {
+        radioOutputDownload.setChecked(ConfigManager.OUTPUT_PATH_DOWNLOAD.equals(mode));
+        radioOutputDcim.setChecked(ConfigManager.OUTPUT_PATH_DCIM.equals(mode));
+        radioOutputCustom.setChecked(ConfigManager.OUTPUT_PATH_CUSTOM.equals(mode));
+        if (customUri == null || customUri.isEmpty()) {
+            customOutputPathText.setText(R.string.output_path_custom_hint);
+        } else {
+            String displayPath = getTreeUriDisplayPath(Uri.parse(customUri));
+            customOutputPathText.setText(displayPath != null ? displayPath : customUri);
+        }
+    }
+
+    private String getTreeUriDisplayPath(Uri uri) {
+        try {
+            String documentId = DocumentsContract.getTreeDocumentId(uri);
+            if (documentId == null) return null;
+            String[] split = documentId.split(":", 2);
+            if (split.length == 2 && "primary".equalsIgnoreCase(split[0])) {
+                return split[1].isEmpty()
+                        ? getString(R.string.output_path_internal_storage)
+                        : getString(R.string.output_path_internal_storage) + "/" + split[1];
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != REQUEST_OUTPUT_DIRECTORY || resultCode != RESULT_OK
+                || data == null || data.getData() == null) return;
+
+        Uri treeUri = data.getData();
+        try {
+            int takeFlags = data.getFlags()
+                    & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            getContentResolver().takePersistableUriPermission(treeUri, takeFlags);
+        } catch (SecurityException e) {
+            ToastUtils.show(this, getString(R.string.toast_folder_permission_failed));
+            return;
+        }
+
+        String documentId;
+        try {
+            documentId = DocumentsContract.getTreeDocumentId(treeUri);
+        } catch (Exception e) {
+            documentId = null;
+        }
+
+        if (documentId == null || !documentId.startsWith("primary:")) {
+            ToastUtils.show(this, getString(R.string.toast_output_path_primary_storage_only));
+            return;
+        }
+
+        configManager.setCustomOutputUri(treeUri.toString());
+        configManager.setOutputPathMode(ConfigManager.OUTPUT_PATH_CUSTOM);
+        updateOutputPathUi(ConfigManager.OUTPUT_PATH_CUSTOM, treeUri.toString());
+    }
+
     // 将下拉菜单位置映射为语言代码
     private String mapPositionToLanguage(int position) {
         switch (position) {

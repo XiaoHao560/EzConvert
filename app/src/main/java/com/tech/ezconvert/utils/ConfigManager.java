@@ -65,6 +65,11 @@ public class ConfigManager {
     public static final String LANGUAGE_SYSTEM = "system"; // 跟随系统
     public static final String LANGUAGE_ZH = "zh"; // 中文
     public static final String LANGUAGE_EN = "en"; // 英文
+
+    // 输出目录设置
+    public static final String OUTPUT_PATH_DOWNLOAD = "download";
+    public static final String OUTPUT_PATH_DCIM = "dcim";
+    public static final String OUTPUT_PATH_CUSTOM = "custom";
     
     private ConfigManager(Context context) {
         this.context = context.getApplicationContext();
@@ -598,6 +603,28 @@ public class ConfigManager {
     	setSetting("firebase_settings", "analytics_enabled", enabled);
     }
     
+    // 输出目录设置
+    public String getOutputPathMode() {
+        return getSetting("output_settings", "path_mode", OUTPUT_PATH_DOWNLOAD);
+    }
+
+    public void setOutputPathMode(String mode) {
+        if (!OUTPUT_PATH_DOWNLOAD.equals(mode)
+                && !OUTPUT_PATH_DCIM.equals(mode)
+                && !OUTPUT_PATH_CUSTOM.equals(mode)) {
+            mode = OUTPUT_PATH_DOWNLOAD;
+        }
+        setSetting("output_settings", "path_mode", mode);
+    }
+
+    public String getCustomOutputUri() {
+        return getSetting("output_settings", "custom_uri", "");
+    }
+
+    public void setCustomOutputUri(String uri) {
+        setSetting("output_settings", "custom_uri", uri == null ? "" : uri);
+    }
+
     // 迁移SharedPreferences设置
     public void migrateOldSettings() {
         SharedPreferences transcodePrefs = context.getSharedPreferences("EzConvertSettings", Context.MODE_PRIVATE);

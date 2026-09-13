@@ -70,8 +70,22 @@
     <string name="popup_preview">预览</string>
     <string name="popup_settings">设置</string>
 
-    <string name="folder_output">简转</string>
+    <string name="folder_output">EzConvert</string>
     <string name="filename_suffix_share">_share_</string>
+
+    <string name="output_path_settings_title">输出文件路径</string>
+    <string name="output_path_settings_desc">选择转换完成后的文件保存位置</string>
+    <string name="output_path_download">下载目录</string>
+    <string name="output_path_download_desc">内部存储/Download/EzConvert</string>
+    <string name="output_path_dcim">相册目录</string>
+    <string name="output_path_dcim_desc">内部存储/DCIM/EzConvert</string>
+    <string name="output_path_custom">自定义输出目录</string>
+    <string name="output_path_custom_hint">点击选择输出目录</string>
+    <string name="output_path_settings_explanation">自定义目录需要位于内部存储。选择后，所有转换文件都会保存到该目录</string>
+    <string name="output_path_internal_storage">内部存储</string>
+    <string name="toast_cannot_open_folder_picker">无法打开文件夹选择器</string>
+    <string name="toast_folder_permission_failed">无法获得所选目录的访问权限</string>
+    <string name="toast_output_path_primary_storage_only">请选择内部存储中的目录</string>
     <string name="picker_title">选择媒体文件（可多选）</string>
     <string name="picker_title_simple">选择媒体文件</string>
     <string name="path_internal_storage">内部存储/</string>
@@ -371,9 +385,9 @@
     <string name="toast_select_file_first">请先选择文件</string>
     <string name="toast_grant_storage_permission">请先授予存储权限</string>
     <string name="toast_cannot_open_picker">无法打开文件选择器</string>
-    <string name="toast_processing_complete">处理完成! 输出文件\n保存在: Download/简转/</string>
+    <string name="toast_processing_complete">处理完成! 输出文件\n保存在: Download/EzConvert/</string>
     <string name="toast_all_complete">所有文件处理完成!</string>
-    <string name="toast_all_complete_with_path">所有文件处理完成!\n输出保存在: Download/简转/</string>
+    <string name="toast_all_complete_with_path">所有文件处理完成!\n输出保存在: Download/EzConvert/</string>
     <string name="toast_cancelled">已取消操作</string>
     <string name="toast_delete_temp_failed">删除临时文件失败\n请前往手动删除</string>
     <string name="toast_migration_complete">设置迁移完成</string>
