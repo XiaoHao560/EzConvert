@@ -62,42 +62,37 @@ public class OutputPathManager {
         ConfigManager configManager = ConfigManager.getInstance(context);
         String mode = configManager.getOutputPathMode();
 
+        if (ConfigManager.OUTPUT_PATH_CUSTOM.equals(mode)) {
+            // SAF 选择的目录不能直接转换成 File 后交给 FFmpeg
+            // 自定义目录采用“FFmpeg 写应用缓存 -> SAF 复制到目标目录”的方式
+            // 兼容 Android 10+ 的 Scoped Storage，同时也兼容 minSdk 24
+            File tempDir = new File(context.getCacheDir(), "output");
+            if (!tempDir.exists() && !tempDir.mkdirs()) {
+                Log.w("OutputPathManager", "无法创建自定义输出临时目录: " + tempDir);
+            }
+            return tempDir;
+        }
+
         File baseDir;
         if (ConfigManager.OUTPUT_PATH_DCIM.equals(mode)) {
             baseDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
-        } else if (ConfigManager.OUTPUT_PATH_CUSTOM.equals(mode)) {
-            File customDir = resolveCustomOutputDir(configManager.getCustomOutputUri());
-            if (customDir != null) return customDir;
-            Log.w("OutputPathManager", "自定义输出目录不可用，回退到下载目录");
-            baseDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         } else {
             baseDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         }
         return new File(baseDir, "EzConvert");
     }
 
-    private File resolveCustomOutputDir(String uriString) {
-        if (uriString == null || uriString.isEmpty()) return null;
-        try {
-            Uri treeUri = Uri.parse(uriString);
-            if (!"content".equalsIgnoreCase(treeUri.getScheme())) return null;
-            String documentId = DocumentsContract.getTreeDocumentId(treeUri);
-            if (documentId == null || documentId.isEmpty()) return null;
+    /** 当前是否使用 SAF 自定义目录 */
+    public boolean isCustomOutputPath() {
+        return ConfigManager.OUTPUT_PATH_CUSTOM.equals(
+                ConfigManager.getInstance(context).getOutputPathMode());
+    }
 
-            String[] split = documentId.split(":", 2);
-            if (split.length != 2 || !"primary".equalsIgnoreCase(split[0])) {
-                Log.w("OutputPathManager", "暂不支持非主内部存储自定义目录: " + documentId);
-                return null;
-            }
-
-            File root = Environment.getExternalStorageDirectory();
-            File result = split[1].isEmpty() ? root : new File(root, split[1]);
-            if (!result.exists() && !result.mkdirs()) return null;
-            return result;
-        } catch (Exception e) {
-            Log.e("OutputPathManager", "解析自定义输出目录失败", e);
-            return null;
-        }
+    /** 获取当前自定义目录的 Tree URI；非自定义模式返回空字符串 */
+    public String getCustomOutputTreeUri() {
+        if (!isCustomOutputPath()) return "";
+        String uri = ConfigManager.getInstance(context).getCustomOutputUri();
+        return uri == null ? "" : uri;
     }
 
     // Uri 能提供真实显示名称时优先使用，否则回退到队列中的 key

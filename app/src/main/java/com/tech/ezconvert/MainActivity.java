@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.provider.DocumentsContract;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -353,6 +354,16 @@ public class MainActivity extends BaseActivity implements
     private void deleteFileIfExists(String path) {
         if (path == null || path.isEmpty()) return;
         try {
+            Uri uri = Uri.parse(path);
+            if ("content".equalsIgnoreCase(uri.getScheme())) {
+                try {
+                    DocumentsContract.deleteDocument(getContentResolver(), uri);
+                    Log.d(TAG, "删除 SAF 文件: " + path);
+                } catch (Exception e) {
+                    Log.w(TAG, "删除 SAF 文件失败: " + path, e);
+                }
+                return;
+            }
             File file = new File(path);
             if (file.exists() && file.isFile()) {
                 boolean deleted = file.delete();
