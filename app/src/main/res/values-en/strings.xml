@@ -83,6 +83,10 @@
     <string name="output_path_custom_hint">Tap to choose an output directory</string>
     <string name="output_path_settings_explanation">The custom directory must be on internal shared storage. All converted files will be saved there.</string>
     <string name="output_path_internal_storage">Internal storage</string>
+    <string name="dialog_dcim_audio_title">Audio files are not supported in Pictures directory</string>
+    <string name="dialog_dcim_audio_message">The current output directory is “Pictures directory”, but audio files cannot be reliably saved to DCIM/EzConvert.\n\nThis task will automatically use “Download directory”:\nInternal storage/Download/EzConvert\n\nYour saved output directory setting will not be changed.</string>
+    <string name="dialog_dcim_audio_use_download">Use Download directory</string>
+    <string name="dialog_dcim_audio_cancel">Cancel task</string>
     <string name="toast_cannot_open_folder_picker">Unable to open folder picker</string>
     <string name="toast_folder_permission_failed">Unable to access the selected directory</string>
     <string name="toast_output_path_primary_storage_only">Please select a directory on internal shared storage</string>

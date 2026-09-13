@@ -21,6 +21,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.tech.ezconvert.manager.ConversionManager;
 import com.tech.ezconvert.manager.ConversionQueueManager;
 import com.tech.ezconvert.manager.MediaSelectionManager;
@@ -289,25 +290,59 @@ public class MainActivity extends BaseActivity implements
                 queueManager.getTaskType(), currentInputPath, uri,
                 queueManager.getCurrentPosition(), queueManager.size());
         dialog.setListener((params, syncAll) -> {
-            showCancelButton();
             queueManager.setSyncMode(syncAll, params);
-            submitCurrentWorker(params);
+            submitCurrentWorkerWithOutputCheck(params);
         });
         dialog.show(getSupportFragmentManager(), "param_dialog");
     }
 
-    // 参数确认后提交当前文件，输出路径的生成和 Worker 的生命周期分别由独立 Manager 处理
-    private void submitCurrentWorker(ParameterData params) {
+    // 参数确认后先检查本次任务是否需要临时回退输出目录，再提交 Worker
+    private void submitCurrentWorkerWithOutputCheck(ParameterData params) {
+        ConfigManager configManager = ConfigManager.getInstance(this);
+        boolean dcimSelected = ConfigManager.OUTPUT_PATH_DCIM.equals(configManager.getOutputPathMode());
+        boolean audioTask = isAudioTask(params);
+
+        if (dcimSelected && audioTask) {
+            new MaterialAlertDialogBuilder(this)
+                    .setIcon(R.drawable.round_warning)
+                    .setTitle(getString(R.string.dialog_dcim_audio_title))
+                    .setMessage(getString(R.string.dialog_dcim_audio_message))
+                    .setPositiveButton(getString(R.string.dialog_dcim_audio_use_download),
+                            (dialog, which) -> submitCurrentWorker(params, ConfigManager.OUTPUT_PATH_DOWNLOAD))
+                    .setNegativeButton(getString(R.string.dialog_dcim_audio_cancel), null)
+                    .setCancelable(false)
+                    .show();
+            return;
+        }
+
+        submitCurrentWorker(params, null);
+    }
+
+    // 参数确认后提交当前文件，支持只对本次任务临时覆盖输出目录模式
+    private void submitCurrentWorker(ParameterData params, String outputModeOverride) {
+        showCancelButton();
         Uri uri = queueManager.getCurrentUri();
-        currentOutputPath = outputPathManager.generateBasePath(
-                queueManager.getCurrentKey(), uri, params.taskType);
+        if (outputModeOverride == null) {
+            currentOutputPath = outputPathManager.generateBasePath(
+                    queueManager.getCurrentKey(), uri, params.taskType);
+        } else {
+            currentOutputPath = outputPathManager.generateBasePathForMode(
+                    queueManager.getCurrentKey(), uri, params.taskType, outputModeOverride);
+        }
         currentOutputFile = outputPathManager.buildOutputPath(currentOutputPath, params);
-        conversionManager.submitCurrent(params, currentOutputPath, this);
+        conversionManager.submitCurrent(params, currentOutputPath, this, outputModeOverride);
 
         String fileName = uri != null ? FileUtils.getDisplayName(this, uri) : new File(queueManager.getCurrentKey()).getName();
         if (fileName == null) fileName = "file";
         updateStatus(getString(R.string.status_processing, fileName,
                 queueManager.getCurrentPosition(), queueManager.size()));
+    }
+
+    private boolean isAudioTask(ParameterData params) {
+        if (params == null || params.taskType == null) return false;
+        return "extract_audio".equals(params.taskType)
+                || "convert_audio".equals(params.taskType)
+                || "cut_audio".equals(params.taskType);
     }
 
     // 取消按钮只负责通知 ConversionManager，并立即更新当前页面状态
@@ -477,8 +512,7 @@ public class MainActivity extends BaseActivity implements
             if (queueManager.isEmpty() || queueManager.getCurrentIndex() >= queueManager.size()) {
                 finishQueue();
             } else if (queueManager.isSyncMode() && queueManager.getSyncParams() != null) {
-                showCancelButton();
-                submitCurrentWorker(queueManager.getSyncParams());
+                submitCurrentWorkerWithOutputCheck(queueManager.getSyncParams());
             } else {
                 showParameterDialogForCurrentFile();
             }
