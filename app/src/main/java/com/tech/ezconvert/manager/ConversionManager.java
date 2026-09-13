@@ -61,6 +61,11 @@ public class ConversionManager {
      * Activity 不直接接触 WorkManager，只把已经准备好的参数交给这里
      */
     public void submitCurrent(ParameterData params, String outputBasePath, LifecycleOwner owner) {
+        submitCurrent(params, outputBasePath, owner, null);
+    }
+
+    /** 提交当前任务，可对本次任务临时覆盖输出目录模式，不修改持久化设置 */
+    public void submitCurrent(ParameterData params, String outputBasePath, LifecycleOwner owner, String outputModeOverride) {
         String inputKey = queue.getCurrentKey();
         Uri fileUri = queue.getCurrentUri();
         String uriString = fileUri != null ? fileUri.toString() : "";
@@ -72,7 +77,7 @@ public class ConversionManager {
                 .putString(FfmpegWorker.KEY_INPUT_PATH, inputKey)
                 .putString(FfmpegWorker.KEY_INPUT_URI, uriString)
                 .putString(FfmpegWorker.KEY_OUTPUT_PATH_BASE, outputBasePath)
-                .putString(FfmpegWorker.KEY_OUTPUT_TREE_URI, getCustomOutputTreeUri())
+                .putString(FfmpegWorker.KEY_OUTPUT_TREE_URI, getCustomOutputTreeUri(outputModeOverride))
                 .putString(FfmpegWorker.KEY_PARAMS_JSON, gson.toJson(params))
                 .putString(FfmpegWorker.KEY_FILE_NAME, fileName)
                 .putString(FfmpegWorker.KEY_SESSION_ID, queue.getSessionId())
@@ -94,9 +99,12 @@ public class ConversionManager {
         workManager.enqueue(workRequest);
     }
 
-    private String getCustomOutputTreeUri() {
+    private String getCustomOutputTreeUri(String outputModeOverride) {
         ConfigManager config = ConfigManager.getInstance(context);
-        if (!ConfigManager.OUTPUT_PATH_CUSTOM.equals(config.getOutputPathMode())) return "";
+        String effectiveMode = outputModeOverride != null
+                ? outputModeOverride
+                : config.getOutputPathMode();
+        if (!ConfigManager.OUTPUT_PATH_CUSTOM.equals(effectiveMode)) return "";
         String uri = config.getCustomOutputUri();
         return uri == null ? "" : uri;
     }

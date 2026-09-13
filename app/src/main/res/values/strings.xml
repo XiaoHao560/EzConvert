@@ -83,6 +83,10 @@
     <string name="output_path_custom_hint">点击选择输出目录</string>
     <string name="output_path_settings_explanation">选择后，所有转换文件都会保存到该目录</string>
     <string name="output_path_internal_storage">内部存储</string>
+    <string name="dialog_dcim_audio_title">相册目录不支持音频文件</string>
+    <string name="dialog_dcim_audio_message">当前输出目录为“相册目录”，但音频文件无法可靠保存到 DCIM/EzConvert\n\n本次任务将自动使用“下载目录”：\n内部存储/Download/EzConvert\n\n不会修改你的输出目录设置</string>
+    <string name="dialog_dcim_audio_use_download">使用下载目录</string>
+    <string name="dialog_dcim_audio_cancel">取消任务</string>
     <string name="toast_cannot_open_folder_picker">无法打开文件夹选择器</string>
     <string name="toast_folder_permission_failed">无法获得所选目录的访问权限</string>
     <string name="toast_output_path_primary_storage_only">请选择内部存储中的目录</string>

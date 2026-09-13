@@ -31,8 +31,17 @@ public class OutputPathManager {
 
     /** 根据当前输入文件和任务类型生成不带最终扩展名的基础输出路径 */
     public String generateBasePath(String inputKey, Uri uri, String taskType) {
+        return generateBasePathForMode(inputKey, uri, taskType,
+                ConfigManager.getInstance(context).getOutputPathMode());
+    }
+
+    /**
+     * 根据指定输出模式生成基础输出路径
+     * 仅用于单次任务临时覆盖，不会修改用户保存的输出目录设置
+     */
+    public String generateBasePathForMode(String inputKey, Uri uri, String taskType, String outputMode) {
         String baseName = getBaseName(inputKey, uri, "file");
-        File outputDir = getOutputDir();
+        File outputDir = getOutputDir(outputMode);
         if (!outputDir.exists() && !outputDir.mkdirs()) {
             Log.w("OutputPathManager", "无法创建输出目录: " + outputDir);
         }
@@ -40,7 +49,7 @@ public class OutputPathManager {
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         String prefix = getPrefixTaskType(taskType);
         String path = new File(outputDir, baseName + "_" + prefix + timestamp).getAbsolutePath();
-        Log.d("OutputPathManager", "输出路径基础: " + path);
+        Log.d("OutputPathManager", "输出路径基础: " + path + ", mode=" + outputMode);
         return path;
     }
 
@@ -59,9 +68,10 @@ public class OutputPathManager {
     }
 
     private File getOutputDir() {
-        ConfigManager configManager = ConfigManager.getInstance(context);
-        String mode = configManager.getOutputPathMode();
+        return getOutputDir(ConfigManager.getInstance(context).getOutputPathMode());
+    }
 
+    private File getOutputDir(String mode) {
         if (ConfigManager.OUTPUT_PATH_CUSTOM.equals(mode)) {
             // SAF 选择的目录不能直接转换成 File 后交给 FFmpeg
             // 自定义目录采用“FFmpeg 写应用缓存 -> SAF 复制到目标目录”的方式
