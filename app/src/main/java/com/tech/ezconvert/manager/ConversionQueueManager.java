@@ -38,6 +38,8 @@ public class ConversionQueueManager {
     private String taskType = "";
     private boolean syncMode = false;
     private ParameterData syncParams;
+    // 本次批量同步队列实际采用的输出目录覆盖模式，例如 DCIM + 音频确认后锁定为 Download
+    private String effectiveOutputModeOverride;
     private String sessionId = "";
     private String currentWorkId = "";
 
@@ -49,6 +51,7 @@ public class ConversionQueueManager {
         String taskType;
         boolean syncMode;
         ParameterData syncParams;
+        String effectiveOutputModeOverride;
         String sessionId;
         String currentWorkId;
     }
@@ -72,6 +75,7 @@ public class ConversionQueueManager {
         taskType = "";
         syncMode = false;
         syncParams = null;
+        effectiveOutputModeOverride = null;
         completedOutputFiles.clear();
         // 文件选择本身不是可恢复任务：在用户真正开始转换之前，不要把选择结果写入持久化会话
         // 这样即使用户在选择文件后闪退/被系统杀死，重新启动也不会加载这批“未开始”的文件
@@ -100,6 +104,7 @@ public class ConversionQueueManager {
         taskType = "";
         syncMode = false;
         syncParams = null;
+        effectiveOutputModeOverride = null;
         currentWorkId = "";
         completedOutputFiles.clear();
         saveState();
@@ -181,6 +186,19 @@ public class ConversionQueueManager {
         return syncParams;
     }
 
+    /**
+     * 设置本次同步队列的有效输出目录覆盖。设置后，整个队列后续文件复用该目录
+     * 不再根据每个文件重复弹出输出目录确认
+     */
+    public synchronized void setEffectiveOutputModeOverride(String outputMode) {
+        effectiveOutputModeOverride = outputMode;
+        saveState();
+    }
+
+    public synchronized String getEffectiveOutputModeOverride() {
+        return effectiveOutputModeOverride;
+    }
+
     public synchronized String getSessionId() {
         return sessionId;
     }
@@ -217,6 +235,7 @@ public class ConversionQueueManager {
         state.taskType = taskType;
         state.syncMode = syncMode;
         state.syncParams = syncParams;
+        state.effectiveOutputModeOverride = effectiveOutputModeOverride;
         state.sessionId = sessionId;
         state.currentWorkId = currentWorkId;
         prefs.edit().putString(KEY_STATE, gson.toJson(state)).apply();
@@ -243,6 +262,7 @@ public class ConversionQueueManager {
             taskType = state.taskType == null ? "" : state.taskType;
             syncMode = state.syncMode;
             syncParams = state.syncParams;
+            effectiveOutputModeOverride = state.effectiveOutputModeOverride;
             sessionId = state.sessionId == null ? "" : state.sessionId;
             currentWorkId = state.currentWorkId == null ? "" : state.currentWorkId;
 
@@ -257,6 +277,7 @@ public class ConversionQueueManager {
                 taskType = "";
                 syncMode = false;
                 syncParams = null;
+                effectiveOutputModeOverride = null;
                 sessionId = "";
                 Log.d(TAG, "发现未启动任务的残留文件选择，已丢弃，不进入恢复流程");
                 prefs.edit().remove(KEY_STATE).apply();

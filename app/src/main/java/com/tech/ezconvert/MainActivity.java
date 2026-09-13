@@ -298,6 +298,14 @@ public class MainActivity extends BaseActivity implements
 
     // 参数确认后先检查本次任务是否需要临时回退输出目录，再提交 Worker
     private void submitCurrentWorkerWithOutputCheck(ParameterData params) {
+        // 参数同步模式一旦确认过临时输出目录，整个多选队列都复用这个目录
+        // 后续文件不再重新检查/弹出输出目录确认
+        String effectiveOverride = queueManager.getEffectiveOutputModeOverride();
+        if (queueManager.isSyncMode() && effectiveOverride != null && !effectiveOverride.isEmpty()) {
+            submitCurrentWorker(params, effectiveOverride);
+            return;
+        }
+
         ConfigManager configManager = ConfigManager.getInstance(this);
         boolean dcimSelected = ConfigManager.OUTPUT_PATH_DCIM.equals(configManager.getOutputPathMode());
         boolean audioTask = isAudioTask(params);
@@ -308,7 +316,13 @@ public class MainActivity extends BaseActivity implements
                     .setTitle(getString(R.string.dialog_dcim_audio_title))
                     .setMessage(getString(R.string.dialog_dcim_audio_message))
                     .setPositiveButton(getString(R.string.dialog_dcim_audio_use_download),
-                            (dialog, which) -> submitCurrentWorker(params, ConfigManager.OUTPUT_PATH_DOWNLOAD))
+                            (dialog, which) -> {
+                                // 选择“参数同步至所有文件”时，把这次确认结果锁定为整个队列的有效输出目录
+                                if (queueManager.isSyncMode()) {
+                                    queueManager.setEffectiveOutputModeOverride(ConfigManager.OUTPUT_PATH_DOWNLOAD);
+                                }
+                                submitCurrentWorker(params, ConfigManager.OUTPUT_PATH_DOWNLOAD);
+                            })
                     .setNegativeButton(getString(R.string.dialog_dcim_audio_cancel), null)
                     .setCancelable(false)
                     .show();
