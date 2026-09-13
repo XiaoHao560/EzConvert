@@ -400,15 +400,24 @@ public class MoreSettingsActivity extends BaseActivity {
             return;
         }
 
-        String documentId;
-        try {
-            documentId = DocumentsContract.getTreeDocumentId(treeUri);
-        } catch (Exception e) {
-            documentId = null;
+        // 自定义目录使用 SAF Tree URI，不能限制为 primary:/内部存储
+        // 这样用户也可以选择其他受 SAF 支持的存储位置；真正写文件时由 Worker
+        // 通过 ContentResolver 输出，兼容 Android 7.0(API 24) 到 Android 15
+        if (!"content".equalsIgnoreCase(treeUri.getScheme())
+                || !DocumentsContract.isTreeUri(treeUri)) {
+            ToastUtils.show(this, getString(R.string.toast_folder_permission_failed));
+            return;
         }
 
-        if (documentId == null || !documentId.startsWith("primary:")) {
-            ToastUtils.show(this, getString(R.string.toast_output_path_primary_storage_only));
+        boolean hasWritePermission = false;
+        for (android.content.UriPermission permission : getContentResolver().getPersistedUriPermissions()) {
+            if (treeUri.equals(permission.getUri()) && permission.isWritePermission()) {
+                hasWritePermission = true;
+                break;
+            }
+        }
+        if (!hasWritePermission) {
+            ToastUtils.show(this, getString(R.string.toast_folder_permission_failed));
             return;
         }
 

@@ -13,6 +13,7 @@ import androidx.work.WorkManager;
 import com.google.gson.Gson;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.FileUtils;
+import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.utils.NotificationHelper;
 import com.tech.ezconvert.utils.ParameterData;
@@ -71,6 +72,7 @@ public class ConversionManager {
                 .putString(FfmpegWorker.KEY_INPUT_PATH, inputKey)
                 .putString(FfmpegWorker.KEY_INPUT_URI, uriString)
                 .putString(FfmpegWorker.KEY_OUTPUT_PATH_BASE, outputBasePath)
+                .putString(FfmpegWorker.KEY_OUTPUT_TREE_URI, getCustomOutputTreeUri())
                 .putString(FfmpegWorker.KEY_PARAMS_JSON, gson.toJson(params))
                 .putString(FfmpegWorker.KEY_FILE_NAME, fileName)
                 .putString(FfmpegWorker.KEY_SESSION_ID, queue.getSessionId())
@@ -90,6 +92,13 @@ public class ConversionManager {
         queue.setCurrentWorkId(currentWorkId.toString());
         observe(currentWorkId, owner);
         workManager.enqueue(workRequest);
+    }
+
+    private String getCustomOutputTreeUri() {
+        ConfigManager config = ConfigManager.getInstance(context);
+        if (!ConfigManager.OUTPUT_PATH_CUSTOM.equals(config.getOutputPathMode())) return "";
+        String uri = config.getCustomOutputUri();
+        return uri == null ? "" : uri;
     }
 
     public void restoreRunningWorker(LifecycleOwner owner) {
@@ -231,7 +240,12 @@ public class ConversionManager {
                 String path = output.getString(FfmpegWorker.KEY_OUTPUT_PATH);
                 if (path != null) {
                     queue.addCompletedOutput(path);
-                    NotificationHelper.showCompleteNotification(context, new File(path).getName(), true, "");
+                    String displayName = new File(path).getName();
+                    if (path.startsWith("content://")) {
+                        String uriName = FileUtils.getDisplayName(context, Uri.parse(path));
+                        if (uriName != null && !uriName.isEmpty()) displayName = uriName;
+                    }
+                    NotificationHelper.showCompleteNotification(context, displayName, true, "");
                 }
                 queue.setCurrentWorkId("");
                 currentWorkId = null;

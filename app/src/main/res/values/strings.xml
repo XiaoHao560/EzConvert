@@ -81,7 +81,7 @@
     <string name="output_path_dcim_desc">内部存储/DCIM/EzConvert</string>
     <string name="output_path_custom">自定义输出目录</string>
     <string name="output_path_custom_hint">点击选择输出目录</string>
-    <string name="output_path_settings_explanation">自定义目录需要位于内部存储。选择后，所有转换文件都会保存到该目录</string>
+    <string name="output_path_settings_explanation">选择后，所有转换文件都会保存到该目录</string>
     <string name="output_path_internal_storage">内部存储</string>
     <string name="toast_cannot_open_folder_picker">无法打开文件夹选择器</string>
     <string name="toast_folder_permission_failed">无法获得所选目录的访问权限</string>
