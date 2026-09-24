@@ -51,6 +51,7 @@ This project follows the **Semantic Versioning (SemVer)** specification for vers
 - Core Language: Java
 - Platform: Android
 - Media Processing: FFmpeg
+- **FFmpegKitNext** Version: v9.0.0
 
 ## Building from Source
 
@@ -82,40 +83,35 @@ For all notes and caveats, please refer to the [Build Guide](BUILDING_en.md).
 
 ## Known Issues & Roadmap
 
-> UI/UX is still being continuously optimized
->
-> MKV and WebM format conversion does not support hardware encoding/decoding
-
-- [x] Hardware encoding/decoding & multi-threading optimization
-- [x] Video format conversion
-- [x] Audio format conversion
-- [x] Image format conversion
-- [x] Video compression
-- [x] Video extraction
-- [x] Audio extraction
-- [x] Video trimming
-- [x] Audio trimming
-- [x] Video frame capture
+- [x] Hardware encoding/decoding / multi-threading optimization
+- [x] Convert video formats
+- [x] Convert audio formats
+- [x] Convert image formats
+- [x] Compress video
+- [x] Extract video
+- [x] Extract audio
+- [x] Trim video
+- [x] Trim audio
+- [x] Video screenshots
 - [x] Error log output / full log output
-- [x] Log level settings
-- [x] Import media files via system share
-- [x] Update detection
-- [x] Notification settings
-- [x] Real progress bar
-- [x] Built-in player for preview
-- [x] Media file preview
+- [x] Import media files from system share
+- [x] Check for updates
+- [x] Show progress of running tasks in notifications
+- [x] ffmpeg task progress display
+- [x] Add built-in player for previewing media files
+- [x] Media file preview feature
 - [x] Settings
-- [x] Media file metadata display
+- [x] Media file details display
 - [x] Theme settings
-- [x] Custom conversion quality
-- [x] Individual quality parameter adjustment
-- [x] Multi-language support
+- [x] Customize/adjust task parameters
+- [x] Multilingual support
 - [x] Batch operations
+- [x] Custom output directory
+- [x] Run tasks in background
 - [ ] Custom filename feature
 - [ ] Custom UI colors
-- [ ] Support for more media formats
-- [ ] Audio fade in/fade out
-- [ ] Video watermarking
+- [ ] Audio fade-out/fade-in
+- [ ] Add video watermark
 - [ ] Merge video and audio
 
 <mark>Bug reports and feature suggestions are welcome!</mark>
