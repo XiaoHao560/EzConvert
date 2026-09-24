@@ -442,6 +442,9 @@ public class FfmpegCommandBuilder {
         }
 
         String format = params.outputFormat != null ? params.outputFormat : "mp3";
+        if ("aac".equalsIgnoreCase(format)) {
+            format = "adts";
+        }
         if (!"mp3".equals(format) && !"wav".equals(format)) {
             cmd.add("-f");
             cmd.add(format);
