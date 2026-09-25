@@ -122,6 +122,7 @@ public class ThemeManager {
                 + configManager.getDynamicColorSource() + "|"
                 + configManager.isCustomBackgroundEnabled() + "|"
                 + configManager.getCustomBackgroundUri() + "|"
+                + configManager.getCustomBackgroundVersion() + "|"
                 + configManager.getBackgroundEffectMode() + "|"
                 + configManager.getBackgroundMaskAlpha() + "|"
                 + configManager.getBackgroundBlurDp();
