@@ -170,6 +170,9 @@ public class BackgroundCropActivity extends AppCompatActivity {
             config.setCustomBackgroundUri(Uri.fromFile(target).toString());
             config.setCustomBackgroundEnabled(true);
             config.setDynamicColorSource(ConfigManager.DYNAMIC_COLOR_SOURCE_IMAGE);
+            // 裁剪结果覆盖同一个 background_image 文件，URI 不变。递增内容版本，
+            // 让已经存在的上一级 Activity 在返回时能够识别背景图片确实发生了变化。
+            config.markCustomBackgroundUpdated();
             ThemeManager.getInstance(this).invalidateCustomBackgroundCache();
             setResult(RESULT_OK);
             finish();

@@ -63,6 +63,7 @@ public class ConfigManager {
     public static final String KEY_DYNAMIC_COLOR_SOURCE = "dynamic_color_source";
     public static final String KEY_CUSTOM_BACKGROUND_ENABLED = "custom_background_enabled";
     public static final String KEY_CUSTOM_BACKGROUND_URI = "custom_background_uri";
+    public static final String KEY_CUSTOM_BACKGROUND_VERSION = "custom_background_version";
     public static final String KEY_BACKGROUND_EFFECT_MODE = "background_effect_mode";
     public static final String KEY_BACKGROUND_MASK_ALPHA = "background_mask_alpha";
     public static final String KEY_BACKGROUND_BLUR_DP = "background_blur_dp";
@@ -324,6 +325,7 @@ public class ConfigManager {
         themeSettings.put("dynamic_color_source", DYNAMIC_COLOR_SOURCE_WALLPAPER); // wallpaper / image
         themeSettings.put("custom_background_enabled", false); // true = 使用自定义图片作为界面背景
         themeSettings.put("custom_background_uri", ""); // 应用私有文件 Uri
+        themeSettings.put("custom_background_version", 0L); // 背景文件内容版本，用于通知已有 Activity 刷新
         themeSettings.put("background_crop_zoom", "1");
         themeSettings.put("background_crop_offset_x", "0");
         themeSettings.put("background_crop_offset_y", "0");
@@ -662,6 +664,33 @@ public class ConfigManager {
 
     public void setCustomBackgroundUri(String uri) {
         setSetting("theme_settings", "custom_background_uri", uri == null ? "" : uri);
+    }
+
+    /**
+     * 返回当前自定义背景文件的内容版本。
+     * 背景裁剪结果会覆盖同一个文件，因此 URI 不会变化；该版本用于让已经存在的 Activity
+     * 能够判断背景内容本身是否已经被重新保存。
+     */
+    public long getCustomBackgroundVersion() {
+        Object value = getSetting("theme_settings", "custom_background_version", 0L);
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
+        if (value instanceof String) {
+            try {
+                return Long.parseLong((String) value);
+            } catch (NumberFormatException ignored) {
+                // 使用默认值
+            }
+        }
+        return 0L;
+    }
+
+    /**
+     * 标记自定义背景图片内容已更新。
+     */
+    public void markCustomBackgroundUpdated() {
+        setSetting("theme_settings", "custom_background_version", getCustomBackgroundVersion() + 1L);
     }
 
     // 自定义背景图片编辑状态：用于让用户在确认后仍可重新打开编辑器微调位置和缩放。
