@@ -521,8 +521,10 @@ public class MoreSettingsActivity extends BaseActivity {
             ToastUtils.show(this, getString(R.string.toast_select_background_first));
             return;
         }
-        BackgroundCropActivity.open(this, Uri.parse(sourceUri), new File(getFilesDir(),
-                "custom_background/background_source").exists(), false);
+
+        // 重新调整时始终从保存的完整原图开始，而不是恢复上一次的裁剪状态。
+        // 这样用户可以重新看到整张原图，并重新选择位置和缩放范围。
+        openBackgroundEditor(Uri.parse(sourceUri), false);
     }
 
     /**
@@ -588,8 +590,8 @@ public class MoreSettingsActivity extends BaseActivity {
         return configManager.getCustomBackgroundUri();
     }
 
-    private void openBackgroundEditor(Uri sourceUri, boolean restoreCrop) {
-        BackgroundCropActivity.open(this, sourceUri, restoreCrop, !restoreCrop);
+    private void openBackgroundEditor(Uri sourceUri, boolean commitSource) {
+        BackgroundCropActivity.open(this, sourceUri, commitSource);
     }
 
     private void openBackgroundImagePicker() {
@@ -664,10 +666,7 @@ public class MoreSettingsActivity extends BaseActivity {
             }
 
             // 新图片从默认状态开始编辑；只有用户在编辑器中确认后，才真正替换当前背景。
-            configManager.setBackgroundCropZoom(1f);
-            configManager.setBackgroundCropOffsetX(0f);
-            configManager.setBackgroundCropOffsetY(0f);
-            openBackgroundEditor(sourceUri, false);
+            openBackgroundEditor(sourceUri, true);
             return;
         }
 

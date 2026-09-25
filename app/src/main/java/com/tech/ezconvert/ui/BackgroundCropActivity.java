@@ -43,20 +43,17 @@ import java.io.OutputStream;
 public class BackgroundCropActivity extends AppCompatActivity {
     private static final String TAG = "BackgroundCropActivity";
     private static final String EXTRA_SOURCE_URI = "source_uri";
-    private static final String EXTRA_RESTORE = "restore";
     private static final String EXTRA_COMMIT_SOURCE = "commit_source";
 
     private BackgroundCropImageView cropImageView;
     private Bitmap sourceBitmap;
     private String sourceUriString;
-    private boolean restoreCrop;
     private boolean commitSource;
     private boolean saving;
 
-    public static void open(AppCompatActivity activity, Uri sourceUri, boolean restore, boolean commitSource) {
+    public static void open(AppCompatActivity activity, Uri sourceUri, boolean commitSource) {
         Intent intent = new Intent(activity, BackgroundCropActivity.class);
         intent.putExtra(EXTRA_SOURCE_URI, sourceUri.toString());
-        intent.putExtra(EXTRA_RESTORE, restore);
         intent.putExtra(EXTRA_COMMIT_SOURCE, commitSource);
         activity.startActivityForResult(intent, MoreSettingsActivity.REQUEST_BACKGROUND_EDITOR);
     }
@@ -68,7 +65,6 @@ public class BackgroundCropActivity extends AppCompatActivity {
         setContentView(R.layout.activity_background_crop);
 
         sourceUriString = getIntent().getStringExtra(EXTRA_SOURCE_URI);
-        restoreCrop = getIntent().getBooleanExtra(EXTRA_RESTORE, false);
         commitSource = getIntent().getBooleanExtra(EXTRA_COMMIT_SOURCE, false);
         if (sourceUriString == null || sourceUriString.isEmpty()) {
             finish();
@@ -98,15 +94,9 @@ public class BackgroundCropActivity extends AppCompatActivity {
                 finish();
                 return;
             }
+            // 每次进入编辑器都从保存的完整原图重新开始。
+            // 不恢复上一次裁剪的缩放/偏移，这样用户可以重新调整整张原图。
             cropImageView.setBitmap(sourceBitmap);
-
-            if (restoreCrop) {
-                ConfigManager config = ConfigManager.getInstance(this);
-                cropImageView.setSavedState(
-                        config.getBackgroundCropZoom(),
-                        config.getBackgroundCropOffsetX(),
-                        config.getBackgroundCropOffsetY());
-            }
         } catch (Throwable e) {
             Log.e(TAG, "加载背景图片失败", e);
             setResult(RESULT_CANCELED);
@@ -180,10 +170,6 @@ public class BackgroundCropActivity extends AppCompatActivity {
             config.setCustomBackgroundUri(Uri.fromFile(target).toString());
             config.setCustomBackgroundEnabled(true);
             config.setDynamicColorSource(ConfigManager.DYNAMIC_COLOR_SOURCE_IMAGE);
-            config.setBackgroundCropZoom(cropImageView.getZoomFactor());
-            config.setBackgroundCropOffsetX(cropImageView.getOffsetXRatio());
-            config.setBackgroundCropOffsetY(cropImageView.getOffsetYRatio());
-
             ThemeManager.getInstance(this).invalidateCustomBackgroundCache();
             setResult(RESULT_OK);
             finish();
