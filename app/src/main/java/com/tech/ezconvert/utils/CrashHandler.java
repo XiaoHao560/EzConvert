@@ -80,8 +80,11 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler, Applicatio
             LogcatRecorder.getInstance().crashFlush();
         }
         
+        // 如果连崩溃界面自己都崩溃了，不要再次启动 CrashActivity，否则会形成无限崩溃循环。
+        boolean crashingInsideCrashActivity = isCrashActivityCrash(ex);
+
         // 启动崩溃界面
-        if (context != null) {
+        if (context != null && !crashingInsideCrashActivity) {
             Intent intent = new Intent(context, com.tech.ezconvert.ui.CrashActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             intent.putExtra("crash_type", ex.getClass().getSimpleName());
@@ -111,6 +114,26 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler, Applicatio
         System.exit(1);
     }
     
+    /**
+     * 判断这次异常是否发生在 CrashActivity 本身。
+     * ActivityLifecycleCallbacks 在 onCreate 期间不一定已经更新 currentActivity，
+     * 所以这里额外检查异常堆栈，确保 CrashActivity 永远不会进入自我重启循环。
+     */
+    private boolean isCrashActivityCrash(Throwable ex) {
+        if ("CrashActivity".equals(currentActivity)) {
+            return true;
+        }
+        if (ex == null) {
+            return false;
+        }
+        for (StackTraceElement element : ex.getStackTrace()) {
+            if (element != null && "com.tech.ezconvert.ui.CrashActivity".equals(element.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private String buildCrashReport(Thread thread, Throwable ex) {
         StringBuilder sb = new StringBuilder();
         

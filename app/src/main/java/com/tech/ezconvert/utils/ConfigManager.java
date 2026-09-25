@@ -472,6 +472,25 @@ public class ConfigManager {
         return defaultValue;
     }
     
+    /**
+     * 读取整数配置并兼容 Gson 将 JSON 数字解析为 Double/LazilyParsedNumber 等 Number 类型的情况。
+     * 旧版本配置文件中的整数也必须能够安全读取，避免 Integer 强制转换导致启动崩溃。
+     */
+    private int getIntSetting(String category, String key, int defaultValue) {
+        Object value = getSetting(category, key, defaultValue);
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+        if (value instanceof String) {
+            try {
+                return Integer.parseInt((String) value);
+            } catch (NumberFormatException ignored) {
+                // 使用默认值
+            }
+        }
+        return defaultValue;
+    }
+
     private void setSetting(String category, String key, Object value) {
         try {
             if (settingsMap == null) {
@@ -507,10 +526,10 @@ public class ConfigManager {
     public int getConfigVersion() {
         Map<String, Object> appInfo = getAppInfo();
         Object version = appInfo.get("config_version");
-        if (version instanceof Double) {
-            return ((Double) version).intValue();
+        if (version instanceof Number) {
+            return ((Number) version).intValue();
         }
-        return (int) appInfo.getOrDefault("config_version", 1);
+        return 1;
     }
     
     // 转码设置
@@ -558,11 +577,7 @@ public class ConfigManager {
     
     public int getUpdateCheckFrequency() {
         // 默认返回2（每次启动应用检测）
-        Object value = getSetting("update_settings", "check_frequency", 2);
-        if (value instanceof Double) {
-            return ((Double) value).intValue();
-        }
-        return (int) value;
+        return getIntSetting("update_settings", "check_frequency", 2);
     }
     
     public void setUpdateCheckFrequency(int frequency) {
@@ -588,11 +603,7 @@ public class ConfigManager {
     
     // 主题设置
     public int getThemeMode() {
-        Object value = getSetting("theme_settings", "theme_mode", -1);
-        if (value instanceof Double) {
-            return ((Double) value).intValue();
-        }
-        return (int) value;
+        return getIntSetting("theme_settings", "theme_mode", -1);
     }
     
     public void setThemeMode(int mode) {
@@ -667,7 +678,7 @@ public class ConfigManager {
     }
 
     public int getBackgroundMaskAlpha() {
-        int value = getSetting("theme_settings", "background_mask_alpha", 35);
+        int value = getIntSetting("theme_settings", "background_mask_alpha", 35);
         return Math.max(0, Math.min(70, value));
     }
 
@@ -676,7 +687,7 @@ public class ConfigManager {
     }
 
     public int getBackgroundBlurDp() {
-        int value = getSetting("theme_settings", "background_blur_dp", 8);
+        int value = getIntSetting("theme_settings", "background_blur_dp", 8);
         return Math.max(0, Math.min(24, value));
     }
 

@@ -124,25 +124,33 @@ public class ThemeManager {
 
         if (configManager.isCustomBackgroundEnabled()
                 && ConfigManager.DYNAMIC_COLOR_SOURCE_IMAGE.equals(configManager.getDynamicColorSource())) {
-            Bitmap bitmap = loadBitmapForDynamicColor(activity);
-            if (bitmap != null) {
-                try {
+            Bitmap bitmap = null;
+            try {
+                bitmap = loadBitmapForDynamicColor(activity);
+                if (bitmap != null) {
                     DynamicColorsOptions options = new DynamicColorsOptions.Builder()
                             .setContentBasedSource(bitmap)
                             .build();
                     DynamicColors.applyToActivityIfAvailable(activity, options);
                     return;
-                } catch (Exception e) {
-                    Log.e(TAG, "Failed to apply image-based dynamic color", e);
-                } finally {
-                    // DynamicColors 会在本次调用中提取颜色，调用后不再需要这份临时 bitmap。
-                    bitmap.recycle();
                 }
+            } catch (Throwable e) {
+                Log.e(TAG, "图片动态取色失败，自动回退到壁纸取色", e);
+                try {
+                    configManager.setDynamicColorSource(ConfigManager.DYNAMIC_COLOR_SOURCE_WALLPAPER);
+                } catch (Throwable ignored) {
+                }
+            } finally {
+                // 不主动 recycle：不同 Material 版本内部可能仍持有该 Bitmap 的引用。
+                // 该图像最多约 512x512，仅占约 1MB，由 GC 在 Activity 生命周期结束后回收。
             }
         }
 
-        // 图片不存在、读取失败，或当前选择为壁纸时，安全回退到系统壁纸取色。
-        DynamicColors.applyToActivityIfAvailable(activity);
+        try {
+            DynamicColors.applyToActivityIfAvailable(activity);
+        } catch (Throwable e) {
+            Log.e(TAG, "系统动态取色失败，继续使用普通主题", e);
+        }
     }
 
     /**
@@ -160,31 +168,36 @@ public class ThemeManager {
             return;
         }
 
-        Bitmap bitmap = getCachedBackgroundBitmap(activity, uriString);
-        if (bitmap == null) {
-            return;
+        try {
+            Bitmap bitmap = getCachedBackgroundBitmap(activity, uriString);
+            if (bitmap == null || bitmap.isRecycled()) {
+                return;
+            }
+
+            android.view.ViewGroup content = activity.findViewById(android.R.id.content);
+            if (content == null || content.getChildCount() == 0) {
+                return;
+            }
+
+            android.view.View rootView = content.getChildAt(0);
+            int blurDp = configManager.getBackgroundBlurDp();
+            int maskAlphaPercent = configManager.getBackgroundMaskAlpha();
+
+            if (ConfigManager.BACKGROUND_EFFECT_MODE_AUTO.equals(configManager.getBackgroundEffectMode())) {
+                maskAlphaPercent = calculateAutoMaskPercent(bitmap, activity);
+                blurDp = 8;
+            }
+
+            int maskColor = resolveColor(activity, com.google.android.material.R.attr.colorSurface,
+                    activity.getResources().getColor(android.R.color.black));
+
+            CustomBackgroundDrawable drawable = new CustomBackgroundDrawable(
+                    activity, bitmap, maskColor, maskAlphaPercent, blurDp);
+            rootView.setBackground(drawable);
+        } catch (Throwable e) {
+            Log.e(TAG, "应用自定义背景失败，自动关闭背景功能并回退到普通界面", e);
+            try { configManager.setCustomBackgroundEnabled(false); } catch (Throwable ignored) { }
         }
-
-        android.view.ViewGroup content = activity.findViewById(android.R.id.content);
-        if (content == null || content.getChildCount() == 0) {
-            return;
-        }
-
-        android.view.View rootView = content.getChildAt(0);
-        int blurDp = configManager.getBackgroundBlurDp();
-        int maskAlphaPercent = configManager.getBackgroundMaskAlpha();
-
-        if (ConfigManager.BACKGROUND_EFFECT_MODE_AUTO.equals(configManager.getBackgroundEffectMode())) {
-            maskAlphaPercent = calculateAutoMaskPercent(bitmap, activity);
-            blurDp = 8;
-        }
-
-        int maskColor = resolveColor(activity, com.google.android.material.R.attr.colorSurface,
-                activity.getResources().getColor(android.R.color.black));
-
-        CustomBackgroundDrawable drawable = new CustomBackgroundDrawable(
-                activity, bitmap, maskColor, maskAlphaPercent, blurDp);
-        rootView.setBackground(drawable);
     }
 
     private int calculateAutoMaskPercent(Bitmap bitmap, Activity activity) {
