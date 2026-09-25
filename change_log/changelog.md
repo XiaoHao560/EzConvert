@@ -1,6 +1,7 @@
 ## [changelog] 2026-09-13
 
 ### 新增
+- 新增 输出 `FFmpeg Muxers/FFmpeg Formats` 功能 **(开发者功能)**
 - 新增 修改文件输出路径设置
 
 ### 修复
