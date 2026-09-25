@@ -63,6 +63,9 @@ public class ConfigManager {
     public static final String KEY_DYNAMIC_COLOR_SOURCE = "dynamic_color_source";
     public static final String KEY_CUSTOM_BACKGROUND_ENABLED = "custom_background_enabled";
     public static final String KEY_CUSTOM_BACKGROUND_URI = "custom_background_uri";
+    public static final String KEY_BACKGROUND_EFFECT_MODE = "background_effect_mode";
+    public static final String KEY_BACKGROUND_MASK_ALPHA = "background_mask_alpha";
+    public static final String KEY_BACKGROUND_BLUR_DP = "background_blur_dp";
     public static final String KEY_FIREBASE_ANALYTICS = "firebase_analytics_enabled";
     public static final String KEY_LANGUAGE = "app_language";
     public static final String LANGUAGE_SYSTEM = "system"; // 跟随系统
@@ -77,6 +80,10 @@ public class ConfigManager {
     // 动态取色来源
     public static final String DYNAMIC_COLOR_SOURCE_WALLPAPER = "wallpaper";
     public static final String DYNAMIC_COLOR_SOURCE_IMAGE = "image";
+
+    // 自定义背景效果模式
+    public static final String BACKGROUND_EFFECT_MODE_AUTO = "auto";
+    public static final String BACKGROUND_EFFECT_MODE_CUSTOM = "custom";
     
     private ConfigManager(Context context) {
         this.context = context.getApplicationContext();
@@ -317,6 +324,9 @@ public class ConfigManager {
         themeSettings.put("dynamic_color_source", DYNAMIC_COLOR_SOURCE_WALLPAPER); // wallpaper / image
         themeSettings.put("custom_background_enabled", false); // true = 使用自定义图片作为界面背景
         themeSettings.put("custom_background_uri", ""); // 应用私有文件 Uri
+        themeSettings.put("background_effect_mode", BACKGROUND_EFFECT_MODE_AUTO); // auto / custom
+        themeSettings.put("background_mask_alpha", 35); // 0-70%
+        themeSettings.put("background_blur_dp", 8); // 0-24dp
         settingsMap.put("theme_settings", themeSettings);
         
         // 默认语言设置
@@ -638,6 +648,40 @@ public class ConfigManager {
 
     public void setCustomBackgroundUri(String uri) {
         setSetting("theme_settings", "custom_background_uri", uri == null ? "" : uri);
+    }
+
+    // 自定义背景显示效果
+    public String getBackgroundEffectMode() {
+        String mode = getSetting("theme_settings", "background_effect_mode", BACKGROUND_EFFECT_MODE_AUTO);
+        if (!BACKGROUND_EFFECT_MODE_CUSTOM.equals(mode)) {
+            return BACKGROUND_EFFECT_MODE_AUTO;
+        }
+        return mode;
+    }
+
+    public void setBackgroundEffectMode(String mode) {
+        if (!BACKGROUND_EFFECT_MODE_CUSTOM.equals(mode)) {
+            mode = BACKGROUND_EFFECT_MODE_AUTO;
+        }
+        setSetting("theme_settings", "background_effect_mode", mode);
+    }
+
+    public int getBackgroundMaskAlpha() {
+        int value = getSetting("theme_settings", "background_mask_alpha", 35);
+        return Math.max(0, Math.min(70, value));
+    }
+
+    public void setBackgroundMaskAlpha(int value) {
+        setSetting("theme_settings", "background_mask_alpha", Math.max(0, Math.min(70, value)));
+    }
+
+    public int getBackgroundBlurDp() {
+        int value = getSetting("theme_settings", "background_blur_dp", 8);
+        return Math.max(0, Math.min(24, value));
+    }
+
+    public void setBackgroundBlurDp(int value) {
+        setSetting("theme_settings", "background_blur_dp", Math.max(0, Math.min(24, value)));
     }
     
     // Firebase 设置

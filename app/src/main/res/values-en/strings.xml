@@ -244,6 +244,16 @@
     <string name="select_background_image">Choose Image</string>
     <string name="custom_background_no_image">No background image selected</string>
     <string name="custom_background_image_selected">Background image selected</string>
+    <string name="background_effect_title">Background Display Effect</string>
+    <string name="background_effect_auto">Auto Optimize</string>
+    <string name="background_effect_auto_desc">Automatically adjusts the overlay based on image brightness and the current theme</string>
+    <string name="background_effect_custom">Custom</string>
+    <string name="background_effect_custom_desc">Manually adjust overlay and blur strength</string>
+    <string name="background_mask_title">Overlay Strength</string>
+    <string name="background_mask_value">%1$d%%</string>
+    <string name="background_blur_title">Blur Strength</string>
+    <string name="background_blur_value">%1$ddp</string>
+
     <string name="dynamic_color_source_title">Dynamic Color Source</string>
     <string name="dynamic_color_source_image">Use Image Colors</string>
     <string name="dynamic_color_source_image_desc">Generate theme colors from the selected background image</string>

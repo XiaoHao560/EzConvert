@@ -739,6 +739,180 @@
 
                         </LinearLayout>
 
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/background_effect_title"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textSize="14sp" />
+
+                        <LinearLayout
+                            android:id="@+id/item_background_effect_auto"
+                            android:layout_width="match_parent"
+                            android:layout_height="64dp"
+                            android:layout_marginTop="8dp"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:text="@string/background_effect_auto"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="14sp" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="@string/background_effect_auto_desc"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:textSize="12sp" />
+
+                            </LinearLayout>
+
+                            <RadioButton
+                                android:id="@+id/radio_background_effect_auto"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:clickable="false"
+                                android:focusable="false" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/item_background_effect_custom"
+                            android:layout_width="match_parent"
+                            android:layout_height="64dp"
+                            android:layout_marginTop="4dp"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:text="@string/background_effect_custom"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="14sp" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="@string/background_effect_custom_desc"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:textSize="12sp" />
+
+                            </LinearLayout>
+
+                            <RadioButton
+                                android:id="@+id/radio_background_effect_custom"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:clickable="false"
+                                android:focusable="false" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/background_effect_custom_controls"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="vertical">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:text="@string/background_mask_title"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="13sp" />
+
+                                <TextView
+                                    android:id="@+id/background_mask_value"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:textSize="13sp" />
+
+                            </LinearLayout>
+
+                            <com.google.android.material.slider.Slider
+                                android:id="@+id/background_mask_slider"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="-4dp"
+                                android:value="35"
+                                android:stepSize="5"
+                                android:valueFrom="0"
+                                android:valueTo="70" />
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:text="@string/background_blur_title"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="13sp" />
+
+                                <TextView
+                                    android:id="@+id/background_blur_value"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:textSize="13sp" />
+
+                            </LinearLayout>
+
+                            <com.google.android.material.slider.Slider
+                                android:id="@+id/background_blur_slider"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="-4dp"
+                                android:value="8"
+                                android:stepSize="2"
+                                android:valueFrom="0"
+                                android:valueTo="24" />
+
+                        </LinearLayout>
+
                         <com.google.android.material.divider.MaterialDivider
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
