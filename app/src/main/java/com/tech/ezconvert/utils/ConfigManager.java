@@ -324,6 +324,9 @@ public class ConfigManager {
         themeSettings.put("dynamic_color_source", DYNAMIC_COLOR_SOURCE_WALLPAPER); // wallpaper / image
         themeSettings.put("custom_background_enabled", false); // true = 使用自定义图片作为界面背景
         themeSettings.put("custom_background_uri", ""); // 应用私有文件 Uri
+        themeSettings.put("background_crop_zoom", "1");
+        themeSettings.put("background_crop_offset_x", "0");
+        themeSettings.put("background_crop_offset_y", "0");
         themeSettings.put("background_effect_mode", BACKGROUND_EFFECT_MODE_AUTO); // auto / custom
         themeSettings.put("background_mask_alpha", 35); // 0-70%
         themeSettings.put("background_blur_dp", 8); // 0-24dp
@@ -659,6 +662,43 @@ public class ConfigManager {
 
     public void setCustomBackgroundUri(String uri) {
         setSetting("theme_settings", "custom_background_uri", uri == null ? "" : uri);
+    }
+
+    // 自定义背景图片编辑状态：用于让用户在确认后仍可重新打开编辑器微调位置和缩放。
+    public float getBackgroundCropZoom() {
+        try {
+            return Math.max(1f, Float.parseFloat(getSetting("theme_settings", "background_crop_zoom", "1")));
+        } catch (Exception ignored) {
+            return 1f;
+        }
+    }
+
+    public void setBackgroundCropZoom(float value) {
+        setSetting("theme_settings", "background_crop_zoom", String.valueOf(Math.max(1f, value)));
+    }
+
+    public float getBackgroundCropOffsetX() {
+        try {
+            return Float.parseFloat(getSetting("theme_settings", "background_crop_offset_x", "0"));
+        } catch (Exception ignored) {
+            return 0f;
+        }
+    }
+
+    public void setBackgroundCropOffsetX(float value) {
+        setSetting("theme_settings", "background_crop_offset_x", String.valueOf(value));
+    }
+
+    public float getBackgroundCropOffsetY() {
+        try {
+            return Float.parseFloat(getSetting("theme_settings", "background_crop_offset_y", "0"));
+        } catch (Exception ignored) {
+            return 0f;
+        }
+    }
+
+    public void setBackgroundCropOffsetY(float value) {
+        setSetting("theme_settings", "background_crop_offset_y", String.valueOf(value));
     }
 
     // 自定义背景显示效果

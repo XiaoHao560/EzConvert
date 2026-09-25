@@ -89,6 +89,12 @@
             android:name=".ui.MoreSettingsActivity"
             android:exported="false"
             android:label="更多设置" />
+
+        <activity
+            android:name=".ui.BackgroundCropActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:label="@string/background_crop_title" />
             
         <activity
             android:name=".ui.LogSettingsActivity"

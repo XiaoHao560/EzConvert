@@ -244,6 +244,13 @@
     <string name="select_background_image">Choose Image</string>
     <string name="custom_background_no_image">No background image selected</string>
     <string name="custom_background_image_selected">Background image selected</string>
+    <string name="adjust_background_image">Adjust Image</string>
+    <string name="adjust_background_image_desc">Crop, zoom, or move the current background image again</string>
+    <string name="background_crop_title">Adjust Background Image</string>
+    <string name="background_crop_cancel">Cancel</string>
+    <string name="background_crop_confirm">Confirm</string>
+    <string name="background_crop_hint">Drag to move, pinch to zoom</string>
+    <string name="background_crop_save_failed">Failed to save background image</string>
     <string name="background_effect_title">Background Display Effect</string>
     <string name="background_effect_auto">Auto Optimize</string>
     <string name="background_effect_auto_desc">Automatically adjusts the overlay based on image brightness and the current theme</string>

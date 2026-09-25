@@ -244,6 +244,13 @@
     <string name="select_background_image">选择图片</string>
     <string name="custom_background_no_image">尚未选择背景图片</string>
     <string name="custom_background_image_selected">已选择背景图片</string>
+    <string name="adjust_background_image">调整图片</string>
+    <string name="adjust_background_image_desc">重新裁剪、缩放或移动当前背景图片</string>
+    <string name="background_crop_title">调整背景图片</string>
+    <string name="background_crop_cancel">取消</string>
+    <string name="background_crop_confirm">确认</string>
+    <string name="background_crop_hint">拖动调整位置，双指缩放图片</string>
+    <string name="background_crop_save_failed">保存背景图片失败</string>
     <string name="background_effect_title">背景显示效果</string>
     <string name="background_effect_auto">自动优化</string>
     <string name="background_effect_auto_desc">根据图片明暗和当前主题自动调整遮罩，降低背景对界面内容的干扰</string>
