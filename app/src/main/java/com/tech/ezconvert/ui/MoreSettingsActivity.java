@@ -629,6 +629,13 @@ public class MoreSettingsActivity extends BaseActivity {
             }
 
             configManager.setCustomBackgroundUri(localImageUri.toString());
+
+            // 背景图片实际保存在固定的应用私有文件中，因此连续选择不同图片时
+            // URI 可能完全相同，ThemeManager 若继续复用旧 Bitmap，就会出现
+            // "主题取色已经切换，但界面背景仍然显示上一张图片”的状态不一致
+            // 保存新图片后先显式失效背景缓存，再重建 Activity，确保背景和取色都基于同一张最新图片
+            themeManager.invalidateCustomBackgroundCache();
+
             // 用户明确选择了图片时直接启用自定义背景，并自动切换为图片取色。
             configManager.setCustomBackgroundEnabled(true);
             configManager.setDynamicColorSource(ConfigManager.DYNAMIC_COLOR_SOURCE_IMAGE);
