@@ -22,7 +22,6 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.color.DynamicColors;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.LanguageManager;
@@ -33,8 +32,8 @@ import java.util.Arrays;
 
 public abstract class BaseActivity extends AppCompatActivity {
 
-    // 记录本次 onCreate 时的动态取色状态，用于 onResume 检测变更
-    private boolean wasDynamicColorEnabled;
+    // 记录本次 onCreate 时的主题/动态取色/自定义背景状态，用于 onResume 检测变更
+    private String appearanceStateKey;
 
     // 子类可重写返回自定义背景色（默认白色）
     protected int getBackgroundColor() {
@@ -56,9 +55,8 @@ public abstract class BaseActivity extends AppCompatActivity {
         // 动态取色
         ThemeManager.getInstance(this).applyDynamicColorToActivityIfNeeded(this);
         
-        // 记录本次创建时的动态取色开关状态 (用于返回时检测变化)
-        wasDynamicColorEnabled = ThemeManager.getInstance(this).isDynamicColorEnabled()
-                && DynamicColors.isDynamicColorAvailable();
+        // 记录本次创建时的外观状态，用于返回时检测主题设置是否发生变化
+        appearanceStateKey = ThemeManager.getInstance(this).getAppearanceStateKey();
         
         // 启用沉浸式
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
@@ -77,12 +75,10 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // 当用户从设置页返回时，检测动态取色配置是否发生变化
-        boolean isDynamicColorEnabledNow = ThemeManager.getInstance(this).isDynamicColorEnabled()
-                && DynamicColors.isDynamicColorAvailable();
-        
-        if (isDynamicColorEnabledNow != wasDynamicColorEnabled) {
-            // 配置已变更，重建当前 Activity 以应用新主题色调
+        // 当用户从设置页返回时，检测主题、动态取色来源和自定义背景配置是否发生变化
+        String appearanceStateKeyNow = ThemeManager.getInstance(this).getAppearanceStateKey();
+        if (appearanceStateKey == null || !appearanceStateKey.equals(appearanceStateKeyNow)) {
+            // 配置已变更，重建当前 Activity 以应用最新主题和背景
             recreate();
         }
     }
@@ -124,6 +120,8 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     public void setContentView(int layoutResID) {
         super.setContentView(layoutResID);
+        // 应用用户选择的自定义背景（如果启用且已选择图片）
+        ThemeManager.getInstance(this).applyCustomBackgroundIfNeeded(this);
         // 为滚动容器分配基于路径的稳定 ID
         assignStableIdsToScrollables(findViewById(android.R.id.content), new StringBuilder());
         // 沉浸式内边距处理
