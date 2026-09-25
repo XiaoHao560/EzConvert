@@ -60,6 +60,9 @@ public class ConfigManager {
     public static final String KEY_NOTIFICATION_FIRST_REQUESTED = "notification_first_requested";
     public static final String KEY_THEME_MODE = "theme_mode";
     public static final String KEY_DYNAMIC_COLOR = "dynamic_color";
+    public static final String KEY_DYNAMIC_COLOR_SOURCE = "dynamic_color_source";
+    public static final String KEY_CUSTOM_BACKGROUND_ENABLED = "custom_background_enabled";
+    public static final String KEY_CUSTOM_BACKGROUND_URI = "custom_background_uri";
     public static final String KEY_FIREBASE_ANALYTICS = "firebase_analytics_enabled";
     public static final String KEY_LANGUAGE = "app_language";
     public static final String LANGUAGE_SYSTEM = "system"; // 跟随系统
@@ -70,6 +73,10 @@ public class ConfigManager {
     public static final String OUTPUT_PATH_DOWNLOAD = "download";
     public static final String OUTPUT_PATH_DCIM = "dcim";
     public static final String OUTPUT_PATH_CUSTOM = "custom";
+
+    // 动态取色来源
+    public static final String DYNAMIC_COLOR_SOURCE_WALLPAPER = "wallpaper";
+    public static final String DYNAMIC_COLOR_SOURCE_IMAGE = "image";
     
     private ConfigManager(Context context) {
         this.context = context.getApplicationContext();
@@ -230,7 +237,10 @@ public class ConfigManager {
                     "  - `-1` = 跟随系统 (默认)\n" +
                     "  - `1` = 浅色模式\n" +
                     "  - `2` = 深色模式\n" +
-                    "- `dynamic_color`: 自动取色 (true/false)，根据系统壁纸动态生成主题色调，需要 Android 12+ 设备支持\n\n" +
+                    "- `dynamic_color`: 自动取色 (true/false)，根据系统壁纸或自定义图片动态生成主题色调，需要 Android 12+ 设备支持\n" +
+                    "- `dynamic_color_source`: 自动取色来源 (`wallpaper`=系统壁纸, `image`=自定义背景图片)\n" +
+                    "- `custom_background_enabled`: 是否启用自定义背景 (true/false)\n" +
+                    "- `custom_background_uri`: 自定义背景图片的应用私有文件 URI\n\n" +
                     "### 语言设置说明\\n" +
                     "- `app_language`: 应用显示语言\\n" +
                     " - `system` = 跟随系统 (默认)\\n" +
@@ -304,6 +314,9 @@ public class ConfigManager {
         Map<String, Object> themeSettings = new HashMap<>();
         themeSettings.put("theme_mode", -1); // -1 = 跟随系统, 1 = 浅色, 2 = 深色
         themeSettings.put("dynamic_color", true); // true = 启用自动取色 (Material You)
+        themeSettings.put("dynamic_color_source", DYNAMIC_COLOR_SOURCE_WALLPAPER); // wallpaper / image
+        themeSettings.put("custom_background_enabled", false); // true = 使用自定义图片作为界面背景
+        themeSettings.put("custom_background_uri", ""); // 应用私有文件 Uri
         settingsMap.put("theme_settings", themeSettings);
         
         // 默认语言设置
@@ -592,6 +605,39 @@ public class ConfigManager {
     
     public void setDynamicColorEnabled(boolean enabled) {
         setSetting("theme_settings", "dynamic_color", enabled);
+    }
+
+    // 动态取色来源
+    public String getDynamicColorSource() {
+        String source = getSetting("theme_settings", "dynamic_color_source", DYNAMIC_COLOR_SOURCE_WALLPAPER);
+        if (!DYNAMIC_COLOR_SOURCE_IMAGE.equals(source)) {
+            return DYNAMIC_COLOR_SOURCE_WALLPAPER;
+        }
+        return source;
+    }
+
+    public void setDynamicColorSource(String source) {
+        if (!DYNAMIC_COLOR_SOURCE_IMAGE.equals(source)) {
+            source = DYNAMIC_COLOR_SOURCE_WALLPAPER;
+        }
+        setSetting("theme_settings", "dynamic_color_source", source);
+    }
+
+    // 自定义背景设置
+    public boolean isCustomBackgroundEnabled() {
+        return getSetting("theme_settings", "custom_background_enabled", false);
+    }
+
+    public void setCustomBackgroundEnabled(boolean enabled) {
+        setSetting("theme_settings", "custom_background_enabled", enabled);
+    }
+
+    public String getCustomBackgroundUri() {
+        return getSetting("theme_settings", "custom_background_uri", "");
+    }
+
+    public void setCustomBackgroundUri(String uri) {
+        setSetting("theme_settings", "custom_background_uri", uri == null ? "" : uri);
     }
     
     // Firebase 设置

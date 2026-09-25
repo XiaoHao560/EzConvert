@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.net.Uri;
+import android.graphics.BitmapFactory;
 import android.provider.DocumentsContract;
 import android.provider.Settings;
 import android.view.View;
@@ -13,6 +14,11 @@ import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -64,6 +70,18 @@ public class MoreSettingsActivity extends BaseActivity {
     // 动态取色相关视图
     private LinearLayout itemDynamicColor;
     private MaterialSwitch dynamicColorSwitch;
+
+    // 自定义背景相关视图
+    private LinearLayout itemCustomBackground;
+    private LinearLayout itemSelectBackground;
+    private MaterialSwitch customBackgroundSwitch;
+    private android.widget.TextView selectedBackgroundText;
+
+    // 动态取色来源相关视图
+    private LinearLayout itemColorSourceImage;
+    private LinearLayout itemColorSourceWallpaper;
+    private RadioButton radioColorSourceImage;
+    private RadioButton radioColorSourceWallpaper;
     
     // 输出目录设置
     private LinearLayout itemOutputDownload;
@@ -74,6 +92,7 @@ public class MoreSettingsActivity extends BaseActivity {
     private RadioButton radioOutputCustom;
     private android.widget.TextView customOutputPathText;
     private static final int REQUEST_OUTPUT_DIRECTORY = 1001;
+    private static final int REQUEST_BACKGROUND_IMAGE = 1002;
 
     // 标记是否正在处理开关变化，防止循环触发
     private boolean isHandlingNotificationSwitch = false;
@@ -87,7 +106,6 @@ public class MoreSettingsActivity extends BaseActivity {
         themeManager.applySavedTheme();
         
         super.onCreate(savedInstanceState);
-        themeManager.applyDynamicColorToActivityIfNeeded(this);
         setContentView(R.layout.activity_more_settings);
 
         // 设置进入动画
@@ -143,6 +161,18 @@ public class MoreSettingsActivity extends BaseActivity {
         // 动态取色开关
         itemDynamicColor = findViewById(R.id.item_dynamic_color);
         dynamicColorSwitch = findViewById(R.id.dynamic_color_switch);
+
+        // 自定义背景
+        itemCustomBackground = findViewById(R.id.item_custom_background);
+        itemSelectBackground = findViewById(R.id.item_select_background);
+        customBackgroundSwitch = findViewById(R.id.custom_background_switch);
+        selectedBackgroundText = findViewById(R.id.selected_background_text);
+
+        // 动态取色来源
+        itemColorSourceImage = findViewById(R.id.item_color_source_image);
+        itemColorSourceWallpaper = findViewById(R.id.item_color_source_wallpaper);
+        radioColorSourceImage = findViewById(R.id.radio_color_source_image);
+        radioColorSourceWallpaper = findViewById(R.id.radio_color_source_wallpaper);
         
         // 检查设备是否支持动态取色 (Android 12+)
         if (!DynamicColors.isDynamicColorAvailable()) {
@@ -154,6 +184,15 @@ public class MoreSettingsActivity extends BaseActivity {
             itemDynamicColor.setOnClickListener(v -> {
                 ToastUtils.show(this, getString(R.string.toast_dynamic_color_not_supported));
             });
+        }
+
+        if (!DynamicColors.isDynamicColorAvailable()) {
+            itemColorSourceImage.setEnabled(false);
+            itemColorSourceImage.setAlpha(0.38f);
+            itemColorSourceImage.setClickable(false);
+            itemColorSourceWallpaper.setEnabled(false);
+            itemColorSourceWallpaper.setAlpha(0.38f);
+            itemColorSourceWallpaper.setClickable(false);
         }
         
         // 自动更新开关
@@ -189,6 +228,21 @@ public class MoreSettingsActivity extends BaseActivity {
         itemThemeSystem.setOnClickListener(v -> setThemeMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM));
         itemThemeLight.setOnClickListener(v -> setThemeMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO));
         itemThemeDark.setOnClickListener(v -> setThemeMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES));
+
+        // 自定义背景
+        itemCustomBackground.setOnClickListener(v -> {
+            boolean enabled = !customBackgroundSwitch.isChecked();
+            customBackgroundSwitch.setChecked(enabled);
+        });
+        customBackgroundSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            configManager.setCustomBackgroundEnabled(isChecked);
+            recreate();
+        });
+        itemSelectBackground.setOnClickListener(v -> openBackgroundImagePicker());
+
+        // 动态取色来源
+        itemColorSourceImage.setOnClickListener(v -> setDynamicColorSource(ConfigManager.DYNAMIC_COLOR_SOURCE_IMAGE));
+        itemColorSourceWallpaper.setOnClickListener(v -> setDynamicColorSource(ConfigManager.DYNAMIC_COLOR_SOURCE_WALLPAPER));
 
         // 输出目录选择
         itemOutputDownload.setOnClickListener(v -> selectOutputPath(ConfigManager.OUTPUT_PATH_DOWNLOAD));
@@ -262,6 +316,7 @@ public class MoreSettingsActivity extends BaseActivity {
         prereleaseSwitch.setOnCheckedChangeListener(null);
         notificationSwitch.setOnCheckedChangeListener(null);
         dynamicColorSwitch.setOnCheckedChangeListener(null);
+        customBackgroundSwitch.setOnCheckedChangeListener(null);
         firebaseSwitch.setOnCheckedChangeListener(null);
         
         // 加载当前设置
@@ -270,6 +325,9 @@ public class MoreSettingsActivity extends BaseActivity {
         int currentFrequency = configManager.getUpdateCheckFrequency();
         boolean notificationEnabled = configManager.isNotificationEnabled();
         boolean dynamicColorEnabled = configManager.isDynamicColorEnabled();
+        boolean customBackgroundEnabled = configManager.isCustomBackgroundEnabled();
+        String customBackgroundUri = configManager.getCustomBackgroundUri();
+        String dynamicColorSource = configManager.getDynamicColorSource();
         boolean firebaseEnabled = configManager.isFirebaseAnalyticsEnabled();
 
         updateOutputPathUi(configManager.getOutputPathMode(), configManager.getCustomOutputUri());
@@ -284,6 +342,10 @@ public class MoreSettingsActivity extends BaseActivity {
         if (DynamicColors.isDynamicColorAvailable()) {
             dynamicColorSwitch.setChecked(dynamicColorEnabled);
         }
+
+        customBackgroundSwitch.setChecked(customBackgroundEnabled);
+        updateBackgroundImageUi(customBackgroundUri);
+        updateDynamicColorSourceUi(dynamicColorSource);
         
         // 更新Spinner选择
         int spinnerPosition = mapFrequencyToPosition(currentFrequency);
@@ -328,6 +390,11 @@ public class MoreSettingsActivity extends BaseActivity {
             }
         });
         
+        customBackgroundSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            configManager.setCustomBackgroundEnabled(isChecked);
+            recreate();
+        });
+
         dynamicColorSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             configManager.setDynamicColorEnabled(isChecked);
             themeManager.applyDynamicColorAndRecreate(MoreSettingsActivity.this);
@@ -339,6 +406,91 @@ public class MoreSettingsActivity extends BaseActivity {
         });
     }
     
+    private void setDynamicColorSource(String source) {
+        if (ConfigManager.DYNAMIC_COLOR_SOURCE_IMAGE.equals(source)
+                && (configManager.getCustomBackgroundUri() == null
+                || configManager.getCustomBackgroundUri().isEmpty())) {
+            ToastUtils.show(this, getString(R.string.toast_select_background_first));
+            return;
+        }
+        configManager.setDynamicColorSource(source);
+        updateDynamicColorSourceUi(source);
+        themeManager.applyDynamicColorAndRecreate(this);
+    }
+
+    private void updateDynamicColorSourceUi(String source) {
+        radioColorSourceImage.setChecked(ConfigManager.DYNAMIC_COLOR_SOURCE_IMAGE.equals(source));
+        radioColorSourceWallpaper.setChecked(ConfigManager.DYNAMIC_COLOR_SOURCE_WALLPAPER.equals(source));
+    }
+
+    private void updateBackgroundImageUi(String uriString) {
+        if (uriString == null || uriString.isEmpty()) {
+            selectedBackgroundText.setText(R.string.custom_background_no_image);
+        } else {
+            selectedBackgroundText.setText(R.string.custom_background_image_selected);
+        }
+    }
+
+    private void openBackgroundImagePicker() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("image/*");
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        try {
+            startActivityForResult(intent, REQUEST_BACKGROUND_IMAGE);
+        } catch (ActivityNotFoundException e) {
+            ToastUtils.show(this, getString(R.string.toast_cannot_open_image_picker));
+        }
+    }
+
+    /**
+     * 将用户选择的图片复制到应用私有目录。这样即使原图片提供商不支持持久化 URI，
+     * 应用重启后仍可稳定读取背景图片。
+     */
+    private Uri copyBackgroundImageToPrivateStorage(Uri sourceUri) {
+        File directory = new File(getFilesDir(), "custom_background");
+        if (!directory.exists() && !directory.mkdirs()) {
+            return null;
+        }
+
+        File targetFile = new File(directory, "background_image");
+        try (InputStream input = getContentResolver().openInputStream(sourceUri);
+             OutputStream output = new FileOutputStream(targetFile, false)) {
+            if (input == null) {
+                targetFile.delete();
+                return null;
+            }
+
+            byte[] buffer = new byte[16 * 1024];
+            int read;
+            long total = 0;
+            while ((read = input.read(buffer)) != -1) {
+                total += read;
+                // 防止异常提供商返回超大文件导致无意义的磁盘占用。
+                if (total > 50L * 1024L * 1024L) {
+                    output.flush();
+                    targetFile.delete();
+                    return null;
+                }
+                output.write(buffer, 0, read);
+            }
+            output.flush();
+        } catch (Exception e) {
+            targetFile.delete();
+            return null;
+        }
+
+        // 先快速验证文件确实是一张可解码的图片。
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(targetFile.getAbsolutePath(), options);
+        if (options.outWidth <= 0 || options.outHeight <= 0) {
+            targetFile.delete();
+            return null;
+        }
+        return Uri.fromFile(targetFile);
+    }
+
     private void selectOutputPath(String mode) {
         configManager.setOutputPathMode(mode);
         updateOutputPathUi(mode, configManager.getCustomOutputUri());
@@ -387,6 +539,27 @@ public class MoreSettingsActivity extends BaseActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_BACKGROUND_IMAGE) {
+            if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
+
+            Uri imageUri = data.getData();
+            Uri localImageUri = copyBackgroundImageToPrivateStorage(imageUri);
+            if (localImageUri == null) {
+                ToastUtils.show(this, getString(R.string.toast_background_image_read_failed));
+                return;
+            }
+
+            configManager.setCustomBackgroundUri(localImageUri.toString());
+            // 用户明确选择了图片时直接启用自定义背景，并自动切换为图片取色。
+            configManager.setCustomBackgroundEnabled(true);
+            configManager.setDynamicColorSource(ConfigManager.DYNAMIC_COLOR_SOURCE_IMAGE);
+            updateBackgroundImageUi(imageUri.toString());
+            updateDynamicColorSourceUi(ConfigManager.DYNAMIC_COLOR_SOURCE_IMAGE);
+            recreate();
+            return;
+        }
+
         if (requestCode != REQUEST_OUTPUT_DIRECTORY || resultCode != RESULT_OK
                 || data == null || data.getData() == null) return;
 
