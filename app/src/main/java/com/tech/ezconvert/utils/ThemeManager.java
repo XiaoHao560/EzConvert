@@ -20,6 +20,8 @@ import androidx.appcompat.app.AppCompatDelegate;
 import com.google.android.material.color.DynamicColors;
 import com.google.android.material.color.DynamicColorsOptions;
 
+import com.tech.ezconvert.utils.Log;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
