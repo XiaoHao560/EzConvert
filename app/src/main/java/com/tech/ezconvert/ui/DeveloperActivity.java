@@ -55,6 +55,18 @@ public class DeveloperActivity extends BaseActivity {
         if (checkCodecsItem != null) {
             checkCodecsItem.setOnClickListener(v -> checkFFmpegCodecs());
         }
+
+        // 查看 FFmpeg Muxers 按钮
+        MaterialCardView checkMuxersItem = findViewById(R.id.check_muxers_item);
+        if (checkMuxersItem != null) {
+            checkMuxersItem.setOnClickListener(v -> checkFFmpegMuxers());
+        }
+
+        // 查看 FFmpeg Formats 按钮
+        MaterialCardView checkFormatsItem = findViewById(R.id.check_formats_item);
+        if (checkFormatsItem != null) {
+            checkFormatsItem.setOnClickListener(v -> checkFFmpegFormats());
+        }
     }
     
     // 检查 FFmpeg 编解码器 - 主入口
@@ -168,6 +180,124 @@ public class DeveloperActivity extends BaseActivity {
         builder.show();
     }
     
+    // 检查 FFmpeg Muxers
+    private void checkFFmpegMuxers() {
+        checkFFmpegList(
+            "FFmpeg Muxers 信息",
+            "-muxers",
+            "Muxers 数量",
+            "完整 Muxers 列表",
+            "FFmpeg Muxers",
+            "查看完整 Muxers"
+        );
+    }
+
+    // 检查 FFmpeg Formats
+    private void checkFFmpegFormats() {
+        checkFFmpegList(
+            "FFmpeg Formats 信息",
+            "-formats",
+            "Formats 数量",
+            "完整 Formats 列表",
+            "FFmpeg Formats",
+            "查看完整 Formats"
+        );
+    }
+
+    // 通用的 FFmpeg 列表查询逻辑
+    private void checkFFmpegList(
+            String dialogTitle,
+            String command,
+            String countLabel,
+            String fullListTitle,
+            String clipboardLabel,
+            String fullListButton) {
+        View loadingView = LayoutInflater.from(this).inflate(R.layout.dialog_loading, null);
+        TextView loadingText = loadingView.findViewById(R.id.loading_text);
+        if (loadingText != null) {
+            loadingText.setText("正在查询 FFmpeg 信息...");
+        }
+
+        androidx.appcompat.app.AlertDialog loadingDialog = new MaterialAlertDialogBuilder(this)
+            .setView(loadingView)
+            .setCancelable(false)
+            .show();
+
+        new Thread(() -> {
+            String output = FFmpegUtil.executeSimpleCommand(command);
+
+            StringBuilder summary = new StringBuilder();
+            summary.append("═══ ").append(dialogTitle).append(" ═══\n\n");
+            if (output != null) {
+                String[] lines = output.split("\n");
+                int count = 0;
+                for (String line : lines) {
+                    if (line != null && !line.trim().isEmpty()) {
+                        count++;
+                    }
+                }
+                summary.append(countLabel).append(": 约 ").append(count).append(" 个\n\n");
+                summary.append(output);
+            } else {
+                summary.append("获取失败");
+            }
+
+            String fullOutput = output;
+            String summaryText = summary.toString();
+
+            mainHandler.post(() -> {
+                loadingDialog.dismiss();
+                showFFmpegListResultDialog(
+                    dialogTitle,
+                    summaryText,
+                    fullOutput,
+                    fullListTitle,
+                    clipboardLabel,
+                    fullListButton
+                );
+            });
+        }).start();
+    }
+
+    // 显示 Muxers / Formats 查询结果
+    private void showFFmpegListResultDialog(
+            String dialogTitle,
+            String summary,
+            String fullOutput,
+            String fullListTitle,
+            String clipboardLabel,
+            String fullListButton) {
+        NestedScrollView scrollView = new NestedScrollView(this);
+        int padding = (int) (24 * getResources().getDisplayMetrics().density);
+        scrollView.setPadding(padding, padding / 2, padding, padding / 2);
+
+        TextView textView = new TextView(this);
+        textView.setText(summary);
+        textView.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyMedium);
+        textView.setTextIsSelectable(true);
+        textView.setLineSpacing(0, 1.3f);
+        textView.setTextColor(getColor(R.color.text_primary));
+        scrollView.addView(textView);
+
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this)
+            .setIcon(R.drawable.round_code)
+            .setTitle(dialogTitle)
+            .setView(scrollView)
+            .setPositiveButton("关闭", null)
+            .setNeutralButton("复制结果", (dialog, which) -> {
+                copyToClipboard(clipboardLabel, summary);
+                ToastUtils.show(this, "已复制到剪贴板");
+            });
+
+        if (fullOutput != null) {
+            builder.setNegativeButton(fullListButton, (dialog, which) -> {
+                showFullListDialog(fullListTitle, fullOutput);
+            });
+        }
+
+        builder.show();
+    }
+
     // 显示完整列表
     private void showFullListDialog(String title, String content) {
         NestedScrollView scrollView = new NestedScrollView(this);

@@ -277,6 +277,132 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+            <com.google.android.material.card.MaterialCardView
+                 android:layout_height="72dp"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="8dp"
+                 android:layout_marginHorizontal="4dp"
+                 app:rippleColor="#1F2196F3"
+                 android:clickable="true"
+                 app:cardElevation="2dp"
+                 app:strokeWidth="0dp"
+                 app:cardBackgroundColor="?attr/colorSurface"
+                 app:cardCornerRadius="8dp"
+                 android:focusable="true"
+                 android:id="@+id/check_muxers_item">
+
+                <LinearLayout
+                     android:layout_height="match_parent"
+                     android:layout_width="match_parent"
+                     android:paddingEnd="16dp"
+                     android:gravity="center_vertical"
+                     android:background="?attr/colorSurface"
+                     android:orientation="horizontal"
+                     android:paddingStart="16dp">
+
+                    <ImageView
+                         android:layout_height="32dp"
+                         android:layout_width="32dp"
+                         android:layout_marginEnd="16dp"
+                         android:src="@drawable/round_code"
+                         android:tint="@color/colorPrimary" />
+
+                    <LinearLayout
+                         android:layout_height="wrap_content"
+                         android:layout_width="0dp"
+                         android:background="?attr/colorSurface"
+                         android:orientation="vertical"
+                         android:layout_weight="1">
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="16sp"
+                             android:textColor="@color/colorPrimary"
+                             android:text="查看 FFmpeg Muxers" />
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="12sp"
+                             android:textColor="@color/text_hint"
+                             android:text="查看当前集成的 FFmpeg 复用器支持" />
+
+                    </LinearLayout>
+
+                    <ImageView
+                         android:layout_height="24dp"
+                         android:layout_width="24dp"
+                         android:src="@drawable/round_arrow_forward"
+                         android:tint="#9E9E9E" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                 android:layout_height="72dp"
+                 android:layout_width="match_parent"
+                 android:layout_marginBottom="8dp"
+                 android:layout_marginHorizontal="4dp"
+                 app:rippleColor="#1F2196F3"
+                 android:clickable="true"
+                 app:cardElevation="2dp"
+                 app:strokeWidth="0dp"
+                 app:cardBackgroundColor="?attr/colorSurface"
+                 app:cardCornerRadius="8dp"
+                 android:focusable="true"
+                 android:id="@+id/check_formats_item">
+
+                <LinearLayout
+                     android:layout_height="match_parent"
+                     android:layout_width="match_parent"
+                     android:paddingEnd="16dp"
+                     android:gravity="center_vertical"
+                     android:background="?attr/colorSurface"
+                     android:orientation="horizontal"
+                     android:paddingStart="16dp">
+
+                    <ImageView
+                         android:layout_height="32dp"
+                         android:layout_width="32dp"
+                         android:layout_marginEnd="16dp"
+                         android:src="@drawable/round_code"
+                         android:tint="@color/colorPrimary" />
+
+                    <LinearLayout
+                         android:layout_height="wrap_content"
+                         android:layout_width="0dp"
+                         android:background="?attr/colorSurface"
+                         android:orientation="vertical"
+                         android:layout_weight="1">
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="16sp"
+                             android:textColor="@color/colorPrimary"
+                             android:text="查看 FFmpeg Formats" />
+
+                        <TextView
+                             android:layout_height="wrap_content"
+                             android:layout_width="match_parent"
+                             android:textSize="12sp"
+                             android:textColor="@color/text_hint"
+                             android:text="查看当前集成的 FFmpeg 格式支持" />
+
+                    </LinearLayout>
+
+                    <ImageView
+                         android:layout_height="24dp"
+                         android:layout_width="24dp"
+                         android:src="@drawable/round_arrow_forward"
+                         android:tint="#9E9E9E" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
             <TextView
                  android:layout_height="wrap_content"
                  android:layout_width="match_parent"
