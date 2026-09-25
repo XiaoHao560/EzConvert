@@ -29,10 +29,6 @@ public class BackgroundCropImageView extends View {
     private float lastY;
     private boolean dragging;
     private boolean initialized;
-    private float restoredZoom = 1f;
-    private float restoredOffsetX;
-    private float restoredOffsetY;
-    private boolean hasSavedState;
     private float cropAspectRatio = 1f;
 
     public BackgroundCropImageView(Context context, AttributeSet attrs) {
@@ -76,13 +72,6 @@ public class BackgroundCropImageView extends View {
         invalidate();
     }
 
-    public void setSavedState(float zoom, float offsetX, float offsetY) {
-        restoredZoom = Math.max(1f, zoom);
-        restoredOffsetX = offsetX;
-        restoredOffsetY = offsetY;
-        hasSavedState = true;
-    }
-
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
@@ -100,11 +89,11 @@ public class BackgroundCropImageView extends View {
             minScale = Math.max(cropWidth / (float) bitmap.getWidth(), cropHeight / (float) bitmap.getHeight());
             maxScale = Math.max(minScale * 4f, minScale + 1f);
             matrix.reset();
-            float scale = minScale * (hasSavedState ? restoredZoom : 1f);
+            float scale = minScale;
             float width = bitmap.getWidth() * scale;
             float height = bitmap.getHeight() * scale;
-            float tx = cropRect.centerX() - width / 2f + (hasSavedState ? restoredOffsetX * cropRect.width() : 0f);
-            float ty = cropRect.centerY() - height / 2f + (hasSavedState ? restoredOffsetY * cropRect.height() : 0f);
+            float tx = cropRect.centerX() - width / 2f;
+            float ty = cropRect.centerY() - height / 2f;
             matrix.setScale(scale, scale);
             matrix.postTranslate(tx, ty);
             clampTranslation();
