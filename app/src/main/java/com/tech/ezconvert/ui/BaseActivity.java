@@ -40,6 +40,14 @@ public abstract class BaseActivity extends AppCompatActivity {
         return Color.WHITE;
     }
 
+    /**
+     * 是否允许当前 Activity 使用自定义背景、图片动态取色等增强主题功能。
+     * 崩溃页面会关闭这些增强功能，避免异常页面再次触发同一个崩溃。
+     */
+    protected boolean shouldApplyThemeCustomizations() {
+        return true;
+    }
+
     protected int getTitleContainerId() {
         return View.NO_ID;
     }
@@ -53,16 +61,30 @@ public abstract class BaseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         
         // 动态取色
-        ThemeManager.getInstance(this).applyDynamicColorToActivityIfNeeded(this);
+        if (shouldApplyThemeCustomizations()) {
+            try {
+                ThemeManager.getInstance(this).applyDynamicColorToActivityIfNeeded(this);
+            } catch (Throwable e) {
+                // 主题增强不能阻止 Activity 启动。
+                android.util.Log.e("BaseActivity", "应用动态取色失败，已回退到普通主题", e);
+            }
+        }
         
-        // 记录本次创建时的外观状态，用于返回时检测主题设置是否发生变化
-        appearanceStateKey = ThemeManager.getInstance(this).getAppearanceStateKey();
-        
+        // 崩溃页面等最小 Activity 不读取主题配置，避免配置损坏时形成二次崩溃循环。
+        if (shouldApplyThemeCustomizations()) {
+            // 记录本次创建时的外观状态，用于返回时检测主题设置是否发生变化
+            appearanceStateKey = ThemeManager.getInstance(this).getAppearanceStateKey();
+        } else {
+            appearanceStateKey = null;
+        }
+
         // 启用沉浸式
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-        
+
         // 根据主题设置自动切换状态栏/导航栏图标颜色
-        setupSystemBarAppearance();
+        if (shouldApplyThemeCustomizations()) {
+            setupSystemBarAppearance();
+        }
     }
 
     @Override
@@ -75,6 +97,10 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (!shouldApplyThemeCustomizations()) {
+            return;
+        }
+
         // 当用户从设置页返回时，检测主题、动态取色来源和自定义背景配置是否发生变化
         String appearanceStateKeyNow = ThemeManager.getInstance(this).getAppearanceStateKey();
         if (appearanceStateKey == null || !appearanceStateKey.equals(appearanceStateKeyNow)) {
@@ -121,7 +147,14 @@ public abstract class BaseActivity extends AppCompatActivity {
     public void setContentView(int layoutResID) {
         super.setContentView(layoutResID);
         // 应用用户选择的自定义背景（如果启用且已选择图片）
-        ThemeManager.getInstance(this).applyCustomBackgroundIfNeeded(this);
+        if (shouldApplyThemeCustomizations()) {
+            try {
+                ThemeManager.getInstance(this).applyCustomBackgroundIfNeeded(this);
+            } catch (Throwable e) {
+                // 背景属于可选增强功能，任何异常都不能阻止正常 UI 显示。
+                android.util.Log.e("BaseActivity", "应用自定义背景失败，已跳过背景效果", e);
+            }
+        }
         // 为滚动容器分配基于路径的稳定 ID
         assignStableIdsToScrollables(findViewById(android.R.id.content), new StringBuilder());
         // 沉浸式内边距处理

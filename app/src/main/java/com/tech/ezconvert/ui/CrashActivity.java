@@ -53,6 +53,12 @@ public class CrashActivity extends BaseActivity {
     private ActivityResultLauncher<Uri> openDocumentTreeLauncher;
 
     @Override
+    protected boolean shouldApplyThemeCustomizations() {
+        // 崩溃页面必须保持最小依赖，避免自定义背景/动态取色造成二次崩溃循环。
+        return false;
+    }
+
+    @Override
     protected int getTitleContainerId() {
         return R.id.title_container;
     }
