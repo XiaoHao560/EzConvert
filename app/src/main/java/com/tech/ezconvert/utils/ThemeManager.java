@@ -98,13 +98,14 @@ public class ThemeManager {
     }
 
     /**
-     * 使当前自定义背景 Bitmap 缓存失效
+     * 使当前自定义背景 Bitmap 缓存失效。
      *
      * 背景图片使用应用私有文件保存，而该文件会在用户重新选择图片时
      * 被原地覆盖，因此 URI 本身可能保持不变。此时仅依赖 URI 判断缓存
-     * 是否有效会错误复用旧 Bitmap
+     * 是否有效会错误复用旧 Bitmap。
      *
-     * 不主动 recycle 旧 Bitmap，因为旧 Activity / Drawable 在 recreate 完成前可能仍然持有它，由 GC 在无引用后回收
+     * 不主动 recycle 旧 Bitmap，因为旧 Activity / Drawable 在 recreate
+     * 完成前可能仍然持有它。由 GC 在无引用后回收。
      */
     public void invalidateCustomBackgroundCache() {
         cachedBackgroundUri = null;

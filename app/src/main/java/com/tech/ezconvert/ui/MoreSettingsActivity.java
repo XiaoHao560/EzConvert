@@ -75,6 +75,7 @@ public class MoreSettingsActivity extends BaseActivity {
     // 自定义背景相关视图
     private LinearLayout itemCustomBackground;
     private LinearLayout itemSelectBackground;
+    private LinearLayout itemEditBackground;
     private MaterialSwitch customBackgroundSwitch;
     private android.widget.TextView selectedBackgroundText;
     private LinearLayout backgroundEffectCustomControls;
@@ -103,6 +104,7 @@ public class MoreSettingsActivity extends BaseActivity {
     private android.widget.TextView customOutputPathText;
     private static final int REQUEST_OUTPUT_DIRECTORY = 1001;
     private static final int REQUEST_BACKGROUND_IMAGE = 1002;
+    public static final int REQUEST_BACKGROUND_EDITOR = 1003;
 
     // 标记是否正在处理开关变化，防止循环触发
     private boolean isHandlingNotificationSwitch = false;
@@ -175,6 +177,7 @@ public class MoreSettingsActivity extends BaseActivity {
         // 自定义背景
         itemCustomBackground = findViewById(R.id.item_custom_background);
         itemSelectBackground = findViewById(R.id.item_select_background);
+        itemEditBackground = findViewById(R.id.item_edit_background);
         customBackgroundSwitch = findViewById(R.id.custom_background_switch);
         selectedBackgroundText = findViewById(R.id.selected_background_text);
 
@@ -260,6 +263,7 @@ public class MoreSettingsActivity extends BaseActivity {
             recreate();
         });
         itemSelectBackground.setOnClickListener(v -> openBackgroundImagePicker());
+        itemEditBackground.setOnClickListener(v -> openCurrentBackgroundEditor());
 
         itemBackgroundEffectAuto.setOnClickListener(v -> setBackgroundEffectMode(ConfigManager.BACKGROUND_EFFECT_MODE_AUTO, true));
         itemBackgroundEffectCustom.setOnClickListener(v -> setBackgroundEffectMode(ConfigManager.BACKGROUND_EFFECT_MODE_CUSTOM, true));
@@ -502,11 +506,90 @@ public class MoreSettingsActivity extends BaseActivity {
     }
 
     private void updateBackgroundImageUi(String uriString) {
-        if (uriString == null || uriString.isEmpty()) {
+        boolean hasImage = uriString != null && !uriString.isEmpty();
+        if (!hasImage) {
             selectedBackgroundText.setText(R.string.custom_background_no_image);
         } else {
             selectedBackgroundText.setText(R.string.custom_background_image_selected);
         }
+        itemEditBackground.setVisibility(hasImage ? View.VISIBLE : View.GONE);
+    }
+
+    private void openCurrentBackgroundEditor() {
+        String sourceUri = getBackgroundEditorSourceUri();
+        if (sourceUri == null || sourceUri.isEmpty()) {
+            ToastUtils.show(this, getString(R.string.toast_select_background_first));
+            return;
+        }
+        BackgroundCropActivity.open(this, Uri.parse(sourceUri), new File(getFilesDir(),
+                "custom_background/background_source").exists(), false);
+    }
+
+    /**
+     * 首次选择图片后保存一份未经裁剪的源图。后续重新调整直接使用这份源图，
+     * 因此不需要用户再次选择同一张图片，也可以重新改变裁剪位置和缩放。
+     */
+    private Uri copyBackgroundSourceImageToPrivateStorage(Uri sourceUri) {
+        File directory = new File(getFilesDir(), "custom_background");
+        if (!directory.exists() && !directory.mkdirs()) {
+            return null;
+        }
+
+        File targetFile = new File(directory, "background_source_pending");
+        File tempFile = new File(directory, "background_source_pending.tmp");
+        try (InputStream input = getContentResolver().openInputStream(sourceUri);
+             OutputStream output = new FileOutputStream(tempFile, false)) {
+            if (input == null) {
+                tempFile.delete();
+                return null;
+            }
+
+            byte[] buffer = new byte[16 * 1024];
+            int read;
+            long total = 0;
+            while ((read = input.read(buffer)) != -1) {
+                total += read;
+                if (total > 50L * 1024L * 1024L) {
+                    tempFile.delete();
+                    return null;
+                }
+                output.write(buffer, 0, read);
+            }
+            output.flush();
+        } catch (Exception e) {
+            tempFile.delete();
+            return null;
+        }
+
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(tempFile.getAbsolutePath(), options);
+        if (options.outWidth <= 0 || options.outHeight <= 0) {
+            tempFile.delete();
+            return null;
+        }
+
+        if (targetFile.exists() && !targetFile.delete()) {
+            tempFile.delete();
+            return null;
+        }
+        if (!tempFile.renameTo(targetFile)) {
+            tempFile.delete();
+            return null;
+        }
+        return Uri.fromFile(targetFile);
+    }
+
+    private String getBackgroundEditorSourceUri() {
+        File sourceFile = new File(getFilesDir(), "custom_background/background_source");
+        if (sourceFile.exists() && sourceFile.length() > 0) {
+            return Uri.fromFile(sourceFile).toString();
+        }
+        return configManager.getCustomBackgroundUri();
+    }
+
+    private void openBackgroundEditor(Uri sourceUri, boolean restoreCrop) {
+        BackgroundCropActivity.open(this, sourceUri, restoreCrop, !restoreCrop);
     }
 
     private void openBackgroundImagePicker() {
@@ -519,54 +602,6 @@ public class MoreSettingsActivity extends BaseActivity {
         } catch (ActivityNotFoundException e) {
             ToastUtils.show(this, getString(R.string.toast_cannot_open_image_picker));
         }
-    }
-
-    /**
-     * 将用户选择的图片复制到应用私有目录。这样即使原图片提供商不支持持久化 URI，
-     * 应用重启后仍可稳定读取背景图片。
-     */
-    private Uri copyBackgroundImageToPrivateStorage(Uri sourceUri) {
-        File directory = new File(getFilesDir(), "custom_background");
-        if (!directory.exists() && !directory.mkdirs()) {
-            return null;
-        }
-
-        File targetFile = new File(directory, "background_image");
-        try (InputStream input = getContentResolver().openInputStream(sourceUri);
-             OutputStream output = new FileOutputStream(targetFile, false)) {
-            if (input == null) {
-                targetFile.delete();
-                return null;
-            }
-
-            byte[] buffer = new byte[16 * 1024];
-            int read;
-            long total = 0;
-            while ((read = input.read(buffer)) != -1) {
-                total += read;
-                // 防止异常提供商返回超大文件导致无意义的磁盘占用。
-                if (total > 50L * 1024L * 1024L) {
-                    output.flush();
-                    targetFile.delete();
-                    return null;
-                }
-                output.write(buffer, 0, read);
-            }
-            output.flush();
-        } catch (Exception e) {
-            targetFile.delete();
-            return null;
-        }
-
-        // 先快速验证文件确实是一张可解码的图片。
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(targetFile.getAbsolutePath(), options);
-        if (options.outWidth <= 0 || options.outHeight <= 0) {
-            targetFile.delete();
-            return null;
-        }
-        return Uri.fromFile(targetFile);
     }
 
     private void selectOutputPath(String mode) {
@@ -622,25 +657,26 @@ public class MoreSettingsActivity extends BaseActivity {
             if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
 
             Uri imageUri = data.getData();
-            Uri localImageUri = copyBackgroundImageToPrivateStorage(imageUri);
-            if (localImageUri == null) {
+            Uri sourceUri = copyBackgroundSourceImageToPrivateStorage(imageUri);
+            if (sourceUri == null) {
                 ToastUtils.show(this, getString(R.string.toast_background_image_read_failed));
                 return;
             }
 
-            configManager.setCustomBackgroundUri(localImageUri.toString());
+            // 新图片从默认状态开始编辑；只有用户在编辑器中确认后，才真正替换当前背景。
+            configManager.setBackgroundCropZoom(1f);
+            configManager.setBackgroundCropOffsetX(0f);
+            configManager.setBackgroundCropOffsetY(0f);
+            openBackgroundEditor(sourceUri, false);
+            return;
+        }
 
-            // 背景图片实际保存在固定的应用私有文件中，因此连续选择不同图片时
-            // URI 可能完全相同，ThemeManager 若继续复用旧 Bitmap，就会出现
-            // "主题取色已经切换，但界面背景仍然显示上一张图片”的状态不一致
-            // 保存新图片后先显式失效背景缓存，再重建 Activity，确保背景和取色都基于同一张最新图片
+        if (requestCode == REQUEST_BACKGROUND_EDITOR) {
+            if (resultCode != RESULT_OK) return;
+
             themeManager.invalidateCustomBackgroundCache();
-
-            // 用户明确选择了图片时直接启用自定义背景，并自动切换为图片取色。
-            configManager.setCustomBackgroundEnabled(true);
-            configManager.setDynamicColorSource(ConfigManager.DYNAMIC_COLOR_SOURCE_IMAGE);
-            updateBackgroundImageUi(localImageUri.toString());
-            updateDynamicColorSourceUi(ConfigManager.DYNAMIC_COLOR_SOURCE_IMAGE);
+            updateBackgroundImageUi(configManager.getCustomBackgroundUri());
+            updateDynamicColorSourceUi(configManager.getDynamicColorSource());
             recreate();
             return;
         }
