@@ -26,6 +26,7 @@ import com.google.android.material.color.DynamicColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
+import com.google.android.material.slider.Slider;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.ConfigManager;
@@ -76,6 +77,15 @@ public class MoreSettingsActivity extends BaseActivity {
     private LinearLayout itemSelectBackground;
     private MaterialSwitch customBackgroundSwitch;
     private android.widget.TextView selectedBackgroundText;
+    private LinearLayout backgroundEffectCustomControls;
+    private LinearLayout itemBackgroundEffectAuto;
+    private LinearLayout itemBackgroundEffectCustom;
+    private RadioButton radioBackgroundEffectAuto;
+    private RadioButton radioBackgroundEffectCustom;
+    private Slider backgroundMaskSlider;
+    private Slider backgroundBlurSlider;
+    private android.widget.TextView backgroundMaskValue;
+    private android.widget.TextView backgroundBlurValue;
 
     // 动态取色来源相关视图
     private LinearLayout itemColorSourceImage;
@@ -168,6 +178,17 @@ public class MoreSettingsActivity extends BaseActivity {
         customBackgroundSwitch = findViewById(R.id.custom_background_switch);
         selectedBackgroundText = findViewById(R.id.selected_background_text);
 
+        // 背景显示效果
+        itemBackgroundEffectAuto = findViewById(R.id.item_background_effect_auto);
+        itemBackgroundEffectCustom = findViewById(R.id.item_background_effect_custom);
+        radioBackgroundEffectAuto = findViewById(R.id.radio_background_effect_auto);
+        radioBackgroundEffectCustom = findViewById(R.id.radio_background_effect_custom);
+        backgroundEffectCustomControls = findViewById(R.id.background_effect_custom_controls);
+        backgroundMaskSlider = findViewById(R.id.background_mask_slider);
+        backgroundBlurSlider = findViewById(R.id.background_blur_slider);
+        backgroundMaskValue = findViewById(R.id.background_mask_value);
+        backgroundBlurValue = findViewById(R.id.background_blur_value);
+
         // 动态取色来源
         itemColorSourceImage = findViewById(R.id.item_color_source_image);
         itemColorSourceWallpaper = findViewById(R.id.item_color_source_wallpaper);
@@ -239,6 +260,36 @@ public class MoreSettingsActivity extends BaseActivity {
             recreate();
         });
         itemSelectBackground.setOnClickListener(v -> openBackgroundImagePicker());
+
+        itemBackgroundEffectAuto.setOnClickListener(v -> setBackgroundEffectMode(ConfigManager.BACKGROUND_EFFECT_MODE_AUTO, true));
+        itemBackgroundEffectCustom.setOnClickListener(v -> setBackgroundEffectMode(ConfigManager.BACKGROUND_EFFECT_MODE_CUSTOM, true));
+
+        backgroundMaskSlider.addOnChangeListener((slider, value, fromUser) -> {
+            int rounded = Math.round(value);
+            configManager.setBackgroundMaskAlpha(rounded);
+            updateBackgroundEffectValues();
+        });
+        backgroundMaskSlider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
+            @Override public void onStartTrackingTouch(Slider slider) { }
+            @Override public void onStopTrackingTouch(Slider slider) {
+                if (ConfigManager.BACKGROUND_EFFECT_MODE_CUSTOM.equals(configManager.getBackgroundEffectMode())) {
+                    recreate();
+                }
+            }
+        });
+        backgroundBlurSlider.addOnChangeListener((slider, value, fromUser) -> {
+            int rounded = Math.round(value);
+            configManager.setBackgroundBlurDp(rounded);
+            updateBackgroundEffectValues();
+        });
+        backgroundBlurSlider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
+            @Override public void onStartTrackingTouch(Slider slider) { }
+            @Override public void onStopTrackingTouch(Slider slider) {
+                if (ConfigManager.BACKGROUND_EFFECT_MODE_CUSTOM.equals(configManager.getBackgroundEffectMode())) {
+                    recreate();
+                }
+            }
+        });
 
         // 动态取色来源
         itemColorSourceImage.setOnClickListener(v -> setDynamicColorSource(ConfigManager.DYNAMIC_COLOR_SOURCE_IMAGE));
@@ -328,6 +379,7 @@ public class MoreSettingsActivity extends BaseActivity {
         boolean customBackgroundEnabled = configManager.isCustomBackgroundEnabled();
         String customBackgroundUri = configManager.getCustomBackgroundUri();
         String dynamicColorSource = configManager.getDynamicColorSource();
+        String backgroundEffectMode = configManager.getBackgroundEffectMode();
         boolean firebaseEnabled = configManager.isFirebaseAnalyticsEnabled();
 
         updateOutputPathUi(configManager.getOutputPathMode(), configManager.getCustomOutputUri());
@@ -346,6 +398,8 @@ public class MoreSettingsActivity extends BaseActivity {
         customBackgroundSwitch.setChecked(customBackgroundEnabled);
         updateBackgroundImageUi(customBackgroundUri);
         updateDynamicColorSourceUi(dynamicColorSource);
+        updateBackgroundEffectUi(backgroundEffectMode);
+        updateBackgroundEffectValues();
         
         // 更新Spinner选择
         int spinnerPosition = mapFrequencyToPosition(currentFrequency);
@@ -406,6 +460,30 @@ public class MoreSettingsActivity extends BaseActivity {
         });
     }
     
+    private void setBackgroundEffectMode(String mode, boolean recreateAfterChange) {
+        configManager.setBackgroundEffectMode(mode);
+        updateBackgroundEffectUi(mode);
+        if (recreateAfterChange) {
+            recreate();
+        }
+    }
+
+    private void updateBackgroundEffectUi(String mode) {
+        boolean custom = ConfigManager.BACKGROUND_EFFECT_MODE_CUSTOM.equals(mode);
+        radioBackgroundEffectAuto.setChecked(!custom);
+        radioBackgroundEffectCustom.setChecked(custom);
+        backgroundEffectCustomControls.setVisibility(custom ? View.VISIBLE : View.GONE);
+    }
+
+    private void updateBackgroundEffectValues() {
+        int mask = configManager.getBackgroundMaskAlpha();
+        int blur = configManager.getBackgroundBlurDp();
+        backgroundMaskSlider.setValue(mask);
+        backgroundBlurSlider.setValue(blur);
+        backgroundMaskValue.setText(getString(R.string.background_mask_value, mask));
+        backgroundBlurValue.setText(getString(R.string.background_blur_value, blur));
+    }
+
     private void setDynamicColorSource(String source) {
         if (ConfigManager.DYNAMIC_COLOR_SOURCE_IMAGE.equals(source)
                 && (configManager.getCustomBackgroundUri() == null
@@ -554,7 +632,7 @@ public class MoreSettingsActivity extends BaseActivity {
             // 用户明确选择了图片时直接启用自定义背景，并自动切换为图片取色。
             configManager.setCustomBackgroundEnabled(true);
             configManager.setDynamicColorSource(ConfigManager.DYNAMIC_COLOR_SOURCE_IMAGE);
-            updateBackgroundImageUi(imageUri.toString());
+            updateBackgroundImageUi(localImageUri.toString());
             updateDynamicColorSourceUi(ConfigManager.DYNAMIC_COLOR_SOURCE_IMAGE);
             recreate();
             return;

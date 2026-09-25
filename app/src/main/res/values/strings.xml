@@ -244,6 +244,16 @@
     <string name="select_background_image">选择图片</string>
     <string name="custom_background_no_image">尚未选择背景图片</string>
     <string name="custom_background_image_selected">已选择背景图片</string>
+    <string name="background_effect_title">背景显示效果</string>
+    <string name="background_effect_auto">自动优化</string>
+    <string name="background_effect_auto_desc">根据图片明暗和当前主题自动调整遮罩，降低背景对界面内容的干扰</string>
+    <string name="background_effect_custom">自定义</string>
+    <string name="background_effect_custom_desc">手动调整遮罩和模糊强度</string>
+    <string name="background_mask_title">遮罩强度</string>
+    <string name="background_mask_value">%1$d%%</string>
+    <string name="background_blur_title">模糊强度</string>
+    <string name="background_blur_value">%1$ddp</string>
+
     <string name="dynamic_color_source_title">自动取色来源</string>
     <string name="dynamic_color_source_image">基于图片取色</string>
     <string name="dynamic_color_source_image_desc">根据已选择的自定义背景图片生成主题颜色</string>
