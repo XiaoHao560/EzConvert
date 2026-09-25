@@ -18,6 +18,7 @@
             android:minHeight="56dp"
             android:background="@android:color/transparent"
             app:navigationIcon="@drawable/round_arrow_back"
+            app:navigationIconTint="?attr/colorOnSurfaceVariant"
             app:title="@string/background_crop_title"
             app:titleTextColor="@android:color/white" />
 
