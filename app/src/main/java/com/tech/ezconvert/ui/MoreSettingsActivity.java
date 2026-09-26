@@ -674,6 +674,7 @@ public class MoreSettingsActivity extends BaseActivity {
             if (resultCode != RESULT_OK) return;
 
             themeManager.invalidateCustomBackgroundCache();
+            themeManager.preloadCustomBackground(this);
             updateBackgroundImageUi(configManager.getCustomBackgroundUri());
             updateDynamicColorSourceUi(configManager.getDynamicColorSource());
             recreate();

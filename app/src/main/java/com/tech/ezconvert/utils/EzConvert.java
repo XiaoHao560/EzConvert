@@ -28,7 +28,8 @@ public class EzConvert extends Application {
         // 在应用启动时应用保存的主题模式
         ThemeManager themeManager = ThemeManager.getInstance(this);
         themeManager.applySavedTheme();
-        
+        // 在应用启动时后台预热自定义背景缓存，避免进入各个 Activity 时重复解码/模糊
+        themeManager.preloadCustomBackground(this);
         // 初始化崩溃捕获
         CrashHandler.getInstance().init(this);
         
