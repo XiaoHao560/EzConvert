@@ -143,8 +143,24 @@ public class BackgroundCropActivity extends AppCompatActivity {
                     throw new IllegalStateException("无法保存背景图片");
                 }
                 output.flush();
-            } finally {
-                result.recycle();
+            }
+
+            // 同时生成用于界面显示的较小缓存和动态取色采样图
+            // 这两份缓存只在裁剪完成时生成一次，进入 Activity 时无需再处理大图
+            try {
+                saveDerivedBackgroundCache(
+                        result,
+                        new File(directory, "background_display"),
+                        1280,
+                        90);
+                saveDerivedBackgroundCache(
+                        result,
+                        new File(directory, "background_dynamic_source"),
+                        128,
+                        85);
+            } catch (Throwable cacheError) {
+                // 性能缓存生成失败不影响主背景文件保存，ThemeManager 会回退读取原图
+                Log.e(TAG, "生成背景性能缓存失败，将使用原始背景图", cacheError);
             }
 
             if (target.exists() && !target.delete()) {
@@ -173,13 +189,59 @@ public class BackgroundCropActivity extends AppCompatActivity {
             // 裁剪结果覆盖同一个 background_image 文件，URI 不变。递增内容版本，
             // 让已经存在的上一级 Activity 在返回时能够识别背景图片确实发生了变化。
             config.markCustomBackgroundUpdated();
-            ThemeManager.getInstance(this).invalidateCustomBackgroundCache();
+            ThemeManager themeManager = ThemeManager.getInstance(this);
+            themeManager.invalidateCustomBackgroundCache();
+            // 立即在后台预热显示背景和模糊缓存，返回上一级 Activity 时尽量直接命中
+            themeManager.preloadCustomBackground(this);
             setResult(RESULT_OK);
             finish();
         } catch (Throwable e) {
             Log.e(TAG, "保存背景图片失败", e);
             saving = false;
             android.widget.Toast.makeText(this, getString(R.string.background_crop_save_failed), android.widget.Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void saveDerivedBackgroundCache(
+            Bitmap source,
+            File target,
+            int maxDimension,
+            int quality) throws Exception {
+        if (source == null || source.isRecycled()) {
+            return;
+        }
+
+        File temp = new File(target.getParentFile(), target.getName() + ".tmp");
+        Bitmap scaled = source;
+        boolean ownsScaled = false;
+
+        int width = source.getWidth();
+        int height = source.getHeight();
+        int largest = Math.max(width, height);
+        if (largest > maxDimension) {
+            float scale = maxDimension / (float) largest;
+            int scaledWidth = Math.max(1, Math.round(width * scale));
+            int scaledHeight = Math.max(1, Math.round(height * scale));
+            scaled = Bitmap.createScaledBitmap(source, scaledWidth, scaledHeight, true);
+            ownsScaled = scaled != source;
+        }
+
+        try (OutputStream output = new FileOutputStream(temp, false)) {
+            if (!scaled.compress(Bitmap.CompressFormat.JPEG, quality, output)) {
+                throw new IllegalStateException("无法生成背景缓存");
+            }
+            output.flush();
+        } finally {
+            if (ownsScaled && !scaled.isRecycled()) {
+                scaled.recycle();
+            }
+        }
+
+        if (target.exists() && !target.delete()) {
+            throw new IllegalStateException("无法替换背景缓存");
+        }
+        if (!temp.renameTo(target)) {
+            throw new IllegalStateException("无法提交背景缓存");
         }
     }
 
