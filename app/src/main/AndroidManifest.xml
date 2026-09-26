@@ -122,5 +122,16 @@
             android:name=".ui.CrashActivity"
             android:exported="false"
             android:label="应用崩溃界面" />
+
+        <provider
+            android:name=".provider.EzConvertDocumentsProvider"
+            android:authorities="${applicationId}.documents"
+            android:exported="true"
+            android:grantUriPermissions="true"
+            android:permission="android.permission.MANAGE_DOCUMENTS">
+            <intent-filter>
+                <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
+            </intent-filter>
+        </provider>
     </application>
 </manifest>
