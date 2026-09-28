@@ -494,8 +494,9 @@ public class ParameterDialogFragment extends DialogFragment {
 
     // 获取图片格式列表
     private String[] getImageFormats() {
+        // 当前内置 FFmpeg 9.0.1 未启用 libheif，因此 HEIF/HEIC 不能作为可靠的 FFmpeg 输出格式
         return new String[]{
-            "jpg", "jpeg", "png", "webp", "bmp", "tiff", "heif", "heic", "avif",
+            "jpg", "jpeg", "png", "webp", "bmp", "tiff", "avif",
             "jxl", "jp2", "apng", "qoi", "tga", "dpx", "exr", "ico"
         };
     }
@@ -585,8 +586,6 @@ public class ParameterDialogFragment extends DialogFragment {
         if (format == null) format = "mp4";
         switch (format.toLowerCase()) {
             case "mp4":
-            case "mov":
-            case "m4v":
                 if (hwAccel) {
                     return new String[]{
                         getString(R.string.codec_h264_hw_best),
@@ -597,7 +596,6 @@ public class ParameterDialogFragment extends DialogFragment {
                         getString(R.string.codec_av1_aom),
                         getString(R.string.codec_h264_openh264),
                         getString(R.string.codec_mpeg4_xvid),
-                        getString(R.string.codec_prores),
                         getString(R.string.codec_mjpeg)
                     };
                 }
@@ -610,7 +608,54 @@ public class ParameterDialogFragment extends DialogFragment {
                     getString(R.string.codec_av1_aom),
                     getString(R.string.codec_h264_openh264),
                     getString(R.string.codec_mpeg4_xvid),
+                    getString(R.string.codec_mjpeg)
+                };
+            case "mov":
+                if (hwAccel) {
+                    return new String[]{
+                        getString(R.string.codec_h264_hw_best),
+                        getString(R.string.codec_hevc_hw),
+                        getString(R.string.codec_h264_sw_best),
+                        getString(R.string.codec_h265_sw),
+                        getString(R.string.codec_h264_openh264),
+                        getString(R.string.codec_mpeg4_xvid),
+                        getString(R.string.codec_prores),
+                        getString(R.string.codec_mjpeg)
+                    };
+                }
+                return new String[]{
+                    getString(R.string.codec_h264_sw_best),
+                    getString(R.string.codec_h265_sw),
+                    getString(R.string.codec_h264_hw_best),
+                    getString(R.string.codec_hevc_hw),
+                    getString(R.string.codec_h264_openh264),
+                    getString(R.string.codec_mpeg4_xvid),
                     getString(R.string.codec_prores),
+                    getString(R.string.codec_mjpeg)
+                };
+            case "m4v":
+                if (hwAccel) {
+                    return new String[]{
+                        getString(R.string.codec_h264_hw_best),
+                        getString(R.string.codec_hevc_hw),
+                        getString(R.string.codec_h264_sw_best),
+                        getString(R.string.codec_h265_sw),
+                        getString(R.string.codec_av1_svt),
+                        getString(R.string.codec_av1_aom),
+                        getString(R.string.codec_h264_openh264),
+                        getString(R.string.codec_mpeg4_xvid),
+                        getString(R.string.codec_mjpeg)
+                    };
+                }
+                return new String[]{
+                    getString(R.string.codec_h264_sw_best),
+                    getString(R.string.codec_h265_sw),
+                    getString(R.string.codec_h264_hw_best),
+                    getString(R.string.codec_hevc_hw),
+                    getString(R.string.codec_av1_svt),
+                    getString(R.string.codec_av1_aom),
+                    getString(R.string.codec_h264_openh264),
+                    getString(R.string.codec_mpeg4_xvid),
                     getString(R.string.codec_mjpeg)
                 };
             case "mkv":
