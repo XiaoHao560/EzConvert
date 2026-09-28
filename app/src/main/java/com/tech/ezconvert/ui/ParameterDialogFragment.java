@@ -495,7 +495,8 @@ public class ParameterDialogFragment extends DialogFragment {
     // 获取图片格式列表
     private String[] getImageFormats() {
         return new String[]{
-            "jpg", "jpeg", "png", "webp", "bmp", "tiff", "heif", "heic", "avif"
+            "jpg", "jpeg", "png", "webp", "bmp", "tiff", "heif", "heic", "avif",
+            "jxl", "jp2", "apng", "qoi", "tga", "dpx", "exr", "ico"
         };
     }
 
@@ -507,7 +508,23 @@ public class ParameterDialogFragment extends DialogFragment {
                 getString(R.string.format_aac),
                 getString(R.string.format_flac_audio),
                 getString(R.string.format_ogg),
-                getString(R.string.format_m4a)
+                getString(R.string.format_oga),
+                getString(R.string.format_m4a),
+                getString(R.string.format_opus),
+                getString(R.string.format_ac3),
+                getString(R.string.format_eac3),
+                getString(R.string.format_dts),
+                getString(R.string.format_truehd),
+                getString(R.string.format_mp2),
+                getString(R.string.format_aiff),
+                getString(R.string.format_amr),
+                getString(R.string.format_caf),
+                getString(R.string.format_wma),
+                getString(R.string.format_tta),
+                getString(R.string.format_wv),
+                getString(R.string.format_spx),
+                getString(R.string.format_lc3),
+                getString(R.string.format_ilbc)
             };
         }
         if ("screenshot".equals(taskType)) {
@@ -526,6 +543,20 @@ public class ParameterDialogFragment extends DialogFragment {
             getString(R.string.format_avi),
             getString(R.string.format_mov),
             getString(R.string.format_flv),
+            getString(R.string.format_3gp),
+            getString(R.string.format_3g2),
+            getString(R.string.format_mpg),
+            getString(R.string.format_mpeg),
+            getString(R.string.format_ts),
+            getString(R.string.format_mts),
+            getString(R.string.format_m2ts),
+            getString(R.string.format_mxf),
+            getString(R.string.format_ogv),
+            getString(R.string.format_asf),
+            getString(R.string.format_nut),
+            getString(R.string.format_swf),
+            getString(R.string.format_vob),
+            getString(R.string.format_m4v),
             getString(R.string.format_gif)
         };
     }
@@ -551,113 +582,302 @@ public class ParameterDialogFragment extends DialogFragment {
     }
 
     private String[] getVideoCodecsForFormat(String format, boolean hwAccel) {
-        switch (format) {
+        if (format == null) format = "mp4";
+        switch (format.toLowerCase()) {
             case "mp4":
             case "mov":
+            case "m4v":
                 if (hwAccel) {
                     return new String[]{
                         getString(R.string.codec_h264_hw_best),
                         getString(R.string.codec_hevc_hw),
-                        getString(R.string.codec_h264_sw),
-                        getString(R.string.codec_h265_sw)
-                    };
-                } else {
-                    return new String[]{
                         getString(R.string.codec_h264_sw_best),
                         getString(R.string.codec_h265_sw),
-                        getString(R.string.codec_h264_hw_best),
-                        getString(R.string.codec_hevc_hw)
+                        getString(R.string.codec_av1_svt),
+                        getString(R.string.codec_av1_aom),
+                        getString(R.string.codec_h264_openh264),
+                        getString(R.string.codec_mpeg4_xvid),
+                        getString(R.string.codec_prores),
+                        getString(R.string.codec_mjpeg)
                     };
                 }
+                return new String[]{
+                    getString(R.string.codec_h264_sw_best),
+                    getString(R.string.codec_h265_sw),
+                    getString(R.string.codec_h264_hw_best),
+                    getString(R.string.codec_hevc_hw),
+                    getString(R.string.codec_av1_svt),
+                    getString(R.string.codec_av1_aom),
+                    getString(R.string.codec_h264_openh264),
+                    getString(R.string.codec_mpeg4_xvid),
+                    getString(R.string.codec_prores),
+                    getString(R.string.codec_mjpeg)
+                };
             case "mkv":
+            case "nut":
                 return new String[]{
                     getString(R.string.codec_h265_sw_best),
-                    getString(R.string.codec_h264_sw)
+                    getString(R.string.codec_h264_sw),
+                    getString(R.string.codec_av1_svt),
+                    getString(R.string.codec_av1_aom),
+                    getString(R.string.codec_vp9_best),
+                    getString(R.string.codec_vp8),
+                    getString(R.string.codec_mpeg4_xvid),
+                    getString(R.string.codec_mpeg2),
+                    getString(R.string.codec_mpeg1),
+                    getString(R.string.codec_theora),
+                    getString(R.string.codec_vvc),
+                    getString(R.string.codec_prores),
+                    getString(R.string.codec_ffv1),
+                    getString(R.string.codec_mjpeg)
                 };
             case "webm":
                 return new String[]{
+                    getString(R.string.codec_av1_svt),
+                    getString(R.string.codec_av1_aom),
                     getString(R.string.codec_vp9_best),
                     getString(R.string.codec_vp8)
                 };
             case "avi":
                 return new String[]{
+                    getString(R.string.codec_mpeg4_xvid),
                     getString(R.string.codec_mpeg4_best),
-                    getString(R.string.codec_h264_sw)
+                    getString(R.string.codec_h264_sw),
+                    getString(R.string.codec_mpeg2),
+                    getString(R.string.codec_h263),
+                    getString(R.string.codec_mjpeg),
+                    getString(R.string.codec_ffv1)
                 };
             case "flv":
                 if (hwAccel) {
                     return new String[]{
                         getString(R.string.codec_h264_hw_best),
-                        getString(R.string.codec_h264_sw)
-                    };
-                } else {
-                    return new String[]{
                         getString(R.string.codec_h264_sw_best),
-                        getString(R.string.codec_h264_hw_best)
+                        getString(R.string.codec_flv1)
                     };
                 }
+                return new String[]{
+                    getString(R.string.codec_h264_sw_best),
+                    getString(R.string.codec_h264_hw_best),
+                    getString(R.string.codec_flv1)
+                };
+            case "3gp":
+            case "3g2":
+                return new String[]{
+                    getString(R.string.codec_h264_sw_best),
+                    getString(R.string.codec_mpeg4_best),
+                    getString(R.string.codec_h263)
+                };
+            case "mpg":
+            case "mpeg":
+                return new String[]{
+                    getString(R.string.codec_mpeg2),
+                    getString(R.string.codec_mpeg1)
+                };
+            case "ts":
+            case "mts":
+            case "m2ts":
+                return new String[]{
+                    getString(R.string.codec_h264_sw_best),
+                    getString(R.string.codec_h265_sw),
+                    getString(R.string.codec_av1_svt),
+                    getString(R.string.codec_mpeg2),
+                    getString(R.string.codec_vvc)
+                };
+            case "mxf":
+                return new String[]{
+                    getString(R.string.codec_prores),
+                    getString(R.string.codec_mpeg2)
+                };
+            case "ogv":
+                return new String[]{getString(R.string.codec_theora)};
+            case "asf":
+                return new String[]{
+                    getString(R.string.codec_wmv2),
+                    getString(R.string.codec_wmv1),
+                    getString(R.string.codec_mpeg4_best),
+                    getString(R.string.codec_mpeg2)
+                };
+            case "swf":
+                return new String[]{getString(R.string.codec_flv1)};
+            case "vob":
+                return new String[]{getString(R.string.codec_mpeg2)};
             case "gif":
-                return new String[]{
-                    getString(R.string.codec_gif_best)
-                };
+                return new String[]{getString(R.string.codec_gif_best)};
             default:
-                return new String[]{
-                    getString(R.string.codec_default_best)
-                };
+                return new String[]{getString(R.string.codec_default_best)};
         }
     }
 
     private String[] getAudioCodecsForFormat(String format) {
-        switch (format) {
+        if (format == null) format = "mp4";
+        switch (format.toLowerCase()) {
             case "mp4":
             case "mov":
-            case "flv":
+            case "m4v":
                 return new String[]{
                     getString(R.string.codec_aac_best),
-                    getString(R.string.codec_mp3)
+                    getString(R.string.codec_alac),
+                    getString(R.string.codec_mp3),
+                    getString(R.string.codec_opus)
                 };
             case "mkv":
+            case "nut":
                 return new String[]{
                     getString(R.string.codec_opus_best),
                     getString(R.string.codec_aac),
-                    getString(R.string.codec_mp3)
+                    getString(R.string.codec_flac_best),
+                    getString(R.string.codec_vorbis_best),
+                    getString(R.string.codec_mp3),
+                    getString(R.string.codec_ac3),
+                    getString(R.string.codec_eac3),
+                    getString(R.string.codec_dca),
+                    getString(R.string.codec_truehd),
+                    getString(R.string.codec_pcm_best),
+                    getString(R.string.codec_alac)
                 };
             case "webm":
                 return new String[]{
-                    getString(R.string.codec_opus_best)
+                    getString(R.string.codec_opus_best),
+                    getString(R.string.codec_vorbis_best)
                 };
             case "avi":
                 return new String[]{
-                    getString(R.string.codec_mp3_best)
+                    getString(R.string.codec_mp3_best),
+                    getString(R.string.codec_pcm_best),
+                    getString(R.string.codec_ac3),
+                    getString(R.string.codec_mp2)
                 };
+            case "flv":
+                return new String[]{
+                    getString(R.string.codec_aac_best),
+                    getString(R.string.codec_mp3_best),
+                    getString(R.string.codec_speex)
+                };
+            case "3gp":
+            case "3g2":
+                return new String[]{
+                    getString(R.string.codec_aac_best),
+                    getString(R.string.codec_amrnb),
+                    getString(R.string.codec_amrwb)
+                };
+            case "mpg":
+            case "mpeg":
+                return new String[]{
+                    getString(R.string.codec_mp2),
+                    getString(R.string.codec_mp3),
+                    getString(R.string.codec_ac3)
+                };
+            case "ts":
+            case "mts":
+            case "m2ts":
+                return new String[]{
+                    getString(R.string.codec_aac_best),
+                    getString(R.string.codec_ac3),
+                    getString(R.string.codec_eac3),
+                    getString(R.string.codec_mp2),
+                    getString(R.string.codec_mp3)
+                };
+            case "mxf":
+                return new String[]{
+                    getString(R.string.codec_pcm_best),
+                    getString(R.string.codec_pcm_s24le),
+                    getString(R.string.codec_pcm_s32le)
+                };
+            case "ogv":
+                return new String[]{
+                    getString(R.string.codec_vorbis_best),
+                    getString(R.string.codec_opus)
+                };
+            case "asf":
+                return new String[]{getString(R.string.codec_wmav2)};
+            case "swf":
+                return new String[]{getString(R.string.codec_mp3_best)};
+            case "vob":
+                return new String[]{
+                    getString(R.string.codec_ac3),
+                    getString(R.string.codec_pcm_best),
+                    getString(R.string.codec_mp2)
+                };
+            case "gif":
+                return new String[]{getString(R.string.codec_none)};
             case "mp3":
                 return new String[]{
-                    getString(R.string.codec_mp3_best)
+                    getString(R.string.codec_mp3_best),
+                    getString(R.string.codec_shine)
                 };
             case "wav":
                 return new String[]{
-                    getString(R.string.codec_pcm_best)
+                    getString(R.string.codec_pcm_best),
+                    getString(R.string.codec_pcm_s24le),
+                    getString(R.string.codec_pcm_s32le),
+                    getString(R.string.codec_alaw),
+                    getString(R.string.codec_mulaw)
                 };
             case "aac":
-                return new String[]{
-                    getString(R.string.codec_aac_best)
-                };
+                return new String[]{getString(R.string.codec_aac_best)};
             case "flac":
-                return new String[]{
-                    getString(R.string.codec_flac_best)
-                };
+                return new String[]{getString(R.string.codec_flac_best)};
             case "ogg":
+            case "oga":
                 return new String[]{
-                    getString(R.string.codec_vorbis_best)
+                    getString(R.string.codec_vorbis_best),
+                    getString(R.string.codec_opus),
+                    getString(R.string.codec_flac_best),
+                    getString(R.string.codec_speex)
                 };
             case "m4a":
                 return new String[]{
-                    getString(R.string.codec_aac_best)
+                    getString(R.string.codec_aac_best),
+                    getString(R.string.codec_alac)
                 };
-            default:
+            case "opus":
+                return new String[]{getString(R.string.codec_opus_best)};
+            case "ac3":
+                return new String[]{getString(R.string.codec_ac3)};
+            case "eac3":
+                return new String[]{getString(R.string.codec_eac3)};
+            case "dts":
+                return new String[]{getString(R.string.codec_dca)};
+            case "truehd":
+                return new String[]{getString(R.string.codec_truehd)};
+            case "mp2":
                 return new String[]{
-                    getString(R.string.codec_aac_best)
+                    getString(R.string.codec_mp2),
+                    getString(R.string.codec_twolame)
                 };
+            case "aiff":
+                return new String[]{
+                    getString(R.string.codec_pcm_best),
+                    getString(R.string.codec_pcm_s24le),
+                    getString(R.string.codec_pcm_s32le)
+                };
+            case "amr":
+                return new String[]{
+                    getString(R.string.codec_amrnb),
+                    getString(R.string.codec_amrwb)
+                };
+            case "caf":
+                return new String[]{
+                    getString(R.string.codec_pcm_best),
+                    getString(R.string.codec_alac),
+                    getString(R.string.codec_opus),
+                    getString(R.string.codec_flac_best)
+                };
+            case "wma":
+                return new String[]{getString(R.string.codec_wmav2)};
+            case "tta":
+                return new String[]{getString(R.string.codec_tta)};
+            case "wv":
+                return new String[]{getString(R.string.codec_wavpack)};
+            case "spx":
+                return new String[]{getString(R.string.codec_speex)};
+            case "lc3":
+                return new String[]{getString(R.string.codec_lc3)};
+            case "ilbc":
+                return new String[]{getString(R.string.codec_ilbc)};
+            default:
+                return new String[]{getString(R.string.codec_aac_best)};
         }
     }
 
@@ -1108,6 +1328,7 @@ public class ParameterDialogFragment extends DialogFragment {
             case "heif":
             case "heic":
             case "avif":
+            case "jxl":
                 return true;
             default:
                 return false;

@@ -12,7 +12,7 @@ public class ParameterData {
 
     // 视频参数
     @SerializedName("output_format")
-    public String outputFormat; // mp4, mkv, webm, avi, mov, flv, gif, mp3, wav, aac, flac, ogg, m4a, jpg, png, webp, bmp, tiff, heif, heic, avif
+    public String outputFormat; // 视频、音频和图片输出格式；具体可选项由 ParameterDialogFragment 提供
 
     @SerializedName("video_codec")
     public String videoCodec; // 编码器名称
