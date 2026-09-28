@@ -137,6 +137,12 @@ public class FfmpegCommandBuilder {
                 break;
         }
 
+        // 所有纯音频任务统一在这里补充编码器/容器兼容参数
+        // 避免某一个任务路径遗漏 -ar/-ac 等限制参数
+        String effectiveAudioCodec = (params.audioCodec != null && !params.audioCodec.isEmpty())
+                ? params.audioCodec : getDefaultAudioCodec(params.outputFormat);
+        addAudioContainerCompatibilityArgs(cmd, params.outputFormat, effectiveAudioCodec, inputPath);
+
         cmd.add("-y");
         cmd.add(outputPath);
 
@@ -149,15 +155,54 @@ public class FfmpegCommandBuilder {
         cmd.add(inputPath);
 
         String format = params.outputFormat != null ? params.outputFormat.toLowerCase() : "jpg";
+        // 兼容旧版本可能残留的 HEIF/HEIC 参数：当前 FFmpeg 构建没有对应 muxer，统一回退为 JPEG
+        // 同时由 buildOutputPath() 输出 .jpg，避免生成“扩展名是 HEIC、实际内容却无法封装”的坏文件
+        if ("heif".equals(format) || "heic".equals(format)) {
+            format = "jpg";
+        }
+        // 图片任务只处理视频流，避免输入文件中存在其他流时被错误带入输出
+        cmd.add("-map");
+        cmd.add("0:v:0");
+
         String imageCodec = getImageCodec(format);
         if (imageCodec != null) {
             cmd.add("-c:v");
             cmd.add(imageCodec);
         }
+
+        if ("avif".equals(format)) {
+            // AVIF 是静态图像容器，明确要求 libaom 采用 still-picture 模式
+            cmd.add("-still-picture");
+            cmd.add("1");
+        }
+
+        // 图片缩放滤镜统一在这里组合
+        // 用户选择“自定义分辨率”时，完全尊重用户输入，不额外替用户修改尺寸
+        // 如果输入尺寸不符合目标格式（例如 ICO 超过 256x256），直接交给 FFmpeg 报错
+        ArrayList<String> imageFilters = new ArrayList<>();
+        if ("custom".equals(params.imageResolutionMode)
+                && params.imageResolution != null
+                && !params.imageResolution.isEmpty()
+                && !"original".equalsIgnoreCase(params.imageResolution)) {
+            imageFilters.add("scale=" + params.imageResolution + ":flags=lanczos");
+        }
+        if (!imageFilters.isEmpty()) {
+            cmd.add("-vf");
+            cmd.add(String.join(",", imageFilters));
+        }
+
         if ("ico".equals(format)) {
-            // FFmpeg 的 ICO muxer 要求 PNG-backed ICO 使用 RGBA 像素格式
             cmd.add("-pix_fmt");
             cmd.add("rgba");
+            cmd.add("-frames:v");
+            cmd.add("1");
+            cmd.add("-f");
+            cmd.add("ico");
+        } else if (!"apng".equals(format)) {
+            // 除 APNG 外，其余图片输出均按单帧图片处理
+            // 这样输入为动画 WebP/GIF/APNG 时，不会因为多帧写入同一个静态输出路径而失败
+            cmd.add("-frames:v");
+            cmd.add("1");
         }
 
         // 质量控制（仅对明确支持通用质量参数的格式启用）
@@ -170,8 +215,6 @@ public class FfmpegCommandBuilder {
                     cmd.add(String.valueOf(Math.max(2, Math.min(31, 31 - (quality * 29 / 100)))));
                     break;
                 case "webp":
-                case "heif":
-                case "heic":
                     cmd.add("-quality");
                     cmd.add(String.valueOf(quality));
                     break;
@@ -188,14 +231,6 @@ public class FfmpegCommandBuilder {
             }
         }
 
-        if ("custom".equals(params.imageResolutionMode)
-                && params.imageResolution != null
-                && !params.imageResolution.isEmpty()
-                && !"original".equalsIgnoreCase(params.imageResolution)) {
-            cmd.add("-vf");
-            cmd.add("scale=" + params.imageResolution + ":flags=lanczos");
-        }
-
         cmd.add("-y");
         cmd.add(outputPath);
         return cmd.toArray(new String[0]);
@@ -208,8 +243,11 @@ public class FfmpegCommandBuilder {
         cmd.add(vCodec);
         addVideoQualityArgs(cmd, vCodec, params, inputPath, 18);
 
-        addAudioCodecArgs(cmd, params.audioCodec, inputPath, params.audioBitrateMode,
+        String audioCodec = (params.audioCodec != null && !params.audioCodec.isEmpty())
+                ? params.audioCodec : "aac";
+        addAudioCodecArgs(cmd, audioCodec, inputPath, params.audioBitrateMode,
                 params.audioBitrateValue, false, false);
+        addAudioContainerCompatibilityArgs(cmd, params.outputFormat, audioCodec, inputPath);
 
         if ("swf".equalsIgnoreCase(params.outputFormat)) {
             cmd.add("-ar");
@@ -229,8 +267,11 @@ public class FfmpegCommandBuilder {
         cmd.add(vCodec);
         addVideoQualityArgs(cmd, vCodec, params, inputPath, 23);
 
-        addAudioCodecArgs(cmd, params.audioCodec, inputPath, params.audioBitrateMode,
+        String audioCodec = (params.audioCodec != null && !params.audioCodec.isEmpty())
+                ? params.audioCodec : "aac";
+        addAudioCodecArgs(cmd, audioCodec, inputPath, params.audioBitrateMode,
                 params.audioBitrateValue, true, true);
+        addAudioContainerCompatibilityArgs(cmd, params.outputFormat, audioCodec, inputPath);
 
         if ("swf".equalsIgnoreCase(params.outputFormat)) {
             cmd.add("-ar");
@@ -263,8 +304,11 @@ public class FfmpegCommandBuilder {
         cmd.add(vCodec);
         addVideoQualityArgs(cmd, vCodec, params, inputPath, 18);
 
-        addAudioCodecArgs(cmd, params.audioCodec, inputPath, params.audioBitrateMode,
+        String audioCodec = (params.audioCodec != null && !params.audioCodec.isEmpty())
+                ? params.audioCodec : "aac";
+        addAudioCodecArgs(cmd, audioCodec, inputPath, params.audioBitrateMode,
                 params.audioBitrateValue, true, false);
+        addAudioContainerCompatibilityArgs(cmd, params.outputFormat, audioCodec, inputPath);
 
         if ("swf".equalsIgnoreCase(params.outputFormat)) {
             cmd.add("-ar");
@@ -383,31 +427,319 @@ public class FfmpegCommandBuilder {
             cmd.add("-2");
         }
 
-        // AMR/iLBC 等编码器使用固定或受限码率，不能套用通用的 b:a 参数
-        boolean fixedBitrateCodec = isFixedBitrateAudioCodec(aCodec);
-        if (fixedBitrateCodec) {
+        String aCodecLower = aCodec.toLowerCase();
+
+        // 以下编码器使用固定/受限码率，不能套用“原始码率”
+        if (isFixedBitrateAudioCodec(aCodecLower)) {
             return;
         }
+
+        // 无损/PCM 类编码器没有“目标音频码率”这一概念
+        // 不再把源文件的 FLAC/WAV 等高码率伪装成目标码率传进去
+        if (isLosslessOrPcmAudioCodec(aCodecLower)) {
+            return;
+        }
+
+        // Speex 的有效码率范围随窄带/宽带/超宽带模式变化，统一使用保守值
+        if (aCodecLower.contains("speex")) {
+            cmd.add("-b:a");
+            cmd.add("32k");
+            return;
+        }
+
+        // LC3 的码率由帧时长、采样率和通道数共同决定
+        // 不要把 FLAC 等源文件的 Mbps 级码率直接当作 LC3 目标码率
+        if (aCodecLower.equals("liblc3") || aCodecLower.equals("lc3")) {
+            if ("custom".equals(bitrateMode)) {
+                cmd.add("-b:a");
+                cmd.add(Math.max(1, bitrateValue) + "k");
+            } else {
+                cmd.add("-b:a");
+                cmd.add("64k");
+            }
+            return;
+        }
+
+        int requestedKbps = -1;
+        boolean hasRequestedBitrate = false;
 
         if ("original".equals(bitrateMode)) {
             int origBitrate = getOriginalAudioBitrate(inputPath);
             if (origBitrate > 0) {
-                cmd.add("-b:a");
-                cmd.add(origBitrate + "k");
-            } else if (fallback128k) {
-                cmd.add("-b:a");
-                cmd.add("128k");
+                requestedKbps = origBitrate;
+                hasRequestedBitrate = true;
             }
         } else if ("custom".equals(bitrateMode)) {
-            cmd.add("-b:a");
-            cmd.add(Math.max(1, bitrateValue) + "k");
+            requestedKbps = Math.max(1, bitrateValue);
+            hasRequestedBitrate = true;
         } else if (fallback128k) {
-            cmd.add("-b:a");
-            cmd.add("128k");
+            requestedKbps = 128;
+            hasRequestedBitrate = true;
         } else if (allowOriginalFallback) {
-            cmd.add("-b:a");
-            cmd.add("192k");
+            requestedKbps = 192;
+            hasRequestedBitrate = true;
         }
+
+        if (!hasRequestedBitrate) {
+            return;
+        }
+
+        int safeKbps = sanitizeAudioBitrateKbps(aCodecLower, requestedKbps);
+        if (safeKbps != requestedKbps) {
+            Log.d(TAG, "音频码率已按编码器能力调整: codec=" + aCodecLower
+                    + ", requested=" + requestedKbps + "k, effective=" + safeKbps + "k");
+        }
+
+        cmd.add("-b:a");
+        cmd.add(safeKbps + "k");
+    }
+
+    /**
+     * 将用户选择/源文件继承的音频码率限制在目标编码器的安全范围内
+     * 所有输入单位均为 kbps
+     */
+    private static int sanitizeAudioBitrateKbps(String codec, int requestedKbps) {
+        int value = Math.max(1, requestedKbps);
+        if (codec == null) return value;
+
+        String c = codec.toLowerCase();
+
+        if (c.equals("libopus")) {
+            // libopus: 500..512000 bit/s
+            return clamp(value, 1, 512);
+        }
+
+        if (c.equals("libmp3lame")) {
+            return clamp(value, 8, 320);
+        }
+
+        if (c.equals("libshine")) {
+            return clamp(value, 32, 320);
+        }
+
+        if (c.equals("libvorbis")) {
+            // libvorbis 在极低/极高码率下兼容性较差，使用稳定范围
+            return clamp(value, 32, 500);
+        }
+
+        if (c.equals("ac3")) {
+            return clamp(value, 32, 640);
+        }
+
+        if (c.equals("eac3")) {
+            return clamp(value, 32, 6144);
+        }
+
+        if (c.equals("mp2") || c.equals("libtwolame")) {
+            return clamp(value, 32, 384);
+        }
+
+        if (c.equals("dca")) {
+            // FFmpeg DCA encoder 的常用 Core DTS 范围
+            return clamp(value, 320, 1536);
+        }
+
+        if (c.equals("wmav2") || c.equals("wma")) {
+            // WMA v2 在移动端构建中使用保守上限，避免源文件高码率直接导致编码器初始化失败。
+            return clamp(value, 8, 768);
+        }
+
+        if (c.equals("aac")) {
+            return clamp(value, 8, 6144);
+        }
+
+        return value;
+    }
+
+    private static int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    private static boolean isLosslessOrPcmAudioCodec(String codec) {
+        if (codec == null) return false;
+        String c = codec.toLowerCase();
+        return c.startsWith("pcm_")
+                || c.equals("flac")
+                || c.equals("alac")
+                || c.equals("tta")
+                || c.equals("wavpack")
+                || c.equals("truehd");
+    }
+
+    /**
+     * 针对编码器/容器对音频采样率、声道数的限制补充参数
+     *
+     * 注意：这个方法会被所有视频+音频以及纯音频任务统一调用
+     */
+    private static void addAudioContainerCompatibilityArgs(ArrayList<String> cmd,
+                                                            String outputFormat,
+                                                            String audioCodec,
+                                                            String inputPath) {
+        if (audioCodec == null) return;
+        String format = outputFormat == null ? "" : outputFormat.toLowerCase();
+        String codec = audioCodec.toLowerCase();
+
+        // FLV 的 Speex 使用 16 kHz 单声道；这是容器层面的额外限制
+        if ("flv".equals(format) && codec.contains("speex")) {
+            cmd.add("-ar");
+            cmd.add("16000");
+            cmd.add("-ac");
+            cmd.add("1");
+            return;
+        }
+
+        // Speex 编码器只使用有限采样率，若输入不是 8/16/32 kHz
+        // 选择距离最近的受支持采样率
+        if (codec.contains("speex")) {
+            int sampleRate = getOriginalAudioSampleRate(inputPath);
+            int targetRate = nearestSupportedSampleRate(sampleRate, 8000, 16000, 32000);
+            if (targetRate <= 0) targetRate = 16000;
+            addAudioSampleRate(cmd, sampleRate, targetRate, codec);
+            return;
+        }
+
+        // libopus 只接受 8/12/16/24/48 kHz
+        if (codec.equals("libopus")) {
+            int sampleRate = getOriginalAudioSampleRate(inputPath);
+            int targetRate = nearestSupportedSampleRate(sampleRate, 8000, 12000, 16000, 24000, 48000);
+            if (targetRate <= 0) targetRate = 48000;
+            addAudioSampleRate(cmd, sampleRate, targetRate, codec);
+            return;
+        }
+
+        // MP3 / libshine 的采样率集合有限
+        if (codec.equals("libmp3lame")) {
+            int sampleRate = getOriginalAudioSampleRate(inputPath);
+            int targetRate = nearestSupportedSampleRate(sampleRate,
+                    8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000);
+            if (targetRate <= 0) targetRate = 44100;
+            addAudioSampleRate(cmd, sampleRate, targetRate, codec);
+            return;
+        }
+
+        if (codec.equals("libshine")) {
+            int sampleRate = getOriginalAudioSampleRate(inputPath);
+            int targetRate = nearestSupportedSampleRate(sampleRate, 32000, 44100, 48000);
+            if (targetRate <= 0) targetRate = 44100;
+            addAudioSampleRate(cmd, sampleRate, targetRate, codec);
+            return;
+        }
+
+        // libvorbis 在移动端 FFmpeg 构建下对极高采样率的源音频兼容性不稳定
+        // 将超过 48 kHz 的输入安全降到 48 kHz
+        if (codec.equals("libvorbis")) {
+            int sampleRate = getOriginalAudioSampleRate(inputPath);
+            int targetRate = sampleRate > 48000 ? 48000 : sampleRate;
+            if (targetRate <= 0) targetRate = 48000;
+            addAudioSampleRate(cmd, sampleRate, targetRate, codec);
+            return;
+        }
+
+        // AC-3 / E-AC-3 只使用 32/44.1/48 kHz
+        if (codec.equals("ac3") || codec.equals("eac3")) {
+            int sampleRate = getOriginalAudioSampleRate(inputPath);
+            int targetRate = nearestSupportedSampleRate(sampleRate, 32000, 44100, 48000);
+            if (targetRate <= 0) targetRate = 48000;
+            addAudioSampleRate(cmd, sampleRate, targetRate, codec);
+            return;
+        }
+
+        // MP2 / libtwolame 只支持有限的 MPEG 音频采样率
+        if (codec.equals("mp2") || codec.equals("libtwolame")) {
+            int sampleRate = getOriginalAudioSampleRate(inputPath);
+            int targetRate = nearestSupportedSampleRate(sampleRate,
+                    16000, 22050, 24000, 32000, 44100, 48000);
+            if (targetRate <= 0) targetRate = 44100;
+            addAudioSampleRate(cmd, sampleRate, targetRate, codec);
+            return;
+        }
+
+        // DTS Core 编码器只接受固定采样率集合
+        if (codec.equals("dca")) {
+            int sampleRate = getOriginalAudioSampleRate(inputPath);
+            int targetRate = nearestSupportedSampleRate(sampleRate,
+                    8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000);
+            if (targetRate <= 0) targetRate = 48000;
+            addAudioSampleRate(cmd, sampleRate, targetRate, codec);
+            return;
+        }
+
+        // AMR-NB/AMR-WB 编码器分别固定在 8/16 kHz，并且为单声道
+        if (codec.contains("opencore_amrnb")) {
+            cmd.add("-ar");
+            cmd.add("8000");
+            cmd.add("-ac");
+            cmd.add("1");
+            return;
+        }
+        if (codec.contains("vo_amrwbenc")) {
+            cmd.add("-ar");
+            cmd.add("16000");
+            cmd.add("-ac");
+            cmd.add("1");
+            return;
+        }
+
+        // iLBC 严格要求 8 kHz 单声道
+        if (codec.equals("libilbc") || codec.equals("ilbc")) {
+            cmd.add("-ar");
+            cmd.add("8000");
+            cmd.add("-ac");
+            cmd.add("1");
+            return;
+        }
+
+        // WMA v2 最高只支持 48 kHz；移动端构建中使用 48 kHz 作为高采样率上限
+        if (codec.equals("wmav2") || codec.equals("wma")) {
+            int sampleRate = getOriginalAudioSampleRate(inputPath);
+            int targetRate = sampleRate > 48000 ? 48000 : sampleRate;
+            if (targetRate <= 0) targetRate = 48000;
+            addAudioSampleRate(cmd, sampleRate, targetRate, codec);
+            return;
+        }
+
+        // liblc3 只接受离散采样率
+        if (codec.equals("liblc3") || codec.equals("lc3")) {
+            int sampleRate = getOriginalAudioSampleRate(inputPath);
+            int targetRate = nearestSupportedSampleRate(sampleRate,
+                    8000, 16000, 24000, 32000, 48000, 96000);
+            if (targetRate > 0) {
+                addAudioSampleRate(cmd, sampleRate, targetRate, codec);
+            } else {
+                cmd.add("-ar");
+                cmd.add("48000");
+            }
+        }
+    }
+
+    private static void addAudioSampleRate(ArrayList<String> cmd,
+                                           int sourceRate,
+                                           int targetRate,
+                                           String codec) {
+        if (targetRate <= 0) return;
+        // 对于完全相同的采样率无需增加参数，避免冗余命令
+        if (sourceRate > 0 && sourceRate == targetRate) return;
+        cmd.add("-ar");
+        cmd.add(String.valueOf(targetRate));
+        if (sourceRate > 0 && sourceRate != targetRate) {
+            Log.d(TAG, "音频采样率已按编码器能力调整: codec=" + codec
+                    + ", source=" + sourceRate + "Hz, effective=" + targetRate + "Hz");
+        }
+    }
+
+    private static int nearestSupportedSampleRate(int sourceRate, int... supportedRates) {
+        if (supportedRates == null || supportedRates.length == 0) return -1;
+        if (sourceRate <= 0) return -1;
+        int best = supportedRates[0];
+        long bestDistance = Math.abs((long) sourceRate - best);
+        for (int rate : supportedRates) {
+            long distance = Math.abs((long) sourceRate - rate);
+            if (distance < bestDistance) {
+                best = rate;
+                bestDistance = distance;
+            }
+        }
+        return best;
     }
 
     private static void buildScreenshotArgs(ArrayList<String> cmd, ParameterData params) {
@@ -506,6 +838,27 @@ public class FfmpegCommandBuilder {
         return -1;
     }
     
+    /**
+     * 获取原始音频采样率 (Hz)，获取失败返回 -1
+     * 仅在需要离散采样率适配的编码器上调用，避免无意义的额外探测
+     */
+    private static int getOriginalAudioSampleRate(String inputPath) {
+        if (inputPath == null || inputPath.isEmpty()) return -1;
+        try {
+            String probeCmd = "-v quiet -select_streams a:0 -show_entries stream=sample_rate -of default=noprint_wrappers=1:nokey=1 \"" + inputPath + "\"";
+            FFprobeSession session = FFprobeKit.execute(probeCmd);
+            if (session != null && ReturnCode.isSuccess(session.getReturnCode())) {
+                String output = session.getOutput();
+                if (output != null && !output.trim().isEmpty() && !"N/A".equals(output.trim())) {
+                    return Integer.parseInt(output.trim());
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "获取原始音频采样率失败: " + inputPath, e);
+        }
+        return -1;
+    }
+
     /**
      * 获取原始音频码率 (kbps)，获取失败返回 -1
      */
@@ -701,8 +1054,10 @@ public class FfmpegCommandBuilder {
             case "webp": return "webp";
             case "bmp": return "bmp";
             case "tiff": return "tiff";
-            case "heif": return "heif";
-            case "heic": return "heic";
+            case "heif":
+            case "heic":
+                // 兼容旧参数：当前构建没有 HEIF/HEIC muxer，实际输出回退到 JPEG
+                return "jpg";
             case "avif": return "avif";
             case "jxl": return "jxl";
             case "jp2": return "jp2";
@@ -711,7 +1066,7 @@ public class FfmpegCommandBuilder {
             case "tga": return "tga";
             case "dpx": return "dpx";
             case "exr": return "exr";
-            case "ico": return "png";
+            case "ico": return "ico";
             default: return "jpg";
         }
     }
@@ -733,8 +1088,10 @@ public class FfmpegCommandBuilder {
             case "tga": return "targa";
             case "dpx": return "dpx";
             case "exr": return "exr";
-            case "ico": return "ico";
-            // HEIF/HEIC 的实际编码器能力依赖当前 FFmpeg 图像封装，因此保持自动选择
+            case "ico":
+                // ICO 是 muxer，不是 encoder；使用 PNG 编码器并指定 ICO muxer
+                return "png";
+            // 当前 FFmpeg 构建未启用 libheif，因此 HEIF/HEIC 不作为输出格式
             case "heif":
             case "heic":
                 return null;
