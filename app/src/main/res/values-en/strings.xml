@@ -529,6 +529,44 @@
     <string name="notification_cancelled_text">Processing of %s has been cancelled</string>
     <string name="notification_file_placeholder">File</string>
 
+    <string name="codec_av1_svt">libsvtav1 (AV1)</string>
+    <string name="codec_av1_aom">libaom-av1 (AV1)</string>
+    <string name="codec_h264_openh264">libopenh264 (H.264)</string>
+    <string name="codec_mpeg4_xvid">libxvid (MPEG-4)</string>
+    <string name="codec_prores">prores_ks (ProRes)</string>
+    <string name="codec_dnxhd">dnxhd (DNxHD/DNxHR)</string>
+    <string name="codec_mjpeg">mjpeg</string>
+    <string name="codec_mpeg2">mpeg2video (MPEG-2)</string>
+    <string name="codec_mpeg1">mpeg1video (MPEG-1)</string>
+    <string name="codec_theora">libtheora (Theora)</string>
+    <string name="codec_vvc">libvvenc (VVC/H.266)</string>
+    <string name="codec_ffv1">ffv1 (FFV1)</string>
+    <string name="codec_flv1">flv1</string>
+    <string name="codec_h263">h263</string>
+    <string name="codec_wmv2">wmv2</string>
+    <string name="codec_wmv1">wmv1</string>
+    <string name="codec_alac">alac</string>
+    <string name="codec_opus">libopus</string>
+    <string name="codec_ac3">ac3</string>
+    <string name="codec_eac3">eac3</string>
+    <string name="codec_dca">dca (DTS)</string>
+    <string name="codec_truehd">truehd</string>
+    <string name="codec_pcm_s24le">pcm_s24le</string>
+    <string name="codec_pcm_s32le">pcm_s32le</string>
+    <string name="codec_mp2">mp2</string>
+    <string name="codec_amrnb">libopencore_amrnb (AMR-NB)</string>
+    <string name="codec_amrwb">libvo_amrwbenc (AMR-WB)</string>
+    <string name="codec_speex">libspeex</string>
+    <string name="codec_shine">libshine</string>
+    <string name="codec_twolame">libtwolame</string>
+    <string name="codec_wmav2">wmav2</string>
+    <string name="codec_tta">tta</string>
+    <string name="codec_wavpack">wavpack</string>
+    <string name="codec_lc3">liblc3 (LC3)</string>
+    <string name="codec_ilbc">libilbc</string>
+    <string name="codec_alaw">pcm_alaw</string>
+    <string name="codec_mulaw">pcm_mulaw</string>
+    <string name="codec_none">none (No audio)</string>
     <string name="codec_h264_hw_best">h264_mediacodec (HW) (Best)</string>
     <string name="codec_hevc_hw">hevc_mediacodec (HW)</string>
     <string name="codec_h264_sw">libx264 (SW)</string>
@@ -549,6 +587,36 @@
     <string name="codec_aac">aac</string>
     <string name="codec_mp3">libmp3lame</string>
 
+    <string name="format_3gp">3gp</string>
+    <string name="format_3g2">3g2</string>
+    <string name="format_mpg">mpg</string>
+    <string name="format_mpeg">mpeg</string>
+    <string name="format_ts">ts</string>
+    <string name="format_mts">mts</string>
+    <string name="format_m2ts">m2ts</string>
+    <string name="format_mxf">mxf</string>
+    <string name="format_ogv">ogv</string>
+    <string name="format_asf">asf</string>
+    <string name="format_nut">nut</string>
+    <string name="format_swf">swf</string>
+    <string name="format_vob">vob</string>
+    <string name="format_m4v">m4v</string>
+    <string name="format_oga">oga</string>
+    <string name="format_opus">opus</string>
+    <string name="format_ac3">ac3</string>
+    <string name="format_eac3">eac3</string>
+    <string name="format_dts">dts</string>
+    <string name="format_truehd">truehd</string>
+    <string name="format_mp2">mp2</string>
+    <string name="format_aiff">aiff</string>
+    <string name="format_amr">amr</string>
+    <string name="format_caf">caf</string>
+    <string name="format_wma">wma</string>
+    <string name="format_tta">tta</string>
+    <string name="format_wv">wv</string>
+    <string name="format_spx">spx</string>
+    <string name="format_lc3">lc3</string>
+    <string name="format_ilbc">ilbc</string>
     <string name="format_mp4">mp4</string>
     <string name="format_mkv">mkv</string>
     <string name="format_webm">webm</string>
@@ -581,6 +649,20 @@
         <item>mkv</item>
         <item>flv</item>
         <item>webm</item>
+        <item>3gp</item>
+        <item>3g2</item>
+        <item>mpg</item>
+        <item>mpeg</item>
+        <item>ts</item>
+        <item>mts</item>
+        <item>m2ts</item>
+        <item>mxf</item>
+        <item>ogv</item>
+        <item>asf</item>
+        <item>nut</item>
+        <item>swf</item>
+        <item>vob</item>
+        <item>m4v</item>
         <item>gif</item>
     </string-array>
 
@@ -604,7 +686,23 @@
         <item>aac</item>
         <item>flac</item>
         <item>ogg</item>
+        <item>oga</item>
         <item>m4a</item>
+        <item>opus</item>
+        <item>ac3</item>
+        <item>eac3</item>
+        <item>dts</item>
+        <item>truehd</item>
+        <item>mp2</item>
+        <item>aiff</item>
+        <item>amr</item>
+        <item>caf</item>
+        <item>wma</item>
+        <item>tta</item>
+        <item>wv</item>
+        <item>spx</item>
+        <item>lc3</item>
+        <item>ilbc</item>
     </string-array>
 
     <string-array name="audio_quality_options">

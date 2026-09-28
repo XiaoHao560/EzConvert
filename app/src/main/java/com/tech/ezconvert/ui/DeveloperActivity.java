@@ -109,8 +109,11 @@ public class DeveloperActivity extends BaseActivity {
             String encoders = FFmpegUtil.executeSimpleCommand("-encoders");
             String[] keyCodecs = {
                 "libx264", "libx265", "libvpx", "libvpx-vp9",
-                "libaom-av1", "libsvtav1", "libmp3lame", 
-                "libopus", "aac", "h264_mediacodec", "hevc_mediacodec"
+                "libaom-av1", "libsvtav1", "libopenh264", "libvvenc", "libkvazaar",
+                "libxvid", "libtheora", "prores_ks", "dnxhd", "ffv1",
+                "libmp3lame", "libshine", "libopus", "libvorbis", "libspeex", "libtwolame",
+                "libopencore_amrnb", "libvo_amrwbenc", "liblc3", "libilbc",
+                "aac", "h264_mediacodec", "hevc_mediacodec"
             };
             
             for (String codec : keyCodecs) {
