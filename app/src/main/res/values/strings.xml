@@ -531,6 +531,8 @@
     <string name="notification_complete_text_fail">%1$s %2$s</string>
     <string name="notification_cancelled_title">操作已取消</string>
     <string name="notification_cancelled_text">%s 的处理已取消</string>
+    <string name="notification_need_parameters_title">请返回设置参数</string>
+    <string name="notification_need_parameters_text">下一个文件需要设置转换参数</string>
     <string name="notification_file_placeholder">文件</string>
 
     <string name="codec_av1_svt">libsvtav1 (AV1)</string>

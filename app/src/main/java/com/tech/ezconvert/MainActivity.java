@@ -80,6 +80,7 @@ public class MainActivity extends BaseActivity implements
 
     private boolean permissionsGranted = false;
     private boolean isTaskRunning = false;
+    private boolean isMainActivityVisible = false;
     private long lastPermissionCheck = 0;
 
     private String currentInputPath = "";
@@ -290,6 +291,7 @@ public class MainActivity extends BaseActivity implements
                 queueManager.getTaskType(), currentInputPath, uri,
                 queueManager.getCurrentPosition(), queueManager.size());
         dialog.setListener((params, syncAll) -> {
+            queueManager.setPendingParameterPrompt(false);
             queueManager.setSyncMode(syncAll, params);
             submitCurrentWorkerWithOutputCheck(params);
         });
@@ -513,22 +515,32 @@ public class MainActivity extends BaseActivity implements
     // ConversionManager 通知当前 Worker 结束后，决定继续队列、弹参数框或结束整个任务
     @Override
     public void onCompleted(boolean success, String message, String outputPath) {
+        // ConversionManager 已经负责推进队列、继续同步任务以及记录“等待参数”状态
+        // 此回调只更新当前可见的 MainActivity UI
         runOnUiThread(() -> {
+            if (!isMainActivityVisible) return;
+
             if (!success) {
                 handleWorkerFailure(message);
                 return;
             }
 
-            queueManager.moveToNext();
             resetProgressUI();
             currentOutputFile = "";
 
-            if (queueManager.isEmpty() || queueManager.getCurrentIndex() >= queueManager.size()) {
+            if (queueManager.getCurrentIndex() >= queueManager.size()) {
                 finishQueue();
-            } else if (queueManager.isSyncMode() && queueManager.getSyncParams() != null) {
-                submitCurrentWorkerWithOutputCheck(queueManager.getSyncParams());
-            } else {
+            } else if (queueManager.hasPendingParameterPrompt()) {
                 showParameterDialogForCurrentFile();
+            } else if (queueManager.getCurrentWorkId() != null
+                    && !queueManager.getCurrentWorkId().isEmpty()) {
+                isTaskRunning = true;
+                showCancelButton();
+                Uri uri = queueManager.getCurrentUri();
+                String fileName = uri != null ? FileUtils.getDisplayName(this, uri) : queueManager.getCurrentKey();
+                updateStatus(getString(R.string.status_processing,
+                        fileName == null || fileName.isEmpty() ? "file" : fileName,
+                        queueManager.getCurrentPosition(), queueManager.size()));
             }
         });
     }
@@ -667,14 +679,46 @@ public class MainActivity extends BaseActivity implements
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        isMainActivityVisible = true;
+        if (conversionManager != null) conversionManager.setUiActive(true);
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         checkPermissions();
+
+        // 非同步队列在后台等待参数时，回到 MainActivity 后继续弹出参数设置
+        if (queueManager != null && queueManager.hasPendingParameterPrompt()
+                && getSupportFragmentManager().findFragmentByTag("param_dialog") == null) {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (!isMainActivityVisible || queueManager == null
+                        || !queueManager.hasPendingParameterPrompt()
+                        || getSupportFragmentManager().findFragmentByTag("param_dialog") != null) return;
+                showParameterDialogForCurrentFile();
+            });
+        } else if (queueManager != null
+                && !queueManager.isEmpty()
+                && queueManager.getCurrentIndex() >= queueManager.size()
+                && (queueManager.getCurrentWorkId() == null || queueManager.getCurrentWorkId().isEmpty())) {
+            // 所有同步任务可能在 MainActivity 不可见时已完成
+            new Handler(Looper.getMainLooper()).post(this::finishQueue);
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        isMainActivityVisible = false;
+        if (conversionManager != null) conversionManager.setUiActive(false);
+        super.onStop();
     }
 
     @Override
     protected void onDestroy() {
-        conversionManager.clearObservation(this);
+        isMainActivityVisible = false;
+        if (conversionManager != null) conversionManager.setUiActive(false);
         if (updateChecker != null) updateChecker.cleanup();
         if (!scheduler.isShutdown()) scheduler.shutdown();
         SharedFileCacheCleaner.cleanup(this);

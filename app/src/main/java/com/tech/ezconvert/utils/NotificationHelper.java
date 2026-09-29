@@ -172,6 +172,34 @@ public class NotificationHelper {
         NotificationManagerCompat.from(context).notify(completeNotificationId++, builder.build());
     }
 
+    /**
+     * 下一项需要用户设置参数时的提示通知
+     * 仅在应用设置中启用了通知且系统通知权限可用时发送
+     */
+    public static void showNeedParametersNotification(Context context) {
+        if (!ConfigManager.getInstance(context).isNotificationEnabled()) return;
+        if (!areNotificationsEnabled(context)) return;
+
+        ensureChannelsCreated(context);
+
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                context, 2, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID_COMPLETE)
+                .setSmallIcon(R.drawable.ic_splash_logo)
+                .setContentTitle(context.getString(R.string.notification_need_parameters_title))
+                .setContentText(context.getString(R.string.notification_need_parameters_text))
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true);
+
+        NotificationManagerCompat.from(context).notify(completeNotificationId++, builder.build());
+    }
+
     public static void cancelProgressNotification(Context context) {
         NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID_PROGRESS);
     }
