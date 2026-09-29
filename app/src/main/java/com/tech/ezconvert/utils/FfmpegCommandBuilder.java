@@ -4,6 +4,7 @@ import android.content.Context;
 import com.arthenica.ffmpegkit.FFprobeKit;
 import com.arthenica.ffmpegkit.FFprobeSession;
 import com.arthenica.ffmpegkit.ReturnCode;
+import com.tech.ezconvert.utils.Log;
 import java.util.ArrayList;
 
 /**
@@ -158,6 +159,7 @@ public class FfmpegCommandBuilder {
         // 兼容旧版本可能残留的 HEIF/HEIC 参数：当前 FFmpeg 构建没有对应 muxer，统一回退为 JPEG
         // 同时由 buildOutputPath() 输出 .jpg，避免生成“扩展名是 HEIC、实际内容却无法封装”的坏文件
         if ("heif".equals(format) || "heic".equals(format)) {
+            Log.w(TAG, "兼容性调整: 输出图片格式 " + format + " 当前构建不支持 HEIF/HEIC 封装，已回退为 jpg");
             format = "jpg";
         }
         // 图片任务只处理视频流，避免输入文件中存在其他流时被错误带入输出
@@ -250,6 +252,7 @@ public class FfmpegCommandBuilder {
         addAudioContainerCompatibilityArgs(cmd, params.outputFormat, audioCodec, inputPath);
 
         if ("swf".equalsIgnoreCase(params.outputFormat)) {
+            Log.w(TAG, "兼容性调整: SWF 音频采样率强制为 44100 Hz");
             cmd.add("-ar");
             cmd.add("44100");
         }
@@ -274,6 +277,7 @@ public class FfmpegCommandBuilder {
         addAudioContainerCompatibilityArgs(cmd, params.outputFormat, audioCodec, inputPath);
 
         if ("swf".equalsIgnoreCase(params.outputFormat)) {
+            Log.w(TAG, "兼容性调整: SWF 音频采样率强制为 44100 Hz");
             cmd.add("-ar");
             cmd.add("44100");
         }
@@ -311,6 +315,7 @@ public class FfmpegCommandBuilder {
         addAudioContainerCompatibilityArgs(cmd, params.outputFormat, audioCodec, inputPath);
 
         if ("swf".equalsIgnoreCase(params.outputFormat)) {
+            Log.w(TAG, "兼容性调整: SWF 音频采样率强制为 44100 Hz");
             cmd.add("-ar");
             cmd.add("44100");
         }
@@ -442,6 +447,7 @@ public class FfmpegCommandBuilder {
 
         // Speex 的有效码率范围随窄带/宽带/超宽带模式变化，统一使用保守值
         if (aCodecLower.contains("speex")) {
+            Log.w(TAG, "兼容性调整: Speex 使用兼容性固定码率 32k，不继承源文件码率");
             cmd.add("-b:a");
             cmd.add("32k");
             return;
@@ -454,6 +460,7 @@ public class FfmpegCommandBuilder {
                 cmd.add("-b:a");
                 cmd.add(Math.max(1, bitrateValue) + "k");
             } else {
+                Log.w(TAG, "兼容性调整: LC3 不直接继承源/默认音频码率，使用 64k");
                 cmd.add("-b:a");
                 cmd.add("64k");
             }
@@ -486,7 +493,7 @@ public class FfmpegCommandBuilder {
 
         int safeKbps = sanitizeAudioBitrateKbps(aCodecLower, requestedKbps);
         if (safeKbps != requestedKbps) {
-            Log.d(TAG, "音频码率已按编码器能力调整: codec=" + aCodecLower
+            Log.w(TAG, "兼容性调整: 音频码率超出编码器能力，已自动调整: codec=" + aCodecLower
                     + ", requested=" + requestedKbps + "k, effective=" + safeKbps + "k");
         }
 
@@ -581,10 +588,7 @@ public class FfmpegCommandBuilder {
 
         // FLV 的 Speex 使用 16 kHz 单声道；这是容器层面的额外限制
         if ("flv".equals(format) && codec.contains("speex")) {
-            cmd.add("-ar");
-            cmd.add("16000");
-            cmd.add("-ac");
-            cmd.add("1");
+            addFixedAudioFormat(cmd, inputPath, codec, 16000, 1, "FLV/Speex 需要 16 kHz 单声道");
             return;
         }
 
@@ -666,26 +670,17 @@ public class FfmpegCommandBuilder {
 
         // AMR-NB/AMR-WB 编码器分别固定在 8/16 kHz，并且为单声道
         if (codec.contains("opencore_amrnb")) {
-            cmd.add("-ar");
-            cmd.add("8000");
-            cmd.add("-ac");
-            cmd.add("1");
+            addFixedAudioFormat(cmd, inputPath, codec, 8000, 1, "AMR-NB 要求 8 kHz 单声道");
             return;
         }
         if (codec.contains("vo_amrwbenc")) {
-            cmd.add("-ar");
-            cmd.add("16000");
-            cmd.add("-ac");
-            cmd.add("1");
+            addFixedAudioFormat(cmd, inputPath, codec, 16000, 1, "AMR-WB 要求 16 kHz 单声道");
             return;
         }
 
         // iLBC 严格要求 8 kHz 单声道
         if (codec.equals("libilbc") || codec.equals("ilbc")) {
-            cmd.add("-ar");
-            cmd.add("8000");
-            cmd.add("-ac");
-            cmd.add("1");
+            addFixedAudioFormat(cmd, inputPath, codec, 8000, 1, "iLBC 要求 8 kHz 单声道");
             return;
         }
 
@@ -712,6 +707,38 @@ public class FfmpegCommandBuilder {
         }
     }
 
+    /**
+     * 对必须固定采样率/声道数的编码器统一应用兼容参数，并在实际发生变化时输出 WARN
+     */
+    private static void addFixedAudioFormat(ArrayList<String> cmd, String inputPath,
+                                            String codec, int targetRate, int targetChannels,
+                                            String reason) {
+        int sourceRate = getOriginalAudioSampleRate(inputPath);
+        int sourceChannels = getOriginalAudioChannels(inputPath);
+        boolean rateChanged = sourceRate > 0 && sourceRate != targetRate;
+        boolean channelsChanged = sourceChannels > 0 && sourceChannels != targetChannels;
+
+        if (rateChanged || channelsChanged || sourceRate <= 0 || sourceChannels <= 0) {
+            StringBuilder message = new StringBuilder("兼容性调整: ")
+                    .append(reason)
+                    .append(": codec=").append(codec);
+            if (sourceRate > 0) {
+                message.append(", sourceRate=").append(sourceRate).append("Hz");
+            }
+            message.append(", effectiveRate=").append(targetRate).append("Hz");
+            if (sourceChannels > 0) {
+                message.append(", sourceChannels=").append(sourceChannels);
+            }
+            message.append(", effectiveChannels=").append(targetChannels);
+            Log.w(TAG, message.toString());
+        }
+
+        cmd.add("-ar");
+        cmd.add(String.valueOf(targetRate));
+        cmd.add("-ac");
+        cmd.add(String.valueOf(targetChannels));
+    }
+
     private static void addAudioSampleRate(ArrayList<String> cmd,
                                            int sourceRate,
                                            int targetRate,
@@ -722,7 +749,7 @@ public class FfmpegCommandBuilder {
         cmd.add("-ar");
         cmd.add(String.valueOf(targetRate));
         if (sourceRate > 0 && sourceRate != targetRate) {
-            Log.d(TAG, "音频采样率已按编码器能力调整: codec=" + codec
+            Log.w(TAG, "兼容性调整: 音频采样率超出编码器能力，已自动调整: codec=" + codec
                     + ", source=" + sourceRate + "Hz, effective=" + targetRate + "Hz");
         }
     }
@@ -855,6 +882,26 @@ public class FfmpegCommandBuilder {
             }
         } catch (Exception e) {
             Log.e(TAG, "获取原始音频采样率失败: " + inputPath, e);
+        }
+        return -1;
+    }
+
+    /**
+     * 获取原始音频声道数，获取失败返回 -1
+     */
+    private static int getOriginalAudioChannels(String inputPath) {
+        if (inputPath == null || inputPath.isEmpty()) return -1;
+        try {
+            String probeCmd = "-v quiet -select_streams a:0 -show_entries stream=channels -of default=noprint_wrappers=1:nokey=1 \"" + inputPath + "\"";
+            FFprobeSession session = FFprobeKit.execute(probeCmd);
+            if (session != null && ReturnCode.isSuccess(session.getReturnCode())) {
+                String output = session.getOutput();
+                if (output != null && !output.trim().isEmpty() && !"N/A".equals(output.trim())) {
+                    return Integer.parseInt(output.trim());
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "获取原始音频声道数失败: " + inputPath, e);
         }
         return -1;
     }
