@@ -214,6 +214,7 @@ public class ConversionManager {
      * 取消当前 Worker
      */
     public void cancelCurrent() {
+        NotificationHelper.cancelNeedParametersNotification(context);
         if (currentWorkId != null) {
             workManager.cancelWorkById(currentWorkId);
             queue.setCurrentWorkId("");
@@ -288,6 +289,7 @@ public class ConversionManager {
             boolean hasNext = queue.getCurrentIndex() < queue.size();
             if (hasNext && queue.isSyncMode() && queue.getSyncParams() != null) {
                 queue.setPendingParameterPrompt(false);
+                NotificationHelper.cancelNeedParametersNotification(context);
                 submitNextSyncWork();
             } else if (hasNext) {
                 queue.setPendingParameterPrompt(true);
@@ -296,6 +298,8 @@ public class ConversionManager {
                 }
             } else {
                 queue.setPendingParameterPrompt(false);
+                NotificationHelper.cancelNeedParametersNotification(context);
+                NotificationHelper.showAllTasksCompleteNotification(context);
             }
 
             notifyCompleted(true, context.getString(R.string.status_processing_complete), path);

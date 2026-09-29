@@ -533,6 +533,8 @@
     <string name="notification_cancelled_text">Processing of %s has been cancelled</string>
     <string name="notification_need_parameters_title">Please return to set parameters</string>
     <string name="notification_need_parameters_text">The next file requires conversion parameters to be set</string>
+    <string name="notification_all_tasks_complete_title">All file tasks completed!</string>
+    <string name="notification_all_tasks_complete_text">All file tasks have been completed</string>
     <string name="notification_file_placeholder">File</string>
 
     <string name="codec_av1_svt">libsvtav1 (AV1)</string>

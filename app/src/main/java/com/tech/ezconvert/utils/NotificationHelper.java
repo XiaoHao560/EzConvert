@@ -18,6 +18,8 @@ public class NotificationHelper {
     private static final String CHANNEL_ID_PROGRESS = "conversion_progress";
     private static final String CHANNEL_ID_COMPLETE = "conversion_complete";
     private static final int NOTIFICATION_ID_PROGRESS = 1001;
+    private static final int NOTIFICATION_ID_NEED_PARAMETERS = 1002;
+    private static final int NOTIFICATION_ID_ALL_COMPLETE = 1003;
     private static final int NOTIFICATION_ID_COMPLETE_BASE = 2000;
 
     private static int completeNotificationId = NOTIFICATION_ID_COMPLETE_BASE;
@@ -174,7 +176,7 @@ public class NotificationHelper {
 
     /**
      * 下一项需要用户设置参数时的提示通知
-     * 仅在应用设置中启用了通知且系统通知权限可用时发送
+     * 使用与转换进度通知相同的低打扰频道，并保持常驻，直到参数真正确认
      */
     public static void showNeedParametersNotification(Context context) {
         if (!ConfigManager.getInstance(context).isNotificationEnabled()) return;
@@ -189,15 +191,49 @@ public class NotificationHelper {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID_COMPLETE)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID_PROGRESS)
                 .setSmallIcon(R.drawable.ic_splash_logo)
                 .setContentTitle(context.getString(R.string.notification_need_parameters_title))
                 .setContentText(context.getString(R.string.notification_need_parameters_text))
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setOngoing(true)
+                .setAutoCancel(false)
+                .setOnlyAlertOnce(true)
+                .setContentIntent(pendingIntent);
+
+        NotificationManagerCompat.from(context).notify(NOTIFICATION_ID_NEED_PARAMETERS, builder.build());
+    }
+
+    /** 参数确认后移除“请返回设置参数”的常驻通知 */
+    public static void cancelNeedParametersNotification(Context context) {
+        NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID_NEED_PARAMETERS);
+    }
+
+    /** 整个多文件队列全部处理完成后的最终通知 */
+    public static void showAllTasksCompleteNotification(Context context) {
+        if (!ConfigManager.getInstance(context).isNotificationEnabled()) return;
+        if (!areNotificationsEnabled(context)) return;
+
+        ensureChannelsCreated(context);
+
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                context, 3, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID_COMPLETE)
+                .setSmallIcon(R.drawable.ic_splash_logo)
+                .setContentTitle(context.getString(R.string.notification_all_tasks_complete_title))
+                .setContentText(context.getString(R.string.notification_all_tasks_complete_text))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
 
-        NotificationManagerCompat.from(context).notify(completeNotificationId++, builder.build());
+        NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID_PROGRESS);
+        NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID_NEED_PARAMETERS);
+        NotificationManagerCompat.from(context).notify(NOTIFICATION_ID_ALL_COMPLETE, builder.build());
     }
 
     public static void cancelProgressNotification(Context context) {
