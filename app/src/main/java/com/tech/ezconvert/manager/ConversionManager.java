@@ -5,6 +5,7 @@ import android.net.Uri;
 
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 import androidx.work.Data;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkInfo;
@@ -21,6 +22,7 @@ import com.tech.ezconvert.worker.FfmpegWorker;
 
 import java.io.File;
 import java.util.UUID;
+import java.lang.ref.WeakReference;
 
 /**
  * WorkManager 转换任务的生命周期管理，Activity 只负责接收结果并更新 UI
@@ -40,20 +42,31 @@ public class ConversionManager {
     private final WorkManager workManager;
     private final Gson gson = new Gson();
     private final ConversionQueueManager queue;
-    private final Listener listener;
+    private final WeakReference<Listener> listenerRef;
     private LiveData<WorkInfo> currentWorkLiveData;
+    private Observer<WorkInfo> currentWorkObserver;
+    private boolean uiActive = false;
     private UUID currentWorkId;
 
     public ConversionManager(Context context, ConversionQueueManager queue, Listener listener) {
         this.context = context.getApplicationContext();
         this.workManager = WorkManager.getInstance(this.context);
         this.queue = queue;
-        this.listener = listener;
+        this.listenerRef = new WeakReference<>(listener);
     }
 
     /** 返回当前正在监听的 Worker ID；没有任务时返回 null */
     public UUID getCurrentWorkId() {
         return currentWorkId;
+    }
+
+    /** UI 是否当前可见，任务推进不依赖此状态，但参数对话框等 UI 行为依赖它 */
+    public void setUiActive(boolean active) {
+        uiActive = active;
+    }
+
+    private Listener getListener() {
+        return listenerRef.get();
     }
     
     /**
@@ -95,7 +108,7 @@ public class ConversionManager {
 
         currentWorkId = workRequest.getId();
         queue.setCurrentWorkId(currentWorkId.toString());
-        observe(currentWorkId, owner);
+        observe(currentWorkId);
         workManager.enqueue(workRequest);
     }
 
@@ -123,7 +136,7 @@ public class ConversionManager {
         String persistedWorkId = queue.getCurrentWorkId();
         if (persistedWorkId == null || persistedWorkId.isEmpty()) {
             currentWorkId = null;
-            listener.onIdleAfterRestore();
+            notifyIdleAfterRestore();
             return;
         }
 
@@ -134,21 +147,15 @@ public class ConversionManager {
             Log.w("ConversionManager", "持久化的 Worker ID 无效，跳过恢复: " + persistedWorkId);
             queue.setCurrentWorkId("");
             currentWorkId = null;
-            listener.onIdleAfterRestore();
+            notifyIdleAfterRestore();
             return;
         }
 
         LiveData<WorkInfo> liveData = workManager.getWorkInfoByIdLiveData(workId);
-        liveData.observe(owner, workInfo -> {
-            liveData.removeObservers(owner);
-
-            if (workInfo == null) {
-                // Worker 已不存在时，清理残留的恢复标记，避免下次启动反复进入恢复流程
-                queue.setCurrentWorkId("");
-                currentWorkId = null;
-                listener.onIdleAfterRestore();
-                return;
-            }
+        final Observer<WorkInfo>[] restoreObserver = new Observer[1];
+        restoreObserver[0] = workInfo -> {
+            if (workInfo == null) return;
+            liveData.removeObserver(restoreObserver[0]);
 
             WorkInfo.State state = workInfo.getState();
 
@@ -157,8 +164,8 @@ public class ConversionManager {
                     || state == WorkInfo.State.BLOCKED) {
                 currentWorkId = workInfo.getId();
                 syncQueueIndexFromTags(workInfo);
-                observe(currentWorkId, owner);
-                listener.onRestored();
+                observe(currentWorkId);
+                notifyRestored();
                 return;
             }
 
@@ -171,20 +178,7 @@ public class ConversionManager {
                         && taskIndex - 1 == queue.getCurrentIndex();
 
                 if (isCurrentItem) {
-                    if (state == WorkInfo.State.SUCCEEDED) {
-                        String path = output.getString(FfmpegWorker.KEY_OUTPUT_PATH);
-                        if (path != null) queue.addCompletedOutput(path);
-                        queue.setCurrentWorkId("");
-                        currentWorkId = null;
-                        listener.onCompleted(true, context.getString(R.string.status_processing_complete), path);
-                        return;
-                    }
-
-                    String error = output.getString(FfmpegWorker.KEY_ERROR_MESSAGE);
-                    if (error == null) error = context.getString(R.string.error_unknown);
-                    queue.setCurrentWorkId("");
-                    currentWorkId = null;
-                    listener.onCompleted(false, error, null);
+                    handleTerminalWork(workInfo);
                     return;
                 }
             }
@@ -192,8 +186,9 @@ public class ConversionManager {
             // CANCELLED 或者无法与当前队列项对应的终态都不应继续恢复
             queue.setCurrentWorkId("");
             currentWorkId = null;
-            listener.onIdleAfterRestore();
-        });
+            notifyIdleAfterRestore();
+        };
+        liveData.observeForever(restoreObserver[0]);
     }
 
     private boolean isCurrentSessionWork(WorkInfo info) {
@@ -222,57 +217,178 @@ public class ConversionManager {
         if (currentWorkId != null) {
             workManager.cancelWorkById(currentWorkId);
             queue.setCurrentWorkId("");
+            queue.setPendingParameterPrompt(false);
             currentWorkId = null;
         }
     }
 
-    /** Activity 销毁或离开页面时移除当前 Worker 的 LiveData observer */
+    /** Activity 销毁时仅断开 UI 引用，Worker 监听仍由此管理器独立维持 */
     public void clearObservation(LifecycleOwner owner) {
-        if (currentWorkLiveData != null) currentWorkLiveData.removeObservers(owner);
+        clearObservation();
     }
 
-    private void observe(UUID workId, LifecycleOwner owner) {
-        if (currentWorkLiveData != null) {
-            // Observer 的移除由 LifecycleOwner 的销毁处理，在此处只需替换 LiveData 即可
+    public void clearObservation() {
+        if (currentWorkLiveData != null && currentWorkObserver != null) {
+            currentWorkLiveData.removeObserver(currentWorkObserver);
         }
+        currentWorkLiveData = null;
+        currentWorkObserver = null;
+    }
+
+    /**
+     * 不再依赖 Activity 生命周期，任务处于后台时仍能收到 Worker 完成事件
+     */
+    private void observe(UUID workId) {
+        if (currentWorkLiveData != null && currentWorkObserver != null) {
+            currentWorkLiveData.removeObserver(currentWorkObserver);
+        }
+
         currentWorkLiveData = workManager.getWorkInfoByIdLiveData(workId);
-        currentWorkLiveData.observe(owner, workInfo -> {
+        currentWorkObserver = workInfo -> {
             if (workInfo == null) return;
             WorkInfo.State state = workInfo.getState();
+
             if (state == WorkInfo.State.RUNNING) {
                 Data progress = workInfo.getProgress();
-                listener.onProgress(progress.getInt(FfmpegWorker.KEY_PROGRESS, 0),
+                notifyProgress(progress.getInt(FfmpegWorker.KEY_PROGRESS, 0),
                         progress.getLong(FfmpegWorker.KEY_TIME, 0));
-            } else if (state == WorkInfo.State.SUCCEEDED) {
-                Data output = workInfo.getOutputData();
-                String path = output.getString(FfmpegWorker.KEY_OUTPUT_PATH);
-                if (path != null) {
-                    queue.addCompletedOutput(path);
-                    String displayName = new File(path).getName();
-                    if (path.startsWith("content://")) {
-                        String uriName = FileUtils.getDisplayName(context, Uri.parse(path));
-                        if (uriName != null && !uriName.isEmpty()) displayName = uriName;
-                    }
-                    NotificationHelper.showCompleteNotification(context, displayName, true, "");
-                }
-                queue.setCurrentWorkId("");
-                currentWorkId = null;
-                listener.onCompleted(true, context.getString(R.string.status_processing_complete), path);
-            } else if (state == WorkInfo.State.FAILED || state == WorkInfo.State.CANCELLED) {
-                Data output = workInfo.getOutputData();
-                String error = output.getString(FfmpegWorker.KEY_ERROR_MESSAGE);
-                if (state == WorkInfo.State.CANCELLED || context.getString(R.string.error_cancelled).equals(error)) {
-                    error = context.getString(R.string.error_cancelled);
-                } else if (error == null) {
-                    error = context.getString(R.string.error_unknown);
-                }
-                if (!context.getString(R.string.error_cancelled).equals(error)) {
-                    NotificationHelper.showCompleteNotification(context, "", false, error);
-                }
-                queue.setCurrentWorkId("");
-                currentWorkId = null;
-                listener.onCompleted(false, error, null);
+            } else if (state == WorkInfo.State.SUCCEEDED
+                    || state == WorkInfo.State.FAILED
+                    || state == WorkInfo.State.CANCELLED) {
+                handleTerminalWork(workInfo);
             }
-        });
+        };
+        currentWorkLiveData.observeForever(currentWorkObserver);
     }
+
+    /** 只处理仍然属于当前队列的 Worker，防止 Activity 重建后出现重复推进 */
+    private synchronized void handleTerminalWork(WorkInfo workInfo) {
+        if (!queue.tryClaimCurrentWorkCompletion(workInfo.getId().toString())) {
+            return;
+        }
+
+        WorkInfo.State state = workInfo.getState();
+        Data output = workInfo.getOutputData();
+
+        if (state == WorkInfo.State.SUCCEEDED) {
+            String path = output.getString(FfmpegWorker.KEY_OUTPUT_PATH);
+            if (path != null) {
+                queue.addCompletedOutput(path);
+                String displayName = new File(path).getName();
+                if (path.startsWith("content://")) {
+                    String uriName = FileUtils.getDisplayName(context, Uri.parse(path));
+                    if (uriName != null && !uriName.isEmpty()) displayName = uriName;
+                }
+                NotificationHelper.showCompleteNotification(context, displayName, true, "");
+            }
+
+            currentWorkId = null;
+            queue.moveToNext();
+
+            boolean hasNext = queue.getCurrentIndex() < queue.size();
+            if (hasNext && queue.isSyncMode() && queue.getSyncParams() != null) {
+                queue.setPendingParameterPrompt(false);
+                submitNextSyncWork();
+            } else if (hasNext) {
+                queue.setPendingParameterPrompt(true);
+                if (!uiActive) {
+                    NotificationHelper.showNeedParametersNotification(context);
+                }
+            } else {
+                queue.setPendingParameterPrompt(false);
+            }
+
+            notifyCompleted(true, context.getString(R.string.status_processing_complete), path);
+            return;
+        }
+
+        String error = output.getString(FfmpegWorker.KEY_ERROR_MESSAGE);
+        if (state == WorkInfo.State.CANCELLED
+                || context.getString(R.string.error_cancelled).equals(error)) {
+            error = context.getString(R.string.error_cancelled);
+        } else if (error == null) {
+            error = context.getString(R.string.error_unknown);
+        }
+        if (!context.getString(R.string.error_cancelled).equals(error)) {
+            NotificationHelper.showCompleteNotification(context, "", false, error);
+        }
+
+        currentWorkId = null;
+        notifyCompleted(false, error, null);
+    }
+
+    /** 使用已保存的同步参数直接提交下一项，不需要 Activity 存在 */
+    private void submitNextSyncWork() {
+        ParameterData params = queue.getSyncParams();
+        if (params == null || queue.isEmpty() || queue.getCurrentIndex() >= queue.size()) return;
+
+        OutputPathManager outputPathManager = new OutputPathManager(context);
+        Uri uri = queue.getCurrentUri();
+        String inputKey = queue.getCurrentKey();
+        String outputModeOverride = queue.getEffectiveOutputModeOverride();
+        String basePath;
+        if (outputModeOverride != null && !outputModeOverride.isEmpty()) {
+            basePath = outputPathManager.generateBasePathForMode(
+                    inputKey, uri, params.taskType, outputModeOverride);
+        } else {
+            basePath = outputPathManager.generateBasePath(inputKey, uri, params.taskType);
+        }
+        submitCurrentInternal(params, basePath, outputModeOverride);
+    }
+
+    private void submitCurrentInternal(ParameterData params, String outputBasePath, String outputModeOverride) {
+        String inputKey = queue.getCurrentKey();
+        Uri fileUri = queue.getCurrentUri();
+        String uriString = fileUri != null ? fileUri.toString() : "";
+        String fileName = fileUri != null ? FileUtils.getDisplayName(context, fileUri) : new File(inputKey).getName();
+        if (fileName == null) fileName = "file";
+
+        Data inputData = new Data.Builder()
+                .putString(FfmpegWorker.KEY_INPUT_PATH, inputKey)
+                .putString(FfmpegWorker.KEY_INPUT_URI, uriString)
+                .putString(FfmpegWorker.KEY_OUTPUT_PATH_BASE, outputBasePath)
+                .putString(FfmpegWorker.KEY_OUTPUT_TREE_URI, getCustomOutputTreeUri(outputModeOverride))
+                .putString(FfmpegWorker.KEY_PARAMS_JSON, gson.toJson(params))
+                .putString(FfmpegWorker.KEY_FILE_NAME, fileName)
+                .putString(FfmpegWorker.KEY_SESSION_ID, queue.getSessionId())
+                .putInt(FfmpegWorker.KEY_TASK_INDEX, queue.getCurrentPosition())
+                .putInt(FfmpegWorker.KEY_TOTAL_TASKS, queue.size())
+                .build();
+
+        OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(FfmpegWorker.class)
+                .setInputData(inputData)
+                .addTag(WORK_TAG_QUEUE)
+                .addTag(WORK_TAG_CURRENT)
+                .addTag("ezconvert_session_" + queue.getSessionId())
+                .addTag("ezconvert_task_" + queue.getCurrentPosition())
+                .build();
+
+        currentWorkId = workRequest.getId();
+        queue.setCurrentWorkId(currentWorkId.toString());
+        observe(currentWorkId);
+        workManager.enqueue(workRequest);
+    }
+
+    private void notifyProgress(int progress, long time) {
+        Listener listener = getListener();
+        if (listener != null) listener.onProgress(progress, time);
+    }
+
+    private void notifyCompleted(boolean success, String message, String outputPath) {
+        Listener listener = getListener();
+        if (listener != null && uiActive) {
+            listener.onCompleted(success, message, outputPath);
+        }
+    }
+
+    private void notifyRestored() {
+        Listener listener = getListener();
+        if (listener != null && uiActive) listener.onRestored();
+    }
+
+    private void notifyIdleAfterRestore() {
+        Listener listener = getListener();
+        if (listener != null && uiActive) listener.onIdleAfterRestore();
+    }
+
 }

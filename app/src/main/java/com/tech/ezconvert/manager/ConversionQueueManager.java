@@ -42,6 +42,8 @@ public class ConversionQueueManager {
     private String effectiveOutputModeOverride;
     private String sessionId = "";
     private String currentWorkId = "";
+    // 当前任务已完成，但下一项需要用户返回界面设置参数
+    private boolean pendingParameterPrompt = false;
 
     private static class PersistedState {
         List<String> paths = new ArrayList<>();
@@ -54,6 +56,7 @@ public class ConversionQueueManager {
         String effectiveOutputModeOverride;
         String sessionId;
         String currentWorkId;
+        boolean pendingParameterPrompt;
     }
 
     public ConversionQueueManager(Context context) {
@@ -80,6 +83,7 @@ public class ConversionQueueManager {
         // 文件选择本身不是可恢复任务：在用户真正开始转换之前，不要把选择结果写入持久化会话
         // 这样即使用户在选择文件后闪退/被系统杀死，重新启动也不会加载这批“未开始”的文件
         currentWorkId = "";
+        pendingParameterPrompt = false;
         sessionId = UUID.randomUUID().toString();
         // 新的文件选择会话尚未开始任务，必须移除上一会话可能遗留的可恢复状态
         prefs.edit().remove(KEY_STATE).apply();
@@ -90,6 +94,7 @@ public class ConversionQueueManager {
         pathToUriMap.clear();
         currentIndex = 0;
         currentWorkId = "";
+        pendingParameterPrompt = false;
         saveState();
     }
 
@@ -106,6 +111,7 @@ public class ConversionQueueManager {
         syncParams = null;
         effectiveOutputModeOverride = null;
         currentWorkId = "";
+        pendingParameterPrompt = false;
         completedOutputFiles.clear();
         saveState();
     }
@@ -212,6 +218,26 @@ public class ConversionQueueManager {
         return currentWorkId;
     }
 
+    /**
+     * 原子认领当前 Worker 的终态处理权，避免 Activity 重建后多个 ConversionManager
+     * 同时收到同一个 WorkInfo 回调并重复推进队列
+     */
+    public synchronized boolean tryClaimCurrentWorkCompletion(String workId) {
+        if (workId == null || !workId.equals(currentWorkId)) return false;
+        currentWorkId = "";
+        saveState();
+        return true;
+    }
+
+    public synchronized void setPendingParameterPrompt(boolean pending) {
+        pendingParameterPrompt = pending;
+        saveState();
+    }
+
+    public synchronized boolean hasPendingParameterPrompt() {
+        return pendingParameterPrompt;
+    }
+
     public synchronized CopyOnWriteArrayList<String> getCompletedOutputFiles() {
         return completedOutputFiles;
     }
@@ -238,6 +264,7 @@ public class ConversionQueueManager {
         state.effectiveOutputModeOverride = effectiveOutputModeOverride;
         state.sessionId = sessionId;
         state.currentWorkId = currentWorkId;
+        state.pendingParameterPrompt = pendingParameterPrompt;
         prefs.edit().putString(KEY_STATE, gson.toJson(state)).apply();
     }
 
@@ -265,11 +292,12 @@ public class ConversionQueueManager {
             effectiveOutputModeOverride = state.effectiveOutputModeOverride;
             sessionId = state.sessionId == null ? "" : state.sessionId;
             currentWorkId = state.currentWorkId == null ? "" : state.currentWorkId;
+            pendingParameterPrompt = state.pendingParameterPrompt;
 
             // 只有已经创建 Worker 的会话才属于“可恢复任务”
             // 旧版本/异常退出可能只留下了选中的文件，但没有真正开始任务
             // 这类状态必须视为临时选择并丢弃，避免下次启动误触发恢复流程
-            if (currentWorkId.isEmpty()) {
+            if (currentWorkId.isEmpty() && !pendingParameterPrompt) {
                 selectedFilePaths.clear();
                 pathToUriMap.clear();
                 completedOutputFiles.clear();
@@ -279,6 +307,7 @@ public class ConversionQueueManager {
                 syncParams = null;
                 effectiveOutputModeOverride = null;
                 sessionId = "";
+                pendingParameterPrompt = false;
                 Log.d(TAG, "发现未启动任务的残留文件选择，已丢弃，不进入恢复流程");
                 prefs.edit().remove(KEY_STATE).apply();
                 return;
