@@ -5,10 +5,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.activity.result.ActivityResultLauncher;
 
 import com.tech.ezconvert.R;
+import com.tech.ezconvert.utils.FFmpegUtil;
 import com.tech.ezconvert.utils.FileUtils;
 import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.utils.ToastUtils;
@@ -17,6 +20,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * 负责文件选择、Share Intent 解析及 Uri/显示名称映射
@@ -24,6 +29,7 @@ import java.util.Map;
  */
 public class MediaSelectionManager {
     public interface Listener {
+        void onSelectionValidating(int count);
         void onFilesSelected(int count, String firstFileName, boolean fromShare);
         void onSelectionCleared(String message);
     }
@@ -31,6 +37,9 @@ public class MediaSelectionManager {
     private final Context context;
     private final ConversionQueueManager queue;
     private final Listener listener;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final ExecutorService validationExecutor = Executors.newSingleThreadExecutor();
+    private boolean validationInProgress = false;
 
     public MediaSelectionManager(Context context, ConversionQueueManager queue, Listener listener) {
         this.context = context;
@@ -38,14 +47,13 @@ public class MediaSelectionManager {
         this.listener = listener;
     }
 
-    /** 打开系统文件选择器，支持一次选择多个视频、音频或图片文件 */
+    /** 打开系统文件选择器，允许选择任意可读文件；实际类型由 FFprobe 验证 */
     public void openFilePicker(ActivityResultLauncher<Intent> launcher) {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.setType("*/*");
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"video/*", "audio/*", "image/*"});
         try {
             launcher.launch(Intent.createChooser(intent, context.getString(R.string.picker_title)));
         } catch (Exception e) {
@@ -54,21 +62,23 @@ public class MediaSelectionManager {
         }
     }
 
-    /** 处理系统文件选择器返回结果，并把文件统一写入转换队列 */
+    /** 处理系统文件选择器返回结果；先用 FFprobe 验证，再写入转换队列 */
     public void handlePickerResult(Intent data) {
         if (data == null) return;
+
+        List<Uri> uris = new ArrayList<>();
         if (data.getClipData() != null) {
-            int count = loadUris(data.getClipData());
-            if (count > 0) {
-                listener.onFilesSelected(count, getFirstDisplayName(), false);
+            ClipData clipData = data.getClipData();
+            for (int i = 0; i < clipData.getItemCount(); i++) {
+                Uri uri = clipData.getItemAt(i).getUri();
+                if (uri != null) uris.add(uri);
             }
         } else if (data.getData() != null) {
-            List<Uri> uris = new ArrayList<>();
             uris.add(data.getData());
-            int count = loadUris(uris);
-            if (count > 0) {
-                listener.onFilesSelected(count, getFirstDisplayName(), false);
-            }
+        }
+
+        if (!uris.isEmpty()) {
+            validateAndLoadUris(uris, false);
         }
     }
 
@@ -77,7 +87,7 @@ public class MediaSelectionManager {
         if (intent == null) return;
         String action = intent.getAction();
         String type = intent.getType();
-        if (type == null || (!type.startsWith("video/") && !type.startsWith("audio/") && !type.startsWith("image/"))) return;
+        if (type == null && !Intent.ACTION_SEND.equals(action) && !Intent.ACTION_SEND_MULTIPLE.equals(action)) return;
 
         if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
             ArrayList<Uri> uriList;
@@ -90,16 +100,7 @@ public class MediaSelectionManager {
                 ToastUtils.showCustom(context, context.getString(R.string.toast_no_share_file));
                 return;
             }
-            int count = loadUris(uriList);
-            if (count == 0) {
-                ToastUtils.showCustom(context, context.getString(R.string.toast_cannot_access_share));
-                return;
-            }
-            String first = getFirstDisplayName();
-            ToastUtils.showCustom(context, count < uriList.size()
-                    ? context.getString(R.string.toast_partial_loaded, count, uriList.size() - count)
-                    : context.getString(R.string.toast_received_files_count, count));
-            listener.onFilesSelected(count, first, true);
+            validateAndLoadUris(uriList, true);
         } else if (Intent.ACTION_SEND.equals(action)) {
             Uri uri;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -113,41 +114,97 @@ public class MediaSelectionManager {
             }
             List<Uri> uris = new ArrayList<>();
             uris.add(uri);
-            if (loadUris(uris) > 0) {
-                String name = getFirstDisplayName();
-                ToastUtils.showCustom(context, context.getString(R.string.toast_received_share_file));
-                listener.onFilesSelected(1, name, true);
-            }
+            validateAndLoadUris(uris, true);
         }
     }
 
-    private int loadUris(List<Uri> uris) {
-        List<String> keys = new ArrayList<>();
-        Map<String, Uri> mapping = new HashMap<>();
-        if (uris != null) {
+    /**
+     * 将选择结果交给后台线程验证。只有 FFprobe 能识别出音频/视频流的文件
+     * 才会真正写入转换队列，避免不支持的任意文件进入任务恢复状态
+     */
+    private void validateAndLoadUris(List<Uri> uris, boolean fromShare) {
+        if (uris == null || uris.isEmpty()) return;
+
+        synchronized (this) {
+            if (validationInProgress) {
+                mainHandler.post(() -> ToastUtils.showCustom(
+                        context, context.getString(R.string.toast_validating_files)));
+                return;
+            }
+            validationInProgress = true;
+        }
+
+        // 新一轮选择会替换旧队列；验证期间禁止开始旧任务
+        queue.clearSelection();
+        mainHandler.post(() -> listener.onSelectionValidating(uris.size()));
+
+        validationExecutor.execute(() -> {
+            List<String> validKeys = new ArrayList<>();
+            Map<String, Uri> validMapping = new HashMap<>();
+            List<String> invalidNames = new ArrayList<>();
+
             for (Uri uri : uris) {
                 if (uri == null) continue;
                 persistReadPermission(uri);
-                String displayName = FileUtils.getDisplayName(context, uri);
-                if (displayName == null || displayName.isEmpty()) displayName = "file_" + System.currentTimeMillis();
-                String key = makeUniqueKey(displayName, keys);
-                keys.add(key);
-                mapping.put(key, uri);
-            }
-        }
-        if (keys.isEmpty()) {
-            queue.clearSelection();
-            listener.onSelectionCleared(context.getString(R.string.status_cannot_access_files));
-            return 0;
-        }
-        queue.replaceSelection(keys, mapping);
-        return keys.size();
-    }
 
-    private int loadUris(ClipData clipData) {
-        List<Uri> uris = new ArrayList<>();
-        for (int i = 0; i < clipData.getItemCount(); i++) uris.add(clipData.getItemAt(i).getUri());
-        return loadUris(uris);
+                String displayName = FileUtils.getDisplayName(context, uri);
+                if (displayName == null || displayName.isEmpty()) {
+                    displayName = "file_" + System.currentTimeMillis();
+                }
+
+                boolean valid = false;
+                try {
+                    // 直接让 FFmpegKit/FFprobe 通过 SAF 协议读取 Uri
+                    // 不需要为了格式验证而复制整个文件到缓存
+                    valid = FFmpegUtil.isAudioOrVideoFile(context, uri);
+                } catch (Exception e) {
+                    Log.e("MediaSelectionManager", "验证文件失败: " + displayName, e);
+                }
+
+                if (valid) {
+                    String key = makeUniqueKey(displayName, validKeys);
+                    validKeys.add(key);
+                    validMapping.put(key, uri);
+                } else {
+                    invalidNames.add(displayName);
+                }
+            }
+
+            final int validCount = validKeys.size();
+            final int invalidCount = invalidNames.size();
+            final String firstInvalidName = invalidNames.isEmpty() ? "" : invalidNames.get(0);
+
+            mainHandler.post(() -> {
+                synchronized (MediaSelectionManager.this) {
+                    validationInProgress = false;
+                }
+
+                if (validCount > 0) {
+                    queue.replaceSelection(validKeys, validMapping);
+                    listener.onFilesSelected(validCount, getFirstDisplayName(), fromShare);
+
+                    if (invalidCount > 0) {
+                        ToastUtils.showCustom(context, context.getString(
+                                R.string.toast_invalid_media_skipped, invalidCount, firstInvalidName));
+                    } else if (fromShare) {
+                        if (validCount == 1) {
+                            ToastUtils.showCustom(context, context.getString(R.string.toast_received_share_file));
+                        } else {
+                            ToastUtils.showCustom(context, context.getString(
+                                    R.string.toast_received_files_count, validCount));
+                        }
+                    }
+                } else {
+                    queue.clearSelection();
+                    listener.onSelectionCleared(
+                            context.getString(R.string.status_no_valid_media_files));
+                    ToastUtils.showCustom(context, context.getString(
+                            R.string.toast_invalid_media_skipped,
+                            invalidCount,
+                            firstInvalidName));
+                }
+            });
+        });
     }
 
     private void persistReadPermission(Uri uri) {
