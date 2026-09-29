@@ -548,6 +548,16 @@ public class MainActivity extends BaseActivity implements
         // Activity 初始状态已经由权限/选择逻辑负责，这里不覆盖现有 UI
     }
 
+    @Override
+    public void onSelectionValidating(int count) {
+        runOnUiThread(() -> {
+            currentInputPath = "";
+            currentOutputPath = "";
+            updateStatus(getString(R.string.status_validating_files, count));
+            setFunctionButtonsEnabled(false);
+        });
+    }
+
     // 文件选择完成后的 UI 更新，文件列表本身已经由 MediaSelectionManager 写入队列
     @Override
     public void onFilesSelected(int count, String firstFileName, boolean fromShare) {

@@ -25,7 +25,7 @@
     <string name="btn_continue_process">Continue Processing</string>
     <string name="btn_cancel_ffmpeg">Cancel Operation</string>
 
-    <string name="status_select_file">Please select a media file to process</string>
+    <string name="status_select_file">Please select a file to process</string>
     <string name="progress_default">Progress: 0%</string>
     <string name="progress_text">Progress: %1$d%%</string>
 
@@ -34,7 +34,7 @@
     <string name="section_audio_processing">Audio Processing</string>
     <string name="section_image_processing">Image Processing</string>
 
-    <string name="btn_select_file">Select Media File</string>
+    <string name="btn_select_file">Select File</string>
     <string name="btn_convert_format">Convert Format</string>
     <string name="btn_compress_video">Compress Video</string>
     <string name="btn_extract_audio">Extract Audio</string>
@@ -52,6 +52,10 @@
     <string name="status_selected_files">Selected %1$d file(s), first: %2$s</string>
     <string name="status_selected_file">Selected file: %1$s</string>
     <string name="status_cannot_access_files">Cannot access selected files</string>
+    <string name="status_validating_files">Validating %1$d file(s) with FFmpeg, please wait…</string>
+    <string name="status_no_valid_media_files">None of the selected files could be recognized as audio or video</string>
+    <string name="toast_validating_files">Selected files are being validated, please wait</string>
+    <string name="toast_invalid_media_skipped">Skipped %1$d file(s) that could not be recognized as audio or video (for example: %2$s)</string>
     <string name="status_file_not_exist">Cannot access file or file does not exist</string>
     <string name="status_all_complete">All files processed, total %1$d</string>
     <string name="status_set_params">Please set parameters (item %1$d/%2$d)</string>
@@ -90,8 +94,8 @@
     <string name="toast_cannot_open_folder_picker">Unable to open folder picker</string>
     <string name="toast_folder_permission_failed">Unable to access the selected directory</string>
     <string name="toast_output_path_primary_storage_only">Please select a directory on internal shared storage</string>
-    <string name="picker_title">Select Media Files (multiple allowed)</string>
-    <string name="picker_title_simple">Select Media File</string>
+    <string name="picker_title">Select Files (multiple allowed)</string>
+    <string name="picker_title_simple">Select File</string>
     <string name="path_internal_storage">Internal Storage/</string>
     <string name="path_internal_storage_short">Internal Storage</string>
     <string name="path_sd_card_format">SD Card(%1$s)</string>

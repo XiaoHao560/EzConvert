@@ -3,6 +3,7 @@ package com.tech.ezconvert.utils;
 import com.tech.ezconvert.utils.Log;
 import android.app.Notification;
 import android.content.Context;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import com.arthenica.ffmpegkit.FFmpegKit;
@@ -10,6 +11,7 @@ import com.arthenica.ffmpegkit.FFmpegKitConfig;
 import com.arthenica.ffmpegkit.FFmpegSession;
 import com.arthenica.ffmpegkit.FFmpegSessionCompleteCallback;
 import com.arthenica.ffmpegkit.FFprobeKit;
+import com.arthenica.ffmpegkit.FFprobeSession;
 import com.arthenica.ffmpegkit.Level;
 import com.arthenica.ffmpegkit.LogCallback;
 import com.arthenica.ffmpegkit.ReturnCode;
@@ -231,6 +233,89 @@ public class FFmpegUtil {
         void onError();
     }
     
+    /**
+     * 使用 FFprobe 验证 SAF 输入是否至少包含一个音频或视频流
+     *
+     * 对 content:// URI 使用 FFmpegKit 的 SAF 协议直接探测，避免用户选择一个
+     * 大视频后为了验证格式而先复制整文件到缓存目录
+     */
+    public static boolean isAudioOrVideoFile(Context context, Uri uri) {
+        if (context == null || uri == null) {
+            return false;
+        }
+
+        String probeInput = null;
+        boolean registeredSafUrl = false;
+        try {
+            String scheme = uri.getScheme();
+            if ("content".equalsIgnoreCase(scheme)) {
+                // ffmpeg-kit-next 9.x 提供的可复用 SAF URL，可同时用于 FFmpeg/FFprobe
+                probeInput = FFmpegKitConfig.getSafParameterForRead(
+                        context.getApplicationContext(), uri, true);
+                registeredSafUrl = probeInput != null && !probeInput.isEmpty();
+            } else if ("file".equalsIgnoreCase(scheme)) {
+                probeInput = uri.getPath();
+            } else {
+                probeInput = uri.toString();
+            }
+
+            return isAudioOrVideoPath(probeInput);
+        } catch (Exception e) {
+            Log.e(TAG, "FFprobe 验证 SAF 输入失败: " + uri, e);
+            return false;
+        } finally {
+            if (registeredSafUrl) {
+                try {
+                    FFmpegKitConfig.unregisterSafProtocolUrl(probeInput);
+                } catch (Exception e) {
+                    Log.w(TAG, "释放 SAF 输入失败: " + probeInput);
+                }
+            }
+        }
+    }
+
+    /**
+     * 对 FFmpeg 可读取的路径/协议 URL 执行实际的 FFprobe 流类型检查
+     */
+    private static boolean isAudioOrVideoPath(String inputPath) {
+        if (inputPath == null || inputPath.trim().isEmpty()) {
+            return false;
+        }
+
+        String escapedPath = inputPath
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"");
+        String probeCmd = "-v error -show_entries stream=codec_type "
+                + "-of default=noprint_wrappers=1:nokey=1 \"" + escapedPath + "\"";
+
+        try {
+            FFprobeSession session = FFprobeKit.execute(probeCmd);
+            if (session == null || !ReturnCode.isSuccess(session.getReturnCode())) {
+                Log.w(TAG, "FFprobe 无法识别输入文件: " + inputPath);
+                return false;
+            }
+
+            String output = session.getOutput();
+            if (output == null || output.trim().isEmpty()) {
+                Log.w(TAG, "FFprobe 未发现任何媒体流: " + inputPath);
+                return false;
+            }
+
+            for (String line : output.split("\\R")) {
+                String type = line.trim();
+                if ("video".equalsIgnoreCase(type) || "audio".equalsIgnoreCase(type)) {
+                    Log.d(TAG, "FFprobe 验证通过，媒体流类型: " + type + ", 输入: " + inputPath);
+                    return true;
+                }
+            }
+
+            Log.w(TAG, "FFprobe 仅发现非音视频流: " + output.trim());
+        } catch (Exception e) {
+            Log.e(TAG, "FFprobe 验证输入文件失败: " + inputPath, e);
+        }
+        return false;
+    }
+
     // 使用 FFprobe 获取视频总时长
     private static void getVideoDuration(String inputPath, DurationCallback callback) {
         if (inputPath == null || inputPath.isEmpty()) {
