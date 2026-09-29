@@ -533,6 +533,8 @@
     <string name="notification_cancelled_text">%s 的处理已取消</string>
     <string name="notification_need_parameters_title">请返回设置参数</string>
     <string name="notification_need_parameters_text">下一个文件需要设置转换参数</string>
+    <string name="notification_all_tasks_complete_title">所有文件任务完成！</string>
+    <string name="notification_all_tasks_complete_text">所有文件任务已处理完成</string>
     <string name="notification_file_placeholder">文件</string>
 
     <string name="codec_av1_svt">libsvtav1 (AV1)</string>
