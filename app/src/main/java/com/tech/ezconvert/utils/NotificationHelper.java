@@ -201,7 +201,12 @@ public class NotificationHelper {
                 .setOnlyAlertOnce(true)
                 .setContentIntent(pendingIntent);
 
-        NotificationManagerCompat.from(context).notify(NOTIFICATION_ID_NEED_PARAMETERS, builder.build());
+        // setOngoing(true) 主要用于表示通知处于持续状态；部分 Android/OEM 的
+        // “清除全部通知”仍可能移除它，使用 FLAG_NO_CLEAR 明确要求系统不要允许用户手动清除
+        Notification notification = builder.build();
+        notification.flags |= Notification.FLAG_NO_CLEAR;
+
+        NotificationManagerCompat.from(context).notify(NOTIFICATION_ID_NEED_PARAMETERS, notification);
     }
 
     /** 参数确认后移除“请返回设置参数”的常驻通知 */
