@@ -77,6 +77,8 @@ public class MoreSettingsActivity extends BaseActivity {
     private LinearLayout itemSelectBackground;
     private LinearLayout itemEditBackground;
     private MaterialSwitch customBackgroundSwitch;
+    private MaterialSwitch translucentToolbarSwitch;
+    private LinearLayout itemTranslucentToolbar;
     private android.widget.TextView selectedBackgroundText;
     private LinearLayout backgroundEffectCustomControls;
     private LinearLayout itemBackgroundEffectAuto;
@@ -179,6 +181,8 @@ public class MoreSettingsActivity extends BaseActivity {
         itemSelectBackground = findViewById(R.id.item_select_background);
         itemEditBackground = findViewById(R.id.item_edit_background);
         customBackgroundSwitch = findViewById(R.id.custom_background_switch);
+        itemTranslucentToolbar = findViewById(R.id.item_translucent_toolbar);
+        translucentToolbarSwitch = findViewById(R.id.translucent_toolbar_switch);
         selectedBackgroundText = findViewById(R.id.selected_background_text);
 
         // 背景显示效果
@@ -260,6 +264,18 @@ public class MoreSettingsActivity extends BaseActivity {
         });
         customBackgroundSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             configManager.setCustomBackgroundEnabled(isChecked);
+            if (isChecked) {
+                themeManager.preloadCustomBackground(this);
+            }
+            recreate();
+        });
+        itemTranslucentToolbar.setOnClickListener(v -> {
+            if (translucentToolbarSwitch.isEnabled()) {
+                translucentToolbarSwitch.setChecked(!translucentToolbarSwitch.isChecked());
+            }
+        });
+        translucentToolbarSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            configManager.setTranslucentToolbarEnabled(isChecked);
             recreate();
         });
         itemSelectBackground.setOnClickListener(v -> openBackgroundImagePicker());
@@ -372,6 +388,7 @@ public class MoreSettingsActivity extends BaseActivity {
         notificationSwitch.setOnCheckedChangeListener(null);
         dynamicColorSwitch.setOnCheckedChangeListener(null);
         customBackgroundSwitch.setOnCheckedChangeListener(null);
+        translucentToolbarSwitch.setOnCheckedChangeListener(null);
         firebaseSwitch.setOnCheckedChangeListener(null);
         
         // 加载当前设置
@@ -381,6 +398,7 @@ public class MoreSettingsActivity extends BaseActivity {
         boolean notificationEnabled = configManager.isNotificationEnabled();
         boolean dynamicColorEnabled = configManager.isDynamicColorEnabled();
         boolean customBackgroundEnabled = configManager.isCustomBackgroundEnabled();
+        boolean translucentToolbarEnabled = configManager.isTranslucentToolbarEnabled();
         String customBackgroundUri = configManager.getCustomBackgroundUri();
         String dynamicColorSource = configManager.getDynamicColorSource();
         String backgroundEffectMode = configManager.getBackgroundEffectMode();
@@ -400,6 +418,10 @@ public class MoreSettingsActivity extends BaseActivity {
         }
 
         customBackgroundSwitch.setChecked(customBackgroundEnabled);
+        translucentToolbarSwitch.setChecked(translucentToolbarEnabled);
+        itemTranslucentToolbar.setEnabled(customBackgroundEnabled);
+        itemTranslucentToolbar.setAlpha(customBackgroundEnabled ? 1f : 0.38f);
+        translucentToolbarSwitch.setEnabled(customBackgroundEnabled);
         updateBackgroundImageUi(customBackgroundUri);
         updateDynamicColorSourceUi(dynamicColorSource);
         updateBackgroundEffectUi(backgroundEffectMode);
@@ -450,6 +472,14 @@ public class MoreSettingsActivity extends BaseActivity {
         
         customBackgroundSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             configManager.setCustomBackgroundEnabled(isChecked);
+            if (isChecked) {
+                themeManager.preloadCustomBackground(this);
+            }
+            recreate();
+        });
+
+        translucentToolbarSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            configManager.setTranslucentToolbarEnabled(isChecked);
             recreate();
         });
 

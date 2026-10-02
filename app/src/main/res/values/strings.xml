@@ -255,6 +255,8 @@
     <string name="background_crop_confirm">确认</string>
     <string name="background_crop_hint">拖动调整位置，双指缩放图片</string>
     <string name="background_crop_save_failed">保存背景图片失败</string>
+    <string name="translucent_toolbar">半透明 Toolbar</string>
+    <string name="translucent_toolbar_desc">启用自定义背景时让顶部 Toolbar 使用半透明效果，减少顶部区域对背景图片的遮挡</string>
     <string name="background_effect_title">背景显示效果</string>
     <string name="background_effect_auto">自动优化</string>
     <string name="background_effect_auto_desc">根据图片明暗和当前主题自动调整遮罩，降低背景对界面内容的干扰</string>

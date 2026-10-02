@@ -211,11 +211,20 @@ public class ThemeManager {
                 + configManager.isDynamicColorEnabled() + "|"
                 + configManager.getDynamicColorSource() + "|"
                 + configManager.isCustomBackgroundEnabled() + "|"
+                + configManager.isTranslucentToolbarEnabled() + "|"
                 + configManager.getCustomBackgroundUri() + "|"
                 + configManager.getCustomBackgroundVersion() + "|"
                 + configManager.getBackgroundEffectMode() + "|"
                 + configManager.getBackgroundMaskAlpha() + "|"
                 + configManager.getBackgroundBlurDp();
+    }
+
+    /**
+     * 判断当前 Activity 是否应该使用自定义背景下的半透明 Toolbar
+     */
+    public boolean shouldUseTranslucentToolbar() {
+        return configManager.isCustomBackgroundEnabled()
+                && configManager.isTranslucentToolbarEnabled();
     }
 
     /**
