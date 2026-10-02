@@ -255,6 +255,8 @@
     <string name="background_crop_confirm">Confirm</string>
     <string name="background_crop_hint">Drag to move, pinch to zoom</string>
     <string name="background_crop_save_failed">Failed to save background image</string>
+    <string name="translucent_toolbar">Translucent Toolbar</string>
+    <string name="translucent_toolbar_desc">Use a translucent Toolbar with Custom Background to reduce the solid block over the background image</string>
     <string name="background_effect_title">Background Display Effect</string>
     <string name="background_effect_auto">Auto Optimize</string>
     <string name="background_effect_auto_desc">Automatically adjusts the overlay based on image brightness and the current theme</string>

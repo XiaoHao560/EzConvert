@@ -64,6 +64,7 @@ public class ConfigManager {
     public static final String KEY_CUSTOM_BACKGROUND_ENABLED = "custom_background_enabled";
     public static final String KEY_CUSTOM_BACKGROUND_URI = "custom_background_uri";
     public static final String KEY_CUSTOM_BACKGROUND_VERSION = "custom_background_version";
+    public static final String KEY_TRANSLUCENT_TOOLBAR = "translucent_toolbar";
     public static final String KEY_BACKGROUND_EFFECT_MODE = "background_effect_mode";
     public static final String KEY_BACKGROUND_MASK_ALPHA = "background_mask_alpha";
     public static final String KEY_BACKGROUND_BLUR_DP = "background_blur_dp";
@@ -248,7 +249,8 @@ public class ConfigManager {
                     "- `dynamic_color`: 自动取色 (true/false)，根据系统壁纸或自定义图片动态生成主题色调，需要 Android 12+ 设备支持\n" +
                     "- `dynamic_color_source`: 自动取色来源 (`wallpaper`=系统壁纸, `image`=自定义背景图片)\n" +
                     "- `custom_background_enabled`: 是否启用自定义背景 (true/false)\n" +
-                    "- `custom_background_uri`: 自定义背景图片的应用私有文件 URI\n\n" +
+                    "- `custom_background_uri`: 自定义背景图片的应用私有文件 URI\n" +
+                    "- `translucent_toolbar`: 让顶部 Toolbar 使用半透明表面色 (true/false)\n\n" +
                     "### 语言设置说明\\n" +
                     "- `app_language`: 应用显示语言\\n" +
                     " - `system` = 跟随系统 (默认)\\n" +
@@ -326,6 +328,7 @@ public class ConfigManager {
         themeSettings.put("custom_background_enabled", false); // true = 使用自定义图片作为界面背景
         themeSettings.put("custom_background_uri", ""); // 应用私有文件 Uri
         themeSettings.put("custom_background_version", 0L); // 背景文件内容版本，用于通知已有 Activity 刷新
+        themeSettings.put(KEY_TRANSLUCENT_TOOLBAR, false); // 自定义背景下是否使用半透明 Toolbar
         themeSettings.put("background_crop_zoom", "1");
         themeSettings.put("background_crop_offset_x", "0");
         themeSettings.put("background_crop_offset_y", "0");
@@ -691,6 +694,20 @@ public class ConfigManager {
      */
     public void markCustomBackgroundUpdated() {
         setSetting("theme_settings", "custom_background_version", getCustomBackgroundVersion() + 1L);
+    }
+
+    /**
+     * 返回是否启用自定义背景下的半透明 Toolbar
+     */
+    public boolean isTranslucentToolbarEnabled() {
+        return getSetting("theme_settings", KEY_TRANSLUCENT_TOOLBAR, false);
+    }
+
+    /**
+     * 设置是否启用自定义背景下的半透明 Toolbar
+     */
+    public void setTranslucentToolbarEnabled(boolean enabled) {
+        setSetting("theme_settings", KEY_TRANSLUCENT_TOOLBAR, enabled);
     }
 
     // 自定义背景图片编辑状态：用于让用户在确认后仍可重新打开编辑器微调位置和缩放。

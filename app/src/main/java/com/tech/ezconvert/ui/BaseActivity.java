@@ -3,10 +3,11 @@ package com.tech.ezconvert.ui;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Color;
-import android.os.Build;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.ArrayAdapter;
 import android.widget.Filter;
 import android.widget.ListView;
@@ -22,6 +23,8 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.LanguageManager;
@@ -94,6 +97,151 @@ public abstract class BaseActivity extends AppCompatActivity {
         super.attachBaseContext(context);
     }
 
+    /**
+     * 根据滚动位置控制顶部栏的透明度
+     */
+    private void applyToolbarAppearance() {
+        View titleContainer = findViewById(getTitleContainerId());
+        if (!(titleContainer instanceof MaterialToolbar)) {
+            return;
+        }
+
+        ThemeManager themeManager = ThemeManager.getInstance(this);
+        boolean translucent = themeManager.shouldUseTranslucentToolbar();
+        if (!translucent) {
+            // 未开启半透明效果时完全保留布局和 MaterialToolbar 原本的外观
+            return;
+        }
+
+        int surfaceColor = resolveThemeColor(
+                com.google.android.material.R.attr.colorSurface, Color.WHITE);
+        View backgroundHost = titleContainer;
+        AppBarLayout appBarLayout = null;
+        ViewParent parent = titleContainer.getParent();
+        if (parent instanceof AppBarLayout) {
+            appBarLayout = (AppBarLayout) parent;
+            backgroundHost = appBarLayout;
+
+            // 顶部栏不参与折叠，只根据内容滚动位置改变背景透明度
+            appBarLayout.setLiftOnScroll(false);
+            appBarLayout.setElevation(0f);
+            appBarLayout.setStateListAnimator(null);
+            appBarLayout.setStatusBarForeground(null);
+        }
+
+        // 半透明模式下 Toolbar 本身保持完全透明，避免与 AppBarLayout 形成两层背景
+        titleContainer.setBackgroundColor(Color.TRANSPARENT);
+        titleContainer.setElevation(0f);
+        titleContainer.setStateListAnimator(null);
+
+        if (appBarLayout != null) {
+            setupToolbarScrollBackground(appBarLayout, surfaceColor);
+        } else {
+            backgroundHost.setBackgroundColor(Color.TRANSPARENT);
+        }
+    }
+
+    /**
+     * Activity 位于顶部时保持顶部栏透明，开始滚动后逐渐显示半透明背景
+     */
+    private void setupToolbarScrollBackground(AppBarLayout appBarLayout, int surfaceColor) {
+        View scrollView = findScrollContainer();
+        if (scrollView == null) {
+            appBarLayout.setBackgroundColor(Color.TRANSPARENT);
+            return;
+        }
+
+        Runnable updateBackground = () -> {
+            int scrollY = Math.max(0, getScrollY(scrollView));
+            int transitionDistance = Math.max(1, dpToPx(32));
+            int alpha = Math.min(0xB8, scrollY * 0xB8 / transitionDistance);
+            int backgroundColor = Color.argb(
+                    alpha,
+                    Color.red(surfaceColor),
+                    Color.green(surfaceColor),
+                    Color.blue(surfaceColor));
+            appBarLayout.setBackgroundColor(backgroundColor);
+        };
+
+        if (scrollView instanceof NestedScrollView) {
+            ((NestedScrollView) scrollView).setOnScrollChangeListener(
+                    (NestedScrollView v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) -> updateBackground.run());
+        } else if (scrollView instanceof ScrollView) {
+            scrollView.getViewTreeObserver().addOnScrollChangedListener(updateBackground::run);
+        } else if (scrollView instanceof RecyclerView) {
+            ((RecyclerView) scrollView).addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                    updateBackground.run();
+                }
+            });
+        }
+
+        // 初始状态必须根据实际滚动位置设置，避免页面打开时顶部栏先出现背景色
+        updateBackground.run();
+    }
+
+    private int getScrollY(View scrollView) {
+        if (scrollView instanceof RecyclerView) {
+            return scrollView.canScrollVertically(-1) ? 1 : 0;
+        }
+        return scrollView.getScrollY();
+    }
+
+    /**
+     * 优先使用 Activity 指定的滚动容器，否则从布局中查找第一个常见滚动容器
+     */
+    private View findScrollContainer() {
+        int scrollContentId = getScrollContentId();
+        if (scrollContentId != View.NO_ID) {
+            View configuredView = findViewById(scrollContentId);
+            if (configuredView instanceof NestedScrollView ||
+                    configuredView instanceof ScrollView ||
+                    configuredView instanceof RecyclerView) {
+                return configuredView;
+            }
+        }
+
+        return findScrollContainer(findViewById(android.R.id.content));
+    }
+
+    private View findScrollContainer(View view) {
+        if (view instanceof NestedScrollView || view instanceof ScrollView || view instanceof RecyclerView) {
+            return view;
+        }
+        if (!(view instanceof ViewGroup)) {
+            return null;
+        }
+
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View result = findScrollContainer(group.getChildAt(i));
+            if (result != null) {
+                return result;
+            }
+        }
+
+        return null;
+    }
+
+    private int dpToPx(int dp) {
+        return Math.round(dp * getResources().getDisplayMetrics().density);
+    }
+
+    private int resolveThemeColor(int attribute, int fallback) {
+        android.util.TypedValue value = new android.util.TypedValue();
+        if (getTheme().resolveAttribute(attribute, value, true)) {
+            if (value.resourceId != 0) {
+                try {
+                    return getResources().getColor(value.resourceId, getTheme());
+                } catch (Exception ignored) {
+                }
+            }
+            return value.data;
+        }
+        return fallback;
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -154,6 +302,9 @@ public abstract class BaseActivity extends AppCompatActivity {
                 // 背景属于可选增强功能，任何异常都不能阻止正常 UI 显示。
                 android.util.Log.e("BaseActivity", "应用自定义背景失败，已跳过背景效果", e);
             }
+        }
+        if (shouldApplyThemeCustomizations()) {
+            applyToolbarAppearance();
         }
         // 为滚动容器分配基于路径的稳定 ID
         assignStableIdsToScrollables(findViewById(android.R.id.content), new StringBuilder());
