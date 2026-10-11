@@ -1,6 +1,7 @@
 package com.tech.ezconvert.ui;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
@@ -9,6 +10,8 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,7 +34,9 @@ import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.arthenica.ffmpegkit.FFmpegKitConfig;
 import com.arthenica.ffmpegkit.FFprobeKit;
+import com.arthenica.ffmpegkit.FFprobeSession;
 import com.arthenica.ffmpegkit.ReturnCode;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.ConfigManager;
@@ -46,6 +51,9 @@ import android.graphics.BitmapFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class ParameterDialogFragment extends DialogFragment {
     private static final String ARG_TASK_TYPE = "task_type";
@@ -71,8 +79,8 @@ public class ParameterDialogFragment extends DialogFragment {
     private RecyclerView presetRecycler;
     private PresetAdapter presetAdapter;
     private MaterialButton btnSavePreset, btnDeletePreset, btnReset, btnStart;
-    private MaterialSwitch switchSync;
-    private TextView tvFileInfo, tvVolumePercent, tvCurrentBitrate;
+    private MaterialSwitch switchSync, switchQuickConversion;
+    private TextView tvFileInfo, tvVolumePercent, tvCurrentBitrate, tvQuickConversionSourceInfo;
     private Slider sliderVolume;
     private MaterialAutoCompleteTextView spinnerOutputFormat, spinnerVideoCodec, spinnerAudioCodec, spinnerBitrateUnit;
     private TextInputEditText etBitrateValue, etAudioBitrateValue, etCutStart, etCutDuration,
@@ -81,6 +89,8 @@ public class ParameterDialogFragment extends DialogFragment {
     private Chip chipVideoOriginal, chipVideoCustom, chipAudioOriginal, chipAudioCustom;
     private LinearLayout customBitrateLayout, customAudioBitrateLayout, screenshotSection, cutSection;
     private LinearLayout videoParamsContainer, volumeContainer, screenshotContainer, cutContainer;
+    private View quickConversionSwitchContainer, quickConversionSourceInfoContainer;
+    private View videoCodecContainer, audioCodecContainer, videoBitrateContainer, audioBitrateContainer;
     private MaterialAutoCompleteTextView spinnerScreenshotFormat;
     private LinearLayout imageParamsContainer;
     private ImageView ivImagePreview;
@@ -97,6 +107,8 @@ public class ParameterDialogFragment extends DialogFragment {
     private LinearLayout imageResolutionInputLayout;
 
     private OnParameterConfirmListener listener;
+    private boolean isUpdatingQuickConversionSwitch;
+    private boolean sourceStreamInfoRequested;
 
     public interface OnParameterConfirmListener {
         void onConfirm(ParameterData params, boolean syncAll);
@@ -233,9 +245,11 @@ public class ParameterDialogFragment extends DialogFragment {
         btnReset = view.findViewById(R.id.btn_reset);
         btnStart = view.findViewById(R.id.btn_start);
         switchSync = view.findViewById(R.id.switch_sync_all);
+        switchQuickConversion = view.findViewById(R.id.switch_quick_conversion);
         tvFileInfo = view.findViewById(R.id.current_file_info);
         tvVolumePercent = view.findViewById(R.id.tv_volume_percent);
         tvCurrentBitrate = view.findViewById(R.id.tv_current_bitrate);
+        tvQuickConversionSourceInfo = view.findViewById(R.id.tv_quick_conversion_source_info);
         sliderVolume = view.findViewById(R.id.slider_volume);
 
         spinnerOutputFormat = view.findViewById(R.id.spinner_output_format);
@@ -266,6 +280,12 @@ public class ParameterDialogFragment extends DialogFragment {
         volumeContainer = view.findViewById(R.id.volume_container);
         screenshotContainer = view.findViewById(R.id.screenshot_container);
         cutContainer = view.findViewById(R.id.cut_container);
+        quickConversionSwitchContainer = view.findViewById(R.id.quick_conversion_switch_container);
+        quickConversionSourceInfoContainer = view.findViewById(R.id.quick_conversion_source_info_container);
+        videoCodecContainer = (View) spinnerVideoCodec.getParent();
+        audioCodecContainer = (View) spinnerAudioCodec.getParent();
+        videoBitrateContainer = view.findViewById(R.id.video_bitrate_layout);
+        audioBitrateContainer = view.findViewById(R.id.audio_bitrate_layout);
         spinnerScreenshotFormat = view.findViewById(R.id.spinner_screenshot_format);
 
         imageParamsContainer = view.findViewById(R.id.image_params_container);
@@ -325,6 +345,7 @@ public class ParameterDialogFragment extends DialogFragment {
         presetAdapter.setListener((presetName, position) -> {
             selectedPresetName = presetName;
             loadPreset(presetName);
+            updateUIForTaskType();
         });
     }
 
@@ -390,6 +411,11 @@ public class ParameterDialogFragment extends DialogFragment {
 
         // 同步开关
         switchSync.setChecked(isSyncAll);
+
+        // 快速转换模式属于参数预设的一部分，加载已保存预设时恢复状态但不重复弹出说明
+        isUpdatingQuickConversionSwitch = true;
+        switchQuickConversion.setChecked(data.quickConversionEnabled);
+        isUpdatingQuickConversionSwitch = false;
 
         // 加载图片参数
         if (spinnerImageFormat != null) {
@@ -1017,6 +1043,7 @@ public class ParameterDialogFragment extends DialogFragment {
                                 presetAdapter.selectPosition(pos);
                                 selectedPresetName = defaultPresetName;
                                 loadPreset(defaultPresetName);
+                                updateUIForTaskType();
                             }
                             ToastUtils.show(requireActivity(), getString(R.string.toast_preset_deleted));
                         } else {
@@ -1034,6 +1061,7 @@ public class ParameterDialogFragment extends DialogFragment {
                     .setPositiveButton(R.string.btn_reset, (dialog, which) -> {
                         currentParams = ParameterData.createDefault();
                         loadPreset(getString(R.string.preset_default_name));
+                        updateUIForTaskType();
                         ToastUtils.show(requireActivity(), getString(R.string.toast_reset_done));
                     })
                     .setNegativeButton(R.string.btn_cancel, null)
@@ -1042,6 +1070,29 @@ public class ParameterDialogFragment extends DialogFragment {
 
         switchSync.setOnCheckedChangeListener((buttonView, isChecked) -> {
             isSyncAll = isChecked;
+        });
+
+        switchQuickConversion.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isUpdatingQuickConversionSwitch) return;
+            if (!isQuickConversionSupported()) {
+                isUpdatingQuickConversionSwitch = true;
+                switchQuickConversion.setChecked(false);
+                isUpdatingQuickConversionSwitch = false;
+                currentParams.quickConversionEnabled = false;
+                updateUIForTaskType();
+                return;
+            }
+
+            if (isChecked) {
+                // 先恢复关闭状态，只有用户确认说明后才真正启用
+                isUpdatingQuickConversionSwitch = true;
+                switchQuickConversion.setChecked(false);
+                isUpdatingQuickConversionSwitch = false;
+                showQuickConversionExplanation();
+            } else {
+                currentParams.quickConversionEnabled = false;
+                updateUIForTaskType();
+            }
         });
 
         btnStart.setOnClickListener(v -> {
@@ -1067,6 +1118,8 @@ public class ParameterDialogFragment extends DialogFragment {
 
         String audioCodecFull = spinnerAudioCodec.getText().toString();
         currentParams.audioCodec = extractCodecName(audioCodecFull);
+        currentParams.quickConversionEnabled = isQuickConversionSupported()
+                && switchQuickConversion.isChecked();
 
         // 视频码率
         if (chipVideoBitrateGroup.getCheckedChipId() == R.id.chip_bitrate_custom) {
@@ -1198,6 +1251,10 @@ public class ParameterDialogFragment extends DialogFragment {
         screenshotContainer.setVisibility(View.GONE);
         cutContainer.setVisibility(View.GONE);
         imageParamsContainer.setVisibility(View.GONE);
+        videoCodecContainer.setVisibility(View.VISIBLE);
+        audioCodecContainer.setVisibility(View.VISIBLE);
+        videoBitrateContainer.setVisibility(View.VISIBLE);
+        audioBitrateContainer.setVisibility(View.VISIBLE);
         
         switch (taskType) {
             case "screenshot":
@@ -1264,6 +1321,216 @@ public class ParameterDialogFragment extends DialogFragment {
                 cutContainer.setVisibility(View.GONE);
                 break;
         }
+
+        applyQuickConversionVisibility();
+    }
+
+    private boolean isQuickConversionSupported() {
+        return "convert".equals(taskType)
+                || "convert_audio".equals(taskType)
+                || "extract_audio".equals(taskType);
+    }
+
+    private void applyQuickConversionVisibility() {
+        boolean supported = isQuickConversionSupported();
+        quickConversionSwitchContainer.setVisibility(supported ? View.VISIBLE : View.GONE);
+
+        if (!supported && switchQuickConversion.isChecked()) {
+            isUpdatingQuickConversionSwitch = true;
+            switchQuickConversion.setChecked(false);
+            isUpdatingQuickConversionSwitch = false;
+            currentParams.quickConversionEnabled = false;
+        }
+
+        boolean enabled = supported && switchQuickConversion.isChecked();
+        quickConversionSourceInfoContainer.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        if (enabled) {
+            videoCodecContainer.setVisibility(View.GONE);
+            audioCodecContainer.setVisibility(View.GONE);
+            videoBitrateContainer.setVisibility(View.GONE);
+            audioBitrateContainer.setVisibility(View.GONE);
+            volumeContainer.setVisibility(View.GONE);
+            currentParams.quickConversionEnabled = true;
+            if (!sourceStreamInfoRequested) {
+                sourceStreamInfoRequested = true;
+                loadSourceStreamInfo();
+            }
+        } else {
+            currentParams.quickConversionEnabled = false;
+        }
+    }
+
+    private void showQuickConversionExplanation() {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.quick_conversion_dialog_title)
+                .setMessage(R.string.quick_conversion_dialog_message)
+                .setPositiveButton(R.string.quick_conversion_dialog_enable, (dialog, which) -> {
+                    isUpdatingQuickConversionSwitch = true;
+                    switchQuickConversion.setChecked(true);
+                    isUpdatingQuickConversionSwitch = false;
+                    currentParams.quickConversionEnabled = true;
+                    updateUIForTaskType();
+                })
+                .setNegativeButton(R.string.btn_cancel, (dialog, which) -> {
+                    currentParams.quickConversionEnabled = false;
+                })
+                .setOnCancelListener(dialog -> currentParams.quickConversionEnabled = false)
+                .show();
+    }
+
+    private void loadSourceStreamInfo() {
+        if (currentFilePath == null || currentFilePath.trim().isEmpty()) {
+            tvQuickConversionSourceInfo.setText(R.string.quick_conversion_info_failed);
+            return;
+        }
+
+        tvQuickConversionSourceInfo.setText(R.string.quick_conversion_info_loading);
+        Context context = requireContext().getApplicationContext();
+        String inputPath = currentFilePath;
+        Uri inputUri = currentFileUri;
+        Handler handler = new Handler(Looper.getMainLooper());
+        new Thread(() -> {
+            String info = probeSourceStreamInfo(context, inputPath, inputUri);
+            handler.post(() -> {
+                if (!isAdded() || tvQuickConversionSourceInfo == null) return;
+                tvQuickConversionSourceInfo.setText(info);
+            });
+        }, "quick-conversion-probe").start();
+    }
+
+    private String probeSourceStreamInfo(Context context, String inputPath, Uri inputUri) {
+        String probeInputPath = inputPath;
+        boolean registeredSafUrl = false;
+        try {
+            if (inputUri != null) {
+                String scheme = inputUri.getScheme();
+                if ("content".equalsIgnoreCase(scheme)) {
+                    // 参数弹窗显示的文件路径可能只是文件名，SAF 文件需要重新注册 FFmpegKit 可读取的临时地址
+                    probeInputPath = FFmpegKitConfig.getSafParameterForRead(context, inputUri, true);
+                    registeredSafUrl = probeInputPath != null && !probeInputPath.trim().isEmpty();
+                } else if ("file".equalsIgnoreCase(scheme)) {
+                    probeInputPath = inputUri.getPath();
+                } else if (scheme != null && !scheme.trim().isEmpty()) {
+                    probeInputPath = inputUri.toString();
+                }
+            }
+
+            if (probeInputPath == null || probeInputPath.trim().isEmpty()) {
+                return context.getString(R.string.quick_conversion_info_failed);
+            }
+
+            // 不允许把 SAF 的显示文件名当作真实磁盘路径传给 FFprobe
+            if (!registeredSafUrl && (inputUri == null || "file".equalsIgnoreCase(inputUri.getScheme()))) {
+                File inputFile = new File(probeInputPath);
+                if (!inputFile.isFile() || !inputFile.canRead()) {
+                    Log.w("ParameterDialog", "快速转换源文件路径不可读: " + probeInputPath);
+                    return context.getString(R.string.quick_conversion_info_failed);
+                }
+            }
+
+            String escapedPath = probeInputPath.replace("\\", "\\\\").replace("\"", "\\\"");
+            String command = "-v error -show_entries stream=codec_type,codec_name,codec_long_name,width,height,sample_rate,channels,bit_rate:format=bit_rate -of json \""
+                    + escapedPath + "\"";
+            FFprobeSession session = FFprobeKit.execute(command);
+            if (session == null || !ReturnCode.isSuccess(session.getReturnCode())) {
+                Log.w("ParameterDialog", "FFprobe 无法读取快速转换源媒体: " + probeInputPath);
+                return context.getString(R.string.quick_conversion_info_failed);
+            }
+
+            String output = session.getOutput();
+            if (output == null || output.trim().isEmpty()) {
+                return context.getString(R.string.quick_conversion_info_failed);
+            }
+
+            JSONObject result = new JSONObject(output);
+            JSONArray streams = result.optJSONArray("streams");
+            if (streams == null || streams.length() == 0) {
+                return context.getString(R.string.quick_conversion_no_streams);
+            }
+
+            String unknown = context.getString(R.string.unknown);
+            // FLAC 等编码器在当前 FFmpeg 构建中可能返回 codec_long_name=unknown，此时回退到稳定的 codec_name
+            JSONObject format = result.optJSONObject("format");
+            long formatBitrate = format == null ? -1 : parseLongValue(format.opt("bit_rate"));
+            StringBuilder info = new StringBuilder();
+            int videoIndex = 0;
+            int audioIndex = 0;
+            for (int i = 0; i < streams.length(); i++) {
+                JSONObject stream = streams.optJSONObject(i);
+                if (stream == null) continue;
+
+                String type = stream.optString("codec_type", "");
+                String codecName = stream.optString("codec_name", unknown);
+                String codecLongName = stream.optString("codec_long_name", "").trim();
+                String codec = codecLongName.isEmpty() || codecLongName.equalsIgnoreCase("unknown")
+                        || codecLongName.equalsIgnoreCase(codecName)
+                        ? codecName
+                        : context.getString(R.string.quick_conversion_codec_name, codecLongName, codecName);
+                // 部分编码器不提供流级码率，尝试使用容器报告的整体码率作为近似值
+                long streamBitrate = parseLongValue(stream.opt("bit_rate"));
+                String bitrate = formatStreamBitrate(context,
+                        streamBitrate > 0 ? streamBitrate : formatBitrate);
+
+                String line = null;
+                if ("video".equals(type)) {
+                    videoIndex++;
+                    int width = stream.optInt("width", -1);
+                    int height = stream.optInt("height", -1);
+                    String resolution = width > 0 && height > 0
+                            ? context.getString(R.string.quick_conversion_resolution, width, height) : unknown;
+                    line = context.getString(R.string.quick_conversion_video_info,
+                            videoIndex, codec, resolution, bitrate);
+                } else if ("audio".equals(type)) {
+                    audioIndex++;
+                    int sampleRate = stream.optInt("sample_rate", -1);
+                    int channels = stream.optInt("channels", -1);
+                    String sampleRateText = sampleRate > 0
+                            ? context.getString(R.string.quick_conversion_sample_rate, sampleRate) : unknown;
+                    String channelsText = channels > 0
+                            ? context.getString(R.string.quick_conversion_channels, channels) : unknown;
+                    line = context.getString(R.string.quick_conversion_audio_info,
+                            audioIndex, codec, sampleRateText, channelsText, bitrate);
+                }
+
+                if (line != null) {
+                    if (info.length() > 0) info.append('\n');
+                    info.append(line);
+                }
+            }
+
+            return info.length() > 0 ? info.toString()
+                    : context.getString(R.string.quick_conversion_no_streams);
+        } catch (Exception e) {
+            Log.w("ParameterDialog", "读取快速转换媒体流信息失败: " + e.getMessage());
+            return context.getString(R.string.quick_conversion_info_failed);
+        } finally {
+            if (registeredSafUrl) {
+                try {
+                    FFmpegKitConfig.unregisterSafProtocolUrl(probeInputPath);
+                } catch (Exception e) {
+                    Log.w("ParameterDialog", "释放快速转换源媒体的 SAF 地址失败: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    private long parseLongValue(Object value) {
+        if (value == null || value == JSONObject.NULL) return -1;
+        try {
+            return Long.parseLong(String.valueOf(value));
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    private String formatStreamBitrate(Context context, long bitrate) {
+        if (bitrate <= 0) return context.getString(R.string.unknown);
+        if (bitrate >= 1_000_000) {
+            return String.format(Locale.getDefault(),
+                    context.getString(R.string.quick_conversion_bitrate_mbps), bitrate / 1_000_000.0);
+        }
+        return context.getString(R.string.quick_conversion_bitrate_kbps,
+                Math.round(bitrate / 1000.0));
     }
 
     // 加载图片预览和分辨率

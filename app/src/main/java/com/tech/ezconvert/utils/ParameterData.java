@@ -20,6 +20,9 @@ public class ParameterData {
     @SerializedName("audio_codec")
     public String audioCodec;
 
+    @SerializedName("quick_conversion_enabled")
+    public boolean quickConversionEnabled;
+
     @SerializedName("video_bitrate_mode")
     public String videoBitrateMode; // "original" 或 "custom"
 
@@ -80,6 +83,7 @@ public class ParameterData {
         outputFormat = "mp4";
         videoCodec = "h264_mediacodec";
         audioCodec = "aac";
+        quickConversionEnabled = false;
         videoBitrateMode = "original";
         videoBitrateValue = 0;
         videoBitrateUnit = "Mbps";
@@ -106,6 +110,7 @@ public class ParameterData {
         copy.outputFormat = this.outputFormat;
         copy.videoCodec = this.videoCodec;
         copy.audioCodec = this.audioCodec;
+        copy.quickConversionEnabled = this.quickConversionEnabled;
         copy.videoBitrateMode = this.videoBitrateMode;
         copy.videoBitrateValue = this.videoBitrateValue;
         copy.videoBitrateUnit = this.videoBitrateUnit;
