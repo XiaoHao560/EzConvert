@@ -5,6 +5,7 @@ import com.arthenica.ffmpegkit.FFprobeKit;
 import com.arthenica.ffmpegkit.FFprobeSession;
 import com.arthenica.ffmpegkit.ReturnCode;
 import com.tech.ezconvert.utils.Log;
+import com.tech.ezconvert.R;
 import java.util.ArrayList;
 
 /**
@@ -13,6 +14,40 @@ import java.util.ArrayList;
  */
 public class FfmpegCommandBuilder {
     private static final String TAG = "FfmpegCommandBuilder";
+    private static final ThreadLocal<ArrayList<String>> COMPATIBILITY_CHANGES = new ThreadLocal<>();
+    private static final ThreadLocal<Context> COMPATIBILITY_CONTEXT = new ThreadLocal<>();
+
+    /**
+     * 收集命令构建过程中实际触发的兼容性调整，供开始任务前向用户说明
+     */
+    public static ArrayList<String> collectCompatibilityChanges(String inputPath, ParameterData params,
+                                                                 Context context) {
+        ArrayList<String> changes = new ArrayList<>();
+        COMPATIBILITY_CHANGES.set(changes);
+        try {
+            buildCommand(inputPath, buildOutputPath("/compatibility_preview", params), params, context);
+        } catch (Exception e) {
+            Log.w(TAG, context.getString(R.string.compatibility_precheck_failed, e.getMessage()));
+        } finally {
+            COMPATIBILITY_CHANGES.remove();
+            COMPATIBILITY_CONTEXT.remove();
+        }
+        return changes;
+    }
+
+    private static String compatibilityText(int resourceId, Object... args) {
+        Context context = COMPATIBILITY_CONTEXT.get();
+        if (context == null) return "";
+        return context.getString(resourceId, args);
+    }
+
+    private static void logCompatibilityChange(String message) {
+        Log.w(TAG, message);
+        ArrayList<String> changes = COMPATIBILITY_CHANGES.get();
+        if (changes != null && !changes.contains(message)) {
+            changes.add(message);
+        }
+    }
 
     /**
      * 根据参数构建输出文件完整路径（含扩展名）
@@ -53,12 +88,18 @@ public class FfmpegCommandBuilder {
      * 根据任务类型生成 FFmpeg 命令数组
      */
     public static String[] buildCommand(String inputPath, String outputPath, ParameterData params, Context context) {
-        if ("convert_image".equals(params.taskType)) {
-            return buildImageCommand(inputPath, outputPath, params);
-        } else if (isVideoTask(params.taskType)) {
-            return buildVideoCommand(inputPath, outputPath, params, context);
-        } else {
-            return buildAudioCommand(inputPath, outputPath, params, context);
+        COMPATIBILITY_CONTEXT.set(context.getApplicationContext());
+        try {
+            if ("convert_image".equals(params.taskType)) {
+                return buildImageCommand(inputPath, outputPath, params);
+            } else if (isVideoTask(params.taskType)) {
+                return buildVideoCommand(inputPath, outputPath, params, context);
+            } else {
+                return buildAudioCommand(inputPath, outputPath, params, context);
+            }
+        } finally {
+            // 正常转换结束后清除线程上下文，避免线程复用时沿用旧语言环境
+            if (COMPATIBILITY_CHANGES.get() == null) COMPATIBILITY_CONTEXT.remove();
         }
     }
 
@@ -159,7 +200,7 @@ public class FfmpegCommandBuilder {
         // 兼容旧版本可能残留的 HEIF/HEIC 参数：当前 FFmpeg 构建没有对应 muxer，统一回退为 JPEG
         // 同时由 buildOutputPath() 输出 .jpg，避免生成“扩展名是 HEIC、实际内容却无法封装”的坏文件
         if ("heif".equals(format) || "heic".equals(format)) {
-            Log.w(TAG, "兼容性调整: 输出图片格式 " + format + " 当前构建不支持 HEIF/HEIC 封装，已回退为 jpg");
+            logCompatibilityChange(compatibilityText(R.string.compatibility_change_heif_fallback, format));
             format = "jpg";
         }
         // 图片任务只处理视频流，避免输入文件中存在其他流时被错误带入输出
@@ -252,7 +293,7 @@ public class FfmpegCommandBuilder {
         addAudioContainerCompatibilityArgs(cmd, params.outputFormat, audioCodec, inputPath);
 
         if ("swf".equalsIgnoreCase(params.outputFormat)) {
-            Log.w(TAG, "兼容性调整: SWF 音频采样率强制为 44100 Hz");
+            logCompatibilityChange(compatibilityText(R.string.compatibility_change_swf_sample_rate));
             cmd.add("-ar");
             cmd.add("44100");
         }
@@ -277,7 +318,7 @@ public class FfmpegCommandBuilder {
         addAudioContainerCompatibilityArgs(cmd, params.outputFormat, audioCodec, inputPath);
 
         if ("swf".equalsIgnoreCase(params.outputFormat)) {
-            Log.w(TAG, "兼容性调整: SWF 音频采样率强制为 44100 Hz");
+            logCompatibilityChange(compatibilityText(R.string.compatibility_change_swf_sample_rate));
             cmd.add("-ar");
             cmd.add("44100");
         }
@@ -315,7 +356,7 @@ public class FfmpegCommandBuilder {
         addAudioContainerCompatibilityArgs(cmd, params.outputFormat, audioCodec, inputPath);
 
         if ("swf".equalsIgnoreCase(params.outputFormat)) {
-            Log.w(TAG, "兼容性调整: SWF 音频采样率强制为 44100 Hz");
+            logCompatibilityChange(compatibilityText(R.string.compatibility_change_swf_sample_rate));
             cmd.add("-ar");
             cmd.add("44100");
         }
@@ -447,7 +488,7 @@ public class FfmpegCommandBuilder {
 
         // Speex 的有效码率范围随窄带/宽带/超宽带模式变化，统一使用保守值
         if (aCodecLower.contains("speex")) {
-            Log.w(TAG, "兼容性调整: Speex 使用兼容性固定码率 32k，不继承源文件码率");
+            logCompatibilityChange(compatibilityText(R.string.compatibility_change_speex_bitrate));
             cmd.add("-b:a");
             cmd.add("32k");
             return;
@@ -460,7 +501,7 @@ public class FfmpegCommandBuilder {
                 cmd.add("-b:a");
                 cmd.add(Math.max(1, bitrateValue) + "k");
             } else {
-                Log.w(TAG, "兼容性调整: LC3 不直接继承源/默认音频码率，使用 64k");
+                logCompatibilityChange(compatibilityText(R.string.compatibility_change_lc3_bitrate));
                 cmd.add("-b:a");
                 cmd.add("64k");
             }
@@ -493,8 +534,8 @@ public class FfmpegCommandBuilder {
 
         int safeKbps = sanitizeAudioBitrateKbps(aCodecLower, requestedKbps);
         if (safeKbps != requestedKbps) {
-            Log.w(TAG, "兼容性调整: 音频码率超出编码器能力，已自动调整: codec=" + aCodecLower
-                    + ", requested=" + requestedKbps + "k, effective=" + safeKbps + "k");
+            logCompatibilityChange(compatibilityText(R.string.compatibility_change_audio_bitrate,
+                    aCodecLower, requestedKbps, safeKbps));
         }
 
         cmd.add("-b:a");
@@ -588,7 +629,7 @@ public class FfmpegCommandBuilder {
 
         // FLV 的 Speex 使用 16 kHz 单声道；这是容器层面的额外限制
         if ("flv".equals(format) && codec.contains("speex")) {
-            addFixedAudioFormat(cmd, inputPath, codec, 16000, 1, "FLV/Speex 需要 16 kHz 单声道");
+            addFixedAudioFormat(cmd, inputPath, codec, 16000, 1, R.string.compatibility_reason_flv_speex);
             return;
         }
 
@@ -670,17 +711,17 @@ public class FfmpegCommandBuilder {
 
         // AMR-NB/AMR-WB 编码器分别固定在 8/16 kHz，并且为单声道
         if (codec.contains("opencore_amrnb")) {
-            addFixedAudioFormat(cmd, inputPath, codec, 8000, 1, "AMR-NB 要求 8 kHz 单声道");
+            addFixedAudioFormat(cmd, inputPath, codec, 8000, 1, R.string.compatibility_reason_amr_nb);
             return;
         }
         if (codec.contains("vo_amrwbenc")) {
-            addFixedAudioFormat(cmd, inputPath, codec, 16000, 1, "AMR-WB 要求 16 kHz 单声道");
+            addFixedAudioFormat(cmd, inputPath, codec, 16000, 1, R.string.compatibility_reason_amr_wb);
             return;
         }
 
         // iLBC 严格要求 8 kHz 单声道
         if (codec.equals("libilbc") || codec.equals("ilbc")) {
-            addFixedAudioFormat(cmd, inputPath, codec, 8000, 1, "iLBC 要求 8 kHz 单声道");
+            addFixedAudioFormat(cmd, inputPath, codec, 8000, 1, R.string.compatibility_reason_ilbc);
             return;
         }
 
@@ -712,25 +753,18 @@ public class FfmpegCommandBuilder {
      */
     private static void addFixedAudioFormat(ArrayList<String> cmd, String inputPath,
                                             String codec, int targetRate, int targetChannels,
-                                            String reason) {
+                                            int reasonResourceId) {
         int sourceRate = getOriginalAudioSampleRate(inputPath);
         int sourceChannels = getOriginalAudioChannels(inputPath);
         boolean rateChanged = sourceRate > 0 && sourceRate != targetRate;
         boolean channelsChanged = sourceChannels > 0 && sourceChannels != targetChannels;
 
         if (rateChanged || channelsChanged || sourceRate <= 0 || sourceChannels <= 0) {
-            StringBuilder message = new StringBuilder("兼容性调整: ")
-                    .append(reason)
-                    .append(": codec=").append(codec);
-            if (sourceRate > 0) {
-                message.append(", sourceRate=").append(sourceRate).append("Hz");
-            }
-            message.append(", effectiveRate=").append(targetRate).append("Hz");
-            if (sourceChannels > 0) {
-                message.append(", sourceChannels=").append(sourceChannels);
-            }
-            message.append(", effectiveChannels=").append(targetChannels);
-            Log.w(TAG, message.toString());
+            String sourceRateText = sourceRate > 0 ? sourceRate + " Hz" : compatibilityText(R.string.compatibility_value_unknown);
+            String sourceChannelsText = sourceChannels > 0 ? String.valueOf(sourceChannels) : compatibilityText(R.string.compatibility_value_unknown);
+            logCompatibilityChange(compatibilityText(R.string.compatibility_change_fixed_audio_format,
+                    compatibilityText(reasonResourceId), codec, sourceRateText, targetRate,
+                    sourceChannelsText, targetChannels));
         }
 
         cmd.add("-ar");
@@ -749,8 +783,8 @@ public class FfmpegCommandBuilder {
         cmd.add("-ar");
         cmd.add(String.valueOf(targetRate));
         if (sourceRate > 0 && sourceRate != targetRate) {
-            Log.w(TAG, "兼容性调整: 音频采样率超出编码器能力，已自动调整: codec=" + codec
-                    + ", source=" + sourceRate + "Hz, effective=" + targetRate + "Hz");
+            logCompatibilityChange(compatibilityText(R.string.compatibility_change_audio_sample_rate,
+                    codec, sourceRate, targetRate));
         }
     }
 

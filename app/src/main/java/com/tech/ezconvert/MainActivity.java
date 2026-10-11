@@ -38,6 +38,7 @@ import com.tech.ezconvert.utils.FFmpegUtil;
 import com.tech.ezconvert.utils.FileUtils;
 import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.utils.LogManager;
+import com.tech.ezconvert.utils.FfmpegCommandBuilder;
 import com.tech.ezconvert.utils.ParameterData;
 import com.tech.ezconvert.utils.NotificationHelper;
 import com.tech.ezconvert.utils.PermissionManager;
@@ -294,9 +295,33 @@ public class MainActivity extends BaseActivity implements
         dialog.setListener((params, syncAll) -> {
             queueManager.setPendingParameterPrompt(false);
             queueManager.setSyncMode(syncAll, params);
-            submitCurrentWorkerWithOutputCheck(params);
+            showCompatibilityChangesBeforeStart(params, syncAll);
         });
         dialog.show(getSupportFragmentManager(), "param_dialog");
+    }
+
+    // 仅在命令构建逻辑确实调整了参数时提示用户，避免对正常转换显示无关警告
+    private void showCompatibilityChangesBeforeStart(ParameterData params, boolean syncAll) {
+        java.util.ArrayList<String> changes = FfmpegCommandBuilder.collectCompatibilityChanges(
+                currentInputPath, params, this);
+        if (changes.isEmpty()) {
+            submitCurrentWorkerWithOutputCheck(params);
+            return;
+        }
+
+        StringBuilder message = new StringBuilder();
+        for (String change : changes) {
+            if (message.length() > 0) message.append("\n\n");
+            message.append(change);
+        }
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.dialog_compatibility_change_title)
+                .setMessage(getString(R.string.dialog_compatibility_change_message, message.toString()))
+                .setPositiveButton(R.string.dialog_compatibility_change_confirm,
+                        (dialog, which) -> submitCurrentWorkerWithOutputCheck(params))
+                .setCancelable(false)
+                .show();
     }
 
     // 参数确认后先检查本次任务是否需要临时回退输出目录，再提交 Worker
