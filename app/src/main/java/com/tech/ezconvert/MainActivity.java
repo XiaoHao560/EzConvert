@@ -39,6 +39,7 @@ import com.tech.ezconvert.utils.FileUtils;
 import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.utils.LogManager;
 import com.tech.ezconvert.utils.FfmpegCommandBuilder;
+import com.arthenica.ffmpegkit.FFmpegKitConfig;
 import com.tech.ezconvert.utils.ParameterData;
 import com.tech.ezconvert.utils.NotificationHelper;
 import com.tech.ezconvert.utils.PermissionManager;
@@ -302,8 +303,35 @@ public class MainActivity extends BaseActivity implements
 
     // 仅在命令构建逻辑确实调整了参数时提示用户，避免对正常转换显示无关警告
     private void showCompatibilityChangesBeforeStart(ParameterData params, boolean syncAll) {
-        java.util.ArrayList<String> changes = FfmpegCommandBuilder.collectCompatibilityChanges(
-                currentInputPath, params, this);
+        // SAF 临时路径在文件验证完成后可能已注销，预检查时重新注册并在探测结束后释放
+        String probeInputPath = currentInputPath;
+        boolean registeredSafUrl = false;
+        Uri currentUri = queueManager.getCurrentUri();
+        if (currentUri != null && "content".equalsIgnoreCase(currentUri.getScheme())) {
+            try {
+                String safPath = FFmpegKitConfig.getSafParameterForRead(
+                        getApplicationContext(), currentUri, true);
+                if (safPath != null && !safPath.isEmpty()) {
+                    probeInputPath = safPath;
+                    registeredSafUrl = true;
+                }
+            } catch (Exception e) {
+                Log.w("MainActivity", "注册兼容性预检查的 SAF 输入失败: " + e.getMessage());
+            }
+        }
+
+        java.util.ArrayList<String> changes;
+        try {
+            changes = FfmpegCommandBuilder.collectCompatibilityChanges(probeInputPath, params, this);
+        } finally {
+            if (registeredSafUrl) {
+                try {
+                    FFmpegKitConfig.unregisterSafProtocolUrl(probeInputPath);
+                } catch (Exception e) {
+                    Log.w("MainActivity", "释放兼容性预检查的 SAF 输入失败: " + e.getMessage());
+                }
+            }
+        }
         if (changes.isEmpty()) {
             submitCurrentWorkerWithOutputCheck(params);
             return;
