@@ -721,4 +721,22 @@
         <item>标准音质 (128k)</item>
         <item>低音质 (64k)</item>
     </string-array>
+    <string name="dialog_compatibility_change_title">转换参数已自动调整</string>
+    <string name="dialog_compatibility_change_message">为了提高转换兼容性，EzConvert 将应用以下调整：\n\n%1$s\n\n点击确认后开始转换。</string>
+    <string name="dialog_compatibility_change_confirm">确认并开始</string>
+    <string name="dialog_compatibility_change_cancel">取消</string>
+    <string name="compatibility_precheck_failed">预检查兼容性调整时发生异常：%1$s</string>
+    <string name="compatibility_change_prefix">兼容性调整</string>
+    <string name="compatibility_change_heif_fallback">兼容性调整：当前构建不支持 HEIF/HEIC 封装，输出图片格式 %1$s 已回退为 jpg</string>
+    <string name="compatibility_change_swf_sample_rate">兼容性调整：SWF 音频采样率强制设为 44100 Hz</string>
+    <string name="compatibility_change_speex_bitrate">兼容性调整：Speex 使用兼容性固定码率 32k，不继承源文件码率</string>
+    <string name="compatibility_change_lc3_bitrate">兼容性调整：LC3 不直接继承源/默认音频码率，改用 64k</string>
+    <string name="compatibility_change_audio_bitrate">兼容性调整：音频码率超出编码器能力，已自动调整：编码器=%1$s，请求码率=%2$dk，有效码率=%3$dk</string>
+    <string name="compatibility_change_fixed_audio_format">兼容性调整：%1$s；编码器=%2$s；源采样率=%3$s；目标采样率=%4$d Hz；源声道数=%5$s；目标声道数=%6$d</string>
+    <string name="compatibility_change_audio_sample_rate">兼容性调整：音频采样率超出编码器能力，已自动调整：编码器=%1$s，源采样率=%2$d Hz，目标采样率=%3$d Hz</string>
+    <string name="compatibility_reason_flv_speex">FLV/Speex 需要 16 kHz 单声道</string>
+    <string name="compatibility_reason_amr_nb">AMR-NB 要求 8 kHz 单声道</string>
+    <string name="compatibility_reason_amr_wb">AMR-WB 要求 16 kHz 单声道</string>
+    <string name="compatibility_reason_ilbc">iLBC 要求 8 kHz 单声道</string>
+    <string name="compatibility_value_unknown">未知</string>
 </resources>

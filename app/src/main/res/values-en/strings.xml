@@ -721,4 +721,22 @@
         <item>Standard (128k)</item>
         <item>Low (64k)</item>
     </string-array>
+    <string name="dialog_compatibility_change_title">Conversion settings adjusted</string>
+    <string name="dialog_compatibility_change_message">To improve conversion compatibility, EzConvert will apply the following adjustments:\n\n%1$s\n\nTap confirm to start conversion.</string>
+    <string name="dialog_compatibility_change_confirm">Confirm and start</string>
+    <string name="dialog_compatibility_change_cancel">Cancel</string>
+    <string name="compatibility_precheck_failed">An error occurred while checking compatibility adjustments: %1$s</string>
+    <string name="compatibility_change_prefix">Compatibility adjustment</string>
+    <string name="compatibility_change_heif_fallback">Compatibility adjustment: This build does not support HEIF/HEIC muxing, so the output image format %1$s was changed to jpg</string>
+    <string name="compatibility_change_swf_sample_rate">Compatibility adjustment: The SWF audio sample rate is forced to 44100 Hz</string>
+    <string name="compatibility_change_speex_bitrate">Compatibility adjustment: Speex uses a fixed compatible bitrate of 32k instead of inheriting the source bitrate</string>
+    <string name="compatibility_change_lc3_bitrate">Compatibility adjustment: LC3 does not inherit the source/default audio bitrate; 64k is used instead</string>
+    <string name="compatibility_change_audio_bitrate">Compatibility adjustment: The audio bitrate exceeds the encoder\'s capabilities and was adjusted: encoder=%1$s, requested=%2$dk, effective=%3$dk</string>
+    <string name="compatibility_change_fixed_audio_format">Compatibility adjustment: %1$s; encoder=%2$s; source sample rate=%3$s; target sample rate=%4$d Hz; source channels=%5$s; target channels=%6$d</string>
+    <string name="compatibility_change_audio_sample_rate">Compatibility adjustment: The audio sample rate exceeds the encoder\'s capabilities and was adjusted: encoder=%1$s, source sample rate=%2$d Hz, target sample rate=%3$d Hz</string>
+    <string name="compatibility_reason_flv_speex">FLV/Speex requires 16 kHz mono</string>
+    <string name="compatibility_reason_amr_nb">AMR-NB requires 8 kHz mono</string>
+    <string name="compatibility_reason_amr_wb">AMR-WB requires 16 kHz mono</string>
+    <string name="compatibility_reason_ilbc">iLBC requires 8 kHz mono</string>
+    <string name="compatibility_value_unknown">Unknown</string>
 </resources>
