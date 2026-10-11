@@ -348,6 +348,10 @@ public class MainActivity extends BaseActivity implements
                 .setMessage(getString(R.string.dialog_compatibility_change_message, message.toString()))
                 .setPositiveButton(R.string.dialog_compatibility_change_confirm,
                         (dialog, which) -> submitCurrentWorkerWithOutputCheck(params))
+                .setNegativeButton(R.string.dialog_compatibility_change_cancel, (dialog, which) -> {
+                    // 用户取消兼容性调整后不启动当前转换任务
+                    dialog.dismiss();
+                })
                 .setCancelable(false)
                 .show();
     }
