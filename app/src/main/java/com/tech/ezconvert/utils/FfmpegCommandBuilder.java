@@ -904,38 +904,49 @@ public class FfmpegCommandBuilder {
      * 仅在需要离散采样率适配的编码器上调用，避免无意义的额外探测
      */
     private static int getOriginalAudioSampleRate(String inputPath) {
-        if (inputPath == null || inputPath.isEmpty()) return -1;
-        try {
-            String probeCmd = "-v quiet -select_streams a:0 -show_entries stream=sample_rate -of default=noprint_wrappers=1:nokey=1 \"" + inputPath + "\"";
-            FFprobeSession session = FFprobeKit.execute(probeCmd);
-            if (session != null && ReturnCode.isSuccess(session.getReturnCode())) {
-                String output = session.getOutput();
-                if (output != null && !output.trim().isEmpty() && !"N/A".equals(output.trim())) {
-                    return Integer.parseInt(output.trim());
-                }
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "获取原始音频采样率失败: " + inputPath, e);
-        }
-        return -1;
+        return probeAudioInteger(inputPath, "sample_rate", "采样率");
     }
 
     /**
      * 获取原始音频声道数，获取失败返回 -1
      */
     private static int getOriginalAudioChannels(String inputPath) {
-        if (inputPath == null || inputPath.isEmpty()) return -1;
+        return probeAudioInteger(inputPath, "channels", "声道数");
+    }
+
+    /**
+     * 统一探测音频流参数，兼容输出中的空行并记录失败原因，便于定位 FFprobe 问题
+     */
+    private static int probeAudioInteger(String inputPath, String entry, String label) {
+        if (inputPath == null || inputPath.trim().isEmpty()) return -1;
         try {
-            String probeCmd = "-v quiet -select_streams a:0 -show_entries stream=channels -of default=noprint_wrappers=1:nokey=1 \"" + inputPath + "\"";
+            String escapedPath = inputPath.replace("\\", "\\\\")
+                    .replace("\"", "\\\"");
+            String probeCmd = "-v error -select_streams a:0 -show_entries stream=" + entry
+                    + " -of default=noprint_wrappers=1:nokey=1 \"" + escapedPath + "\"";
             FFprobeSession session = FFprobeKit.execute(probeCmd);
-            if (session != null && ReturnCode.isSuccess(session.getReturnCode())) {
-                String output = session.getOutput();
-                if (output != null && !output.trim().isEmpty() && !"N/A".equals(output.trim())) {
-                    return Integer.parseInt(output.trim());
+            if (session == null) {
+                Log.w(TAG, "FFprobe 获取音频" + label + "失败：session 为空，输入=" + inputPath);
+                return -1;
+            }
+
+            String output = session.getOutput();
+            if (ReturnCode.isSuccess(session.getReturnCode()) && output != null) {
+                for (String line : output.split("\\R")) {
+                    String value = line.trim();
+                    if (value.isEmpty() || "N/A".equalsIgnoreCase(value)) continue;
+                    try {
+                        int parsed = Integer.parseInt(value);
+                        if (parsed > 0) return parsed;
+                    } catch (NumberFormatException ignored) {
+                        // 忽略非数值行，继续查找有效参数
+                    }
                 }
             }
+            Log.w(TAG, "FFprobe 获取音频" + label + "失败：returnCode="
+                    + session.getReturnCode() + ", output=" + output + ", 输入=" + inputPath);
         } catch (Exception e) {
-            Log.e(TAG, "获取原始音频声道数失败: " + inputPath, e);
+            Log.e(TAG, "获取原始音频" + label + "失败: " + inputPath, e);
         }
         return -1;
     }
