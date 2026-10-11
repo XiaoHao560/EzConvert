@@ -145,6 +145,26 @@
     <string name="volume_min_percent">0%</string>
     <string name="volume_default_percent">100%</string>
     <string name="sync_all_files">参数同步至所有文件</string>
+    <string name="quick_conversion_title">快速转换</string>
+    <string name="quick_conversion_dialog_title">启用快速转换？</string>
+    <string name="quick_conversion_dialog_message">开启后，FFmpeg 会将源文件中已有的音视频流直接复制到所选目标容器中，不会重新编码，可显著提高转换速度并减少性能消耗。
+
+由于不会转换编码器，如果目标容器不支持源文件中的编码格式，任务可能会报错。若遇到报错，请关闭此功能后重新执行任务。
+
+此模式不会应用编码器、码率和音量调整。</string>
+    <string name="quick_conversion_dialog_enable">开启快速转换</string>
+    <string name="quick_conversion_source_info_title">源媒体流参数</string>
+    <string name="quick_conversion_info_loading">正在读取源媒体流信息…</string>
+    <string name="quick_conversion_info_failed">无法读取媒体流信息，仍可尝试执行快速转换</string>
+    <string name="quick_conversion_no_streams">未检测到可显示的音频或视频流</string>
+    <string name="quick_conversion_codec_name">%1$s（%2$s）</string>
+    <string name="quick_conversion_resolution">%1$d×%2$d</string>
+    <string name="quick_conversion_video_info">视频流 %1$d：编码器 %2$s，分辨率 %3$s，码率 %4$s</string>
+    <string name="quick_conversion_audio_info">音频流 %1$d：编码器 %2$s，采样率 %3$s，声道 %4$s，码率 %5$s</string>
+    <string name="quick_conversion_channels">%1$d 声道</string>
+    <string name="quick_conversion_sample_rate">%1$d Hz</string>
+    <string name="quick_conversion_bitrate_mbps">%1$.2f Mbps</string>
+    <string name="quick_conversion_bitrate_kbps">%1$d Kbps</string>
     <string name="reset_default">重置为默认</string>
     <string name="start_process">开始处理</string>
 

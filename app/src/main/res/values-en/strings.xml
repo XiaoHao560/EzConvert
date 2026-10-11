@@ -145,6 +145,22 @@
     <string name="volume_min_percent">0%</string>
     <string name="volume_default_percent">100%</string>
     <string name="sync_all_files">Sync parameters to all files</string>
+    <string name="quick_conversion_title">Quick conversion</string>
+    <string name="quick_conversion_dialog_title">Enable quick conversion?</string>
+    <string name="quick_conversion_dialog_message">When enabled, FFmpeg copies the existing audio/video streams into the selected output container without re-encoding. This can significantly increase conversion speed and reduce performance overhead.\n\nBecause the codecs are not changed, the task may fail if the target container does not support a source stream\'s codec. If an error occurs, turn this option off and run the task again.\n\nEncoder, bitrate, and volume adjustments are not applied in this mode.</string>
+    <string name="quick_conversion_dialog_enable">Enable quick conversion</string>
+    <string name="quick_conversion_source_info_title">Source media stream parameters</string>
+    <string name="quick_conversion_info_loading">Reading source media stream information…</string>
+    <string name="quick_conversion_info_failed">Could not read stream information. You can still try quick conversion.</string>
+    <string name="quick_conversion_no_streams">No displayable audio or video streams were detected</string>
+    <string name="quick_conversion_codec_name">%1$s (%2$s)</string>
+    <string name="quick_conversion_resolution">%1$d×%2$d</string>
+    <string name="quick_conversion_video_info">Video stream %1$d: codec %2$s, resolution %3$s, bitrate %4$s</string>
+    <string name="quick_conversion_audio_info">Audio stream %1$d: codec %2$s, sample rate %3$s, channels %4$s, bitrate %5$s</string>
+    <string name="quick_conversion_channels">%1$d channels</string>
+    <string name="quick_conversion_sample_rate">%1$d Hz</string>
+    <string name="quick_conversion_bitrate_mbps">%1$.2f Mbps</string>
+    <string name="quick_conversion_bitrate_kbps">%1$d Kbps</string>
     <string name="reset_default">Reset to Default</string>
     <string name="start_process">Start Processing</string>
 

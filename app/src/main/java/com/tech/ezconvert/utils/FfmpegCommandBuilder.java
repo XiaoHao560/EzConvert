@@ -116,6 +116,26 @@ public class FfmpegCommandBuilder {
         cmd.add("-i");
         cmd.add(inputPath);
 
+        if (params.quickConversionEnabled && "convert".equals(params.taskType)) {
+            // 快速转换只复制音视频流，避免滤镜和编码参数与 stream copy 冲突
+            cmd.add("-map");
+            cmd.add("0:v?");
+            cmd.add("-map");
+            cmd.add("0:a?");
+            cmd.add("-c");
+            cmd.add("copy");
+
+            String muxer = getVideoMuxer(params.outputFormat);
+            if (muxer != null) {
+                cmd.add("-f");
+                cmd.add(muxer);
+            }
+
+            cmd.add("-y");
+            cmd.add(outputPath);
+            return cmd.toArray(new String[0]);
+        }
+
         if (mt) {
             cmd.add("-threads");
             cmd.add("0");
@@ -153,6 +173,25 @@ public class FfmpegCommandBuilder {
         ArrayList<String> cmd = new ArrayList<>();
         cmd.add("-i");
         cmd.add(inputPath);
+
+        if (params.quickConversionEnabled
+                && ("convert_audio".equals(params.taskType) || "extract_audio".equals(params.taskType))) {
+            // 音频快速转换仅复制音频流，不应用音量、码率或编码器设置
+            cmd.add("-map");
+            cmd.add("0:a?");
+            cmd.add("-c:a");
+            cmd.add("copy");
+
+            String muxer = getAudioMuxer(params.outputFormat);
+            if (muxer != null) {
+                cmd.add("-f");
+                cmd.add(muxer);
+            }
+
+            cmd.add("-y");
+            cmd.add(outputPath);
+            return cmd.toArray(new String[0]);
+        }
 
         if (mt) {
             cmd.add("-threads");
