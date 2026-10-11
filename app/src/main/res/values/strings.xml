@@ -147,11 +147,7 @@
     <string name="sync_all_files">参数同步至所有文件</string>
     <string name="quick_conversion_title">快速转换</string>
     <string name="quick_conversion_dialog_title">启用快速转换？</string>
-    <string name="quick_conversion_dialog_message">开启后，FFmpeg 会将源文件中已有的音视频流直接复制到所选目标容器中，不会重新编码，可显著提高转换速度并减少性能消耗。
-
-由于不会转换编码器，如果目标容器不支持源文件中的编码格式，任务可能会报错。若遇到报错，请关闭此功能后重新执行任务。
-
-此模式不会应用编码器、码率和音量调整。</string>
+    <string name="quick_conversion_dialog_message">开启后，FFmpeg 会将源文件中已有的音视频流直接复制到所选目标容器中，不会重新编码，可显著提高转换速度并减少性能消耗\n\n由于不会转换编码器，如果目标容器不支持源文件中的编码格式，任务可能会报错。若遇到报错，请关闭此功能后重新执行任务\n\n此模式不会应用编码器、码率和音量调整</string>
     <string name="quick_conversion_dialog_enable">开启快速转换</string>
     <string name="quick_conversion_source_info_title">源媒体流参数</string>
     <string name="quick_conversion_info_loading">正在读取源媒体流信息…</string>
