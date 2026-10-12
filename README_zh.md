@@ -138,6 +138,9 @@ Copyright (C) 2024-2026 XiaoHao560
 - [FFmpegKit](https://github.com/arthenica/ffmpeg-kit)
 - [FFmpegKitNext](https://github.com/arthenica/ffmpeg-kit-next)
 
+## FFmpegKitNext
+
+本项目使用的 FFmpegKitNext AAR 来自 [这里](https://github.com/XiaoHao560/ffmpeg-kit-next)
 
 ## 联系与反馈
 

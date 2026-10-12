@@ -140,6 +140,10 @@ This project is licensed under the [GNU General Public License v3.0](LICENSE).
 - [FFmpegKit](https://github.com/arthenica/ffmpeg-kit)
 - [FFmpegKitNext](https://github.com/arthenica/ffmpeg-kit-next)
 
+## FFmpegKitNext
+
+The FFmpegKitNext AAR used in this project comes from [here](https://github.com/XiaoHao560/ffmpeg-kit-next).
+
 ## Contact & Feedback
 
 For questions or suggestions, please reach out via [GitHub Issues](https://github.com/XiaoHao560/EzConvert/issues).
