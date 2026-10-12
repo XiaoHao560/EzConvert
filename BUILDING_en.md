@@ -1,19 +1,19 @@
 # Build Guide
 
-> If you are attempting to build this project, please read this document carefully first.
+> If you want to try building this project, please read this document carefully first.
 >
-> Because some parts of this project are dynamically added during compilation via the **GitHub Actions** environment, **you will definitely encounter the following issues if you clone this project directly and try to build it**.
+> Because some parts of this project are dynamically added at build time through the **GitHub Actions** environment, **building directly after cloning this project will cause the following issues**.
 >
-> Please address the following sections one by one.
+> Please handle them one by one according to the following sections.
 
 ---
 
 ## Table of Contents
 
 1. [App Signing](#app-signing)
-2. [ffmpeg-kit-next](#ffmpeg-kit-next)
-3. [Google Firebase](#google-firebase)
-4. [Notes](#notes)
+2. [ffmpeg-kit-next](#ffmpeg-kit-next-related)
+3. [Google Firebase Related](#google-firebase-related)
+4. [Tips](#tips)
 
 ---
 
@@ -21,15 +21,15 @@
 
 ### 1. Create a Digital Signature
 
-For information on **how to create an Android app signing key**, please refer to the [official Android documentation](https://developer.android.com/studio/publish/app-signing).
+For information on **how to create an Android app digital signature**, please refer to the [Android official documentation](https://developer.android.com/studio/publish/app-signing).
 
-> If you already have your own app signing key, you can skip this step.
+> If you already have your own digital signature, you can skip this step.
 
-### 2. Configure the Signing Files
+### 2. Configure Signing Files
 
 1. Create a `key` folder in the project root directory.
-2. Place your keystore file into this folder, and create a `keystore.properties` file.
-3. Fill in the signing information in `keystore.properties` (replace the `***` in the example with your actual values):
+2. Put your digital signature file into this folder, and create a `keystore.properties` file.
+3. Fill in the signing information in `keystore.properties` (replace `***` in the example with actual values):
 
 ```properties
 storePassword=***
@@ -40,13 +40,22 @@ storeFile=***
 
 ---
 
-## ffmpeg-kit-next
+## ffmpeg-kit-next Related
 
-> Since storing prebuilt `ffmpeg-kit-next` AAR packages directly in the project may involve **copyright and patent** issues, you need to build the **full-gpl** version of [ffmpeg-kit-next](https://github.com/arthenica/ffmpeg-kit-next) locally when building this project from source.
+For ffmpeg-kit-next, you can choose one of the following two methods:
 
-### 1. Clone and Build
+1. [Build it yourself](#1-build-it-yourself)
+2. [Download a prebuilt ffmpeg-kit-next AAR](#2-download-directly)
 
-1. Clone the [ffmpeg-kit-next](https://github.com/arthenica/ffmpeg-kit-next) repository to your local machine.
+> Note that the downloaded AAR must include the Android arm64-v8a and armeabi-v7a architectures.
+>
+> Also note whether the build command used includes the external libraries required by the code in this project (full-gpl).
+>
+> Otherwise, when building this project, you may encounter **errors or unavailable features**.
+
+### 1. Build It Yourself
+
+1. Clone the [ffmpeg-kit-next](https://github.com/arthenica/ffmpeg-kit-next) repository locally.
 2. According to the ffmpeg-kit-next build documentation, prepare the **Nix** environment.
 3. Build using the following command:
 
@@ -105,35 +114,50 @@ storeFile=***
 ```
 
 > [!NOTE]
-> **Note**: Building ffmpeg-kit-next takes a long time (approximately 30–60 minutes). Please be patient.
+> **Note**: Building ffmpeg-kit-next takes a long time (about 30–60 minutes), so please be patient.
 
-### 2. Copy the Build Artifacts
+#### Copy Build Artifacts
 
-After the build is complete, according to the ffmpeg-kit-next documentation, copy the contents of the `prebuilt` directory to the `libs` directory in the root of this project:
+After the build is complete, according to the ffmpeg-kit-next documentation, copy the contents of the `prebuilt` directory to the `libs` directory in the project root:
 
 ```
-EzConvert/libs/com/arthenica/ffmpeg-kit-next/8.1.0/ffmpeg-kit-next-8.1.0.aar
-EzConvert/libs/com/arthenica/ffmpeg-kit-next/8.1.0/ffmpeg-kit-next-8.1.0.pom
+<project root>/libs/com/arthenica/ffmpeg-kit-next/<version>/ffmpeg-kit-next-<version>.aar
+<project root>/libs/com/arthenica/ffmpeg-kit-next/<version>/ffmpeg-kit-next-<version>.pom
 ```
+
+### 2. Download Directly
+
+If you do not want to build it yourself and need an ffmpeg-kit-next AAR, you can go to my other repository [(ffmpeg-kit-next)](https://github.com/XiaoHao560/ffmpeg-kit-next) and download the latest version of the ffmpeg-kit-next AAR directly from Releases.
+
+Of course, you can also choose to use an AAR built by someone else.
+
+> [!NOTE]
+> If you insist on using an AAR built by someone else, please check whether the build command they used and the artifact they produced meet the following requirements:
+>
+> 1. Whether the build command used enabled all external libraries (full-gpl).
+>
+> 2. Whether the built AAR supports the Android platform and includes the arm64-v8a and armeabi-v7a architectures.
+>
+> If you are not sure whether the above requirements are met, please download directly from the Releases of my other repository, or build an AAR yourself that meets the above requirements.
 
 ---
 
-## Google Firebase
+## Google Firebase Related
 
-> If you do not need Google Firebase-related components, it is recommended to directly remove the Firebase configuration from the project.
+> If you do not need Google Firebase-related components, it is recommended to delete the Firebase configuration from the project directly.
 
-### 1. Remove Gradle Plugins and Dependencies
+### 1. Delete Gradle Plugins and Dependencies
 
-Open `app/build.gradle` and remove the following:
+Open `app/build.gradle` and delete the following content:
 
-**Plugins at the top:**
+**Top plugins:**
 ```gradle
 id 'com.google.gms.google-services'
 id 'com.google.firebase.crashlytics'
 id 'com.google.firebase.firebase-perf'
 ```
 
-**Dependencies at the bottom:**
+**Bottom dependencies:**
 ```gradle
 implementation platform('com.google.firebase:firebase-bom:34.14.0')
 implementation 'com.google.firebase:firebase-analytics'
@@ -141,20 +165,20 @@ implementation 'com.google.firebase:firebase-crashlytics-ndk'
 implementation 'com.google.firebase:firebase-perf'
 ```
 
-### 2. Remove Related Code
+### 2. Delete Related Code
 
-After removing the Firebase-related code, you may encounter build errors. Please modify the following two files and remove any code related to Google Firebase:
+After deleting Firebase-related code, you will encounter build errors. Please modify the following two files and delete the Google Firebase-related code in them:
 
 - `app/src/main/java/com/tech/ezconvert/ui/MoreSettingsActivity.java`
 - `app/src/main/java/com/tech/ezconvert/utils/EzConvert.java`
 
-> The specific modifications depend on the code. If you are unable to make these changes yourself, you can use an AI tool to assist with modifying these two files.
+> The specific modifications vary depending on the code. If you cannot modify it yourself, you can use AI tools to assist.
 
 ---
 
-## Notes
+## Tips
 
-Once you have completed the above preparations, you can build this project:
+After completing the above preparations, you can build this project:
 
-- **Debug mode**: Builds only the **arm64-v8a** ABI.
-- **Release mode**: Builds both **armeabi-v7a** and **arm64-v8a** ABIs.
+- **Debug mode**: builds only the **arm64-v8a** architecture.
+- **Release mode**: builds both the **armeabi-v7a** and **arm64-v8a** architectures.

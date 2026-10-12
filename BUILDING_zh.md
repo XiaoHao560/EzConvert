@@ -41,9 +41,18 @@ storeFile=***
 
 ## ffmpeg-kit-next 相关
 
-> 由于直接在项目中存放构建好的 `ffmpeg-kit-next` AAR 包可能存在 **版权和专利** 问题，本地构建本项目时需要自行编译 **full-gpl** 版本的 [ffmpeg-kit-next](https://github.com/arthenica/ffmpeg-kit-next)
+对于 ffmpeg-kit-next 你可以选择以下两种方法其中之一
 
-### 1. 克隆并构建
+1. [自行构建](#1-自行构建)
+2. [下载构建好的 ffmpeg-kit-next AAR](#2-直接下载)
+
+> 注意下载的 AAR 需要包含安卓的 arm64-v8a 与 armeabi-v7a 架构
+>
+> 同时需要注意其构建使用的命令是否包含了本项目中代码所需的外部库 (full-gpl)
+> 
+> 否则构建本项目时可能会出现 **报错 或 功能无法使用**
+
+### 1. 自行构建
 
 1. 将 [ffmpeg-kit-next](https://github.com/arthenica/ffmpeg-kit-next) 仓库 Clone 到本地
 2. 根据 ffmpeg-kit-next 的构建文档，准备好 **Nix** 环境
@@ -106,14 +115,29 @@ storeFile=***
 > [!NOTE]
 > **注意**：ffmpeg-kit-next 的构建耗时较长（约 30–60 分钟），请耐心等待
 
-### 2. 复制构建产物
+#### 复制构建产物
 
 构建完成后，根据 ffmpeg-kit-next 的文档，将 `prebuilt` 目录下的内容复制到本项目根目录的 `libs` 目录下：
 
 ```
-EzConvert/libs/com/arthenica/ffmpeg-kit-next/8.1.0/ffmpeg-kit-next-8.1.0.aar
-EzConvert/libs/com/arthenica/ffmpeg-kit-next/8.1.0/ffmpeg-kit-next-8.1.0.pom
+<项目根目录>/libs/com/arthenica/ffmpeg-kit-next/<version>/ffmpeg-kit-next-<version>.aar
+<项目根目录>/libs/com/arthenica/ffmpeg-kit-next/<version>/ffmpeg-kit-next-<version>.pom
 ```
+
+### 2. 直接下载
+
+如果你不想自己构建，并且需要一个 ffmpeg-kit-next AAR 可以前往我的另一个仓库 [(ffmpeg-kit-next)](https://github.com/XiaoHao560/ffmpeg-kit-next) 直接从 Release 中下载最新版本的 ffmpeg-kit-next AAR 即可
+
+当然你也可以选择使用其他人构建好的 AAR 包
+
+> [!NOTE] 
+> 如果你一定要使用其他人构建好的 AAR 包，请注意检查他使用的构建命令以及构建出来的产物是否符合以下要求: 
+> 
+> 1. 使用的构建命令是否启用了所有的外部库 (full-gpl)
+> 
+> 2. 构建的 AAR 包是否支持 Android 平台，并且是否包含 arm64-v8a 与 armeabi-v7a 架构
+> 
+> 如果你不确定是否符合以上要求，请直接前往我的另一个仓库的 Release 下载，或者自己构建满足以上要求的 AAR 包使用
 
 ---
 
