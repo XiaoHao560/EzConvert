@@ -755,4 +755,40 @@
     <string name="compatibility_reason_amr_wb">AMR-WB requires 16 kHz mono</string>
     <string name="compatibility_reason_ilbc">iLBC requires 8 kHz mono</string>
     <string name="compatibility_value_unknown">Unknown</string>
+
+    <string name="welcome_logo_description">EzConvert app icon</string>
+    <string name="welcome_title">Welcome to EzConvert</string>
+    <string name="welcome_subtitle">Set a few preferences now, then start converting your media</string>
+    <string name="welcome_about_title">Media conversion, made simple</string>
+    <string name="welcome_about_body">EzConvert is a local media tool powered by FFmpeg. Convert common video, audio, and image formats, and use features such as compression, trimming, audio extraction, and video screenshots. Processing takes place on your device</string>
+    <string name="welcome_feature_video">Video</string>
+    <string name="welcome_feature_audio">Audio</string>
+    <string name="welcome_feature_image">Images</string>
+    <string name="welcome_output_title">Output file location</string>
+    <string name="welcome_output_desc">Choose where converted files are saved by default. You can change this later in Settings</string>
+    <string name="welcome_choose_folder">Choose folder</string>
+    <string name="welcome_appearance_title">Appearance and language</string>
+    <string name="welcome_appearance_desc">Personalize how the app looks and feels</string>
+    <string name="welcome_dynamic_color_title">Dynamic Color</string>
+    <string name="welcome_dynamic_color_desc">Use system dynamic colors to coordinate the app with your device (Android 12 or later required)</string>
+    <string name="welcome_language_title">App language</string>
+    <string name="welcome_permissions_title">Permissions</string>
+    <string name="welcome_permissions_desc">Media access is used to read and process media files. Notifications are optional and can show conversion progress and completion alerts. You can change permissions later in system settings</string>
+    <string name="welcome_media_permission_title">Media access (required)</string>
+    <string name="welcome_notification_permission_title">Notifications (optional)</string>
+    <string name="welcome_permission_status_unknown">Not checked yet</string>
+    <string name="welcome_permission_status_granted">Granted</string>
+    <string name="welcome_permission_status_required">Required to select and process media normally</string>
+    <string name="welcome_permission_status_optional">Shows conversion progress and completion alerts</string>
+    <string name="welcome_grant">Grant</string>
+    <string name="welcome_granted">Done</string>
+    <string name="welcome_enable">Enable</string>
+    <string name="welcome_notification_ready">System notifications are allowed. Tap to enable app notifications</string>
+    <string name="welcome_footer_note">You can change these preferences later in Settings. Notification permission is optional, and you can continue without it</string>
+    <string name="welcome_media_permission_required_title">Media access required</string>
+    <string name="welcome_media_permission_required_message">EzConvert needs media access to read and process media files. Grant this permission before continuing</string>
+    <string name="welcome_enable_notifications_title">Enable notifications</string>
+    <string name="welcome_enable_notifications_desc">Show conversion progress, completion alerts, and other notifications</string>
+    <string name="welcome_start">Get started</string>
+
 </resources>
