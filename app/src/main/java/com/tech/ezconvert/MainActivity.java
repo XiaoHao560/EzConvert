@@ -32,6 +32,7 @@ import com.tech.ezconvert.ui.EzPopupMenu;
 import com.tech.ezconvert.ui.ParameterDialogFragment;
 import com.tech.ezconvert.ui.PreviewActivity;
 import com.tech.ezconvert.ui.SettingsMainActivity;
+import com.tech.ezconvert.ui.WelcomeActivity;
 import com.tech.ezconvert.utils.AnimationUtils;
 import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.FFmpegUtil;
@@ -116,6 +117,13 @@ public class MainActivity extends BaseActivity implements
         androidx.core.splashscreen.SplashScreen.installSplashScreen(this);
         FFmpegUtil.initLogging(this);
         super.onCreate(savedInstanceState);
+        if (!WelcomeActivity.isWelcomeCompleted(this)) {
+            Intent welcomeIntent = new Intent(getIntent());
+            welcomeIntent.setClass(this, WelcomeActivity.class);
+            startActivity(welcomeIntent);
+            finish();
+            return;
+        }
         setContentView(R.layout.activity_main);
 
         queueManager = new ConversionQueueManager(this);

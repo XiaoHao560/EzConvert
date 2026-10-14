@@ -755,4 +755,40 @@
     <string name="compatibility_reason_amr_wb">AMR-WB 要求 16 kHz 单声道</string>
     <string name="compatibility_reason_ilbc">iLBC 要求 8 kHz 单声道</string>
     <string name="compatibility_value_unknown">未知</string>
+
+    <string name="welcome_logo_description">简转应用图标</string>
+    <string name="welcome_title">欢迎使用简转</string>
+    <string name="welcome_subtitle">先花一点时间完成设置，之后即可轻松转换媒体文件</string>
+    <string name="welcome_about_title">让媒体转换更简单</string>
+    <string name="welcome_about_body">EzConvert 是一款基于 FFmpeg 的本地媒体处理工具，可帮助你转换常见音视频和图片格式，也支持压缩、裁剪、音频提取与视频截图。转换任务在设备本地处理</string>
+    <string name="welcome_feature_video">视频转换</string>
+    <string name="welcome_feature_audio">音频处理</string>
+    <string name="welcome_feature_image">图片转换</string>
+    <string name="welcome_output_title">输出文件路径设置</string>
+    <string name="welcome_output_desc">选择转换结果默认保存的位置，之后也可以在设置中更改</string>
+    <string name="welcome_choose_folder">选择文件夹</string>
+    <string name="welcome_appearance_title">外观与语言</string>
+    <string name="welcome_appearance_desc">按你的使用习惯调整界面显示</string>
+    <string name="welcome_dynamic_color_title">自动取色</string>
+    <string name="welcome_dynamic_color_desc">使用系统动态颜色，让应用配色与设备保持协调（需要 Android 12 或更高版本）</string>
+    <string name="welcome_language_title">应用语言</string>
+    <string name="welcome_permissions_title">权限设置</string>
+    <string name="welcome_permissions_desc">媒体访问权限用于读取和处理媒体文件。通知权限是可选的，可显示转换进度和完成提醒。你也可以稍后在系统设置中修改权限</string>
+    <string name="welcome_media_permission_title">媒体访问权限（必要）</string>
+    <string name="welcome_notification_permission_title">通知权限（可选）</string>
+    <string name="welcome_permission_status_unknown">尚未检查</string>
+    <string name="welcome_permission_status_granted">已授予</string>
+    <string name="welcome_permission_status_required">需要授予才能正常选择和处理媒体</string>
+    <string name="welcome_permission_status_optional">用于显示转换进度及完成提醒</string>
+    <string name="welcome_grant">授予</string>
+    <string name="welcome_granted">已完成</string>
+    <string name="welcome_enable">启用</string>
+    <string name="welcome_notification_ready">系统通知权限已可用，点击启用应用通知</string>
+    <string name="welcome_footer_note">常用设置之后仍可在“设置”中修改。你可以不授予可选的通知权限，继续使用应用</string>
+    <string name="welcome_media_permission_required_title">需要媒体访问权限</string>
+    <string name="welcome_media_permission_required_message">EzConvert 需要媒体访问权限才能读取和处理媒体文件。请先授予权限，再开始使用</string>
+    <string name="welcome_enable_notifications_title">启用通知</string>
+    <string name="welcome_enable_notifications_desc">显示转换进度、任务完成提醒等通知</string>
+    <string name="welcome_start">开始使用</string>
+
 </resources>
