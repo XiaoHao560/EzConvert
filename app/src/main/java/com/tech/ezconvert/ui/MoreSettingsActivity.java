@@ -267,6 +267,7 @@ public class MoreSettingsActivity extends BaseActivity {
             if (isChecked) {
                 themeManager.preloadCustomBackground(this);
             }
+            updateCustomBackgroundRelatedSettingsEnabled(isChecked);
             recreate();
         });
         itemTranslucentToolbar.setOnClickListener(v -> {
@@ -419,9 +420,7 @@ public class MoreSettingsActivity extends BaseActivity {
 
         customBackgroundSwitch.setChecked(customBackgroundEnabled);
         translucentToolbarSwitch.setChecked(translucentToolbarEnabled);
-        itemTranslucentToolbar.setEnabled(customBackgroundEnabled);
-        itemTranslucentToolbar.setAlpha(customBackgroundEnabled ? 1f : 0.38f);
-        translucentToolbarSwitch.setEnabled(customBackgroundEnabled);
+        updateCustomBackgroundRelatedSettingsEnabled(customBackgroundEnabled);
         updateBackgroundImageUi(customBackgroundUri);
         updateDynamicColorSourceUi(dynamicColorSource);
         updateBackgroundEffectUi(backgroundEffectMode);
@@ -475,6 +474,7 @@ public class MoreSettingsActivity extends BaseActivity {
             if (isChecked) {
                 themeManager.preloadCustomBackground(this);
             }
+            updateCustomBackgroundRelatedSettingsEnabled(isChecked);
             recreate();
         });
 
@@ -494,6 +494,33 @@ public class MoreSettingsActivity extends BaseActivity {
         });
     }
     
+    /**
+     * 自定义背景图片关闭时，禁用依赖该背景的设置项，保留用户之前保存的选项值
+     */
+    private void updateCustomBackgroundRelatedSettingsEnabled(boolean enabled) {
+        setSettingRowEnabled(itemSelectBackground, enabled);
+        setSettingRowEnabled(itemEditBackground, enabled);
+        setSettingRowEnabled(itemTranslucentToolbar, enabled);
+        translucentToolbarSwitch.setEnabled(enabled);
+        setSettingRowEnabled(itemBackgroundEffectAuto, enabled);
+        setSettingRowEnabled(itemBackgroundEffectCustom, enabled);
+        backgroundMaskSlider.setEnabled(enabled);
+        backgroundBlurSlider.setEnabled(enabled);
+        backgroundEffectCustomControls.setAlpha(enabled ? 1f : 0.38f);
+        backgroundEffectCustomControls.setEnabled(enabled);
+
+        // 图片取色依赖自定义背景图片，壁纸取色则不受此开关影响
+        boolean imageColorSourceEnabled = enabled && DynamicColors.isDynamicColorAvailable();
+        setSettingRowEnabled(itemColorSourceImage, imageColorSourceEnabled);
+        radioColorSourceImage.setEnabled(imageColorSourceEnabled);
+    }
+
+    private void setSettingRowEnabled(View view, boolean enabled) {
+        view.setEnabled(enabled);
+        view.setClickable(enabled);
+        view.setAlpha(enabled ? 1f : 0.38f);
+    }
+
     private void setBackgroundEffectMode(String mode, boolean recreateAfterChange) {
         configManager.setBackgroundEffectMode(mode);
         updateBackgroundEffectUi(mode);
