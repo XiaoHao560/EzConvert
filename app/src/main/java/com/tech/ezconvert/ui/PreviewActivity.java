@@ -46,6 +46,12 @@ public class PreviewActivity extends BaseActivity {
         return R.id.title_container;
     }
 
+    @Override
+    protected boolean shouldApplyTranslucentToolbar() {
+        // 预览页面的工具栏由播放器布局控制，不跟随全局透明工具栏设置
+        return false;
+    }
+
 //    @Override 
 //    protected int getScrollContentId() { 
 //        return R.id.scroll_content; 

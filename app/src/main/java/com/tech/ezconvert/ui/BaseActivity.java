@@ -55,6 +55,13 @@ public abstract class BaseActivity extends AppCompatActivity {
         return View.NO_ID;
     }
 
+    /**
+     * 是否允许当前 Activity 应用全局透明工具栏设置
+     */
+    protected boolean shouldApplyTranslucentToolbar() {
+        return true;
+    }
+
     protected int getScrollContentId() {
         return View.NO_ID;
     }
@@ -103,6 +110,10 @@ public abstract class BaseActivity extends AppCompatActivity {
     private void applyToolbarAppearance() {
         View titleContainer = findViewById(getTitleContainerId());
         if (!(titleContainer instanceof MaterialToolbar)) {
+            return;
+        }
+
+        if (!shouldApplyTranslucentToolbar()) {
             return;
         }
 
