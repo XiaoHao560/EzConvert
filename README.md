@@ -76,8 +76,7 @@ For all notes and caveats, please refer to the [Build Guide](BUILDING_en.md).
 
 ## Android Version Support
 
-- This app is designed for **Android 7–15**
-  > Not yet adapted for Android 15+ versions.
+- This app is designed for **Android 7–15+**
 
 - Only supports **arm64-v8a** and **armeabi-v7a** architectures. For other architectures, please build the project yourself.
 
