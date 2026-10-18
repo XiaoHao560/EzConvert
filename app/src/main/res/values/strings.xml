@@ -737,8 +737,8 @@
         <item>标准音质 (128k)</item>
         <item>低音质 (64k)</item>
     </string-array>
-    <string name="dialog_compatibility_change_title">转换参数已自动调整</string>
-    <string name="dialog_compatibility_change_message">为了提高转换兼容性，EzConvert 将应用以下调整：\n\n%1$s\n\n点击确认后开始转换。</string>
+    <string name="dialog_compatibility_change_title">转换兼容性提示</string>
+    <string name="dialog_compatibility_change_message">EzConvert 检测到以下兼容性调整或风险提示：\n\n%1$s\n\n某些自定义参数可能导致转换失败，点击确认后开始转换</string>
     <string name="dialog_compatibility_change_confirm">确认并开始</string>
     <string name="dialog_compatibility_change_cancel">取消</string>
     <string name="compatibility_precheck_failed">预检查兼容性调整时发生异常：%1$s</string>
@@ -755,6 +755,48 @@
     <string name="compatibility_reason_amr_wb">AMR-WB 要求 16 kHz 单声道</string>
     <string name="compatibility_reason_ilbc">iLBC 要求 8 kHz 单声道</string>
     <string name="compatibility_value_unknown">未知</string>
+
+    <string name="advanced_options_show">更多参数 / 高级 FFmpeg 参数</string>
+    <string name="advanced_options_hide">收起高级参数</string>
+    <string name="advanced_options_note">所有参数均为可选项\n\n留空表示不额外指定该参数，继续使用 FFmpeg 或应用现有行为\n\n某些编码器的兼容性规则仍可能自动添加必需参数；如果发生自动调整，会在开始任务前提示</string>
+    <string name="advanced_audio_section_title">音频流参数</string>
+    <string name="advanced_video_section_title">视频流参数</string>
+    <string name="advanced_image_section_title">图片参数</string>
+    <string name="hint_audio_sample_rate">音频采样率（Hz），例如 48000</string>
+    <string name="hint_audio_channels">声道数量，例如 1 或 2</string>
+    <string name="hint_audio_channel_layout">声道布局，例如 stereo、5.1、7.1</string>
+    <string name="hint_audio_sample_format">音频采样格式，例如 fltp、s16、s32p</string>
+    <string name="hint_video_resolution">视频输出分辨率，例如 1920x1080</string>
+    <string name="hint_video_frame_rate">输出帧率，例如 30、30000/1001</string>
+    <string name="hint_video_pixel_format">视频像素格式，例如 yuv420p、yuv420p10le</string>
+    <string name="hint_image_pixel_format">图片像素格式，例如 rgb24、rgba</string>
+    <string name="hint_video_crf">CRF 质量值（仅适用于支持该选项的编码器）</string>
+    <string name="hint_video_preset">编码预设，例如 ultrafast、fast、medium、slow</string>
+    <string name="hint_video_tune">编码器 Tune，例如 film、animation、grain</string>
+    <string name="hint_video_profile">编码 Profile，例如 high、main、baseline</string>
+    <string name="hint_video_level">编码 Level，例如 4.1、5.1</string>
+    <string name="hint_video_gop">关键帧间隔 / GOP，例如 60</string>
+    <string name="hint_video_b_frames">B 帧数量，例如 2</string>
+    <string name="hint_video_filter">视频滤镜，例如 scale=1280:720,fps=30</string>
+    <string name="hint_audio_filter">音频滤镜，例如 aresample=48000,volume=1.2</string>
+    <string name="advanced_skip_automatic_video_quality">不自动指定视频码率/质量参数，使用编码器默认值</string>
+    <string name="advanced_skip_automatic_audio_sample_rate">不自动指定音频采样率；交由 FFmpeg/编码器决定</string>
+    <string name="advanced_skip_automatic_audio_channels">不自动指定音频声道数；交由 FFmpeg/编码器决定</string>
+    <string name="advanced_skip_automatic_audio_bitrate">不自动指定音频码率，使用编码器默认值</string>
+    <string name="advanced_raw_options_title">通用 FFmpeg 命令行选项</string>
+    <string name="hint_custom_input_options">自定义输入参数（放在输入文件 -i 之前）</string>
+    <string name="hint_custom_output_options">自定义输出参数（放在输出文件路径之前）</string>
+    <string name="advanced_raw_options_note">支持填写多个参数，可使用单引号或双引号括起包含空格的值\n\n输入/输出文件路径和覆盖策略由应用管理，请勿在这里添加 -i、-y 或 -n\n\n自定义参数优先级高于上方常用参数。兼容性提示依据当前选择的格式和编码器生成，手动覆盖后可能无法检测到所有冲突\n\n如果通过 -f 改变封装格式，请确保输出扩展名与实际格式一致。错误的参数组合可能导致转换失败</string>
+    <string name="toast_advanced_parameter_invalid">高级参数格式或组合不正确，请检查数值、分辨率、引号及互相冲突的设置</string>
+    <string name="compatibility_change_auto_audio_sample_rate_skipped">兼容性提示：编码器 %1$s 建议采样率为 %3$d Hz，但你选择不自动指定采样率（源采样率：%2$s）。转换可能失败</string>
+    <string name="compatibility_change_auto_audio_channels_skipped">兼容性提示：编码器 %1$s 建议使用 %3$d 声道，但你选择不自动指定声道数（源声道数：%2$s）。转换可能失败</string>
+    <string name="compatibility_change_auto_audio_sample_rate">兼容性调整：编码器 %1$s 的音频采样率已从 %2$s 调整为 %3$d Hz</string>
+    <string name="compatibility_change_auto_audio_channels">兼容性调整：编码器 %1$s 的声道数已从 %2$s 调整为 %3$d 声道</string>
+    <string name="compatibility_change_custom_swf_sample_rate_conflict">兼容性警告：SWF 输出通常要求音频采样率为 44100 Hz，但你指定了 %1$d Hz。已保留你的设置，转换可能失败</string>
+    <string name="compatibility_change_custom_audio_rate_conflict">兼容性警告：编码器 %1$s 通常要求音频采样率 %3$d Hz，但你指定了 %2$d Hz。已保留你的设置，转换可能失败</string>
+    <string name="compatibility_change_custom_audio_channels_conflict">兼容性警告：编码器 %1$s 通常要求 %3$d 声道，但你指定了 %2$d 声道。已保留你的设置，转换可能失败</string>
+    <string name="compatibility_change_custom_audio_layout_conflict">兼容性警告：编码器 %1$s 通常要求 %3$d 声道，但你指定的布局为 %2$s。已保留你的设置，转换可能失败</string>
+    <string name="compatibility_change_custom_audio_rate_unsupported">兼容性警告：采样率 %2$d Hz 不在编码器 %1$s 的常见支持列表中（当前兼容性推荐值为 %3$d Hz）。已保留你的设置，转换可能失败</string>
 
     <string name="welcome_logo_description">简转应用图标</string>
     <string name="welcome_title">欢迎使用简转</string>

@@ -7,6 +7,8 @@ import com.arthenica.ffmpegkit.ReturnCode;
 import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.R;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * FFmpeg 命令生成器
@@ -90,17 +92,192 @@ public class FfmpegCommandBuilder {
     public static String[] buildCommand(String inputPath, String outputPath, ParameterData params, Context context) {
         COMPATIBILITY_CONTEXT.set(context.getApplicationContext());
         try {
+            String[] generated;
             if ("convert_image".equals(params.taskType)) {
-                return buildImageCommand(inputPath, outputPath, params);
+                generated = buildImageCommand(inputPath, outputPath, params);
             } else if (isVideoTask(params.taskType)) {
-                return buildVideoCommand(inputPath, outputPath, params, context);
+                generated = buildVideoCommand(inputPath, outputPath, params, context);
             } else {
-                return buildAudioCommand(inputPath, outputPath, params, context);
+                generated = buildAudioCommand(inputPath, outputPath, params, context);
             }
+            return applyAdvancedOptions(generated, params);
         } finally {
             // 正常转换结束后清除线程上下文，避免线程复用时沿用旧语言环境
             if (COMPATIBILITY_CHANGES.get() == null) COMPATIBILITY_CONTEXT.remove();
         }
+    }
+
+    /**
+     * 将高级参数应用到命令中。结构化选项位于应用默认选项之后，通用自定义输出参数优先级最高
+     */
+    private static String[] applyAdvancedOptions(String[] baseCommand, ParameterData params) {
+        ArrayList<String> cmd = new ArrayList<>(Arrays.asList(baseCommand));
+        List<String> inputOptions = tokenizeArguments(params.customInputOptions);
+        List<String> rawOutputOptions = tokenizeArguments(params.customOutputOptions);
+        rejectManagedOptions(inputOptions);
+        rejectManagedOptions(rawOutputOptions);
+
+        int inputIndex = cmd.indexOf("-i");
+        if (inputIndex >= 0 && !inputOptions.isEmpty()) {
+            cmd.addAll(inputIndex, inputOptions);
+        }
+
+        boolean quick = params.quickConversionEnabled
+                && ("convert".equals(params.taskType) || "convert_audio".equals(params.taskType)
+                || "extract_audio".equals(params.taskType));
+        if (!quick) {
+            boolean videoTask = "convert".equals(params.taskType) || "compress".equals(params.taskType)
+                    || "cut_video".equals(params.taskType);
+            boolean audioTask = "convert_audio".equals(params.taskType) || "cut_audio".equals(params.taskType)
+                    || "extract_audio".equals(params.taskType);
+            boolean screenshotTask = "screenshot".equals(params.taskType);
+            boolean imageTask = "convert_image".equals(params.taskType);
+            ArrayList<String> structuredOptions = new ArrayList<>();
+
+            if (videoTask || audioTask) {
+                if (!"none".equalsIgnoreCase(nullToEmpty(params.audioCodec))) {
+                    addOptionalOption(structuredOptions, "-ar", params.audioSampleRate);
+                    addOptionalOption(structuredOptions, "-ac", params.audioChannels);
+                    addOptionalOption(structuredOptions, "-ch_layout", params.audioChannelLayout);
+                    addOptionalOption(structuredOptions, "-sample_fmt", params.audioSampleFormat);
+                    if (!isBlank(params.audioFilter)) {
+                        mergeFilterOption(cmd, "-af", params.audioFilter.trim());
+                    }
+                }
+            }
+
+            if (videoTask) {
+                ArrayList<String> filters = new ArrayList<>();
+                if (!isBlank(params.videoResolution)) {
+                    String[] dimensions = params.videoResolution.trim().toLowerCase().split("x", -1);
+                    if (dimensions.length == 2) {
+                        filters.add("scale=" + dimensions[0].trim() + ":" + dimensions[1].trim());
+                    }
+                }
+                if (!isBlank(params.videoFilter)) filters.add(params.videoFilter.trim());
+                if (!filters.isEmpty()) mergeFilterOption(cmd, "-vf", joinWithSeparator(filters, ","));
+                addOptionalOption(structuredOptions, "-r", params.videoFrameRate);
+                addOptionalOption(structuredOptions, "-pix_fmt", params.videoPixelFormat);
+                addOptionalOption(structuredOptions, "-crf", params.videoCrf);
+                addOptionalOption(structuredOptions, "-preset", params.videoPreset);
+                addOptionalOption(structuredOptions, "-tune", params.videoTune);
+                addOptionalOption(structuredOptions, "-profile:v", params.videoProfile);
+                addOptionalOption(structuredOptions, "-level:v", params.videoLevel);
+                addOptionalOption(structuredOptions, "-g", params.videoGop);
+                addOptionalOption(structuredOptions, "-bf", params.videoBFrames);
+            } else if (screenshotTask || imageTask) {
+                // 图片任务只使用图片专用像素格式，避免旧预设中隐藏的视频参数意外影响图片输出
+                addOptionalOption(structuredOptions, "-pix_fmt", params.imagePixelFormat);
+            }
+
+            if (!structuredOptions.isEmpty()) {
+                insertOutputOptions(cmd, structuredOptions);
+            }
+        }
+
+        if (!rawOutputOptions.isEmpty()) {
+            insertOutputOptions(cmd, rawOutputOptions);
+        }
+        return cmd.toArray(new String[0]);
+    }
+
+    /**
+     * 支持简单的单引号/双引号分组，不执行 shell 展开或命令替换
+     */
+    public static ArrayList<String> tokenizeArguments(String raw) {
+        ArrayList<String> tokens = new ArrayList<>();
+        if (raw == null || raw.trim().isEmpty()) return tokens;
+        StringBuilder token = new StringBuilder();
+        char quote = 0;
+        boolean escaping = false;
+        boolean tokenStarted = false;
+        for (int i = 0; i < raw.length(); i++) {
+            char c = raw.charAt(i);
+            if (escaping) {
+                // 只把转义引号和反斜杠去掉转义符，其他反斜杠原样保留，兼容滤镜表达式中的转义字符
+                if (c != quote && c != '\\') token.append('\\');
+                token.append(c);
+                escaping = false;
+                tokenStarted = true;
+            } else if (c == '\\' && quote != 0) {
+                escaping = true;
+            } else if ((c == '\'' || c == '"') && (quote == 0 || quote == c)) {
+                quote = quote == 0 ? c : 0;
+                tokenStarted = true;
+            } else if (Character.isWhitespace(c) && quote == 0) {
+                if (tokenStarted) {
+                    tokens.add(token.toString());
+                    token.setLength(0);
+                    tokenStarted = false;
+                }
+            } else {
+                token.append(c);
+                tokenStarted = true;
+            }
+        }
+        if (escaping) token.append('\\');
+        if (quote != 0) throw new IllegalArgumentException("高级参数中存在未闭合的引号");
+        if (tokenStarted) tokens.add(token.toString());
+        return tokens;
+    }
+
+    public static void validateCustomOptions(String inputOptions, String outputOptions) {
+        rejectManagedOptions(tokenizeArguments(inputOptions));
+        rejectManagedOptions(tokenizeArguments(outputOptions));
+    }
+
+    private static void rejectManagedOptions(List<String> options) {
+        for (String option : options) {
+            String normalized = option.toLowerCase(java.util.Locale.ROOT);
+            if ("-i".equals(normalized) || "-y".equals(normalized) || "-n".equals(normalized)
+                    || normalized.startsWith("-i=") || normalized.startsWith("-y=") || normalized.startsWith("-n=")) {
+                throw new IllegalArgumentException("高级参数不能包含由应用管理的选项：" + option);
+            }
+        }
+    }
+
+    private static void addOptionalOption(List<String> target, String option, String value) {
+        if (isBlank(value)) return;
+        target.add(option);
+        target.add(value.trim());
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+
+    private static String nullToEmpty(String value) {
+        return value == null ? "" : value;
+    }
+
+    private static String joinWithSeparator(List<String> values, String separator) {
+        StringBuilder result = new StringBuilder();
+        for (String value : values) {
+            if (result.length() > 0) result.append(separator);
+            result.append(value);
+        }
+        return result.toString();
+    }
+
+    private static void mergeFilterOption(ArrayList<String> cmd, String option, String filter) {
+        if (isBlank(filter)) return;
+        int found = -1;
+        for (int i = 0; i < cmd.size() - 1; i++) {
+            if (option.equals(cmd.get(i))) found = i;
+        }
+        if (found >= 0) {
+            String previous = cmd.get(found + 1);
+            cmd.set(found + 1, isBlank(previous) ? filter : previous + "," + filter);
+        } else {
+            insertOutputOptions(cmd, Arrays.asList(option, filter));
+        }
+    }
+
+    private static void insertOutputOptions(ArrayList<String> cmd, List<String> options) {
+        if (options == null || options.isEmpty()) return;
+        int index = cmd.lastIndexOf("-y");
+        if (index < 0) index = Math.max(0, cmd.size() - 1);
+        cmd.addAll(index, options);
     }
 
     private static boolean isVideoTask(String taskType) {
@@ -222,7 +399,7 @@ public class FfmpegCommandBuilder {
         // 避免某一个任务路径遗漏 -ar/-ac 等限制参数
         String effectiveAudioCodec = (params.audioCodec != null && !params.audioCodec.isEmpty())
                 ? params.audioCodec : getDefaultAudioCodec(params.outputFormat);
-        addAudioContainerCompatibilityArgs(cmd, params.outputFormat, effectiveAudioCodec, inputPath);
+        addAudioContainerCompatibilityArgs(cmd, params.outputFormat, effectiveAudioCodec, inputPath, params);
 
         cmd.add("-y");
         cmd.add(outputPath);
@@ -270,7 +447,7 @@ public class FfmpegCommandBuilder {
         }
         if (!imageFilters.isEmpty()) {
             cmd.add("-vf");
-            cmd.add(String.join(",", imageFilters));
+            cmd.add(joinWithSeparator(imageFilters, ","));
         }
 
         if ("ico".equals(format)) {
@@ -328,13 +505,11 @@ public class FfmpegCommandBuilder {
         String audioCodec = (params.audioCodec != null && !params.audioCodec.isEmpty())
                 ? params.audioCodec : "aac";
         addAudioCodecArgs(cmd, audioCodec, inputPath, params.audioBitrateMode,
-                params.audioBitrateValue, false, false);
-        addAudioContainerCompatibilityArgs(cmd, params.outputFormat, audioCodec, inputPath);
+                params.audioBitrateValue, false, false, params.skipAutomaticAudioBitrate);
+        addAudioContainerCompatibilityArgs(cmd, params.outputFormat, audioCodec, inputPath, params);
 
         if ("swf".equalsIgnoreCase(params.outputFormat)) {
-            logCompatibilityChange(compatibilityText(R.string.compatibility_change_swf_sample_rate));
-            cmd.add("-ar");
-            cmd.add("44100");
+            addSwfSampleRateCompatibilityArgs(cmd, params, inputPath);
         }
 
         String muxer = getVideoMuxer(params.outputFormat);
@@ -342,6 +517,31 @@ public class FfmpegCommandBuilder {
             cmd.add("-f");
             cmd.add(muxer);
         }
+    }
+
+    private static void addSwfSampleRateCompatibilityArgs(ArrayList<String> cmd, ParameterData params,
+                                                           String inputPath) {
+        int requestedRate = parsePositiveInt(params.audioSampleRate);
+        if (requestedRate > 0) {
+            if (requestedRate != 44100) {
+                logCompatibilityChange(compatibilityText(R.string.compatibility_change_custom_swf_sample_rate_conflict,
+                        requestedRate));
+            }
+            return;
+        }
+        if (params.skipAutomaticAudioSampleRate) {
+            int sourceRate = getOriginalAudioSampleRate(inputPath);
+            if (sourceRate <= 0 || sourceRate != 44100) {
+                String sourceRateText = sourceRate > 0 ? sourceRate + " Hz"
+                        : compatibilityText(R.string.compatibility_value_unknown);
+                logCompatibilityChange(compatibilityText(R.string.compatibility_change_auto_audio_sample_rate_skipped,
+                        "SWF", sourceRateText, 44100));
+            }
+            return;
+        }
+        logCompatibilityChange(compatibilityText(R.string.compatibility_change_swf_sample_rate));
+        cmd.add("-ar");
+        cmd.add("44100");
     }
 
     private static void buildCompressArgs(ArrayList<String> cmd, ParameterData params, String inputPath, boolean hw) {
@@ -353,13 +553,11 @@ public class FfmpegCommandBuilder {
         String audioCodec = (params.audioCodec != null && !params.audioCodec.isEmpty())
                 ? params.audioCodec : "aac";
         addAudioCodecArgs(cmd, audioCodec, inputPath, params.audioBitrateMode,
-                params.audioBitrateValue, true, true);
-        addAudioContainerCompatibilityArgs(cmd, params.outputFormat, audioCodec, inputPath);
+                params.audioBitrateValue, true, true, params.skipAutomaticAudioBitrate);
+        addAudioContainerCompatibilityArgs(cmd, params.outputFormat, audioCodec, inputPath, params);
 
         if ("swf".equalsIgnoreCase(params.outputFormat)) {
-            logCompatibilityChange(compatibilityText(R.string.compatibility_change_swf_sample_rate));
-            cmd.add("-ar");
-            cmd.add("44100");
+            addSwfSampleRateCompatibilityArgs(cmd, params, inputPath);
         }
 
         String muxer = getVideoMuxer(params.outputFormat);
@@ -391,13 +589,11 @@ public class FfmpegCommandBuilder {
         String audioCodec = (params.audioCodec != null && !params.audioCodec.isEmpty())
                 ? params.audioCodec : "aac";
         addAudioCodecArgs(cmd, audioCodec, inputPath, params.audioBitrateMode,
-                params.audioBitrateValue, true, false);
-        addAudioContainerCompatibilityArgs(cmd, params.outputFormat, audioCodec, inputPath);
+                params.audioBitrateValue, true, false, params.skipAutomaticAudioBitrate);
+        addAudioContainerCompatibilityArgs(cmd, params.outputFormat, audioCodec, inputPath, params);
 
         if ("swf".equalsIgnoreCase(params.outputFormat)) {
-            logCompatibilityChange(compatibilityText(R.string.compatibility_change_swf_sample_rate));
-            cmd.add("-ar");
-            cmd.add("44100");
+            addSwfSampleRateCompatibilityArgs(cmd, params, inputPath);
         }
 
         String muxer = getVideoMuxer(params.outputFormat);
@@ -421,6 +617,14 @@ public class FfmpegCommandBuilder {
                                             ParameterData params, String inputPath,
                                             int defaultCrf) {
         String c = codec != null ? codec.toLowerCase() : "";
+
+        // 显式设置 CRF 时不再叠加应用自动选择的源文件码率或默认质量值
+        if (!isBlank(params.videoCrf)) return;
+
+        if ("original".equals(params.videoBitrateMode) && params.skipAutomaticVideoQuality) {
+            // 用户选择使用编码器默认值时，不继承源码率，也不强制指定 CRF/Preset
+            return;
+        }
 
         if ("original".equals(params.videoBitrateMode)) {
             int origBitrate = getOriginalVideoBitrate(inputPath);
@@ -450,7 +654,7 @@ public class FfmpegCommandBuilder {
         if (supportsCrf(c)) {
             cmd.add("-crf");
             cmd.add(String.valueOf(defaultCrf));
-            if (supportsPreset(c)) {
+            if (supportsPreset(c) && isBlank(params.videoPreset)) {
                 cmd.add("-preset");
                 cmd.add(defaultPreset(c));
             }
@@ -497,7 +701,8 @@ public class FfmpegCommandBuilder {
 
     private static void addAudioCodecArgs(ArrayList<String> cmd, String audioCodec, String inputPath,
                                           String bitrateMode, int bitrateValue,
-                                          boolean fallback128k, boolean allowOriginalFallback) {
+                                          boolean fallback128k, boolean allowOriginalFallback,
+                                          boolean skipAutomaticAudioBitrate) {
         String aCodec = (audioCodec != null && !audioCodec.isEmpty()) ? audioCodec : "aac";
         if ("none".equalsIgnoreCase(aCodec)) {
             cmd.add("-an");
@@ -525,16 +730,25 @@ public class FfmpegCommandBuilder {
             return;
         }
 
-        // Speex 的有效码率范围随窄带/宽带/超宽带模式变化，统一使用保守值
+        if (skipAutomaticAudioBitrate && "original".equals(bitrateMode)) {
+            // 用户选择不指定自动音频码率时，交由编码器采用自身默认值，不再添加应用建议码率
+            return;
+        }
+
+        // Speex 在未指定码率时使用保守值；用户手动选择码率时则尊重显式设置
         if (aCodecLower.contains("speex")) {
-            logCompatibilityChange(compatibilityText(R.string.compatibility_change_speex_bitrate));
             cmd.add("-b:a");
-            cmd.add("32k");
+            if ("custom".equals(bitrateMode)) {
+                cmd.add(Math.max(1, bitrateValue) + "k");
+            } else {
+                logCompatibilityChange(compatibilityText(R.string.compatibility_change_speex_bitrate));
+                cmd.add("32k");
+            }
             return;
         }
 
         // LC3 的码率由帧时长、采样率和通道数共同决定
-        // 不要把 FLAC 等源文件的 Mbps 级码率直接当作 LC3 目标码率
+        // 未选择跳过自动码率时，避免把 FLAC 等源文件的 Mbps 级码率直接当作 LC3 目标码率
         if (aCodecLower.equals("liblc3") || aCodecLower.equals("lc3")) {
             if ("custom".equals(bitrateMode)) {
                 cmd.add("-b:a");
@@ -661,14 +875,15 @@ public class FfmpegCommandBuilder {
     private static void addAudioContainerCompatibilityArgs(ArrayList<String> cmd,
                                                             String outputFormat,
                                                             String audioCodec,
-                                                            String inputPath) {
+                                                            String inputPath,
+                                                            ParameterData params) {
         if (audioCodec == null) return;
         String format = outputFormat == null ? "" : outputFormat.toLowerCase();
         String codec = audioCodec.toLowerCase();
 
         // FLV 的 Speex 使用 16 kHz 单声道；这是容器层面的额外限制
         if ("flv".equals(format) && codec.contains("speex")) {
-            addFixedAudioFormat(cmd, inputPath, codec, 16000, 1, R.string.compatibility_reason_flv_speex);
+            addFixedAudioFormat(cmd, inputPath, codec, 16000, 1, R.string.compatibility_reason_flv_speex, params);
             return;
         }
 
@@ -678,7 +893,7 @@ public class FfmpegCommandBuilder {
             int sampleRate = getOriginalAudioSampleRate(inputPath);
             int targetRate = nearestSupportedSampleRate(sampleRate, 8000, 16000, 32000);
             if (targetRate <= 0) targetRate = 16000;
-            addAudioSampleRate(cmd, sampleRate, targetRate, codec);
+            addAudioSampleRate(cmd, sampleRate, targetRate, codec, params);
             return;
         }
 
@@ -687,7 +902,7 @@ public class FfmpegCommandBuilder {
             int sampleRate = getOriginalAudioSampleRate(inputPath);
             int targetRate = nearestSupportedSampleRate(sampleRate, 8000, 12000, 16000, 24000, 48000);
             if (targetRate <= 0) targetRate = 48000;
-            addAudioSampleRate(cmd, sampleRate, targetRate, codec);
+            addAudioSampleRate(cmd, sampleRate, targetRate, codec, params);
             return;
         }
 
@@ -697,7 +912,7 @@ public class FfmpegCommandBuilder {
             int targetRate = nearestSupportedSampleRate(sampleRate,
                     8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000);
             if (targetRate <= 0) targetRate = 44100;
-            addAudioSampleRate(cmd, sampleRate, targetRate, codec);
+            addAudioSampleRate(cmd, sampleRate, targetRate, codec, params);
             return;
         }
 
@@ -705,7 +920,7 @@ public class FfmpegCommandBuilder {
             int sampleRate = getOriginalAudioSampleRate(inputPath);
             int targetRate = nearestSupportedSampleRate(sampleRate, 32000, 44100, 48000);
             if (targetRate <= 0) targetRate = 44100;
-            addAudioSampleRate(cmd, sampleRate, targetRate, codec);
+            addAudioSampleRate(cmd, sampleRate, targetRate, codec, params);
             return;
         }
 
@@ -715,7 +930,7 @@ public class FfmpegCommandBuilder {
             int sampleRate = getOriginalAudioSampleRate(inputPath);
             int targetRate = sampleRate > 48000 ? 48000 : sampleRate;
             if (targetRate <= 0) targetRate = 48000;
-            addAudioSampleRate(cmd, sampleRate, targetRate, codec);
+            addAudioSampleRate(cmd, sampleRate, targetRate, codec, params);
             return;
         }
 
@@ -724,7 +939,7 @@ public class FfmpegCommandBuilder {
             int sampleRate = getOriginalAudioSampleRate(inputPath);
             int targetRate = nearestSupportedSampleRate(sampleRate, 32000, 44100, 48000);
             if (targetRate <= 0) targetRate = 48000;
-            addAudioSampleRate(cmd, sampleRate, targetRate, codec);
+            addAudioSampleRate(cmd, sampleRate, targetRate, codec, params);
             return;
         }
 
@@ -734,7 +949,7 @@ public class FfmpegCommandBuilder {
             int targetRate = nearestSupportedSampleRate(sampleRate,
                     16000, 22050, 24000, 32000, 44100, 48000);
             if (targetRate <= 0) targetRate = 44100;
-            addAudioSampleRate(cmd, sampleRate, targetRate, codec);
+            addAudioSampleRate(cmd, sampleRate, targetRate, codec, params);
             return;
         }
 
@@ -744,23 +959,23 @@ public class FfmpegCommandBuilder {
             int targetRate = nearestSupportedSampleRate(sampleRate,
                     8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000);
             if (targetRate <= 0) targetRate = 48000;
-            addAudioSampleRate(cmd, sampleRate, targetRate, codec);
+            addAudioSampleRate(cmd, sampleRate, targetRate, codec, params);
             return;
         }
 
         // AMR-NB/AMR-WB 编码器分别固定在 8/16 kHz，并且为单声道
         if (codec.contains("opencore_amrnb")) {
-            addFixedAudioFormat(cmd, inputPath, codec, 8000, 1, R.string.compatibility_reason_amr_nb);
+            addFixedAudioFormat(cmd, inputPath, codec, 8000, 1, R.string.compatibility_reason_amr_nb, params);
             return;
         }
         if (codec.contains("vo_amrwbenc")) {
-            addFixedAudioFormat(cmd, inputPath, codec, 16000, 1, R.string.compatibility_reason_amr_wb);
+            addFixedAudioFormat(cmd, inputPath, codec, 16000, 1, R.string.compatibility_reason_amr_wb, params);
             return;
         }
 
         // iLBC 严格要求 8 kHz 单声道
         if (codec.equals("libilbc") || codec.equals("ilbc")) {
-            addFixedAudioFormat(cmd, inputPath, codec, 8000, 1, R.string.compatibility_reason_ilbc);
+            addFixedAudioFormat(cmd, inputPath, codec, 8000, 1, R.string.compatibility_reason_ilbc, params);
             return;
         }
 
@@ -769,7 +984,7 @@ public class FfmpegCommandBuilder {
             int sampleRate = getOriginalAudioSampleRate(inputPath);
             int targetRate = sampleRate > 48000 ? 48000 : sampleRate;
             if (targetRate <= 0) targetRate = 48000;
-            addAudioSampleRate(cmd, sampleRate, targetRate, codec);
+            addAudioSampleRate(cmd, sampleRate, targetRate, codec, params);
             return;
         }
 
@@ -779,10 +994,9 @@ public class FfmpegCommandBuilder {
             int targetRate = nearestSupportedSampleRate(sampleRate,
                     8000, 16000, 24000, 32000, 48000, 96000);
             if (targetRate > 0) {
-                addAudioSampleRate(cmd, sampleRate, targetRate, codec);
+                addAudioSampleRate(cmd, sampleRate, targetRate, codec, params);
             } else {
-                cmd.add("-ar");
-                cmd.add("48000");
+                addAudioSampleRate(cmd, sampleRate, 48000, codec, params);
             }
         }
     }
@@ -792,31 +1006,122 @@ public class FfmpegCommandBuilder {
      */
     private static void addFixedAudioFormat(ArrayList<String> cmd, String inputPath,
                                             String codec, int targetRate, int targetChannels,
-                                            int reasonResourceId) {
+                                            int reasonResourceId, ParameterData params) {
         int sourceRate = getOriginalAudioSampleRate(inputPath);
         int sourceChannels = getOriginalAudioChannels(inputPath);
+        int requestedRate = parsePositiveInt(params.audioSampleRate);
+        int requestedChannels = parsePositiveInt(params.audioChannels);
         boolean rateChanged = sourceRate > 0 && sourceRate != targetRate;
         boolean channelsChanged = sourceChannels > 0 && sourceChannels != targetChannels;
+        boolean hasRequestedLayout = !isBlank(params.audioChannelLayout);
+        int requestedLayoutChannels = getKnownChannelLayoutChannels(params.audioChannelLayout);
+        boolean needsAutomaticRate = requestedRate <= 0 && (rateChanged || sourceRate <= 0);
+        boolean needsAutomaticChannels = requestedChannels <= 0 && !hasRequestedLayout
+                && (channelsChanged || sourceChannels <= 0);
+        boolean automaticRateAdjustment = needsAutomaticRate && !params.skipAutomaticAudioSampleRate;
+        boolean automaticChannelsAdjustment = needsAutomaticChannels && !params.skipAutomaticAudioChannels;
+        String sourceRateText = sourceRate > 0 ? sourceRate + " Hz" : compatibilityText(R.string.compatibility_value_unknown);
+        String sourceChannelsText = sourceChannels > 0 ? String.valueOf(sourceChannels) : compatibilityText(R.string.compatibility_value_unknown);
 
-        if (rateChanged || channelsChanged || sourceRate <= 0 || sourceChannels <= 0) {
-            String sourceRateText = sourceRate > 0 ? sourceRate + " Hz" : compatibilityText(R.string.compatibility_value_unknown);
-            String sourceChannelsText = sourceChannels > 0 ? String.valueOf(sourceChannels) : compatibilityText(R.string.compatibility_value_unknown);
-            logCompatibilityChange(compatibilityText(R.string.compatibility_change_fixed_audio_format,
-                    compatibilityText(reasonResourceId), codec, sourceRateText, targetRate,
-                    sourceChannelsText, targetChannels));
+        if (automaticRateAdjustment || automaticChannelsAdjustment) {
+            if (automaticRateAdjustment && automaticChannelsAdjustment
+                    && requestedRate <= 0 && requestedChannels <= 0 && !hasRequestedLayout) {
+                logCompatibilityChange(compatibilityText(R.string.compatibility_change_fixed_audio_format,
+                        compatibilityText(reasonResourceId), codec, sourceRateText, targetRate,
+                        sourceChannelsText, targetChannels));
+            } else {
+                // 有任一维度由用户指定或主动跳过时，分别说明仍会发生的自动调整
+                if (automaticRateAdjustment) {
+                    logCompatibilityChange(compatibilityText(R.string.compatibility_change_auto_audio_sample_rate,
+                            codec, sourceRateText, targetRate));
+                }
+                if (automaticChannelsAdjustment) {
+                    logCompatibilityChange(compatibilityText(R.string.compatibility_change_auto_audio_channels,
+                            codec, sourceChannelsText, targetChannels));
+                }
+            }
+        }
+        if (requestedRate > 0 && requestedRate != targetRate) {
+            logCompatibilityChange(compatibilityText(R.string.compatibility_change_custom_audio_rate_conflict,
+                    codec, requestedRate, targetRate));
+        }
+        if (requestedChannels > 0 && requestedChannels != targetChannels) {
+            logCompatibilityChange(compatibilityText(R.string.compatibility_change_custom_audio_channels_conflict,
+                    codec, requestedChannels, targetChannels));
+        }
+        if (hasRequestedLayout && requestedLayoutChannels > 0 && requestedLayoutChannels != targetChannels) {
+            logCompatibilityChange(compatibilityText(R.string.compatibility_change_custom_audio_layout_conflict,
+                    codec, params.audioChannelLayout.trim(), targetChannels));
+        }
+        if (needsAutomaticRate && params.skipAutomaticAudioSampleRate) {
+            logCompatibilityChange(compatibilityText(R.string.compatibility_change_auto_audio_sample_rate_skipped,
+                    codec, sourceRateText, targetRate));
+        }
+        if (needsAutomaticChannels && params.skipAutomaticAudioChannels) {
+            logCompatibilityChange(compatibilityText(R.string.compatibility_change_auto_audio_channels_skipped,
+                    codec, sourceChannelsText, targetChannels));
         }
 
-        cmd.add("-ar");
-        cmd.add(String.valueOf(targetRate));
-        cmd.add("-ac");
-        cmd.add(String.valueOf(targetChannels));
+        // 只有用户未明确指定或主动跳过时，才决定是否由兼容性规则补入固定参数
+        if (requestedRate <= 0 && !params.skipAutomaticAudioSampleRate) {
+            cmd.add("-ar");
+            cmd.add(String.valueOf(targetRate));
+        }
+        if (requestedChannels <= 0 && !hasRequestedLayout && !params.skipAutomaticAudioChannels) {
+            cmd.add("-ac");
+            cmd.add(String.valueOf(targetChannels));
+        }
+    }
+
+    private static int getKnownChannelLayoutChannels(String layout) {
+        if (isBlank(layout)) return -1;
+        switch (layout.trim().toLowerCase(java.util.Locale.ROOT)) {
+            case "mono":
+            case "1.0": return 1;
+            case "stereo":
+            case "2.0":
+            case "binaural":
+            case "stereo_downmix": return 2;
+            case "2.1":
+            case "3.0":
+            case "surround": return 3;
+            case "3.1":
+            case "4.0":
+            case "quad": return 4;
+            case "4.1":
+            case "5.0": return 5;
+            case "5.1":
+            case "5.1(side)": return 6;
+            case "6.1": return 7;
+            case "7.1": return 8;
+            default: return -1;
+        }
     }
 
     private static void addAudioSampleRate(ArrayList<String> cmd,
                                            int sourceRate,
                                            int targetRate,
-                                           String codec) {
+                                           String codec,
+                                           ParameterData params) {
+        int requestedRate = parsePositiveInt(params.audioSampleRate);
+        if (requestedRate > 0) {
+            // 用户显式填写的采样率优先保留；如果不在编码器常见支持集合内，提前说明可能失败
+            if (!isCommonSampleRateSupported(codec, requestedRate)) {
+                logCompatibilityChange(compatibilityText(R.string.compatibility_change_custom_audio_rate_unsupported,
+                        codec, requestedRate, targetRate > 0 ? targetRate : 0));
+            }
+            return;
+        }
         if (targetRate <= 0) return;
+        if (params.skipAutomaticAudioSampleRate) {
+            if (sourceRate <= 0 || sourceRate != targetRate) {
+                String sourceRateText = sourceRate > 0 ? sourceRate + " Hz"
+                        : compatibilityText(R.string.compatibility_value_unknown);
+                logCompatibilityChange(compatibilityText(R.string.compatibility_change_auto_audio_sample_rate_skipped,
+                        codec, sourceRateText, targetRate));
+            }
+            return;
+        }
         // 对于完全相同的采样率无需增加参数，避免冗余命令
         if (sourceRate > 0 && sourceRate == targetRate) return;
         cmd.add("-ar");
@@ -824,6 +1129,38 @@ public class FfmpegCommandBuilder {
         if (sourceRate > 0 && sourceRate != targetRate) {
             logCompatibilityChange(compatibilityText(R.string.compatibility_change_audio_sample_rate,
                     codec, sourceRate, targetRate));
+        }
+    }
+
+    private static boolean isCommonSampleRateSupported(String codec, int rate) {
+        String c = codec == null ? "" : codec.toLowerCase();
+        if (c.contains("speex")) return rate == 8000 || rate == 16000 || rate == 32000;
+        if (c.equals("libopus")) return rate == 8000 || rate == 12000 || rate == 16000 || rate == 24000 || rate == 48000;
+        if (c.equals("libmp3lame")) return containsRate(rate, 8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000);
+        if (c.equals("libshine")) return containsRate(rate, 32000, 44100, 48000);
+        if (c.equals("ac3") || c.equals("eac3")) return containsRate(rate, 32000, 44100, 48000);
+        if (c.equals("mp2") || c.equals("libtwolame")) return containsRate(rate, 16000, 22050, 24000, 32000, 44100, 48000);
+        if (c.equals("dca")) return containsRate(rate, 8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000);
+        if (c.equals("opencore_amrnb")) return rate == 8000;
+        if (c.equals("vo_amrwbenc")) return rate == 16000;
+        if (c.equals("libilbc") || c.equals("ilbc")) return rate == 8000;
+        if (c.equals("wmav2") || c.equals("wma") || c.equals("libvorbis")) return rate <= 48000;
+        if (c.equals("liblc3") || c.equals("lc3")) return containsRate(rate, 8000, 16000, 24000, 32000, 48000, 96000);
+        return true;
+    }
+
+    private static boolean containsRate(int rate, int... supportedRates) {
+        for (int supportedRate : supportedRates) if (rate == supportedRate) return true;
+        return false;
+    }
+
+    private static int parsePositiveInt(String value) {
+        if (value == null || value.trim().isEmpty()) return -1;
+        try {
+            int parsed = Integer.parseInt(value.trim());
+            return parsed > 0 ? parsed : -1;
+        } catch (NumberFormatException ignored) {
+            return -1;
         }
     }
 
@@ -864,7 +1201,7 @@ public class FfmpegCommandBuilder {
         String aCodec = (params.audioCodec != null && !params.audioCodec.isEmpty())
                 ? params.audioCodec : getDefaultAudioCodec(params.outputFormat);
         addAudioCodecArgs(cmd, aCodec, inputPath, params.audioBitrateMode,
-                params.audioBitrateValue, true, false);
+                params.audioBitrateValue, true, false, params.skipAutomaticAudioBitrate);
 
         String muxer = getAudioMuxer(params.outputFormat);
         if (muxer != null) {
@@ -878,7 +1215,7 @@ public class FfmpegCommandBuilder {
         String aCodec = (params.audioCodec != null && !params.audioCodec.isEmpty())
                 ? params.audioCodec : getDefaultAudioCodec(params.outputFormat);
         addAudioCodecArgs(cmd, aCodec, inputPath, params.audioBitrateMode,
-                params.audioBitrateValue, false, true);
+                params.audioBitrateValue, false, true, params.skipAutomaticAudioBitrate);
 
         String muxer = getAudioMuxer(params.outputFormat);
         if (muxer != null) {
@@ -896,7 +1233,7 @@ public class FfmpegCommandBuilder {
         String aCodec = (params.audioCodec != null && !params.audioCodec.isEmpty())
                 ? params.audioCodec : getDefaultAudioCodec(params.outputFormat);
         addAudioCodecArgs(cmd, aCodec, inputPath, params.audioBitrateMode,
-                params.audioBitrateValue, true, false);
+                params.audioBitrateValue, true, false, params.skipAutomaticAudioBitrate);
 
         String muxer = getAudioMuxer(params.outputFormat);
         if (muxer != null) {
