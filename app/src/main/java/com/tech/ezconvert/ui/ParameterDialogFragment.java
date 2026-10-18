@@ -78,18 +78,29 @@ public class ParameterDialogFragment extends DialogFragment {
 
     private RecyclerView presetRecycler;
     private PresetAdapter presetAdapter;
-    private MaterialButton btnSavePreset, btnDeletePreset, btnReset, btnStart;
+    private MaterialButton btnSavePreset, btnDeletePreset, btnReset, btnStart, btnToggleAdvancedOptions;
     private MaterialSwitch switchSync, switchQuickConversion;
+    private MaterialSwitch switchSkipAutomaticVideoQuality, switchSkipAutomaticAudioBitrate,
+            switchSkipAutomaticAudioSampleRate, switchSkipAutomaticAudioChannels;
     private TextView tvFileInfo, tvVolumePercent, tvCurrentBitrate, tvQuickConversionSourceInfo;
     private Slider sliderVolume;
     private MaterialAutoCompleteTextView spinnerOutputFormat, spinnerVideoCodec, spinnerAudioCodec, spinnerBitrateUnit;
     private TextInputEditText etBitrateValue, etAudioBitrateValue, etCutStart, etCutDuration,
             etScreenshotTime, etScreenshotResolution, etScreenshotQuality;
+    private TextInputEditText etAdvancedAudioSampleRate, etAdvancedAudioChannels,
+            etAdvancedAudioChannelLayout, etAdvancedAudioSampleFormat, etAdvancedVideoResolution,
+            etAdvancedVideoFrameRate, etAdvancedVideoPixelFormat, etAdvancedImagePixelFormat,
+            etAdvancedVideoCrf, etAdvancedVideoPreset, etAdvancedVideoTune, etAdvancedVideoProfile,
+            etAdvancedVideoLevel, etAdvancedVideoGop, etAdvancedVideoBFrames,
+            etAdvancedVideoFilter, etAdvancedAudioFilter, etCustomInputOptions, etCustomOutputOptions;
     private ChipGroup chipVideoBitrateGroup, chipAudioBitrateGroup;
     private Chip chipVideoOriginal, chipVideoCustom, chipAudioOriginal, chipAudioCustom;
     private LinearLayout customBitrateLayout, customAudioBitrateLayout, screenshotSection, cutSection;
     private LinearLayout videoParamsContainer, volumeContainer, screenshotContainer, cutContainer;
     private View quickConversionSwitchContainer, quickConversionSourceInfoContainer;
+    private LinearLayout advancedOptionsContainer, advancedAudioSection, advancedVideoSection,
+            advancedImageSection, advancedAutomaticOptionsContainer;
+    private boolean advancedOptionsExpanded;
     private View videoCodecContainer, audioCodecContainer, videoBitrateContainer, audioBitrateContainer;
     private MaterialAutoCompleteTextView spinnerScreenshotFormat;
     private LinearLayout imageParamsContainer;
@@ -244,6 +255,16 @@ public class ParameterDialogFragment extends DialogFragment {
         btnDeletePreset = view.findViewById(R.id.btn_delete_preset);
         btnReset = view.findViewById(R.id.btn_reset);
         btnStart = view.findViewById(R.id.btn_start);
+        btnToggleAdvancedOptions = view.findViewById(R.id.btn_toggle_advanced_options);
+        advancedOptionsContainer = view.findViewById(R.id.advanced_options_container);
+        advancedAudioSection = view.findViewById(R.id.advanced_audio_section);
+        advancedVideoSection = view.findViewById(R.id.advanced_video_section);
+        advancedImageSection = view.findViewById(R.id.advanced_image_section);
+        advancedAutomaticOptionsContainer = view.findViewById(R.id.advanced_automatic_options_container);
+        switchSkipAutomaticVideoQuality = view.findViewById(R.id.switch_skip_automatic_video_quality);
+        switchSkipAutomaticAudioBitrate = view.findViewById(R.id.switch_skip_automatic_audio_bitrate);
+        switchSkipAutomaticAudioSampleRate = view.findViewById(R.id.switch_skip_automatic_audio_sample_rate);
+        switchSkipAutomaticAudioChannels = view.findViewById(R.id.switch_skip_automatic_audio_channels);
         switchSync = view.findViewById(R.id.switch_sync_all);
         switchQuickConversion = view.findViewById(R.id.switch_quick_conversion);
         tvFileInfo = view.findViewById(R.id.current_file_info);
@@ -264,6 +285,26 @@ public class ParameterDialogFragment extends DialogFragment {
         etScreenshotTime = view.findViewById(R.id.et_screenshot_time);
         etScreenshotResolution = view.findViewById(R.id.et_screenshot_resolution);
         etScreenshotQuality = view.findViewById(R.id.et_screenshot_quality);
+
+        etAdvancedAudioSampleRate = view.findViewById(R.id.et_advanced_audio_sample_rate);
+        etAdvancedAudioChannels = view.findViewById(R.id.et_advanced_audio_channels);
+        etAdvancedAudioChannelLayout = view.findViewById(R.id.et_advanced_audio_channel_layout);
+        etAdvancedAudioSampleFormat = view.findViewById(R.id.et_advanced_audio_sample_format);
+        etAdvancedVideoResolution = view.findViewById(R.id.et_advanced_video_resolution);
+        etAdvancedVideoFrameRate = view.findViewById(R.id.et_advanced_video_frame_rate);
+        etAdvancedVideoPixelFormat = view.findViewById(R.id.et_advanced_video_pixel_format);
+        etAdvancedImagePixelFormat = view.findViewById(R.id.et_advanced_image_pixel_format);
+        etAdvancedVideoCrf = view.findViewById(R.id.et_advanced_video_crf);
+        etAdvancedVideoPreset = view.findViewById(R.id.et_advanced_video_preset);
+        etAdvancedVideoTune = view.findViewById(R.id.et_advanced_video_tune);
+        etAdvancedVideoProfile = view.findViewById(R.id.et_advanced_video_profile);
+        etAdvancedVideoLevel = view.findViewById(R.id.et_advanced_video_level);
+        etAdvancedVideoGop = view.findViewById(R.id.et_advanced_video_gop);
+        etAdvancedVideoBFrames = view.findViewById(R.id.et_advanced_video_b_frames);
+        etAdvancedVideoFilter = view.findViewById(R.id.et_advanced_video_filter);
+        etAdvancedAudioFilter = view.findViewById(R.id.et_advanced_audio_filter);
+        etCustomInputOptions = view.findViewById(R.id.et_custom_input_options);
+        etCustomOutputOptions = view.findViewById(R.id.et_custom_output_options);
 
         chipVideoBitrateGroup = view.findViewById(R.id.chip_bitrate_group);
         chipAudioBitrateGroup = view.findViewById(R.id.chip_audio_bitrate_group);
@@ -463,6 +504,31 @@ public class ParameterDialogFragment extends DialogFragment {
             }
         }
 
+        // 高级参数全部采用可选字符串，旧版本预设缺少这些字段时按空值处理
+        setTextSafe(etAdvancedAudioSampleRate, data.audioSampleRate);
+        setTextSafe(etAdvancedAudioChannels, data.audioChannels);
+        setTextSafe(etAdvancedAudioChannelLayout, data.audioChannelLayout);
+        setTextSafe(etAdvancedAudioSampleFormat, data.audioSampleFormat);
+        setTextSafe(etAdvancedVideoResolution, data.videoResolution);
+        setTextSafe(etAdvancedVideoFrameRate, data.videoFrameRate);
+        setTextSafe(etAdvancedVideoPixelFormat, data.videoPixelFormat);
+        setTextSafe(etAdvancedImagePixelFormat, data.imagePixelFormat);
+        setTextSafe(etAdvancedVideoCrf, data.videoCrf);
+        setTextSafe(etAdvancedVideoPreset, data.videoPreset);
+        setTextSafe(etAdvancedVideoTune, data.videoTune);
+        setTextSafe(etAdvancedVideoProfile, data.videoProfile);
+        setTextSafe(etAdvancedVideoLevel, data.videoLevel);
+        setTextSafe(etAdvancedVideoGop, data.videoGop);
+        setTextSafe(etAdvancedVideoBFrames, data.videoBFrames);
+        setTextSafe(etAdvancedVideoFilter, data.videoFilter);
+        setTextSafe(etAdvancedAudioFilter, data.audioFilter);
+        setTextSafe(etCustomInputOptions, data.customInputOptions);
+        setTextSafe(etCustomOutputOptions, data.customOutputOptions);
+        switchSkipAutomaticVideoQuality.setChecked(data.skipAutomaticVideoQuality);
+        switchSkipAutomaticAudioBitrate.setChecked(data.skipAutomaticAudioBitrate);
+        switchSkipAutomaticAudioSampleRate.setChecked(data.skipAutomaticAudioSampleRate);
+        switchSkipAutomaticAudioChannels.setChecked(data.skipAutomaticAudioChannels);
+
         updateCodecOptions(data.outputFormat);
         
         currentParams.taskType = taskType;
@@ -471,6 +537,10 @@ public class ParameterDialogFragment extends DialogFragment {
         if ("convert_image".equals(taskType)) {
             loadImagePreview();
         }
+    }
+
+    private void setTextSafe(TextInputEditText editText, String value) {
+        if (editText != null) editText.setText(value == null ? "" : value);
     }
 
     private void setSpinnerValue(MaterialAutoCompleteTextView spinner, String value) {
@@ -515,6 +585,7 @@ public class ParameterDialogFragment extends DialogFragment {
         spinnerOutputFormat.setOnItemClickListener((parent, view, position, id) -> {
             String format = parent.getAdapter().getItem(position).toString();
             updateCodecOptions(format);
+            updateAdvancedOptionsVisibility();
         });
     }
 
@@ -1072,6 +1143,13 @@ public class ParameterDialogFragment extends DialogFragment {
             isSyncAll = isChecked;
         });
 
+        btnToggleAdvancedOptions.setOnClickListener(v -> {
+            advancedOptionsExpanded = !advancedOptionsExpanded;
+            advancedOptionsContainer.setVisibility(advancedOptionsExpanded ? View.VISIBLE : View.GONE);
+            btnToggleAdvancedOptions.setText(advancedOptionsExpanded
+                    ? R.string.advanced_options_hide : R.string.advanced_options_show);
+        });
+
         switchQuickConversion.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isUpdatingQuickConversionSwitch) return;
             if (!isQuickConversionSupported()) {
@@ -1120,6 +1198,31 @@ public class ParameterDialogFragment extends DialogFragment {
         currentParams.audioCodec = extractCodecName(audioCodecFull);
         currentParams.quickConversionEnabled = isQuickConversionSupported()
                 && switchQuickConversion.isChecked();
+
+        // 高级参数为空时不主动增加相应 FFmpeg 选项
+        currentParams.audioSampleRate = textOrEmpty(etAdvancedAudioSampleRate);
+        currentParams.audioChannels = textOrEmpty(etAdvancedAudioChannels);
+        currentParams.audioChannelLayout = textOrEmpty(etAdvancedAudioChannelLayout);
+        currentParams.audioSampleFormat = textOrEmpty(etAdvancedAudioSampleFormat);
+        currentParams.videoResolution = textOrEmpty(etAdvancedVideoResolution);
+        currentParams.videoFrameRate = textOrEmpty(etAdvancedVideoFrameRate);
+        currentParams.videoPixelFormat = textOrEmpty(etAdvancedVideoPixelFormat);
+        currentParams.imagePixelFormat = textOrEmpty(etAdvancedImagePixelFormat);
+        currentParams.videoCrf = textOrEmpty(etAdvancedVideoCrf);
+        currentParams.videoPreset = textOrEmpty(etAdvancedVideoPreset);
+        currentParams.videoTune = textOrEmpty(etAdvancedVideoTune);
+        currentParams.videoProfile = textOrEmpty(etAdvancedVideoProfile);
+        currentParams.videoLevel = textOrEmpty(etAdvancedVideoLevel);
+        currentParams.videoGop = textOrEmpty(etAdvancedVideoGop);
+        currentParams.videoBFrames = textOrEmpty(etAdvancedVideoBFrames);
+        currentParams.videoFilter = textOrEmpty(etAdvancedVideoFilter);
+        currentParams.audioFilter = textOrEmpty(etAdvancedAudioFilter);
+        currentParams.customInputOptions = textOrEmpty(etCustomInputOptions);
+        currentParams.customOutputOptions = textOrEmpty(etCustomOutputOptions);
+        currentParams.skipAutomaticVideoQuality = switchSkipAutomaticVideoQuality.isChecked();
+        currentParams.skipAutomaticAudioBitrate = switchSkipAutomaticAudioBitrate.isChecked();
+        currentParams.skipAutomaticAudioSampleRate = switchSkipAutomaticAudioSampleRate.isChecked();
+        currentParams.skipAutomaticAudioChannels = switchSkipAutomaticAudioChannels.isChecked();
 
         // 视频码率
         if (chipVideoBitrateGroup.getCheckedChipId() == R.id.chip_bitrate_custom) {
@@ -1195,6 +1298,11 @@ public class ParameterDialogFragment extends DialogFragment {
         }
     }
 
+    private String textOrEmpty(TextInputEditText editText) {
+        return editText == null || editText.getText() == null
+                ? "" : editText.getText().toString().trim();
+    }
+
     private String extractCodecName(String fullName) {
         // "h264_mediacodec (HW) (最佳)" -> "h264_mediacodec"
         if (fullName.contains(" ")) {
@@ -1205,6 +1313,13 @@ public class ParameterDialogFragment extends DialogFragment {
 
     private boolean validateParams() {
         // 验证必要参数
+        collectParamsFromUI();
+        boolean quick = currentParams.quickConversionEnabled;
+        if (!validateCustomOptions(currentParams.customInputOptions, currentParams.customOutputOptions)
+                || (!quick && !validateStructuredAdvancedParams())) {
+            ToastUtils.show(requireActivity(), getString(R.string.toast_advanced_parameter_invalid));
+            return false;
+        }
         if (spinnerOutputFormat.getText().toString().isEmpty()) {
             ToastUtils.show(requireActivity(), getString(R.string.toast_select_output_format));
             return false;
@@ -1222,6 +1337,136 @@ public class ParameterDialogFragment extends DialogFragment {
             }
         }
         return true;
+    }
+
+    private boolean validateStructuredAdvancedParams() {
+        boolean videoTask = "convert".equals(taskType) || "compress".equals(taskType)
+                || "cut_video".equals(taskType);
+        boolean audioTask = videoTask || "convert_audio".equals(taskType)
+                || "cut_audio".equals(taskType) || "extract_audio".equals(taskType);
+        boolean hasAudioOutput = audioTask && !"none".equalsIgnoreCase(currentParams.audioCodec);
+        boolean imageTask = "convert_image".equals(taskType) || "screenshot".equals(taskType);
+
+        // 只验证当前任务会使用的参数，避免隐藏的其他任务参数影响本次转换
+        if (hasAudioOutput) {
+            if (!isOptionalPositiveInteger(currentParams.audioSampleRate)
+                    || !isOptionalPositiveInteger(currentParams.audioChannels)
+                    || !isSingleOptionValue(currentParams.audioChannelLayout)
+                    || !isSingleOptionValue(currentParams.audioSampleFormat)) return false;
+            int layoutChannels = getKnownChannelLayoutCount(currentParams.audioChannelLayout);
+            if (layoutChannels > 0 && !isBlankValue(currentParams.audioChannels)
+                    && layoutChannels != Integer.parseInt(currentParams.audioChannels.trim())) return false;
+        }
+
+        if (videoTask) {
+            String resolution = currentParams.videoResolution;
+            if (!isBlankValue(resolution) && !resolution.matches("[0-9]{1,5}x[0-9]{1,5}")) return false;
+            if (!isBlankValue(resolution)) {
+                String[] dimensions = resolution.split("x");
+                if (Integer.parseInt(dimensions[0]) <= 0 || Integer.parseInt(dimensions[1]) <= 0) return false;
+            }
+            if (!isOptionalFrameRate(currentParams.videoFrameRate)
+                    || !isOptionalNonNegativeInteger(currentParams.videoGop)
+                    || !isOptionalNonNegativeInteger(currentParams.videoBFrames)
+                    || !isOptionalDecimal(currentParams.videoCrf)) return false;
+            if (!isSingleOptionValue(currentParams.videoPixelFormat)
+                    || !isSingleOptionValue(currentParams.videoPreset)
+                    || !isSingleOptionValue(currentParams.videoTune)
+                    || !isSingleOptionValue(currentParams.videoProfile)
+                    || !isSingleOptionValue(currentParams.videoLevel)) return false;
+            if (!isBlankValue(currentParams.videoCrf) && "custom".equals(currentParams.videoBitrateMode)) return false;
+        }
+
+        if (imageTask && !isSingleOptionValue(currentParams.imagePixelFormat)) return false;
+        return true;
+    }
+
+    private int getKnownChannelLayoutCount(String layout) {
+        if (isBlankValue(layout)) return -1;
+        switch (layout.trim().toLowerCase(Locale.ROOT)) {
+            case "mono":
+            case "1.0": return 1;
+            case "stereo":
+            case "2.0":
+            case "binaural":
+            case "stereo_downmix": return 2;
+            case "2.1":
+            case "3.0":
+            case "surround": return 3;
+            case "3.1":
+            case "4.0":
+            case "quad": return 4;
+            case "4.1":
+            case "5.0": return 5;
+            case "5.1":
+            case "5.1(side)": return 6;
+            case "6.1": return 7;
+            case "7.1": return 8;
+            default: return -1;
+        }
+    }
+
+    private boolean isOptionalFrameRate(String value) {
+        if (isBlankValue(value)) return true;
+        String input = value.trim();
+        if (!input.matches("[0-9]+(?:\\.[0-9]+)?(?:/[0-9]+(?:\\.[0-9]+)?)?")) return false;
+        try {
+            if (input.contains("/")) {
+                String[] parts = input.split("/", -1);
+                return Double.parseDouble(parts[0]) > 0 && Double.parseDouble(parts[1]) > 0;
+            }
+            return Double.parseDouble(input) > 0;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private boolean isOptionalDecimal(String value) {
+        if (isBlankValue(value)) return true;
+        if (!value.trim().matches("[0-9]+(?:\\.[0-9]+)?")) return false;
+        try {
+            return Double.parseDouble(value.trim()) >= 0;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private boolean validateCustomOptions(String input, String output) {
+        try {
+            com.tech.ezconvert.utils.FfmpegCommandBuilder.validateCustomOptions(input, output);
+            return true;
+        } catch (IllegalArgumentException e) {
+            Log.w("ParameterDialogFragment", "高级 FFmpeg 参数无效: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private boolean isOptionalPositiveInteger(String value) {
+        if (isBlankValue(value)) return true;
+        try {
+            return Integer.parseInt(value.trim()) > 0;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private boolean isOptionalNonNegativeInteger(String value) {
+        if (isBlankValue(value)) return true;
+        try {
+            return Integer.parseInt(value.trim()) >= 0;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private boolean isSingleOptionValue(String value) {
+        if (isBlankValue(value)) return true;
+        String normalized = value.trim();
+        return !normalized.startsWith("-") && !normalized.matches(".*\\s+.*");
+    }
+
+    private boolean isBlankValue(String value) {
+        return value == null || value.trim().isEmpty();
     }
 
     private void updateUIForTaskType() {
@@ -1323,6 +1568,25 @@ public class ParameterDialogFragment extends DialogFragment {
         }
 
         applyQuickConversionVisibility();
+        updateAdvancedOptionsVisibility();
+    }
+
+    private void updateAdvancedOptionsVisibility() {
+        boolean quick = isQuickConversionSupported() && switchQuickConversion.isChecked();
+        boolean videoTask = "convert".equals(taskType) || "compress".equals(taskType) || "cut_video".equals(taskType);
+        boolean audioTask = "convert_audio".equals(taskType) || "cut_audio".equals(taskType) || "extract_audio".equals(taskType);
+        boolean screenshotTask = "screenshot".equals(taskType);
+        boolean imageTask = "convert_image".equals(taskType);
+        String selectedAudioCodec = extractCodecName(spinnerAudioCodec.getText().toString());
+        boolean hasAudioOutput = (videoTask || audioTask) && !"none".equalsIgnoreCase(selectedAudioCodec);
+        advancedAudioSection.setVisibility(!quick && hasAudioOutput ? View.VISIBLE : View.GONE);
+        advancedVideoSection.setVisibility(!quick && videoTask ? View.VISIBLE : View.GONE);
+        advancedImageSection.setVisibility(!quick && (imageTask || screenshotTask) ? View.VISIBLE : View.GONE);
+        advancedAutomaticOptionsContainer.setVisibility(!quick && (videoTask || audioTask) ? View.VISIBLE : View.GONE);
+        switchSkipAutomaticVideoQuality.setVisibility(!quick && videoTask ? View.VISIBLE : View.GONE);
+        switchSkipAutomaticAudioBitrate.setVisibility(!quick && hasAudioOutput ? View.VISIBLE : View.GONE);
+        switchSkipAutomaticAudioSampleRate.setVisibility(!quick && hasAudioOutput ? View.VISIBLE : View.GONE);
+        switchSkipAutomaticAudioChannels.setVisibility(!quick && hasAudioOutput ? View.VISIBLE : View.GONE);
     }
 
     private boolean isQuickConversionSupported() {

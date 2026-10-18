@@ -737,8 +737,8 @@
         <item>Standard (128k)</item>
         <item>Low (64k)</item>
     </string-array>
-    <string name="dialog_compatibility_change_title">Conversion settings adjusted</string>
-    <string name="dialog_compatibility_change_message">To improve conversion compatibility, EzConvert will apply the following adjustments:\n\n%1$s\n\nTap confirm to start conversion.</string>
+    <string name="dialog_compatibility_change_title">Conversion compatibility notice</string>
+    <string name="dialog_compatibility_change_message">EzConvert detected the following compatibility adjustments or warnings:\n\n%1$s\n\nSome custom parameters may cause conversion to fail. Confirm to start the task</string>
     <string name="dialog_compatibility_change_confirm">Confirm and start</string>
     <string name="dialog_compatibility_change_cancel">Cancel</string>
     <string name="compatibility_precheck_failed">An error occurred while checking compatibility adjustments: %1$s</string>
@@ -755,6 +755,48 @@
     <string name="compatibility_reason_amr_wb">AMR-WB requires 16 kHz mono</string>
     <string name="compatibility_reason_ilbc">iLBC requires 8 kHz mono</string>
     <string name="compatibility_value_unknown">Unknown</string>
+
+    <string name="advanced_options_show">More options / Advanced FFmpeg options</string>
+    <string name="advanced_options_hide">Hide advanced options</string>
+    <string name="advanced_options_note">All fields are optional.\n\nLeave a field blank to avoid adding that option and keep FFmpeg or the app\'s existing behavior.\n\nCompatibility rules may still add required options for some encoders; any automatic adjustments are shown before the task starts.</string>
+    <string name="advanced_audio_section_title">Audio stream options</string>
+    <string name="advanced_video_section_title">Video stream options</string>
+    <string name="advanced_image_section_title">Image options</string>
+    <string name="hint_audio_sample_rate">Audio sample rate (Hz), e.g. 48000</string>
+    <string name="hint_audio_channels">Number of audio channels, e.g. 1 or 2</string>
+    <string name="hint_audio_channel_layout">Channel layout, e.g. stereo, 5.1, 7.1</string>
+    <string name="hint_audio_sample_format">Audio sample format, e.g. fltp, s16, s32p</string>
+    <string name="hint_video_resolution">Output video resolution, e.g. 1920x1080</string>
+    <string name="hint_video_frame_rate">Output frame rate, e.g. 30, 30000/1001</string>
+    <string name="hint_video_pixel_format">Video pixel format, e.g. yuv420p, yuv420p10le</string>
+    <string name="hint_image_pixel_format">Image pixel format, e.g. rgb24, rgba</string>
+    <string name="hint_video_crf">CRF quality value (only for encoders that support it)</string>
+    <string name="hint_video_preset">Encoder preset, e.g. ultrafast, fast, medium, slow</string>
+    <string name="hint_video_tune">Encoder tune, e.g. film, animation, grain</string>
+    <string name="hint_video_profile">Encoder profile, e.g. high, main, baseline</string>
+    <string name="hint_video_level">Encoder level, e.g. 4.1, 5.1</string>
+    <string name="hint_video_gop">Keyframe interval / GOP, e.g. 60</string>
+    <string name="hint_video_b_frames">Number of B-frames, e.g. 2</string>
+    <string name="hint_video_filter">Video filters, e.g. scale=1280:720,fps=30</string>
+    <string name="hint_audio_filter">Audio filters, e.g. aresample=48000,volume=1.2</string>
+    <string name="advanced_skip_automatic_video_quality">Do not set automatic video bitrate/quality options; use encoder defaults</string>
+    <string name="advanced_skip_automatic_audio_sample_rate">Do not set the audio sample rate automatically; let FFmpeg/the encoder decide</string>
+    <string name="advanced_skip_automatic_audio_channels">Do not set the audio channel count automatically; let FFmpeg/the encoder decide</string>
+    <string name="advanced_skip_automatic_audio_bitrate">Do not set an automatic audio bitrate; use encoder defaults</string>
+    <string name="advanced_raw_options_title">Generic FFmpeg command-line options</string>
+    <string name="hint_custom_input_options">Custom input options (inserted before the input -i)</string>
+    <string name="hint_custom_output_options">Custom output options (inserted before the output path)</string>
+    <string name="advanced_raw_options_note">Enter multiple options as needed. Use single or double quotes to group values containing spaces.\n\nInput/output paths and overwrite behavior are managed by the app; do not add -i, -y, or -n here.\n\nCustom options take precedence over the common fields above. Compatibility notices are based on the selected format and encoders and may not catch every conflict introduced by manual overrides.\n\nIf you change the muxer with -f, ensure the output extension matches the actual format. Invalid combinations may fail.</string>
+    <string name="toast_advanced_parameter_invalid">Invalid advanced parameter format or combination. Check numeric values, resolution, quotation marks, and conflicting settings</string>
+    <string name="compatibility_change_auto_audio_sample_rate_skipped">Compatibility notice: encoder %1$s recommends %3$d Hz, but you chose not to set the sample rate automatically (source rate: %2$s). Conversion may fail</string>
+    <string name="compatibility_change_auto_audio_channels_skipped">Compatibility notice: encoder %1$s recommends %3$d channels, but you chose not to set the channel count automatically (source channels: %2$s). Conversion may fail</string>
+    <string name="compatibility_change_auto_audio_sample_rate">Compatibility adjustment: encoder %1$s changed the audio sample rate from %2$s to %3$d Hz</string>
+    <string name="compatibility_change_auto_audio_channels">Compatibility adjustment: encoder %1$s changed the channel count from %2$s to %3$d</string>
+    <string name="compatibility_change_custom_swf_sample_rate_conflict">Compatibility warning: SWF output commonly requires an audio sample rate of 44100 Hz, but you requested %1$d Hz. Your value is retained, so conversion may fail</string>
+    <string name="compatibility_change_custom_audio_rate_conflict">Compatibility warning: encoder %1$s normally requires an audio sample rate of %3$d Hz, but you requested %2$d Hz. Your value is retained, so conversion may fail</string>
+    <string name="compatibility_change_custom_audio_channels_conflict">Compatibility warning: encoder %1$s normally requires %3$d channels, but you requested %2$d. Your value is retained, so conversion may fail</string>
+    <string name="compatibility_change_custom_audio_layout_conflict">Compatibility warning: encoder %1$s normally requires %3$d channels, but you requested the %2$s layout. Your value is retained, so conversion may fail</string>
+    <string name="compatibility_change_custom_audio_rate_unsupported">Compatibility warning: %2$d Hz is not in the common supported sample-rate list for encoder %1$s (compatibility fallback is %3$d Hz). Your value is retained, so conversion may fail</string>
 
     <string name="welcome_logo_description">EzConvert app icon</string>
     <string name="welcome_title">Welcome to EzConvert</string>

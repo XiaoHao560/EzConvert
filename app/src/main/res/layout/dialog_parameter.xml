@@ -729,6 +729,383 @@
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_toggle_advanced_options"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="start|center_vertical"
+                android:text="@string/advanced_options_show" />
+
+            <LinearLayout
+                android:id="@+id/advanced_options_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:paddingTop="4dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="@string/advanced_options_note"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="13sp" />
+
+                <LinearLayout
+                    android:id="@+id/advanced_audio_section"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/advanced_audio_section_title"
+                        android:textColor="?attr/colorPrimary"
+                        android:textSize="15sp"
+                        android:fontFamily="?attr/textAppearanceTitleSmall" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:hint="@string/hint_audio_sample_rate">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_advanced_audio_sample_rate"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:hint="@string/hint_audio_channels">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_advanced_audio_channels"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:hint="@string/hint_audio_channel_layout">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_advanced_audio_channel_layout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:hint="@string/hint_audio_sample_format">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_advanced_audio_sample_format"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/advanced_audio_filter_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:hint="@string/hint_audio_filter">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_advanced_audio_filter"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textMultiLine|textNoSuggestions"
+                            android:minLines="1"
+                            android:maxLines="4" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/advanced_video_section"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/advanced_video_section_title"
+                        android:textColor="?attr/colorPrimary"
+                        android:textSize="15sp"
+                        android:fontFamily="?attr/textAppearanceTitleSmall" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:hint="@string/hint_video_resolution">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_advanced_video_resolution"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:hint="@string/hint_video_frame_rate">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_advanced_video_frame_rate"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:hint="@string/hint_video_pixel_format">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_advanced_video_pixel_format"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:hint="@string/hint_video_crf">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_advanced_video_crf"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="numberDecimal|numberSigned" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:hint="@string/hint_video_preset">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_advanced_video_preset"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:hint="@string/hint_video_tune">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_advanced_video_tune"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:hint="@string/hint_video_profile">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_advanced_video_profile"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:hint="@string/hint_video_level">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_advanced_video_level"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:hint="@string/hint_video_gop">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_advanced_video_gop"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:hint="@string/hint_video_b_frames">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_advanced_video_b_frames"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:hint="@string/hint_video_filter">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_advanced_video_filter"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textMultiLine|textNoSuggestions"
+                            android:minLines="1"
+                            android:maxLines="4" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/advanced_image_section"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/advanced_image_section_title"
+                        android:textColor="?attr/colorPrimary"
+                        android:textSize="15sp"
+                        android:fontFamily="?attr/textAppearanceTitleSmall" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:hint="@string/hint_image_pixel_format">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_advanced_image_pixel_format"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/advanced_automatic_options_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switch_skip_automatic_video_quality"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/advanced_skip_automatic_video_quality" />
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switch_skip_automatic_audio_bitrate"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/advanced_skip_automatic_audio_bitrate" />
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switch_skip_automatic_audio_sample_rate"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/advanced_skip_automatic_audio_sample_rate" />
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switch_skip_automatic_audio_channels"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/advanced_skip_automatic_audio_channels" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/advanced_raw_options_title"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="15sp"
+                    android:fontFamily="?attr/textAppearanceTitleSmall" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:hint="@string/hint_custom_input_options">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_custom_input_options"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textMultiLine|textNoSuggestions"
+                        android:minLines="2"
+                        android:maxLines="4" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:hint="@string/hint_custom_output_options">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_custom_output_options"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textMultiLine|textNoSuggestions"
+                        android:minLines="2"
+                        android:maxLines="4" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="@string/advanced_raw_options_note"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
             <LinearLayout
                 android:id="@+id/volume_container"
                 android:layout_width="match_parent"

@@ -23,6 +23,54 @@ public class ParameterData {
     @SerializedName("quick_conversion_enabled")
     public boolean quickConversionEnabled;
 
+    // 高级 FFmpeg 参数：空字符串表示用户没有主动指定，继续使用应用/FFmpeg 的现有行为
+    @SerializedName("audio_sample_rate")
+    public String audioSampleRate;
+    @SerializedName("audio_channels")
+    public String audioChannels;
+    @SerializedName("audio_channel_layout")
+    public String audioChannelLayout;
+    @SerializedName("audio_sample_format")
+    public String audioSampleFormat;
+    @SerializedName("video_resolution")
+    public String videoResolution;
+    @SerializedName("video_frame_rate")
+    public String videoFrameRate;
+    @SerializedName("video_pixel_format")
+    public String videoPixelFormat;
+    @SerializedName("image_pixel_format")
+    public String imagePixelFormat;
+    @SerializedName("video_crf")
+    public String videoCrf;
+    @SerializedName("video_preset")
+    public String videoPreset;
+    @SerializedName("video_tune")
+    public String videoTune;
+    @SerializedName("video_profile")
+    public String videoProfile;
+    @SerializedName("video_level")
+    public String videoLevel;
+    @SerializedName("video_gop")
+    public String videoGop;
+    @SerializedName("video_b_frames")
+    public String videoBFrames;
+    @SerializedName("video_filter")
+    public String videoFilter;
+    @SerializedName("audio_filter")
+    public String audioFilter;
+    @SerializedName("custom_input_options")
+    public String customInputOptions;
+    @SerializedName("custom_output_options")
+    public String customOutputOptions;
+    @SerializedName("skip_automatic_video_quality")
+    public boolean skipAutomaticVideoQuality;
+    @SerializedName("skip_automatic_audio_bitrate")
+    public boolean skipAutomaticAudioBitrate;
+    @SerializedName("skip_automatic_audio_sample_rate")
+    public boolean skipAutomaticAudioSampleRate;
+    @SerializedName("skip_automatic_audio_channels")
+    public boolean skipAutomaticAudioChannels;
+
     @SerializedName("video_bitrate_mode")
     public String videoBitrateMode; // "original" 或 "custom"
 
@@ -84,6 +132,29 @@ public class ParameterData {
         videoCodec = "h264_mediacodec";
         audioCodec = "aac";
         quickConversionEnabled = false;
+        audioSampleRate = "";
+        audioChannels = "";
+        audioChannelLayout = "";
+        audioSampleFormat = "";
+        videoResolution = "";
+        videoFrameRate = "";
+        videoPixelFormat = "";
+        imagePixelFormat = "";
+        videoCrf = "";
+        videoPreset = "";
+        videoTune = "";
+        videoProfile = "";
+        videoLevel = "";
+        videoGop = "";
+        videoBFrames = "";
+        videoFilter = "";
+        audioFilter = "";
+        customInputOptions = "";
+        customOutputOptions = "";
+        skipAutomaticVideoQuality = false;
+        skipAutomaticAudioBitrate = false;
+        skipAutomaticAudioSampleRate = false;
+        skipAutomaticAudioChannels = false;
         videoBitrateMode = "original";
         videoBitrateValue = 0;
         videoBitrateUnit = "Mbps";
@@ -111,6 +182,29 @@ public class ParameterData {
         copy.videoCodec = this.videoCodec;
         copy.audioCodec = this.audioCodec;
         copy.quickConversionEnabled = this.quickConversionEnabled;
+        copy.audioSampleRate = this.audioSampleRate;
+        copy.audioChannels = this.audioChannels;
+        copy.audioChannelLayout = this.audioChannelLayout;
+        copy.audioSampleFormat = this.audioSampleFormat;
+        copy.videoResolution = this.videoResolution;
+        copy.videoFrameRate = this.videoFrameRate;
+        copy.videoPixelFormat = this.videoPixelFormat;
+        copy.imagePixelFormat = this.imagePixelFormat;
+        copy.videoCrf = this.videoCrf;
+        copy.videoPreset = this.videoPreset;
+        copy.videoTune = this.videoTune;
+        copy.videoProfile = this.videoProfile;
+        copy.videoLevel = this.videoLevel;
+        copy.videoGop = this.videoGop;
+        copy.videoBFrames = this.videoBFrames;
+        copy.videoFilter = this.videoFilter;
+        copy.audioFilter = this.audioFilter;
+        copy.customInputOptions = this.customInputOptions;
+        copy.customOutputOptions = this.customOutputOptions;
+        copy.skipAutomaticVideoQuality = this.skipAutomaticVideoQuality;
+        copy.skipAutomaticAudioBitrate = this.skipAutomaticAudioBitrate;
+        copy.skipAutomaticAudioSampleRate = this.skipAutomaticAudioSampleRate;
+        copy.skipAutomaticAudioChannels = this.skipAutomaticAudioChannels;
         copy.videoBitrateMode = this.videoBitrateMode;
         copy.videoBitrateValue = this.videoBitrateValue;
         copy.videoBitrateUnit = this.videoBitrateUnit;
