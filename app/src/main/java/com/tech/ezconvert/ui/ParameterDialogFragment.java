@@ -409,11 +409,11 @@ public class ParameterDialogFragment extends DialogFragment {
         if (data == null) return;
         currentParams = data;
 
-        // 输出格式
+        // 先按预设的输出格式建立编码器列表，再恢复编码器选择，避免列表重建覆盖已保存的编码器
         setSpinnerValue(spinnerOutputFormat, data.outputFormat);
-        // 编码器
-        setSpinnerValue(spinnerVideoCodec, data.videoCodec);
-        setSpinnerValue(spinnerAudioCodec, data.audioCodec);
+        updateCodecOptions(data.outputFormat);
+        setCodecSpinnerValue(spinnerVideoCodec, data.videoCodec);
+        setCodecSpinnerValue(spinnerAudioCodec, data.audioCodec);
 
         // 视频码率
         if ("original".equals(data.videoBitrateMode)) {
@@ -529,8 +529,6 @@ public class ParameterDialogFragment extends DialogFragment {
         switchSkipAutomaticAudioSampleRate.setChecked(data.skipAutomaticAudioSampleRate);
         switchSkipAutomaticAudioChannels.setChecked(data.skipAutomaticAudioChannels);
 
-        updateCodecOptions(data.outputFormat);
-        
         currentParams.taskType = taskType;
 
         // 如果任务为图片，加载预览
@@ -551,6 +549,23 @@ public class ParameterDialogFragment extends DialogFragment {
         if (pos >= 0) {
             spinner.setText(adapter.getItem(pos), false);
         }
+    }
+
+    private void setCodecSpinnerValue(MaterialAutoCompleteTextView spinner, String codecName) {
+        if (codecName == null || codecName.trim().isEmpty()) return;
+        ArrayAdapter<String> adapter = (ArrayAdapter<String>) spinner.getAdapter();
+        if (adapter == null) return;
+
+        // 预设保存的是 FFmpeg 编码器名称，而下拉框显示名称还包含硬件标记和本地化说明
+        for (int i = 0; i < adapter.getCount(); i++) {
+            String displayName = adapter.getItem(i);
+            if (displayName != null && codecName.equals(extractCodecName(displayName))) {
+                spinner.setText(displayName, false);
+                return;
+            }
+        }
+
+        // 当前输出格式或设备配置不提供该编码器时不强行写入无效选项，保留列表默认值
     }
 
     private void setupSpinners() {
