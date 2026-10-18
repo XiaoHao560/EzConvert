@@ -374,9 +374,6 @@ public class FfmpegCommandBuilder {
             cmd.add("-threads");
             cmd.add("0");
         }
-        
-        // 音频任务禁用视频流
-        cmd.add("-vn");
 
         if (params.volume != 100) {
             cmd.add("-af");
