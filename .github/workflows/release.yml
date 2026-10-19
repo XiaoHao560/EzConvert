@@ -8,6 +8,7 @@ jobs:
    runs-on: ubuntu-latest
    permissions:
      contents: write
+     pull-requests: read
    steps:
      - name: 检出代码
        uses: actions/checkout@v4
@@ -60,6 +61,73 @@ jobs:
            echo "## $TAG_NAME" > release_body.md
            echo "" >> release_body.md
            echo "> 自动构建版本，详情请查看项目文档。" >> release_body.md
+         fi
+
+     - name: 生成贡献者列表
+       env:
+         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+       shell: bash
+       run: |
+         set -euo pipefail
+         TAG_NAME="${{ github.ref_name }}"
+         echo "查找 $TAG_NAME 之前的最近一个标签"
+
+         PREVIOUS_TAG="$(git describe --tags --abbrev=0 "${TAG_NAME}^" 2>/dev/null || true)"
+         declare -A contributors=()
+
+         if [[ -n "$PREVIOUS_TAG" ]]; then
+           echo "使用上一个标签作为比较起点：$PREVIOUS_TAG"
+
+           while IFS= read -r commit; do
+             [[ -z "$commit" ]] && continue
+
+             # 查询与该提交关联且已合并的 PR，并按 PR 编号去重
+             pr_data="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${commit}/pulls" \
+               --jq '.[] | select(.merged_at != null) | [.number, .user.login] | @tsv')"
+
+             while IFS=$'\t' read -r pr_number login; do
+               [[ -z "${pr_number:-}" || -z "${login:-}" ]] && continue
+               if [[ -z "${contributors[$pr_number]+x}" ]]; then
+                 contributors["$pr_number"]="$login"
+               fi
+             done <<< "$pr_data"
+           done < <(git rev-list --reverse "${PREVIOUS_TAG}..${TAG_NAME}")
+         else
+           echo "未找到上一个标签，将显示空的贡献者列表"
+         fi
+
+         # 保留现有正文，只规范结尾换行，再追加一个空行和贡献者标题
+         python3 - <<'PYBODY'
+         from pathlib import Path
+
+         path = Path("release_body.md")
+         body = path.read_text(encoding="utf-8").rstrip("\r\n")
+         path.write_text(body + "\n\n### contributors\n", encoding="utf-8")
+         PYBODY
+
+         if (( ${#contributors[@]} == 0 )); then
+           printf '暂无贡献者记录\n' >> release_body.md
+         else
+           # 按用户名分组；同一贡献者的多个 PR 合并到同一行
+           declare -A contributor_prs=()
+           for pr_number in "${!contributors[@]}"; do
+             login="${contributors[$pr_number]}"
+             if [[ -n "${contributor_prs[$login]+x}" ]]; then
+               contributor_prs["$login"]+=", #$pr_number"
+             else
+               contributor_prs["$login"]="#$pr_number"
+             fi
+           done
+
+           # 按用户名排序，保持每位贡献者的 PR 编号升序
+           while IFS=$'\t' read -r login pr_list; do
+             [[ -z "${login:-}" || -z "${pr_list:-}" ]] && continue
+             printf '@%s in %s\n' "$login" "$pr_list" >> release_body.md
+           done < <(
+             for login in "${!contributor_prs[@]}"; do
+               printf '%s\t%s\n' "$login" "${contributor_prs[$login]}"
+             done | sort
+           )
          fi
 
      - name: 判断构建变体
