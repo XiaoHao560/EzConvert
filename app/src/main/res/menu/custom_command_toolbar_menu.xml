@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/custom_command_reset"
+        android:icon="@drawable/round_replay"
+        android:title="@string/custom_command_reset"
+        app:showAsAction="always" />
+</menu>

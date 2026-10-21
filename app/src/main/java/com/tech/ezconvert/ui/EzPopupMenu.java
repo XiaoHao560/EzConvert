@@ -22,6 +22,7 @@ public class EzPopupMenu {
     // 菜单项点击回调
     public interface OnMenuItemClickListener {
         void onPreviewClick();
+        void onCustomCommandClick();
         void onSettingsClick();
     }
 
@@ -59,6 +60,12 @@ public class EzPopupMenu {
         MaterialButton previewBtn = menuView.findViewById(R.id.action_preview);
         previewBtn.setOnClickListener(v -> {
             if (menuListener != null) menuListener.onPreviewClick();
+            dismiss();
+        });
+
+        MaterialButton customCommandBtn = menuView.findViewById(R.id.action_custom_command);
+        customCommandBtn.setOnClickListener(v -> {
+            if (menuListener != null) menuListener.onCustomCommandClick();
             dismiss();
         });
 

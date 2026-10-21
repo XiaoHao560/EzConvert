@@ -833,4 +833,155 @@
     <string name="welcome_enable_notifications_desc">显示转换进度、任务完成提醒等通知</string>
     <string name="welcome_start">开始使用</string>
 
+    <string name="custom_command_default_command">-i %INPUT% -c:v libx264 -crf 23 -preset medium -c:a aac %OUTPUT_1%</string>
+    <string name="custom_command_title">自定义命令</string>
+    <string name="custom_command_intro">直接编写 FFmpeg 参数。选择输入文件后，可点击文件名打开预览播放器，确认选择的文件是否正确。普通共享存储路径可能受 Android 权限限制</string>
+    <string name="custom_command_execution_mode">执行模式</string>
+    <string-array name="custom_command_modes">
+        <item>单次执行（所有输入共同处理）</item>
+        <item>逐个文件执行（对每个输入分别执行）</item>
+    </string-array>
+    <string name="custom_command_inputs_title">输入文件</string>
+    <string name="custom_command_no_inputs">尚未选择输入文件</string>
+    <string name="custom_command_add_inputs">添加输入文件</string>
+    <string name="custom_command_clear_inputs">清空</string>
+    <string name="custom_command_editor_title">FFmpeg 参数</string>
+    <string name="custom_command_editor_hint">例如：-i "/data/user/0/.../input.mp4" -c:v libx264 -crf 23 "/data/user/0/.../output.mp4"</string>
+    <string name="custom_command_insert_placeholder">插入所选路径</string>
+    <string name="custom_command_examples">命令示例</string>
+    <string name="custom_command_placeholders_help">系统选择的输入文件会由应用复制到私有临时目录，以减少原文件访问权限问题。输出文件名和文件扩展名请在“输出目标”中的“高级输出选项”修改</string>
+    <string name="custom_command_outputs_title">输出目标</string>
+    <string name="custom_command_output_follow_settings">输出位置：跟随应用设置</string>
+    <string name="custom_command_choose_folder">选择输出文件夹</string>
+    <string name="custom_command_choose_file">指定输出文件</string>
+    <string name="custom_command_output_names_help">在这里修改输出文件名和文件扩展名。文件名模板支持 {{name}}（输入文件名，不含扩展名）、{{index}}（序号）和 {{date}}（日期）；使用“指定输出文件”时，输出 1 以所选文件名为准</string>
+    <string name="custom_command_output_default_template">{{name}}_custom.mp4</string>
+    <string name="custom_command_add_output">添加输出目标</string>
+    <string name="custom_command_output_name_hint">输出 %1$d 文件名模板</string>
+    <string name="custom_command_output_limit">最多支持 8 个输出目标</string>
+    <string name="custom_command_output_file_selected">输出 1 使用指定文件：%1$s；其他输出使用配置目录</string>
+    <string name="custom_command_output_folder_selected">输出文件夹：%1$s</string>
+    <string name="custom_command_output_follow_custom">跟随应用自定义目录：%1$s</string>
+    <string name="custom_command_output_follow_dcim">跟随应用设置：DCIM/EzConvert</string>
+    <string name="custom_command_output_follow_download">跟随应用设置：Download/EzConvert</string>
+    <string name="custom_command_preview">预览命令</string>
+    <string name="custom_command_save_preset">保存为预设</string>
+    <string name="custom_command_load_preset">加载预设</string>
+    <string name="custom_command_delete_preset">删除预设</string>
+    <string name="custom_command_execute">检查命令并开始执行</string>
+    <string name="custom_command_cancel_task">取消当前任务</string>
+    <string name="custom_command_error_no_inputs">请至少选择一个输入文件</string>
+    <string name="custom_command_error_no_outputs">请至少保留一个输出目标</string>
+    <string name="custom_command_error_empty_output_name">输出目标 %1$d 的文件名模板不能为空</string>
+    <string name="custom_command_error_batch_input_placeholder">逐个文件模式只支持 %INPUT% 或 %INPUT_1%</string>
+    <string name="custom_command_error_input_alias">选择多个输入文件时，请使用 %INPUT_1%、%INPUT_2% 等占位符</string>
+    <string name="custom_command_error_input_index">命令引用了未选择的输入文件：%%INPUT_%1$d%%</string>
+    <string name="custom_command_error_output_index">命令引用了未配置的输出目标：%%OUTPUT_%1$d%%</string>
+    <string name="custom_command_error_single_document_batch">逐个文件模式不能将所有结果写入同一个指定输出文件，请改用输出文件夹</string>
+    <string name="custom_command_error_save_session">无法保存任务：%1$s</string>
+    <string name="custom_command_output_file_selected_path">输出文件：%1$s\n命令中使用的可访问路径：%2$s\n任务完成后会保存到所选文件</string>
+    <string name="custom_command_path_input_option">输入文件 %1$d：%2$s\n%3$s</string>
+    <string name="custom_command_path_output_option">输出文件：%1$s\n%2$s</string>
+    <string name="custom_command_path_picker_empty">请先选择输入文件或指定输出文件</string>
+    <string name="custom_command_choose_placeholder_title">选择要替换的占位符</string>
+    <string name="custom_command_choose_placeholder_empty">当前命令中没有可替换的对应占位符，请先在命令中添加对应占位符</string>
+    <string name="custom_command_input_permission_missing">无法在后台读取输入文件 %1$s。请重新选择文件并授予持续访问权限</string>
+    <string name="custom_command_direct_content_uri_unselected">命令中包含未通过本界面授权的 content URI。请先选择对应文件，再插入界面显示的路径</string>
+    <string name="custom_command_direct_storage_permission_required">Android 不允许当前应用直接访问此共享存储路径。请通过文件选择器选择文件并插入路径，或在系统设置中授予 EzConvert“所有文件访问”权限</string>
+    <string name="custom_command_direct_input_unreadable">无法读取输入路径：%1$s。请检查路径是否存在以及应用是否拥有访问权限</string>
+    <string name="custom_command_direct_output_unwritable">无法写入输出路径：%1$s。请检查目标目录是否存在以及应用是否拥有写入权限</string>
+    <string name="custom_command_show_advanced_outputs">显示高级输出选项</string>
+    <string name="custom_command_hide_advanced_outputs">隐藏高级输出选项</string>
+    <string name="custom_command_picker_unavailable">无法打开系统文件选择器</string>
+    <string name="custom_command_error_title">命令或任务错误</string>
+    <string name="custom_command_preview_inputs">输入文件：</string>
+    <string name="custom_command_preview_outputs">配置的输出目标：</string>
+    <string name="custom_command_preview_arguments">解析后的参数预览：</string>
+    <string name="custom_command_preview_note">此处显示的是参数解析预览。已选择的输入文件会由应用在任务执行时映射为可访问的本地文件；逐个文件模式下会为每一轮准备当前输入文件。应用不保证所有 FFmpeg 参数组合都有效</string>
+    <string name="custom_command_confirm_title">确认执行自定义命令</string>
+    <string name="custom_command_confirm_message">已选择 %1$d 个输入文件，配置了 %2$d 个输出目标。执行前请确认命令和输出位置</string>
+    <string name="custom_command_status_queued">自定义命令任务已加入后台队列</string>
+    <string name="custom_command_status_running">自定义命令正在后台执行（队列进度 %1$d%%）</string>
+    <string name="custom_command_progress_title">任务进度</string>
+    <string name="custom_command_status_idle">尚未执行任务</string>
+    <string name="custom_command_status_running_known">正在执行第 %1$d/%2$d 项（队列进度 %3$d%%，当前媒体进度约 %4$d%%，已运行 %5$s）</string>
+    <string name="custom_command_status_running_unknown">正在执行第 %1$d/%2$d 项（已运行 %3$s；当前命令无法可靠估算媒体进度，任务仍在运行）</string>
+    <string name="custom_command_reset">恢复默认</string>
+    <string name="custom_command_reset_title">恢复默认设置</string>
+    <string name="custom_command_reset_confirm">这会清空已选择的输入文件，恢复默认 FFmpeg 参数、执行模式和输出模板，并将输出目标恢复为跟随应用设置。当前日志也会清除。此操作不会删除已保存的预设，也不会取消正在运行的后台任务；如果任务仍在运行，新的日志可能继续出现。是否继续？</string>
+    <string name="custom_command_reset_done">界面已恢复为默认状态</string>
+    <string name="custom_command_reset_done_log_error">界面已恢复默认，但清除日志失败：%1$s</string>
+    <string name="custom_command_clear_log">清除日志</string>
+    <string name="custom_command_log_cleared">已清除当前日志</string>
+    <string name="custom_command_log_clear_failed">清除日志失败：%1$s</string>
+    <string name="custom_command_copy_log">复制日志</string>
+    <string name="custom_command_log_copied">已复制当前日志</string>
+    <string name="custom_command_log_title">FFmpeg 实时日志</string>
+    <string name="custom_command_log_desc">显示当前自定义命令任务的输出；即使无法计算进度，也可通过日志判断执行状态</string>
+    <string name="custom_command_log_empty">任务日志将在这里显示</string>
+    <string name="custom_command_log_waiting">等待 FFmpeg 启动并输出日志…</string>
+    <string name="custom_command_log_truncated">较早的日志已省略，仅显示最近内容</string>
+    <string name="custom_command_log_read_failed">读取任务日志失败：%1$s</string>
+    <string name="custom_command_status_succeeded">任务完成，成功处理 %1$d 项</string>
+    <string name="custom_command_status_failed">任务失败：%1$s</string>
+    <string name="custom_command_status_cancelled">任务已取消</string>
+    <string name="custom_command_cancel_confirm">确定要取消当前自定义命令任务吗？</string>
+    <string name="custom_command_preset_name_hint">预设名称</string>
+    <string name="custom_command_preset_name_required">请输入预设名称</string>
+    <string name="custom_command_preset_saved">已保存预设：%1$s</string>
+    <string name="custom_command_preset_loaded">已加载预设：%1$s</string>
+    <string name="custom_command_preset_deleted">已删除预设：%1$s</string>
+    <string name="custom_command_delete_preset_confirm">确定删除预设“%1$s”吗？</string>
+    <string name="custom_command_no_presets">没有已保存的自定义命令预设</string>
+    <string name="popup_custom_command">自定义命令</string>
+    <string-array name="custom_command_example_titles">
+        <item>H.264 转码</item>
+        <item>复制音视频流</item>
+        <item>提取 MP3 音频</item>
+        <item>使用第二个输入作为音轨</item>
+    </string-array>
+    <string-array name="custom_command_example_commands">
+        <item>-i %INPUT% -c:v libx264 -crf 23 -preset medium -c:a aac %OUTPUT_1%</item>
+        <item>-i %INPUT% -c copy %OUTPUT_1%</item>
+        <item>-i %INPUT% -vn -c:a libmp3lame -b:a 192k %OUTPUT_1%</item>
+        <item>-i %INPUT_1% -i %INPUT_2% -map 0:v:0 -map 1:a:0 -c:v copy -c:a aac %OUTPUT_1%</item>
+    </string-array>
+    <string name="custom_command_parser_empty">命令参数不能为空</string>
+    <string name="custom_command_parser_unclosed_quote">命令中存在未闭合的引号</string>
+    <string name="custom_command_parser_input_placeholder">输入占位符必须单独作为一个参数，例如 %INPUT_1%</string>
+    <string name="custom_command_parser_output_placeholder">输出占位符必须单独作为一个参数，例如 %OUTPUT_1%</string>
+    <string name="custom_command_parser_invalid_input">无效的输入占位符：%1$s</string>
+    <string name="custom_command_parser_invalid_output">无效的输出占位符：%1$s</string>
+    <string name="custom_command_parser_ffmpeg_prefix_empty">请在 ffmpeg 前缀后输入命令参数</string>
+    <string name="custom_command_worker_missing_id">缺少自定义命令会话标识</string>
+    <string name="custom_command_worker_read_session">无法读取自定义命令会话：%1$s</string>
+    <string name="custom_command_worker_session_missing">自定义命令会话不存在</string>
+    <string name="custom_command_worker_create_input_directory">无法创建输入临时目录</string>
+    <string name="custom_command_worker_create_output_directory">无法创建输出临时目录</string>
+    <string name="custom_command_worker_input_index">输入文件索引超出范围</string>
+    <string name="custom_command_worker_create_input_cache">无法创建输入缓存目录</string>
+    <string name="custom_command_worker_read_input">无法读取输入文件：%1$s</string>
+    <string name="custom_command_worker_copy_input">读取输入文件失败：%1$s
+%2$s</string>
+    <string name="custom_command_worker_empty_input">输入文件为空：%1$s</string>
+    <string name="custom_command_worker_delete_stale_output">无法清理旧的临时输出：%1$s</string>
+    <string name="custom_command_worker_output_not_created">没有创建对应的输出目标：%1$s</string>
+    <string name="custom_command_worker_output_missing">FFmpeg 没有生成输出文件：%1$s</string>
+    <string name="custom_command_worker_public_output_dir">无法创建输出目录：%1$s</string>
+    <string name="custom_command_worker_invalid_output_tree">输出目录 URI 无效</string>
+    <string name="custom_command_worker_output_permission">输出目录授权已失效，请重新选择输出目录</string>
+    <string name="custom_command_worker_create_saf_file">无法在所选输出目录创建文件：%1$s</string>
+    <string name="custom_command_worker_open_document">无法打开指定输出文件</string>
+    <string name="custom_command_worker_invalid_template">输出文件名模板无效</string>
+    <string name="custom_command_worker_cancelled">操作已取消</string>
+    <string name="custom_command_worker_no_ffmpeg_session">FFmpeg 没有返回执行会话</string>
+    <string name="custom_command_worker_item_failed">第 %1$d 项执行失败，返回码：%2$s
+%3$s</string>
+    <string name="custom_command_worker_publish_failed">第 %1$d 项执行成功，但发布输出文件失败：%2$s</string>
+    <string name="custom_command_worker_complete_count">%1$d/%2$d 项成功</string>
+    <string name="custom_command_worker_failed_generic">自定义命令执行失败</string>
+    <string name="custom_command_output_file_default_name">custom_output.mp4</string>
+    <string name="custom_command_output_custom_path_missing">应用设置中的自定义输出目录未配置或授权已失效，请选择一个输出文件夹</string>
+    <string name="custom_command_output_folder_permission_missing">无法持久访问所选输出文件夹，请重新选择文件夹并授予访问权限</string>
+    <string name="custom_command_output_file_permission_missing">无法持久访问所选输出文件，请重新选择输出文件</string>
 </resources>

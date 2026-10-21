@@ -30,6 +30,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.slider.Slider;
+import com.tech.ezconvert.MainActivity;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.AnimationUtils;
 import com.tech.ezconvert.utils.FileUtils;
@@ -40,6 +41,10 @@ import java.io.File;
 import java.util.Locale;
 
 public class PreviewActivity extends BaseActivity {
+    public static final String EXTRA_RETURN_TARGET = "preview_return_target";
+    public static final String RETURN_TARGET_MAIN = "main";
+    public static final String RETURN_TARGET_CUSTOM_COMMAND = "custom_command";
+
 
     @Override
     protected int getTitleContainerId() {
@@ -163,7 +168,7 @@ public class PreviewActivity extends BaseActivity {
         // 设置 toolbar 返回按钮
         toolbar.setNavigationOnClickListener(v -> {
             AnimationUtils.animateButtonClick(v);
-            finish();
+            navigateBackToOrigin();
         });
 
         // 设置 tooltips
@@ -1051,7 +1056,22 @@ public class PreviewActivity extends BaseActivity {
             exitFullscreen();
             return;
         }
-        super.onBackPressed();
+        navigateBackToOrigin();
+    }
+
+    private void navigateBackToOrigin() {
+        // 正常情况下直接结束预览即可回到调用页面；只有预览意外成为任务栈根时才恢复调用页面
+        if (isTaskRoot()) {
+            String target = getIntent().getStringExtra(EXTRA_RETURN_TARGET);
+            Intent intent = null;
+            if (RETURN_TARGET_CUSTOM_COMMAND.equals(target)) {
+                intent = new Intent(this, CustomCommandActivity.class);
+            } else if (RETURN_TARGET_MAIN.equals(target)) {
+                intent = new Intent(this, MainActivity.class);
+            }
+            if (intent != null) startActivity(intent);
+        }
+        finish();
     }
 
     private String formatTime(long millis) {

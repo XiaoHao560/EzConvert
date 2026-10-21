@@ -72,6 +72,11 @@
         </activity>
         
         <activity
+            android:name=".ui.CustomCommandActivity"
+            android:exported="false"
+            android:label="@string/custom_command_title" />
+
+        <activity
             android:name=".ui.SettingsMainActivity"
             android:exported="false"
             android:label="设置" />

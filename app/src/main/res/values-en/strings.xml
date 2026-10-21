@@ -833,4 +833,155 @@
     <string name="welcome_enable_notifications_desc">Show conversion progress, completion alerts, and other notifications</string>
     <string name="welcome_start">Get started</string>
 
+    <string name="custom_command_default_command">-i %INPUT% -c:v libx264 -crf 23 -preset medium -c:a aac %OUTPUT_1%</string>
+    <string name="custom_command_title">Custom Command</string>
+    <string name="custom_command_intro">Write FFmpeg arguments directly. After selecting an input file, tap its filename to open the preview player and confirm that it is the intended file. Android permissions may restrict direct access to shared-storage paths.</string>
+    <string name="custom_command_execution_mode">Execution mode</string>
+    <string-array name="custom_command_modes">
+        <item>Run once (process all inputs together)</item>
+        <item>Run per file (execute separately for each input)</item>
+    </string-array>
+    <string name="custom_command_inputs_title">Input files</string>
+    <string name="custom_command_no_inputs">No input files selected</string>
+    <string name="custom_command_add_inputs">Add input files</string>
+    <string name="custom_command_clear_inputs">Clear</string>
+    <string name="custom_command_editor_title">FFmpeg arguments</string>
+    <string name="custom_command_editor_hint">For example: -i "/data/user/0/.../input.mp4" -c:v libx264 -crf 23 "/data/user/0/.../output.mp4"</string>
+    <string name="custom_command_insert_placeholder">Insert selected path</string>
+    <string name="custom_command_examples">Command examples</string>
+    <string name="custom_command_placeholders_help">Input files selected through the system picker are copied to app-private temporary storage to reduce source-file access issues. Change output filenames and extensions under “Output targets” → “Advanced output options”.</string>
+    <string name="custom_command_outputs_title">Output targets</string>
+    <string name="custom_command_output_follow_settings">Output location: follow app settings</string>
+    <string name="custom_command_choose_folder">Choose output folder</string>
+    <string name="custom_command_choose_file">Choose output file</string>
+    <string name="custom_command_output_names_help">Change output filenames and extensions here. Templates support {{name}} (input name without extension), {{index}} (sequence number), and {{date}} (date). When “Choose output file” is used, output 1 uses the selected filename.</string>
+    <string name="custom_command_output_default_template">{{name}}_custom.mp4</string>
+    <string name="custom_command_add_output">Add output target</string>
+    <string name="custom_command_output_name_hint">Output %1$d filename template</string>
+    <string name="custom_command_output_limit">Up to 8 output targets are supported</string>
+    <string name="custom_command_output_file_selected">Output 1 uses selected file: %1$s; other outputs use the configured folder</string>
+    <string name="custom_command_output_folder_selected">Output folder: %1$s</string>
+    <string name="custom_command_output_follow_custom">Following app custom folder: %1$s</string>
+    <string name="custom_command_output_follow_dcim">Following app settings: DCIM/EzConvert</string>
+    <string name="custom_command_output_follow_download">Following app settings: Download/EzConvert</string>
+    <string name="custom_command_preview">Preview command</string>
+    <string name="custom_command_save_preset">Save as preset</string>
+    <string name="custom_command_load_preset">Load preset</string>
+    <string name="custom_command_delete_preset">Delete preset</string>
+    <string name="custom_command_execute">Validate and execute</string>
+    <string name="custom_command_cancel_task">Cancel current task</string>
+    <string name="custom_command_error_no_inputs">Select at least one input file</string>
+    <string name="custom_command_error_no_outputs">Keep at least one output target</string>
+    <string name="custom_command_error_empty_output_name">Filename template for output target %1$d cannot be empty</string>
+    <string name="custom_command_error_batch_input_placeholder">Per-file mode only supports %INPUT% or %INPUT_1%</string>
+    <string name="custom_command_error_input_alias">When multiple input files are selected, use placeholders such as %INPUT_1% and %INPUT_2%</string>
+    <string name="custom_command_error_input_index">Command references an unselected input file: %%INPUT_%1$d%%</string>
+    <string name="custom_command_error_output_index">Command references an unconfigured output target: %%OUTPUT_%1$d%%</string>
+    <string name="custom_command_error_single_document_batch">Per-file mode cannot write all results to the same selected output file. Choose an output folder instead.</string>
+    <string name="custom_command_error_save_session">Unable to save task: %1$s</string>
+    <string name="custom_command_output_file_selected_path">Output file: %1$s\nAccessible command path: %2$s\nThe result will be copied to the selected file after execution.</string>
+    <string name="custom_command_path_input_option">Input %1$d: %2$s\n%3$s</string>
+    <string name="custom_command_path_output_option">Output file: %1$s\n%2$s</string>
+    <string name="custom_command_path_picker_empty">Select an input file or choose a specific output file first</string>
+    <string name="custom_command_choose_placeholder_title">Choose a placeholder to replace</string>
+    <string name="custom_command_choose_placeholder_empty">There is no matching placeholder in the current command. Add the corresponding placeholder to the command first.</string>
+    <string name="custom_command_input_permission_missing">The input file %1$s cannot be read in the background. Select it again and grant persistent access.</string>
+    <string name="custom_command_direct_content_uri_unselected">The command contains a content URI that was not authorized by this screen. Select the file first, then insert the displayed path.</string>
+    <string name="custom_command_direct_storage_permission_required">Android does not allow direct access to this shared-storage path with the current permissions. Select the file using the system picker and insert its path, or grant EzConvert “All files access” in system settings.</string>
+    <string name="custom_command_direct_input_unreadable">Cannot read input path: %1$s. Check that it exists and that the app has access.</string>
+    <string name="custom_command_direct_output_unwritable">Cannot write output path: %1$s. Check that the target directory exists and that the app has write access.</string>
+    <string name="custom_command_show_advanced_outputs">Show advanced output options</string>
+    <string name="custom_command_hide_advanced_outputs">Hide advanced output options</string>
+    <string name="custom_command_picker_unavailable">Unable to open the system file picker</string>
+    <string name="custom_command_error_title">Command or task error</string>
+    <string name="custom_command_preview_inputs">Input files:</string>
+    <string name="custom_command_preview_outputs">Configured output targets:</string>
+    <string name="custom_command_preview_arguments">Parsed argument preview:</string>
+    <string name="custom_command_preview_note">This is a parsed-argument preview. Selected input files are mapped to accessible local files during execution; in per-file mode, the app prepares the current input for each iteration. The app cannot guarantee that every FFmpeg parameter combination is valid.</string>
+    <string name="custom_command_confirm_title">Confirm custom command</string>
+    <string name="custom_command_confirm_message">You selected %1$d input file(s) and configured %2$d output target(s). Review the command and output location before execution.</string>
+    <string name="custom_command_status_queued">Custom command task queued in the background</string>
+    <string name="custom_command_status_running">Custom command running in the background (queue progress %1$d%%)</string>
+    <string name="custom_command_progress_title">Task progress</string>
+    <string name="custom_command_status_idle">No task has been executed yet</string>
+    <string name="custom_command_status_running_known">Processing item %1$d/%2$d (queue progress %3$d%%, estimated media progress %4$d%%, running for %5$s)</string>
+    <string name="custom_command_status_running_unknown">Processing item %1$d/%2$d (running for %3$s; media progress cannot be estimated reliably for this command, task is still running)</string>
+    <string name="custom_command_reset">Reset</string>
+    <string name="custom_command_reset_title">Restore defaults</string>
+    <string name="custom_command_reset_confirm">This clears the selected input files, restores the default FFmpeg arguments, execution mode and output template, and returns the output destination to the app settings. The current log will also be cleared. Saved presets will not be deleted, and any running background task will continue; new log entries may appear while it runs. Continue?</string>
+    <string name="custom_command_reset_done">Screen restored to defaults</string>
+    <string name="custom_command_reset_done_log_error">Screen restored, but the log could not be cleared: %1$s</string>
+    <string name="custom_command_clear_log">Clear logs</string>
+    <string name="custom_command_log_cleared">Current logs cleared</string>
+    <string name="custom_command_log_clear_failed">Failed to clear logs: %1$s</string>
+    <string name="custom_command_copy_log">Copy logs</string>
+    <string name="custom_command_log_copied">Current logs copied</string>
+    <string name="custom_command_log_title">Live FFmpeg log</string>
+    <string name="custom_command_log_desc">Shows output from the current custom command task. Use these logs to check activity when progress cannot be calculated.</string>
+    <string name="custom_command_log_empty">Task logs will appear here</string>
+    <string name="custom_command_log_waiting">Waiting for FFmpeg to start and produce logs…</string>
+    <string name="custom_command_log_truncated">Earlier log lines were omitted; showing the latest content</string>
+    <string name="custom_command_log_read_failed">Failed to read task log: %1$s</string>
+    <string name="custom_command_status_succeeded">Task completed; %1$d item(s) succeeded</string>
+    <string name="custom_command_status_failed">Task failed: %1$s</string>
+    <string name="custom_command_status_cancelled">Task cancelled</string>
+    <string name="custom_command_cancel_confirm">Cancel the current custom command task?</string>
+    <string name="custom_command_preset_name_hint">Preset name</string>
+    <string name="custom_command_preset_name_required">Enter a preset name</string>
+    <string name="custom_command_preset_saved">Preset saved: %1$s</string>
+    <string name="custom_command_preset_loaded">Preset loaded: %1$s</string>
+    <string name="custom_command_preset_deleted">Preset deleted: %1$s</string>
+    <string name="custom_command_delete_preset_confirm">Delete preset “%1$s”?</string>
+    <string name="custom_command_no_presets">No saved custom command presets</string>
+    <string name="popup_custom_command">Custom command</string>
+    <string-array name="custom_command_example_titles">
+        <item>H.264 transcode</item>
+        <item>Copy audio and video streams</item>
+        <item>Extract MP3 audio</item>
+        <item>Use second input as the audio track</item>
+    </string-array>
+    <string-array name="custom_command_example_commands">
+        <item>-i %INPUT% -c:v libx264 -crf 23 -preset medium -c:a aac %OUTPUT_1%</item>
+        <item>-i %INPUT% -c copy %OUTPUT_1%</item>
+        <item>-i %INPUT% -vn -c:a libmp3lame -b:a 192k %OUTPUT_1%</item>
+        <item>-i %INPUT_1% -i %INPUT_2% -map 0:v:0 -map 1:a:0 -c:v copy -c:a aac %OUTPUT_1%</item>
+    </string-array>
+    <string name="custom_command_parser_empty">Command arguments cannot be empty</string>
+    <string name="custom_command_parser_unclosed_quote">The command contains an unclosed quote</string>
+    <string name="custom_command_parser_input_placeholder">Keep an input placeholder as a standalone argument, for example %INPUT_1%</string>
+    <string name="custom_command_parser_output_placeholder">Keep an output placeholder as a standalone argument, for example %OUTPUT_1%</string>
+    <string name="custom_command_parser_invalid_input">Invalid input placeholder: %1$s</string>
+    <string name="custom_command_parser_invalid_output">Invalid output placeholder: %1$s</string>
+    <string name="custom_command_parser_ffmpeg_prefix_empty">Please enter FFmpeg arguments after the ffmpeg prefix</string>
+    <string name="custom_command_worker_missing_id">Missing custom command session ID</string>
+    <string name="custom_command_worker_read_session">Unable to read custom command session: %1$s</string>
+    <string name="custom_command_worker_session_missing">Custom command session does not exist</string>
+    <string name="custom_command_worker_create_input_directory">Unable to create the temporary input directory</string>
+    <string name="custom_command_worker_create_output_directory">Unable to create the temporary output directory</string>
+    <string name="custom_command_worker_input_index">Input file index is out of range</string>
+    <string name="custom_command_worker_create_input_cache">Unable to create the input cache directory</string>
+    <string name="custom_command_worker_read_input">Unable to read input file: %1$s</string>
+    <string name="custom_command_worker_copy_input">Failed to read input file: %1$s
+%2$s</string>
+    <string name="custom_command_worker_empty_input">Input file is empty: %1$s</string>
+    <string name="custom_command_worker_delete_stale_output">Unable to remove stale temporary output: %1$s</string>
+    <string name="custom_command_worker_output_not_created">No output target was created for: %1$s</string>
+    <string name="custom_command_worker_output_missing">FFmpeg did not produce an output file: %1$s</string>
+    <string name="custom_command_worker_public_output_dir">Unable to create output directory: %1$s</string>
+    <string name="custom_command_worker_invalid_output_tree">Invalid output directory URI</string>
+    <string name="custom_command_worker_output_permission">Output folder permission has expired. Choose the folder again.</string>
+    <string name="custom_command_worker_create_saf_file">Unable to create a file in the selected output folder: %1$s</string>
+    <string name="custom_command_worker_open_document">Unable to open the selected output file</string>
+    <string name="custom_command_worker_invalid_template">Invalid output filename template</string>
+    <string name="custom_command_worker_cancelled">Operation cancelled</string>
+    <string name="custom_command_worker_no_ffmpeg_session">FFmpeg did not return an execution session</string>
+    <string name="custom_command_worker_item_failed">Item %1$d failed, return code: %2$s
+%3$s</string>
+    <string name="custom_command_worker_publish_failed">Item %1$d executed, but publishing output failed: %2$s</string>
+    <string name="custom_command_worker_complete_count">%1$d/%2$d items succeeded</string>
+    <string name="custom_command_worker_failed_generic">Custom command execution failed</string>
+    <string name="custom_command_output_file_default_name">custom_output.mp4</string>
+    <string name="custom_command_output_custom_path_missing">The custom output folder in app settings is not configured or its permission has expired. Choose an output folder.</string>
+    <string name="custom_command_output_folder_permission_missing">The selected output folder cannot be accessed persistently. Choose it again and grant access.</string>
+    <string name="custom_command_output_file_permission_missing">The selected output file cannot be accessed persistently. Choose the output file again.</string>
 </resources>
