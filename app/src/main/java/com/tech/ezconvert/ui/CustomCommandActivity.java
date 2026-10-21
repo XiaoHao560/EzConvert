@@ -136,6 +136,8 @@ public class CustomCommandActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom_command);
+        // 设置进入动画
+        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         presetManager = new CustomCommandPresetManager(this);
 
         MaterialToolbar toolbar = findViewById(R.id.custom_command_toolbar);
@@ -1491,5 +1493,12 @@ public class CustomCommandActivity extends BaseActivity {
         String documentUri = "";
         String documentName = "";
         String commandPath = "";
+    }
+    
+    @Override
+    public void finish() {
+        super.finish();
+        // 设置退出动画
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 }
