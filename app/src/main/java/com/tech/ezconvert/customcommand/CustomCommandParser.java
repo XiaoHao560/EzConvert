@@ -118,9 +118,23 @@ public final class CustomCommandParser {
         return OUTPUT_PLACEHOLDER.matcher(token).matches();
     }
 
+    /**
+     * 检查参数中是否包含空白字符，避免为简单字符判断启动正则表达式引擎
+     * 与 Java 正则表达式默认的 \s 范围保持一致
+     */
+    private static boolean containsWhitespace(String value) {
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            if (c == ' ' || (c >= '\t' && c <= '\r')) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static String quoteForDisplay(String arg) {
         if (arg == null) return "\"\"";
-        if (arg.isEmpty() || arg.matches(".*\\s+.*") || arg.contains("\"") || arg.contains("'")) {
+        if (arg.isEmpty() || containsWhitespace(arg) || arg.contains("\"") || arg.contains("'")) {
             return "\"" + arg.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
         }
         return arg;
