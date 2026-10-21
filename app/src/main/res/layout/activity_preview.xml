@@ -94,7 +94,7 @@
              app:titleMarginTop="20dp"
              app:navigationIcon="@drawable/round_arrow_back"
              app:titleTextColor="?attr/colorOnSurface"
-             app:navigationContentDescription="@string/tooltip_back_home"
+             app:navigationContentDescription="@string/tooltip_back"
              android:id="@+id/title_container">
 
         </com.google.android.material.appbar.MaterialToolbar>
