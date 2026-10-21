@@ -44,6 +44,28 @@
              app:iconTint="?attr/colorPrimary"
              android:textColor="?attr/colorOnSurface"
              android:minWidth="0dp"
+             app:icon="@drawable/round_code"
+             android:gravity="start|center_vertical"
+             android:minHeight="0dp"
+             style="@style/Widget.Material3.Button.TextButton"
+             android:paddingHorizontal="12dp"
+             android:id="@+id/action_custom_command"
+             android:text="@string/popup_custom_command"
+             app:iconGravity="textStart" />
+
+        <com.google.android.material.divider.MaterialDivider
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:layout_marginVertical="4dp"
+             app:dividerColor="?attr/colorOutlineVariant"
+             app:dividerThickness="1dp" />
+
+        <com.google.android.material.button.MaterialButton
+             android:layout_height="wrap_content"
+             android:layout_width="wrap_content"
+             app:iconTint="?attr/colorPrimary"
+             android:textColor="?attr/colorOnSurface"
+             android:minWidth="0dp"
              app:icon="@drawable/cog_outline"
              android:gravity="start|center_vertical"
              android:minHeight="0dp"

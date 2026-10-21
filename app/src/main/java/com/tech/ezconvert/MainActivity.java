@@ -31,6 +31,7 @@ import com.tech.ezconvert.ui.BaseActivity;
 import com.tech.ezconvert.ui.EzPopupMenu;
 import com.tech.ezconvert.ui.ParameterDialogFragment;
 import com.tech.ezconvert.ui.PreviewActivity;
+import com.tech.ezconvert.ui.CustomCommandActivity;
 import com.tech.ezconvert.ui.SettingsMainActivity;
 import com.tech.ezconvert.ui.WelcomeActivity;
 import com.tech.ezconvert.utils.AnimationUtils;
@@ -203,11 +204,20 @@ public class MainActivity extends BaseActivity implements
             @Override
             public void onPreviewClick() {
                 Intent intent = new Intent(MainActivity.this, PreviewActivity.class);
+                intent.putExtra(PreviewActivity.EXTRA_RETURN_TARGET, PreviewActivity.RETURN_TARGET_MAIN);
                 if (!currentInputPath.isEmpty()) {
                     intent.putExtra("file_path", currentInputPath);
                     Uri uri = queueManager.getCurrentUri();
                     if (uri != null) intent.putExtra("file_uri", uri.toString());
                 }
+                ActivityOptionsCompat options = ActivityOptionsCompat.makeCustomAnimation(
+                        MainActivity.this, R.anim.slide_in_right, R.anim.slide_out_left);
+                ActivityCompat.startActivity(MainActivity.this, intent, options.toBundle());
+            }
+
+            @Override
+            public void onCustomCommandClick() {
+                Intent intent = new Intent(MainActivity.this, CustomCommandActivity.class);
                 ActivityOptionsCompat options = ActivityOptionsCompat.makeCustomAnimation(
                         MainActivity.this, R.anim.slide_in_right, R.anim.slide_out_left);
                 ActivityCompat.startActivity(MainActivity.this, intent, options.toBundle());
