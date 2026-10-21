@@ -961,8 +961,7 @@
     <string name="custom_command_worker_input_index">输入文件索引超出范围</string>
     <string name="custom_command_worker_create_input_cache">无法创建输入缓存目录</string>
     <string name="custom_command_worker_read_input">无法读取输入文件：%1$s</string>
-    <string name="custom_command_worker_copy_input">读取输入文件失败：%1$s
-%2$s</string>
+    <string name="custom_command_worker_copy_input">读取输入文件失败：%1$s\n%2$s</string>
     <string name="custom_command_worker_empty_input">输入文件为空：%1$s</string>
     <string name="custom_command_worker_delete_stale_output">无法清理旧的临时输出：%1$s</string>
     <string name="custom_command_worker_output_not_created">没有创建对应的输出目标：%1$s</string>
@@ -975,8 +974,7 @@
     <string name="custom_command_worker_invalid_template">输出文件名模板无效</string>
     <string name="custom_command_worker_cancelled">操作已取消</string>
     <string name="custom_command_worker_no_ffmpeg_session">FFmpeg 没有返回执行会话</string>
-    <string name="custom_command_worker_item_failed">第 %1$d 项执行失败，返回码：%2$s
-%3$s</string>
+    <string name="custom_command_worker_item_failed">第 %1$d 项执行失败，返回码：%2$s\n%3$s</string>
     <string name="custom_command_worker_publish_failed">第 %1$d 项执行成功，但发布输出文件失败：%2$s</string>
     <string name="custom_command_worker_complete_count">%1$d/%2$d 项成功</string>
     <string name="custom_command_worker_failed_generic">自定义命令执行失败</string>

@@ -961,8 +961,7 @@
     <string name="custom_command_worker_input_index">Input file index is out of range</string>
     <string name="custom_command_worker_create_input_cache">Unable to create the input cache directory</string>
     <string name="custom_command_worker_read_input">Unable to read input file: %1$s</string>
-    <string name="custom_command_worker_copy_input">Failed to read input file: %1$s
-%2$s</string>
+    <string name="custom_command_worker_copy_input">Failed to read input file: %1$s\n%2$s</string>
     <string name="custom_command_worker_empty_input">Input file is empty: %1$s</string>
     <string name="custom_command_worker_delete_stale_output">Unable to remove stale temporary output: %1$s</string>
     <string name="custom_command_worker_output_not_created">No output target was created for: %1$s</string>
@@ -975,8 +974,7 @@
     <string name="custom_command_worker_invalid_template">Invalid output filename template</string>
     <string name="custom_command_worker_cancelled">Operation cancelled</string>
     <string name="custom_command_worker_no_ffmpeg_session">FFmpeg did not return an execution session</string>
-    <string name="custom_command_worker_item_failed">Item %1$d failed, return code: %2$s
-%3$s</string>
+    <string name="custom_command_worker_item_failed">Item %1$d failed, return code: %2$s\n%3$s</string>
     <string name="custom_command_worker_publish_failed">Item %1$d executed, but publishing output failed: %2$s</string>
     <string name="custom_command_worker_complete_count">%1$d/%2$d items succeeded</string>
     <string name="custom_command_worker_failed_generic">Custom command execution failed</string>
