@@ -1077,7 +1077,10 @@ public class CustomCommandActivity extends BaseActivity {
         // WorkManager 只接收会话 ID，完整命令和 URI 列表由会话文件承载
         Data input = new Data.Builder().putString(CustomCommandWorker.KEY_SESSION_ID, session.id).build();
         OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(CustomCommandWorker.class)
-                .setInputData(input).addTag("custom-command").build();
+                .setInputData(input)
+                .addTag("custom-command")
+                .addTag("custom-command-session-" + session.id)
+                .build();
         WorkManager.getInstance(this).enqueue(request);
         observedWorkId = request.getId();
         activeSessionId = session.id;
