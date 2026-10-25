@@ -22,11 +22,14 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class ConfigManager {
     private static final String TAG = "ConfigManager";
@@ -500,23 +503,163 @@ public class ConfigManager {
     }
 
     private void setSetting(String category, String key, Object value) {
+        StackTraceElement caller = captureSettingCaller();
         try {
             if (settingsMap == null) {
                 loadSettings();
             }
-            
+
             @SuppressWarnings("unchecked")
             Map<String, Object> categoryMap = (Map<String, Object>) settingsMap.get(category);
             if (categoryMap == null) {
                 categoryMap = new HashMap<>();
                 settingsMap.put(category, categoryMap);
             }
-            
+
+            boolean hadPreviousValue = categoryMap.containsKey(key);
+            Object previousValue = categoryMap.get(key);
+            if (hadPreviousValue && areSettingValuesEqual(previousValue, value)) {
+                return;
+            }
+
             categoryMap.put(key, value);
+            logSettingChange(category + "." + key, hadPreviousValue, previousValue, true, value, caller);
             saveSettings(); // 保存时会自动更新元数据
         } catch (Exception e) {
             Log.e(TAG, "Error setting value: " + category + "." + key, e);
         }
+    }
+
+    /**
+     * 找到 ConfigManager 外部真正触发设置修改的调用位置，跳过本类内部的设置封装方法
+     */
+    private StackTraceElement captureSettingCaller() {
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        String configManagerClassName = ConfigManager.class.getName();
+        for (StackTraceElement element : stackTrace) {
+            String className = element.getClassName();
+            if (className.equals(Thread.class.getName())
+                    || className.startsWith("java.lang.Thread")
+                    || className.startsWith("dalvik.")) {
+                continue;
+            }
+            if (className.equals(configManagerClassName)
+                    || className.startsWith(configManagerClassName + "$")) {
+                continue;
+            }
+            if (element.getFileName() != null) {
+                return element;
+            }
+        }
+        return null;
+    }
+
+    private boolean areSettingValuesEqual(Object first, Object second) {
+        if (first == second) {
+            return true;
+        }
+        if (first == null || second == null) {
+            return false;
+        }
+        if (first instanceof Number && second instanceof Number) {
+            try {
+                return new BigDecimal(first.toString()).compareTo(new BigDecimal(second.toString())) == 0;
+            } catch (NumberFormatException ignored) {
+                return Double.compare(((Number) first).doubleValue(), ((Number) second).doubleValue()) == 0;
+            }
+        }
+        return first.equals(second);
+    }
+
+    private void logSettingChange(String settingPath, boolean hadPreviousValue, Object previousValue,
+                                  boolean hasNewValue, Object newValue, StackTraceElement caller) {
+        String oldValue = hadPreviousValue ? formatSettingValue(previousValue) : "<未设置>";
+        String updatedValue = hasNewValue ? formatSettingValue(newValue) : "<未设置>";
+        Log.dWithCaller(TAG, "设置变更：" + settingPath + "\n" + oldValue + " → " + updatedValue, caller);
+    }
+
+    private String formatSettingValue(Object value) {
+        if (value == null) {
+            return "null";
+        }
+        if (value instanceof String) {
+            String text = (String) value;
+            if (text.isEmpty()) {
+                return "\"\"";
+            }
+            return text.replace("\\", "\\\\")
+                    .replace("\r", "\\r")
+                    .replace("\n", "\\n")
+                    .replace("\t", "\\t");
+        }
+        if (value instanceof Number) {
+            try {
+                return new BigDecimal(value.toString()).stripTrailingZeros().toPlainString();
+            } catch (NumberFormatException ignored) {
+                return String.valueOf(value);
+            }
+        }
+        if (value instanceof Boolean) {
+            return String.valueOf(value);
+        }
+        return gson.toJson(value);
+    }
+
+    /**
+     * 配置恢复会整体替换 settingsMap，因此需要递归比较新旧配置，记录每个实际变化的配置项
+     */
+    private void logConfigDifferences(Map<String, Object> oldSettings, Map<String, Object> newSettings,
+                                      StackTraceElement caller) {
+        Map<String, Object> oldValues = flattenSettingsForDiff(oldSettings);
+        Map<String, Object> newValues = flattenSettingsForDiff(newSettings);
+        Set<String> settingPaths = new TreeSet<>();
+        settingPaths.addAll(oldValues.keySet());
+        settingPaths.addAll(newValues.keySet());
+
+        for (String settingPath : settingPaths) {
+            boolean hadPreviousValue = oldValues.containsKey(settingPath);
+            boolean hasNewValue = newValues.containsKey(settingPath);
+            Object previousValue = oldValues.get(settingPath);
+            Object newValue = newValues.get(settingPath);
+            if (hadPreviousValue == hasNewValue
+                    && (!hadPreviousValue || areSettingValuesEqual(previousValue, newValue))) {
+                continue;
+            }
+            logSettingChange(settingPath, hadPreviousValue, previousValue, hasNewValue, newValue, caller);
+        }
+    }
+
+    private Map<String, Object> flattenSettingsForDiff(Map<String, Object> settings) {
+        Map<String, Object> flattened = new HashMap<>();
+        if (settings == null) {
+            return flattened;
+        }
+        for (Map.Entry<String, Object> entry : settings.entrySet()) {
+            // app_info 是保存时自动维护的元数据，不作为普通设置变更记录
+            if ("app_info".equals(entry.getKey())) {
+                continue;
+            }
+            collectSettingLeaves(entry.getKey(), entry.getValue(), flattened);
+        }
+        return flattened;
+    }
+
+    private void collectSettingLeaves(String path, Object value, Map<String, Object> flattened) {
+        if (value instanceof Map) {
+            Map<?, ?> nestedValues = (Map<?, ?>) value;
+            if (nestedValues.isEmpty()) {
+                flattened.put(path, value);
+                return;
+            }
+            for (Map.Entry<?, ?> entry : nestedValues.entrySet()) {
+                String childPath = path.isEmpty()
+                        ? String.valueOf(entry.getKey())
+                        : path + "." + entry.getKey();
+                collectSettingLeaves(childPath, entry.getValue(), flattened);
+            }
+            return;
+        }
+        flattened.put(path, value);
     }
     
     // 获取配置文件元数据
@@ -900,9 +1043,21 @@ public class ConfigManager {
     }
     
     public boolean restoreConfig(File backupFile) {
+        StackTraceElement caller = captureSettingCaller();
         try (FileReader reader = new FileReader(backupFile)) {
             Type type = new TypeToken<Map<String, Object>>(){}.getType();
-            settingsMap = gson.fromJson(reader, type);
+            Map<String, Object> restoredSettings = gson.fromJson(reader, type);
+            if (restoredSettings == null) {
+                Log.e(TAG, "Restore failed: backup config is empty");
+                return false;
+            }
+
+            if (settingsMap == null) {
+                loadSettings();
+            }
+            Map<String, Object> previousSettings = settingsMap;
+            logConfigDifferences(previousSettings, restoredSettings, caller);
+            settingsMap = restoredSettings;
             saveSettings();
             return true;
         } catch (Exception e) {
