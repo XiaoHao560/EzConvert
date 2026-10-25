@@ -88,6 +88,51 @@ public class Log {
         return android.util.Log.d(tag, fullMsg);
     }
 
+    /**
+     * 使用指定的调用位置输出 DEBUG 日志，避免记录日志的方法被误认为实际调用者
+     */
+    public static int dWithCaller(String tag, String msg, StackTraceElement caller) {
+        StringBuilder fullMessage = new StringBuilder(msg == null ? "" : msg);
+        if (caller != null) {
+            String className = caller.getClassName();
+            int packageSeparator = className.lastIndexOf('.');
+            if (packageSeparator >= 0) {
+                className = className.substring(packageSeparator + 1);
+            }
+
+            String fileName = caller.getFileName();
+            if (fileName == null || fileName.isEmpty()) {
+                fileName = className;
+            }
+            String lineNumber = caller.getLineNumber() >= 0
+                    ? String.valueOf(caller.getLineNumber())
+                    : "未知";
+
+            if (fullMessage.length() > 0) {
+                fullMessage.append("\n");
+            }
+            fullMessage.append("调用者：")
+                    .append(className)
+                    .append(".")
+                    .append(caller.getMethodName())
+                    .append("（")
+                    .append(fileName)
+                    .append(":")
+                    .append(lineNumber)
+                    .append("）");
+        } else {
+            if (fullMessage.length() > 0) {
+                fullMessage.append("\n");
+            }
+            fullMessage.append("调用者：未知");
+        }
+
+        String formattedMessage = fullMessage.toString();
+        LogManager instance = getSafeInstance();
+        if (instance != null) instance.addAppLog(DEBUG, tag, formattedMessage, null);
+        return android.util.Log.d(tag, formattedMessage);
+    }
+
     public static int d(String tag, String msg, Throwable tr) {
         LogManager instance = getSafeInstance();
         String fullMsg = appendCallerInfo(msg);
