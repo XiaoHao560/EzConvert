@@ -32,6 +32,7 @@ import com.tech.ezconvert.customcommand.CustomCommandParser;
 import com.tech.ezconvert.customcommand.CustomCommandSession;
 import com.tech.ezconvert.customcommand.CustomCommandSessionStore;
 import com.tech.ezconvert.utils.ConfigManager;
+import com.tech.ezconvert.utils.LanguageManager;
 import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.utils.LogManager;
 import com.tech.ezconvert.utils.NotificationHelper;
@@ -72,7 +73,7 @@ public class CustomCommandWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-        Context context = getApplicationContext();
+        Context context = LanguageManager.applySavedLanguage(getApplicationContext());
         String sessionId = getInputData().getString(KEY_SESSION_ID);
         if (TextUtils.isEmpty(sessionId)) return failure(context.getString(com.tech.ezconvert.R.string.custom_command_worker_missing_id));
 
