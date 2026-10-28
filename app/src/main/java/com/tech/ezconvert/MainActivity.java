@@ -535,6 +535,8 @@ public class MainActivity extends BaseActivity implements
     }
 
     private void resetProgressUI() {
+        // clearAnimation 不会取消 ObjectAnimator，需要显式停止进度属性动画
+        AnimationUtils.cancelProgressAnimation(progressBar);
         progressBar.clearAnimation();
         progressBar.setProgress(0);
         progressText.setText(getString(R.string.progress_default));
@@ -577,6 +579,8 @@ public class MainActivity extends BaseActivity implements
 
     // 将 Worker 的进度数据转换为页面上的进度条、文字和取消按钮状态
     private void updateProgressUI(int progress, long time) {
+        // 取消任务后，主线程队列中可能仍有尚未执行的进度回调，不能再覆盖已重置的 UI
+        if (!isTaskRunning) return;
         AnimationUtils.animateProgressSmoothly(progressBar, progress);
         progressText.setText(getString(R.string.progress_text, progress));
         AnimationUtils.animateStatusUpdate(progressText);

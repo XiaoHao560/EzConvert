@@ -10,7 +10,12 @@ import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.ProgressBar;
 
+import java.util.WeakHashMap;
+import java.util.Map;
+
 public class AnimationUtils {
+
+    private static final Map<ProgressBar, ObjectAnimator> progressAnimators = new WeakHashMap<>();
     
     // 按钮点击动画
     public static void animateButtonClick(View view) {
@@ -52,12 +57,37 @@ public class AnimationUtils {
             .start();
     }
     
-    // 进度条平滑动画
+    // 进度条平滑动画，同一进度条只保留一个动画，避免旧动画覆盖最新状态
     public static void animateProgressSmoothly(ProgressBar progressBar, int progress) {
-        ObjectAnimator progressAnimator = ObjectAnimator.ofInt(progressBar, "progress", progress);
+        cancelProgressAnimation(progressBar);
+        ObjectAnimator progressAnimator = ObjectAnimator.ofInt(progressBar, "progress", progressBar.getProgress(), progress);
         progressAnimator.setDuration(300);
         progressAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+        progressAnimators.put(progressBar, progressAnimator);
+        progressAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                if (progressAnimators.get(progressBar) == animation) {
+                    progressAnimators.remove(progressBar);
+                }
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                if (progressAnimators.get(progressBar) == animation) {
+                    progressAnimators.remove(progressBar);
+                }
+            }
+        });
         progressAnimator.start();
+    }
+
+    // 重置进度前取消属性动画，防止动画结束后再次写入旧进度
+    public static void cancelProgressAnimation(ProgressBar progressBar) {
+        ObjectAnimator animator = progressAnimators.remove(progressBar);
+        if (animator != null) {
+            animator.cancel();
+        }
     }
     
     // 淡入动画
