@@ -308,6 +308,7 @@
     <string name="notification_enable">启用通知</string>
     <string name="notification_enable_desc">显示转换进度和完成提示</string>
     <string name="notification_explanation">开启后，转换过程中会显示进度通知，完成后会显示成功或失败提示。需要系统通知权限</string>
+    <string name="notification_foreground_start_failed">无法启动后台任务通知，请重试</string>
 
     <string name="update_settings_title">更新设置</string>
     <string name="auto_check_update">自动检测更新</string>
@@ -542,6 +543,7 @@
     <string name="notification_channel_complete_name">转换完成</string>
     <string name="notification_channel_complete_desc">转换成功或失败的通知</string>
     <string name="notification_progress_title">正在转换: %s</string>
+    <string name="notification_progress_indeterminate">正在处理中</string>
     <string name="notification_progress_text">进度: %d%%</string>
     <string name="notification_complete_title_success">转换完成</string>
     <string name="notification_complete_title_fail">转换失败</string>

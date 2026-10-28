@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import androidx.annotation.NonNull;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.concurrent.futures.CallbackToFutureAdapter;
 import androidx.work.Data;
 import androidx.work.ForegroundInfo;
@@ -38,6 +39,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * FFmpeg 后台 Worker
@@ -67,11 +71,13 @@ public class FfmpegWorker extends ListenableWorker {
     public static final String KEY_ERROR_MESSAGE = "error_message";
 
     private static final int NOTIFICATION_ID = 1001;
+    // 前台通知切换和文件准备均放到后台线程，避免阻塞 ListenableWorker 的启动线程
+    private static final ExecutorService WORK_EXECUTOR = Executors.newCachedThreadPool();
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private volatile boolean isCancelled = false;
     private FFmpegSession currentSession = null;
-    private long totalDurationMs = -1;
+    private volatile long totalDurationMs = -1;
     private final Gson gson = new Gson();
 
     public FfmpegWorker(@NonNull Context context, @NonNull WorkerParameters params) {
@@ -91,7 +97,10 @@ public class FfmpegWorker extends ListenableWorker {
             String outputPathBase = inputData.getString(KEY_OUTPUT_PATH_BASE);
             String outputTreeUriString = inputData.getString(KEY_OUTPUT_TREE_URI);
             String paramsJson = inputData.getString(KEY_PARAMS_JSON);
-            String fileName = inputData.getString(KEY_FILE_NAME);
+            String suppliedFileName = inputData.getString(KEY_FILE_NAME);
+            String fileName = suppliedFileName == null || suppliedFileName.trim().isEmpty()
+                    ? context.getString(com.tech.ezconvert.R.string.notification_file_placeholder)
+                    : suppliedFileName;
             int taskIndex = inputData.getInt(KEY_TASK_INDEX, 1);
             int totalTasks = inputData.getInt(KEY_TOTAL_TASKS, 1);
 
@@ -104,63 +113,147 @@ public class FfmpegWorker extends ListenableWorker {
                 return "ffmpeg-work";
             }
 
-            ParameterData params = gson.fromJson(paramsJson, ParameterData.class);
-            String outputPath = FfmpegCommandBuilder.buildOutputPath(outputPathBase, params);
-
-            // 记录任务开始标记
-            String workIdStr = getId().toString();
-            LogManager.getInstance(context).appendFfmpegLog(
-                    "=== Task [" + workIdStr + "] START | " + fileName
-                            + " (" + taskIndex + "/" + totalTasks + ") ===",
-                    Level.AV_LOG_INFO
-            );
-
-            // 准备缓存文件
-            CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath, inputUri);
-            if (accessResult == null) {
-                LogManager.getInstance(context).appendFfmpegLog(
-                        "=== Task [" + workIdStr + "] END (FAILED: 无法访问输入文件) ===",
-                        Level.AV_LOG_ERROR
-                );
-                completer.set(Result.failure(new Data.Builder()
-                        .putString(KEY_ERROR_MESSAGE, "无法访问输入文件")
-                        .build()));
+            // 先请求 WorkManager 将任务切换到前台，再异步准备文件，避免阻塞 startWork 的调用线程
+            Notification initialNotification = NotificationHelper.buildProgressNotification(context, fileName, 0, true);
+            ListenableFuture<Void> foregroundFuture;
+            try {
+                foregroundFuture = setForegroundAsync(createForegroundInfo(initialNotification));
+            } catch (Exception e) {
+                Log.e(TAG, "无法请求建立前台进度通知", e);
+                completeForegroundStartFailure(context, taskIndex, completer);
                 return "ffmpeg-work";
             }
 
-            final String usablePath = accessResult.usablePath;
-            final boolean isFromCache = accessResult.isFromCache;
-
-            // 生成命令
-            String[] command = FfmpegCommandBuilder.buildCommand(usablePath, outputPath, params, context);
-            String commandString = buildCommandString(command);
-            Log.d(TAG, "Worker 执行命令: " + commandString);
-
-            // 获取视频时长用于进度计算
-            getVideoDuration(usablePath, durationMs -> {
-                totalDurationMs = durationMs;
-
-                // 设置前台通知（Worker 必须持有前台通知，否则系统可能终止任务）
-                // Android 14+ 必须指定 foregroundServiceType
-                Notification notification = NotificationHelper.buildProgressNotification(context, fileName, 0);
-                ForegroundInfo foregroundInfo;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                    foregroundInfo = new ForegroundInfo(
-                            NOTIFICATION_ID,
-                            notification,
-                            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-                    );
-                } else {
-                    foregroundInfo = new ForegroundInfo(NOTIFICATION_ID, notification);
+            final String taskFileName = fileName;
+            foregroundFuture.addListener(() -> {
+                try {
+                    // 监听器运行时前台切换 Future 已结束，不会在启动线程上等待服务启动
+                    foregroundFuture.get();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    Log.e(TAG, "等待前台通知建立时被中断", e);
+                    completeForegroundStartFailure(context, taskIndex, completer);
+                    return;
+                } catch (ExecutionException e) {
+                    Throwable cause = e.getCause() != null ? e.getCause() : e;
+                    Log.e(TAG, "无法建立前台进度通知", cause);
+                    completeForegroundStartFailure(context, taskIndex, completer);
+                    return;
+                } catch (Exception e) {
+                    Log.e(TAG, "建立前台进度通知时发生异常", e);
+                    completeForegroundStartFailure(context, taskIndex, completer);
+                    return;
                 }
-                setForegroundAsync(foregroundInfo);
 
-                // 执行 FFmpeg
-                executeFfmpeg(commandString, fileName, outputPath, outputTreeUriString, usablePath, isFromCache, workIdStr, taskIndex, completer);
-            });
+                // WorkManager 负责建立前台服务，后续通知内容使用 NotificationManager 直接更新
+                postProgressNotification(context, initialNotification);
+                try {
+                    prepareAndRun(context, inputPath, inputUri, outputPathBase, outputTreeUriString,
+                            paramsJson, taskFileName, taskIndex, totalTasks, completer);
+                } catch (Exception e) {
+                    Log.e(TAG, "准备 FFmpeg 任务失败", e);
+                    String message = e.getMessage();
+                    if (message == null || message.trim().isEmpty()) {
+                        message = context.getString(com.tech.ezconvert.R.string.error_unknown);
+                    }
+                    completer.set(Result.failure(new Data.Builder()
+                            .putString(KEY_ERROR_MESSAGE, message)
+                            .putInt(KEY_TASK_INDEX, taskIndex)
+                            .build()));
+                }
+            }, WORK_EXECUTOR);
 
             return "ffmpeg-work";
         });
+    }
+
+    private ForegroundInfo createForegroundInfo(Notification notification) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            return new ForegroundInfo(
+                    NOTIFICATION_ID,
+                    notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+            );
+        }
+        return new ForegroundInfo(NOTIFICATION_ID, notification);
+    }
+
+    private void completeForegroundStartFailure(Context context, int taskIndex,
+                                                CallbackToFutureAdapter.Completer<Result> completer) {
+        String message = context.getString(com.tech.ezconvert.R.string.notification_foreground_start_failed);
+        completer.set(Result.failure(new Data.Builder()
+                .putString(KEY_ERROR_MESSAGE, message)
+                .putInt(KEY_TASK_INDEX, taskIndex)
+                .build()));
+    }
+
+    private void prepareAndRun(Context context, String inputPath, Uri inputUri,
+                               String outputPathBase, String outputTreeUriString, String paramsJson,
+                               String fileName, int taskIndex, int totalTasks,
+                               CallbackToFutureAdapter.Completer<Result> completer) throws Exception {
+        if (isCancelled || isStopped()) {
+            completer.set(Result.failure(new Data.Builder()
+                    .putString(KEY_ERROR_MESSAGE, context.getString(com.tech.ezconvert.R.string.error_cancelled))
+                    .putInt(KEY_TASK_INDEX, taskIndex)
+                    .build()));
+            return;
+        }
+
+        ParameterData params = gson.fromJson(paramsJson, ParameterData.class);
+        String outputPath = FfmpegCommandBuilder.buildOutputPath(outputPathBase, params);
+
+        // 记录任务开始标记
+        String workIdStr = getId().toString();
+        LogManager.getInstance(context).appendFfmpegLog(
+                "=== Task [" + workIdStr + "] START | " + fileName
+                        + " (" + taskIndex + "/" + totalTasks + ") ===",
+                Level.AV_LOG_INFO
+        );
+
+        // 准备缓存文件
+        CacheManager.AccessResult accessResult = CacheManager.prepareFileForProcessing(context, inputPath, inputUri);
+        if (accessResult == null) {
+            LogManager.getInstance(context).appendFfmpegLog(
+                    "=== Task [" + workIdStr + "] END (FAILED: 无法访问输入文件) ===",
+                    Level.AV_LOG_ERROR
+            );
+            completer.set(Result.failure(new Data.Builder()
+                    .putString(KEY_ERROR_MESSAGE, "无法访问输入文件")
+                    .putInt(KEY_TASK_INDEX, taskIndex)
+                    .build()));
+            return;
+        }
+
+        final String usablePath = accessResult.usablePath;
+        final boolean isFromCache = accessResult.isFromCache;
+
+        // 生成命令
+        String[] command = FfmpegCommandBuilder.buildCommand(usablePath, outputPath, params, context);
+        String commandString = buildCommandString(command);
+        Log.d(TAG, "Worker 执行命令: " + commandString);
+
+        // 获取视频时长用于进度计算
+        getVideoDuration(usablePath, durationMs -> {
+            totalDurationMs = durationMs;
+            updateProgressNotification(context, fileName, 0, durationMs <= 0);
+            executeFfmpeg(commandString, fileName, outputPath, outputTreeUriString, usablePath,
+                    isFromCache, workIdStr, taskIndex, completer);
+        });
+    }
+
+    private void updateProgressNotification(Context context, String fileName, int progress, boolean indeterminate) {
+        Notification notification = NotificationHelper.buildProgressNotification(context, fileName, progress, indeterminate);
+        // 前台通知建立后使用同一个通知 ID 更新，避免多次异步 setForegroundAsync 覆盖进度
+        postProgressNotification(context, notification);
+    }
+
+    private void postProgressNotification(Context context, Notification notification) {
+        try {
+            NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification);
+        } catch (Exception e) {
+            // 通知权限或系统通知服务异常不应中断实际转码任务
+            Log.w(TAG, "发布进度通知失败", e);
+        }
     }
 
     private void executeFfmpeg(String commandString, String fileName, String outputPath, String outputTreeUriString,
@@ -246,36 +339,26 @@ public class FfmpegWorker extends ListenableWorker {
             public void apply(Statistics statistics) {
                 if (isCancelled) return;
 
-                int timeInMs = (int) statistics.getTime();
+                long mediaTimeMs = Math.max(0L, Math.round(statistics.getTime()));
+                long durationMs = totalDurationMs;
+                boolean indeterminate = durationMs <= 0L;
                 int progress = 0;
 
-                if (totalDurationMs > 0) {
-                    progress = (int) ((timeInMs * 100.0) / totalDurationMs);
+                if (!indeterminate) {
+                    progress = (int) ((mediaTimeMs * 100.0) / durationMs);
                     progress = Math.min(100, Math.max(0, progress));
                 }
 
-                // 通过 WorkManager 进度机制上报
+                // 通过 WorkManager 进度机制上报，媒体时间使用 long 避免长文件发生整数溢出
                 Data progressData = new Data.Builder()
                         .putInt(KEY_PROGRESS, progress)
-                        .putLong(KEY_TIME, timeInMs)
+                        .putLong(KEY_TIME, mediaTimeMs)
                         .putString(KEY_STATUS, "RUNNING")
                         .build();
                 setProgressAsync(progressData);
 
-                // 更新前台通知进度
-                Notification notification = NotificationHelper.buildProgressNotification(
-                        context, fileName, progress);
-                ForegroundInfo foregroundInfo;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                    foregroundInfo = new ForegroundInfo(
-                            NOTIFICATION_ID,
-                            notification,
-                            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-                    );
-                } else {
-                    foregroundInfo = new ForegroundInfo(NOTIFICATION_ID, notification);
-                }
-                setForegroundAsync(foregroundInfo);
+                // WorkManager 启动前台服务后，通过 NotificationManager 更新同一个通知 ID
+                updateProgressNotification(context, fileName, progress, indeterminate);
             }
         });
     }

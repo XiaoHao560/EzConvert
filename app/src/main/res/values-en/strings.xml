@@ -308,6 +308,7 @@
     <string name="notification_enable">Enable Notifications</string>
     <string name="notification_enable_desc">Show conversion progress and completion alerts</string>
     <string name="notification_explanation">When enabled, progress notifications will be shown during conversion, and success/failure alerts will be shown upon completion. System notification permission is required.</string>
+    <string name="notification_foreground_start_failed">Unable to start the background task notification. Please try again</string>
 
     <string name="update_settings_title">Update Settings</string>
     <string name="auto_check_update">Auto-check for Updates</string>
@@ -542,6 +543,7 @@
     <string name="notification_channel_complete_name">Conversion Complete</string>
     <string name="notification_channel_complete_desc">Notifications for conversion success or failure</string>
     <string name="notification_progress_title">Converting: %s</string>
+    <string name="notification_progress_indeterminate">Processing</string>
     <string name="notification_progress_text">Progress: %d%%</string>
     <string name="notification_complete_title_success">Conversion Complete</string>
     <string name="notification_complete_title_fail">Conversion Failed</string>

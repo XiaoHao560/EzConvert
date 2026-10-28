@@ -78,6 +78,12 @@ public class NotificationHelper {
      * 前台服务通知不依赖 POST_NOTIFICATIONS 权限
      */
     public static Notification buildProgressNotification(Context context, String fileName, int progress) {
+        return buildProgressNotification(context, fileName, progress, false);
+    }
+
+    /** 构建支持不确定进度状态的通知，避免未知媒体时长时进度条一直停留在 0% */
+    public static Notification buildProgressNotification(Context context, String fileName, int progress,
+                                                         boolean indeterminate) {
         Context localizedContext = getLocalizedContext(context);
         ensureChannelsCreated(localizedContext);
 
@@ -88,14 +94,17 @@ public class NotificationHelper {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
+        int clampedProgress = Math.max(0, Math.min(100, progress));
         String title = localizedContext.getString(R.string.notification_progress_title, fileName);
-        String text = localizedContext.getString(R.string.notification_progress_text, progress);
+        String text = indeterminate
+                ? localizedContext.getString(R.string.notification_progress_indeterminate)
+                : localizedContext.getString(R.string.notification_progress_text, clampedProgress);
 
         return new NotificationCompat.Builder(localizedContext, CHANNEL_ID_PROGRESS)
                 .setSmallIcon(R.drawable.ic_splash_logo)
                 .setContentTitle(title)
                 .setContentText(text)
-                .setProgress(100, progress, false)
+                .setProgress(indeterminate ? 0 : 100, clampedProgress, indeterminate)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setOngoing(true)
                 .setContentIntent(pendingIntent)
