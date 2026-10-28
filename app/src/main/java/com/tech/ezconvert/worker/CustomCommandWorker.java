@@ -14,6 +14,7 @@ import android.text.TextUtils;
 import android.webkit.MimeTypeMap;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.work.Data;
 import androidx.work.ForegroundInfo;
 import androidx.work.Worker;
@@ -85,6 +86,18 @@ public class CustomCommandWorker extends Worker {
         }
         if (session == null) return failure(context.getString(com.tech.ezconvert.R.string.custom_command_worker_session_missing));
 
+        // 会话数据可用后立即建立前台通知，避免准备输入文件时切到后台而没有进度通知
+        try {
+            establishForeground(context);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            Log.e("CustomCommandWorker", "等待前台通知建立时被中断", e);
+            return failure(context.getString(com.tech.ezconvert.R.string.notification_foreground_start_failed));
+        } catch (Exception e) {
+            Log.e("CustomCommandWorker", "无法建立前台进度通知", e);
+            return failure(context.getString(com.tech.ezconvert.R.string.notification_foreground_start_failed));
+        }
+
         File workDirectory = new File(new File(context.getFilesDir(), "custom_command_work"), session.id);
         File outputTempDirectory = new File(new File(context.getCacheDir(), "custom_command_output"), session.id);
         if (!workDirectory.exists() && !workDirectory.mkdirs()) return failure(context.getString(com.tech.ezconvert.R.string.custom_command_worker_create_input_directory));
@@ -93,7 +106,6 @@ public class CustomCommandWorker extends Worker {
         try {
             List<String> parsed = CustomCommandParser.parse(context, session.commandText);
             validateCommandForSession(context, session, parsed);
-            establishForeground(context);
             int total = "batch".equals(session.executionMode) ? session.inputs.size() : 1;
             long preparationStartedAt = System.currentTimeMillis();
             updateProgress(context, 0, "正在准备自定义命令", true, 1, Math.max(1, total), preparationStartedAt);
@@ -414,7 +426,8 @@ public class CustomCommandWorker extends Worker {
     }
 
     private void establishForeground(Context context) throws Exception {
-        Notification notification = NotificationHelper.buildProgressNotification(context, context.getString(com.tech.ezconvert.R.string.custom_command_title), 0);
+        Notification notification = NotificationHelper.buildProgressNotification(
+                context, context.getString(com.tech.ezconvert.R.string.custom_command_title), 0, true);
         ForegroundInfo info;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             info = new ForegroundInfo(9107, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
@@ -422,6 +435,17 @@ public class CustomCommandWorker extends Worker {
             info = new ForegroundInfo(9107, notification);
         }
         setForegroundAsync(info).get(15, TimeUnit.SECONDS);
+        // 前台状态建立后使用同一个通知 ID 发布初始内容，后续进度通过 NotificationManager 更新
+        postProgressNotification(context, notification);
+    }
+
+    private void postProgressNotification(Context context, Notification notification) {
+        try {
+            NotificationManagerCompat.from(context).notify(9107, notification);
+        } catch (Exception e) {
+            // 通知更新失败不应中断实际 FFmpeg 任务
+            Log.w("CustomCommandWorker", "发布进度通知失败", e);
+        }
     }
 
     private String prepareInput(Context context, CustomCommandSession session, int index, File workDirectory) throws Exception {
@@ -598,12 +622,10 @@ public class CustomCommandWorker extends Worker {
                         .build();
                 setProgressAsync(progressData);
                 Notification notification = NotificationHelper.buildProgressNotification(
-                        context, context.getString(com.tech.ezconvert.R.string.custom_command_title), overallPercent);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                    setForegroundAsync(new ForegroundInfo(9107, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC));
-                } else {
-                    setForegroundAsync(new ForegroundInfo(9107, notification));
-                }
+                        context, context.getString(com.tech.ezconvert.R.string.custom_command_title),
+                        overallPercent, indeterminate);
+                // WorkManager 前台状态已建立，直接更新通知避免异步前台请求之间发生覆盖
+                postProgressNotification(context, notification);
             }
         });
         while (!latch.await(500, TimeUnit.MILLISECONDS)) {
@@ -856,12 +878,8 @@ public class CustomCommandWorker extends Worker {
                 .build();
         setProgressAsync(progressData);
         Notification notification = NotificationHelper.buildProgressNotification(
-                context, context.getString(com.tech.ezconvert.R.string.custom_command_title), percent);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            setForegroundAsync(new ForegroundInfo(9107, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC));
-        } else {
-            setForegroundAsync(new ForegroundInfo(9107, notification));
-        }
+                context, context.getString(com.tech.ezconvert.R.string.custom_command_title), percent, indeterminate);
+        postProgressNotification(context, notification);
     }
 
     private Result cancelled(String id, File workDirectory, File outputDirectory) {
