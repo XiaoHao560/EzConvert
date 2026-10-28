@@ -23,44 +23,54 @@ public class NotificationHelper {
     private static final int NOTIFICATION_ID_COMPLETE_BASE = 2000;
 
     private static int completeNotificationId = NOTIFICATION_ID_COMPLETE_BASE;
-    private static volatile boolean channelsCreated = false;
+    // 记录通知渠道名称使用的语言，语言切换后需要更新系统保存的渠道名称
+    private static volatile String channelsLocaleTag;
 
     /**
-     * 确保通知渠道已创建（懒加载，幂等）
-     * 调用方永远不需要手动调用，所有发通知的方法内部会自动处理
+     * 确保通知渠道已创建，并在应用语言变化后更新系统显示的渠道名称
      */
-    private static void ensureChannelsCreated(Context context) {
-        if (channelsCreated) return;
+    private static void ensureChannelsCreated(Context localizedContext) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
 
-        synchronized (NotificationHelper.class) {
-            if (channelsCreated) return;
+        String localeTag = localizedContext.getResources().getConfiguration()
+                .getLocales().toLanguageTags();
+        if (localeTag.equals(channelsLocaleTag)) return;
 
-            NotificationManager manager = context.getSystemService(NotificationManager.class);
+        synchronized (NotificationHelper.class) {
+            if (localeTag.equals(channelsLocaleTag)) return;
+
+            NotificationManager manager = localizedContext.getSystemService(NotificationManager.class);
             if (manager == null) return;
 
             // 进度通知渠道
             NotificationChannel progressChannel = new NotificationChannel(
                     CHANNEL_ID_PROGRESS,
-                    context.getString(R.string.notification_channel_progress_name),
+                    localizedContext.getString(R.string.notification_channel_progress_name),
                     NotificationManager.IMPORTANCE_LOW
             );
-            progressChannel.setDescription(context.getString(R.string.notification_channel_progress_desc));
+            progressChannel.setDescription(localizedContext.getString(R.string.notification_channel_progress_desc));
             progressChannel.setSound(null, null);
             progressChannel.enableVibration(false);
 
             // 完成通知渠道
             NotificationChannel completeChannel = new NotificationChannel(
                     CHANNEL_ID_COMPLETE,
-                    context.getString(R.string.notification_channel_complete_name),
+                    localizedContext.getString(R.string.notification_channel_complete_name),
                     NotificationManager.IMPORTANCE_DEFAULT
             );
-            completeChannel.setDescription(context.getString(R.string.notification_channel_complete_desc));
+            completeChannel.setDescription(localizedContext.getString(R.string.notification_channel_complete_desc));
 
             manager.createNotificationChannel(progressChannel);
             manager.createNotificationChannel(completeChannel);
-            channelsCreated = true;
+            channelsLocaleTag = localeTag;
         }
+    }
+
+    /**
+     * 返回使用应用内语言设置的 Context，后台 Worker 不会经过 BaseActivity 的语言包装
+     */
+    private static Context getLocalizedContext(Context context) {
+        return LanguageManager.applySavedLanguage(context);
     }
 
     /**
@@ -68,19 +78,20 @@ public class NotificationHelper {
      * 前台服务通知不依赖 POST_NOTIFICATIONS 权限
      */
     public static Notification buildProgressNotification(Context context, String fileName, int progress) {
-        ensureChannelsCreated(context);
+        Context localizedContext = getLocalizedContext(context);
+        ensureChannelsCreated(localizedContext);
 
-        Intent intent = new Intent(context, MainActivity.class);
+        Intent intent = new Intent(localizedContext, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(
-                context, 0, intent,
+                localizedContext, 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
-        String title = context.getString(R.string.notification_progress_title, fileName);
-        String text = context.getString(R.string.notification_progress_text, progress);
+        String title = localizedContext.getString(R.string.notification_progress_title, fileName);
+        String text = localizedContext.getString(R.string.notification_progress_text, progress);
 
-        return new NotificationCompat.Builder(context, CHANNEL_ID_PROGRESS)
+        return new NotificationCompat.Builder(localizedContext, CHANNEL_ID_PROGRESS)
                 .setSmallIcon(R.drawable.ic_splash_logo)
                 .setContentTitle(title)
                 .setContentText(text)
@@ -96,7 +107,6 @@ public class NotificationHelper {
         if (!ConfigManager.getInstance(context).isNotificationEnabled()) return;
         if (!areNotificationsEnabled(context)) return;
 
-        ensureChannelsCreated(context);
         Notification notification = buildProgressNotification(context, fileName, progress);
         NotificationManagerCompat.from(context).notify(NOTIFICATION_ID_PROGRESS, notification);
     }
@@ -105,28 +115,29 @@ public class NotificationHelper {
         if (!ConfigManager.getInstance(context).isNotificationEnabled()) return;
         if (!areNotificationsEnabled(context)) return;
 
-        ensureChannelsCreated(context);
+        Context localizedContext = getLocalizedContext(context);
+        ensureChannelsCreated(localizedContext);
 
-        Intent intent = new Intent(context, MainActivity.class);
+        Intent intent = new Intent(localizedContext, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(
-                context, 0, intent,
+                localizedContext, 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
         String title = success ? 
-            context.getString(R.string.notification_complete_title_success) :
-            context.getString(R.string.notification_complete_title_fail);
+            localizedContext.getString(R.string.notification_complete_title_success) :
+            localizedContext.getString(R.string.notification_complete_title_fail);
         int icon = success ? R.drawable.play_outline : R.drawable.alert_circle;
 
         String contentText;
         if (success) {
-            contentText = context.getString(R.string.notification_complete_text_success, fileName);
+            contentText = localizedContext.getString(R.string.notification_complete_text_success, fileName);
         } else {
-            contentText = context.getString(R.string.notification_complete_text_fail, fileName, message);
+            contentText = localizedContext.getString(R.string.notification_complete_text_fail, fileName, message);
         }
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID_COMPLETE)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(localizedContext, CHANNEL_ID_COMPLETE)
                 .setSmallIcon(icon)
                 .setContentTitle(title)
                 .setContentText(contentText)
@@ -146,20 +157,21 @@ public class NotificationHelper {
         if (!ConfigManager.getInstance(context).isNotificationEnabled()) return;
         if (!areNotificationsEnabled(context)) return;
 
-        ensureChannelsCreated(context);
+        Context localizedContext = getLocalizedContext(context);
+        ensureChannelsCreated(localizedContext);
 
-        Intent intent = new Intent(context, MainActivity.class);
+        Intent intent = new Intent(localizedContext, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(
-                context, 0, intent,
+                localizedContext, 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
-        String title = context.getString(R.string.notification_cancelled_title);
-        String fileNameDisplay = (fileName != null && !fileName.isEmpty()) ? fileName : context.getString(R.string.notification_file_placeholder);
-        String content = context.getString(R.string.notification_cancelled_text, fileNameDisplay);
+        String title = localizedContext.getString(R.string.notification_cancelled_title);
+        String fileNameDisplay = (fileName != null && !fileName.isEmpty()) ? fileName : localizedContext.getString(R.string.notification_file_placeholder);
+        String content = localizedContext.getString(R.string.notification_cancelled_text, fileNameDisplay);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID_COMPLETE)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(localizedContext, CHANNEL_ID_COMPLETE)
                 .setSmallIcon(R.drawable.ic_splash_logo)
                 .setContentTitle(title)
                 .setContentText(content)
@@ -182,19 +194,20 @@ public class NotificationHelper {
         if (!ConfigManager.getInstance(context).isNotificationEnabled()) return;
         if (!areNotificationsEnabled(context)) return;
 
-        ensureChannelsCreated(context);
+        Context localizedContext = getLocalizedContext(context);
+        ensureChannelsCreated(localizedContext);
 
-        Intent intent = new Intent(context, MainActivity.class);
+        Intent intent = new Intent(localizedContext, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(
-                context, 2, intent,
+                localizedContext, 2, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID_PROGRESS)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(localizedContext, CHANNEL_ID_PROGRESS)
                 .setSmallIcon(R.drawable.ic_splash_logo)
-                .setContentTitle(context.getString(R.string.notification_need_parameters_title))
-                .setContentText(context.getString(R.string.notification_need_parameters_text))
+                .setContentTitle(localizedContext.getString(R.string.notification_need_parameters_title))
+                .setContentText(localizedContext.getString(R.string.notification_need_parameters_text))
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setOngoing(true)
                 .setAutoCancel(false)
@@ -219,19 +232,20 @@ public class NotificationHelper {
         if (!ConfigManager.getInstance(context).isNotificationEnabled()) return;
         if (!areNotificationsEnabled(context)) return;
 
-        ensureChannelsCreated(context);
+        Context localizedContext = getLocalizedContext(context);
+        ensureChannelsCreated(localizedContext);
 
-        Intent intent = new Intent(context, MainActivity.class);
+        Intent intent = new Intent(localizedContext, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(
-                context, 3, intent,
+                localizedContext, 3, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID_COMPLETE)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(localizedContext, CHANNEL_ID_COMPLETE)
                 .setSmallIcon(R.drawable.ic_splash_logo)
-                .setContentTitle(context.getString(R.string.notification_all_tasks_complete_title))
-                .setContentText(context.getString(R.string.notification_all_tasks_complete_text))
+                .setContentTitle(localizedContext.getString(R.string.notification_all_tasks_complete_title))
+                .setContentText(localizedContext.getString(R.string.notification_all_tasks_complete_text))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
