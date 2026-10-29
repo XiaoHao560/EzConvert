@@ -16,6 +16,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 import java.util.UUID;
 
 /**
@@ -47,7 +48,7 @@ public class OutputPathManager {
             Log.w("OutputPathManager", "无法创建输出目录: " + outputDir);
         }
 
-        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.US).format(new Date());
+        String timestamp = generateTimestamp();
         String uniqueSuffix = UUID.randomUUID().toString().substring(0, 8);
         String prefix = getPrefixTaskType(taskType);
         String path = new File(outputDir, baseName + "_" + prefix + timestamp + "_" + uniqueSuffix).getAbsolutePath();
@@ -58,12 +59,21 @@ public class OutputPathManager {
     /** 为通过分享入口接收的文件生成临时/输出路径 */
     public String generateSharePath(String inputKey, Uri uri) {
         String base = getBaseName(inputKey, uri, "shared");
-        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.US).format(new Date());
+        String timestamp = generateTimestamp();
         String uniqueSuffix = UUID.randomUUID().toString().substring(0, 8);
         File outputDir = getOutputDir();
         if (!outputDir.exists()) outputDir.mkdirs();
         return new File(outputDir, base + context.getString(R.string.filename_suffix_share)
                 + timestamp + "_" + uniqueSuffix).getAbsolutePath();
+    }
+
+    /**
+     * 使用设备当前时区生成时间戳，同时固定数字格式，避免系统语言影响文件名
+     */
+    private String generateTimestamp() {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.ROOT);
+        formatter.setTimeZone(TimeZone.getDefault());
+        return formatter.format(new Date());
     }
 
     /** 根据参数决定最终输出扩展名和完整路径 */
