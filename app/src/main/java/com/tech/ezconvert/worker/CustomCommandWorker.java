@@ -62,8 +62,16 @@ public class CustomCommandWorker extends Worker {
     public static final String KEY_SUCCESS_COUNT = "custom_command_success_count";
     public static final String KEY_FAILED_COUNT = "custom_command_failed_count";
 
+    private final Object stateLock = new Object();
+    private final Set<File> activeOutputFiles = java.util.Collections.synchronizedSet(new HashSet<>());
+    private final Set<File> publishedFileOutputs = java.util.Collections.synchronizedSet(new HashSet<>());
+    private final Set<Uri> publishedDocumentOutputs = java.util.Collections.synchronizedSet(new HashSet<>());
+    private final Set<Uri> replaceableOutputDocuments = java.util.Collections.synchronizedSet(new HashSet<>());
+
     private volatile FFmpegSession currentSession;
+    private volatile CustomCommandSession activeSession;
     private volatile boolean stopped;
+    private boolean terminalResultChosen;
 
     public CustomCommandWorker(@NonNull Context context, @NonNull WorkerParameters params) {
         super(context, params);
@@ -83,6 +91,7 @@ public class CustomCommandWorker extends Worker {
             return failure(context.getString(com.tech.ezconvert.R.string.custom_command_worker_read_session, safeMessage(e)));
         }
         if (session == null) return failure(context.getString(com.tech.ezconvert.R.string.custom_command_worker_session_missing));
+        activeSession = session;
 
         File workDirectory = new File(new File(context.getFilesDir(), "custom_command_work"), session.id);
         File outputTempDirectory = new File(new File(context.getCacheDir(), "custom_command_output"), session.id);
@@ -136,11 +145,17 @@ public class CustomCommandWorker extends Worker {
                     }
                 }
                 Map<Integer, File> outputFiles = prepareOutputFiles(context, session, sourceForNames, item, outputTempDirectory, parsed);
+                // 同时跟踪托管输出路径，确保取消时可以删除尚未发布的输出文件
+                activeOutputFiles.addAll(outputFiles.values());
+                if (stopped || isStopped()) return cancelled(sessionId, workDirectory, outputTempDirectory);
+
                 List<String> commandArgs = resolveArguments(context, session, parsed, activeInputPaths, outputFiles, workDirectory);
+                trackDirectOutputIfNew(session, commandArgs, outputFiles);
                 Log.i("CustomCommandWorker", "执行自定义 FFmpeg 命令，任务 " + (item + 1) + "/" + total
                         + "，参数数量=" + commandArgs.size());
                 int percentBefore = Math.min(99, (int) (item * 100f / Math.max(1, total)));
                 long expectedDurationMs = estimateExpectedDurationMs(activeInputPaths);
+                ensureNotStopped();
                 long startedAt = System.currentTimeMillis();
                 // 开始执行时先使用不确定进度，直到收到有效媒体时间，避免统计回调未启动时一直显示 0%
                 updateProgress(context, percentBefore, "正在执行自定义命令 " + (item + 1) + "/" + total,
@@ -177,8 +192,12 @@ public class CustomCommandWorker extends Worker {
 
                 try {
                     publishOutputs(context, session, outputFiles);
+                    ensureNotStopped();
                     successCount++;
                 } catch (Exception publishError) {
+                    if (stopped || isStopped() || publishError instanceof InterruptedException) {
+                        return cancelled(sessionId, workDirectory, outputTempDirectory);
+                    }
                     String publishMessage = context.getString(com.tech.ezconvert.R.string.custom_command_worker_publish_failed, item + 1, safeMessage(publishError));
                     errors.add(publishMessage);
                     recordTaskLog(context, session.id, publishMessage, Level.AV_LOG_ERROR);
@@ -193,10 +212,11 @@ public class CustomCommandWorker extends Worker {
                         Math.min(item + 2, total), total, System.currentTimeMillis());
             }
 
+            ensureNotStopped();
+            cleanupTemporaryFiles(context, session, workDirectory, outputTempDirectory);
             CustomCommandSessionStore.delete(context, sessionId);
-            deleteRecursively(workDirectory);
-            deleteRecursively(outputTempDirectory);
             if (successCount == total && errors.isEmpty()) {
+                if (!markTerminalResultIfNotCancelled()) return cancelled(sessionId, workDirectory, outputTempDirectory);
                 recordTaskLog(context, session.id,
                         "=== 自定义命令任务 [" + session.id + "] END (SUCCESS) ===", Level.AV_LOG_INFO);
                 setProgressAsync(new Data.Builder().putInt("progress", 100).putBoolean("indeterminate", false)
@@ -209,11 +229,12 @@ public class CustomCommandWorker extends Worker {
                         .build());
             }
             int failedCount = total - successCount;
-            recordTaskLog(context, session.id,
-                    "=== 自定义命令任务 [" + session.id + "] END (FAILED) ===", Level.AV_LOG_ERROR);
             String message = context.getString(com.tech.ezconvert.R.string.custom_command_worker_complete_count, successCount, total);
             if (!errors.isEmpty()) message += "\n\n" + TextUtils.join("\n\n", errors);
             message = truncate(message, 7000);
+            if (!markTerminalResultIfNotCancelled()) return cancelled(sessionId, workDirectory, outputTempDirectory);
+            recordTaskLog(context, session.id,
+                    "=== 自定义命令任务 [" + session.id + "] END (FAILED) ===", Level.AV_LOG_ERROR);
             NotificationHelper.showCompleteNotification(context, context.getString(com.tech.ezconvert.R.string.custom_command_title), false, truncate(message, 240));
             return Result.failure(new Data.Builder()
                     .putString(KEY_ERROR_MESSAGE, message)
@@ -226,14 +247,14 @@ public class CustomCommandWorker extends Worker {
                 return cancelled(sessionId, workDirectory, outputTempDirectory);
             }
             CustomCommandSessionStore.delete(context, sessionId);
-            deleteRecursively(workDirectory);
-            deleteRecursively(outputTempDirectory);
+            cleanupTemporaryFiles(context, session, workDirectory, outputTempDirectory);
             recordTaskLog(context, session.id, "自定义命令执行异常：" + safeMessage(e), Level.AV_LOG_ERROR);
-            recordTaskLog(context, session.id,
-                    "=== 自定义命令任务 [" + session.id + "] END (FAILED: unexpected error) ===", Level.AV_LOG_ERROR);
             String message = TextUtils.isEmpty(e.getMessage())
                     ? context.getString(com.tech.ezconvert.R.string.custom_command_worker_failed_generic)
                     : truncate(e.getMessage(), 7000);
+            if (!markTerminalResultIfNotCancelled()) return cancelled(sessionId, workDirectory, outputTempDirectory);
+            recordTaskLog(context, session.id,
+                    "=== 自定义命令任务 [" + session.id + "] END (FAILED: unexpected error) ===", Level.AV_LOG_ERROR);
             NotificationHelper.showCompleteNotification(context, context.getString(com.tech.ezconvert.R.string.custom_command_title), false, truncate(message, 240));
             return failure(message);
         }
@@ -366,6 +387,26 @@ public class CustomCommandWorker extends Worker {
             return uri.getPath() == null ? null : new File(uri.getPath());
         }
         return argument.startsWith("/") ? new File(argument) : null;
+    }
+
+    /**
+     * 记录用户直接填写的常规输出路径。只追踪执行前不存在的文件，取消时不删除用户已有文件；
+     * 应用托管的占位符输出由 activeOutputFiles 单独管理。
+     */
+    private void trackDirectOutputIfNew(CustomCommandSession session, List<String> args,
+                                        Map<Integer, File> outputFiles) {
+        if (args == null || args.isEmpty()) return;
+        String lastArgument = args.get(args.size() - 1);
+        if (!TextUtils.isEmpty(session.outputCommandPath) && session.outputCommandPath.equals(lastArgument)) return;
+
+        File candidate = localFileFromArgument(lastArgument);
+        if (candidate == null || candidate.exists()) return;
+        for (File managedOutput : outputFiles.values()) {
+            if (managedOutput != null && managedOutput.equals(candidate)) return;
+        }
+
+        // 取消任务时清理 FFmpeg 在目标路径中创建的半成品；成功结束后由终态保护逻辑保留文件
+        publishedFileOutputs.add(candidate);
     }
 
     private void requireDirectStoragePermission(Context context, File file) {
@@ -562,56 +603,63 @@ public class CustomCommandWorker extends Worker {
         CountDownLatch latch = new CountDownLatch(1);
         final FFmpegSession[] result = new FFmpegSession[1];
         String[] command = args.toArray(new String[0]);
-        currentSession = FFmpegKit.executeWithArgumentsAsync(command, new FFmpegSessionCompleteCallback() {
-            @Override
-            public void apply(FFmpegSession session) {
-                result[0] = session;
-                latch.countDown();
-            }
-        }, log -> {
-            // FFmpeg 原始日志同时写入应用的 FFmpeg 日志和当前会话日志，方便用户独立排查该任务
-            recordTaskLog(context, sessionId, log.getMessage(), log.getLevel());
-        }, new StatisticsCallback() {
-            @Override
-            public void apply(Statistics statistics) {
-                if (stopped || isStopped()) return;
-                // FFmpegKit 的统计时间类型为 double，四舍五入为毫秒整数后再参与进度计算
-                long mediaTimeMs = Math.max(0L, Math.round(statistics.getTime()));
-                boolean indeterminate = expectedDurationMs <= 0L || mediaTimeMs <= 0L;
-                int currentPercent = indeterminate ? 0
-                        : (int) Math.max(0, Math.min(99, mediaTimeMs * 100.0 / expectedDurationMs));
-                double fraction = indeterminate ? 0.0
-                        : Math.min(0.999, Math.max(0.0, mediaTimeMs / (double) expectedDurationMs));
-                // 总百分比由已完成项目和当前输入媒体时间估算，复杂滤镜或改变输出时长的命令只能视为近似值
-                int overallPercent = (int) (((itemIndex + fraction) * 100.0) / Math.max(1, total));
-                overallPercent = Math.max((int) (itemIndex * 100f / Math.max(1, total)), Math.min(99, overallPercent));
-                Data progressData = new Data.Builder()
-                        .putInt("progress", overallPercent)
-                        .putBoolean("indeterminate", indeterminate)
-                        .putInt("currentProgress", currentPercent)
-                        .putInt("itemIndex", itemIndex + 1)
-                        .putInt("totalItems", total)
-                        .putLong("mediaTimeMs", mediaTimeMs)
-                        .putLong("startedAt", startedAt)
-                        .putString("status", "RUNNING")
-                        .build();
-                setProgressAsync(progressData);
-                Notification notification = NotificationHelper.buildProgressNotification(
-                        context, context.getString(com.tech.ezconvert.R.string.custom_command_title), overallPercent);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                    setForegroundAsync(new ForegroundInfo(9107, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC));
-                } else {
-                    setForegroundAsync(new ForegroundInfo(9107, notification));
+        synchronized (stateLock) {
+            ensureNotStopped();
+            currentSession = FFmpegKit.executeWithArgumentsAsync(command, new FFmpegSessionCompleteCallback() {
+                @Override
+                public void apply(FFmpegSession session) {
+                    result[0] = session;
+                    latch.countDown();
                 }
-            }
-        });
+            }, log -> {
+                // FFmpeg 原始日志同时写入应用的 FFmpeg 日志和当前会话日志，方便用户独立排查该任务
+                recordTaskLog(context, sessionId, log.getMessage(), log.getLevel());
+            }, new StatisticsCallback() {
+                @Override
+                public void apply(Statistics statistics) {
+                    if (stopped || isStopped()) return;
+                    // FFmpegKit 的统计时间类型为 double，四舍五入为毫秒整数后再参与进度计算
+                    long mediaTimeMs = Math.max(0L, Math.round(statistics.getTime()));
+                    boolean indeterminate = expectedDurationMs <= 0L || mediaTimeMs <= 0L;
+                    int currentPercent = indeterminate ? 0
+                            : (int) Math.max(0, Math.min(99, mediaTimeMs * 100.0 / expectedDurationMs));
+                    double fraction = indeterminate ? 0.0
+                            : Math.min(0.999, Math.max(0.0, mediaTimeMs / (double) expectedDurationMs));
+                    // 总百分比由已完成项目和当前输入媒体时间估算，复杂滤镜或改变输出时长的命令只能视为近似值
+                    int overallPercent = (int) (((itemIndex + fraction) * 100.0) / Math.max(1, total));
+                    overallPercent = Math.max((int) (itemIndex * 100f / Math.max(1, total)), Math.min(99, overallPercent));
+                    Data progressData = new Data.Builder()
+                            .putInt("progress", overallPercent)
+                            .putBoolean("indeterminate", indeterminate)
+                            .putInt("currentProgress", currentPercent)
+                            .putInt("itemIndex", itemIndex + 1)
+                            .putInt("totalItems", total)
+                            .putLong("mediaTimeMs", mediaTimeMs)
+                            .putLong("startedAt", startedAt)
+                            .putString("status", "RUNNING")
+                            .build();
+                    setProgressAsync(progressData);
+                    Notification notification = NotificationHelper.buildProgressNotification(
+                            context, context.getString(com.tech.ezconvert.R.string.custom_command_title), overallPercent);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                        setForegroundAsync(new ForegroundInfo(9107, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC));
+                    } else {
+                        setForegroundAsync(new ForegroundInfo(9107, notification));
+                    }
+                }
+            });
+        }
         while (!latch.await(500, TimeUnit.MILLISECONDS)) {
             if (stopped || isStopped()) {
                 if (currentSession != null) FFmpegKit.cancel(currentSession.getSessionId());
                 throw new InterruptedException(context.getString(com.tech.ezconvert.R.string.custom_command_worker_cancelled));
             }
         }
-        return result[0];
+        FFmpegSession completedSession = result[0];
+        synchronized (stateLock) {
+            if (currentSession == completedSession) currentSession = null;
+        }
+        return completedSession;
     }
 
     /** 用 FFprobe 估算输入媒体时长；遇到图片、直播流或未知时长时返回 -1，让界面显示不确定进度 */
@@ -684,16 +732,28 @@ public class CustomCommandWorker extends Worker {
         }
     }
 
+    /** 检查取消状态，避免在复制或发布输出期间继续写入文件 */
+    private void ensureNotStopped() throws InterruptedException {
+        if (stopped || isStopped()) {
+            throw new InterruptedException(getApplicationContext().getString(
+                    com.tech.ezconvert.R.string.custom_command_worker_cancelled));
+        }
+    }
+
     /** FFmpeg 先写入临时路径，只有输出文件真实存在且非空后才发布到用户指定位置 */
     private void publishOutputs(Context context, CustomCommandSession session, Map<Integer, File> outputs) throws Exception {
         for (Map.Entry<Integer, File> entry : outputs.entrySet()) {
+            ensureNotStopped();
             int index = entry.getKey();
             File tempFile = entry.getValue();
             if (!tempFile.isFile() || tempFile.length() <= 0) {
                 throw new IllegalStateException(context.getString(com.tech.ezconvert.R.string.custom_command_worker_output_missing, tempFile.getName()));
             }
             if (index == 1 && !TextUtils.isEmpty(session.outputDocumentUri)) {
-                writeToDocument(context, tempFile, Uri.parse(session.outputDocumentUri));
+                // 文件选择器的输出文档会被后续任务复用；取消时清空本次写入内容，但不删除文档本身
+                Uri documentUri = Uri.parse(session.outputDocumentUri);
+                replaceableOutputDocuments.add(documentUri);
+                writeToDocument(context, tempFile, documentUri);
             } else {
                 String treeUri = !TextUtils.isEmpty(session.outputTreeUri)
                         ? session.outputTreeUri
@@ -704,6 +764,7 @@ public class CustomCommandWorker extends Worker {
                     publishToPublicDirectory(context, tempFile, session.configuredOutputMode);
                 }
             }
+            ensureNotStopped();
         }
     }
 
@@ -714,7 +775,16 @@ public class CustomCommandWorker extends Worker {
         File directory = new File(base, "EzConvert");
         if (!directory.exists() && !directory.mkdirs()) throw new IllegalStateException(context.getString(com.tech.ezconvert.R.string.custom_command_worker_public_output_dir, directory));
         File target = uniqueFile(directory, source.getName());
-        copyFile(source, target);
+        publishedFileOutputs.add(target);
+        try {
+            copyFile(source, target);
+            ensureNotStopped();
+        } catch (Exception e) {
+            if (target.exists() && !target.delete()) {
+                Log.w("CustomCommandWorker", "发布输出失败后无法删除不完整文件：" + target, e);
+            }
+            throw e;
+        }
         Log.i("CustomCommandWorker", "输出文件已保存：" + target.getAbsolutePath());
     }
 
@@ -734,6 +804,8 @@ public class CustomCommandWorker extends Worker {
         String targetName = uniqueSafName(context.getContentResolver(), treeUri, treeDocumentId, source.getName());
         Uri target = DocumentsContract.createDocument(context.getContentResolver(), parent, guessMimeType(targetName), targetName);
         if (target == null) throw new IllegalStateException(context.getString(com.tech.ezconvert.R.string.custom_command_worker_create_saf_file, targetName));
+        // 在写入前记录新建的 SAF 文档，取消时即使发布尚未完成也能删除
+        publishedDocumentOutputs.add(target);
         try {
             writeToDocument(context, source, target);
         } catch (Exception e) {
@@ -760,6 +832,7 @@ public class CustomCommandWorker extends Worker {
     }
 
     private void writeToDocument(Context context, File source, Uri documentUri) throws Exception {
+        ensureNotStopped();
         ContentResolver resolver = context.getContentResolver();
         try (InputStream in = new FileInputStream(source)) {
             OutputStream out = resolver.openOutputStream(documentUri, "w");
@@ -767,7 +840,11 @@ public class CustomCommandWorker extends Worker {
             try (OutputStream actualOut = out) {
                 byte[] buffer = new byte[1024 * 1024];
                 int read;
-                while ((read = in.read(buffer)) != -1) actualOut.write(buffer, 0, read);
+                while ((read = in.read(buffer)) != -1) {
+                    ensureNotStopped();
+                    actualOut.write(buffer, 0, read);
+                }
+                ensureNotStopped();
                 actualOut.flush();
             }
         }
@@ -777,7 +854,11 @@ public class CustomCommandWorker extends Worker {
         try (InputStream in = new FileInputStream(source); OutputStream out = new FileOutputStream(target)) {
             byte[] buffer = new byte[1024 * 1024];
             int read;
-            while ((read = in.read(buffer)) != -1) out.write(buffer, 0, read);
+            while ((read = in.read(buffer)) != -1) {
+                ensureNotStopped();
+                out.write(buffer, 0, read);
+            }
+            ensureNotStopped();
             out.flush();
         }
     }
@@ -864,11 +945,102 @@ public class CustomCommandWorker extends Worker {
     }
 
     private Result cancelled(String id, File workDirectory, File outputDirectory) {
-        recordTaskLog(getApplicationContext(), id, "自定义命令任务已取消", Level.AV_LOG_WARNING);
-        CustomCommandSessionStore.delete(getApplicationContext(), id);
+        Context context = getApplicationContext();
+        recordTaskLog(context, id, "自定义命令任务已取消，正在清理临时输入、输出和已发布文件", Level.AV_LOG_WARNING);
+        cleanupTemporaryFiles(context, activeSession, workDirectory, outputDirectory);
+        cleanupPublishedOutputs(context);
+        CustomCommandSessionStore.delete(context, id);
+        return Result.failure(new Data.Builder()
+                .putString(KEY_ERROR_MESSAGE, context.getString(com.tech.ezconvert.R.string.custom_command_worker_cancelled))
+                .build());
+    }
+
+    /** 清理应用托管路径和本次 Worker 创建的临时文件，不触碰任意用户手动指定的外部路径 */
+    private void cleanupTemporaryFiles(Context context, CustomCommandSession session,
+                                       File workDirectory, File outputDirectory) {
+        synchronized (activeOutputFiles) {
+            for (File file : activeOutputFiles) {
+                if (file != null && file.exists()) deleteRecursively(file);
+            }
+            activeOutputFiles.clear();
+        }
+
+        if (session != null) {
+            if (session.inputs != null) {
+                for (CustomCommandSession.InputSource input : session.inputs) {
+                    if (input != null) deleteManagedPath(context, input.commandPath, "input");
+                }
+            }
+            deleteManagedPath(context, session.outputCommandPath, "output");
+        }
+
         deleteRecursively(workDirectory);
         deleteRecursively(outputDirectory);
-        return Result.failure(new Data.Builder().putString(KEY_ERROR_MESSAGE, getApplicationContext().getString(com.tech.ezconvert.R.string.custom_command_worker_cancelled)).build());
+    }
+
+    /** 只删除应用缓存下专门为自定义命令创建的路径，避免误删用户手动指定的文件 */
+    private void deleteManagedPath(Context context, String path, String category) {
+        if (TextUtils.isEmpty(path)) return;
+        File root = new File(new File(context.getCacheDir(), "custom_command_paths"), category);
+        File managedFile = new File(path);
+        if (isPathWithin(managedFile, root)) {
+            deleteRecursively(managedFile);
+        }
+    }
+
+    /** 取消时删除本次任务已经发布到普通目录或 SAF 目录的输出 */
+    private void cleanupPublishedOutputs(Context context) {
+        synchronized (publishedFileOutputs) {
+            for (File file : publishedFileOutputs) {
+                if (file != null && file.exists() && !file.delete()) {
+                    Log.w("CustomCommandWorker", "取消后无法删除已发布的输出文件：" + file);
+                }
+            }
+            publishedFileOutputs.clear();
+        }
+
+        synchronized (publishedDocumentOutputs) {
+            for (Uri uri : publishedDocumentOutputs) {
+                try {
+                    if (!DocumentsContract.deleteDocument(context.getContentResolver(), uri)) {
+                        Log.w("CustomCommandWorker", "取消后无法删除已发布的 SAF 输出：" + uri);
+                    }
+                } catch (Exception e) {
+                    Log.w("CustomCommandWorker", "取消后删除已发布的 SAF 输出失败：" + uri, e);
+                }
+            }
+            publishedDocumentOutputs.clear();
+        }
+
+        // 目标文件由用户在文件选择器中指定并保存在配置里，不能删除 URI；只清空取消任务写入的内容
+        synchronized (replaceableOutputDocuments) {
+            for (Uri uri : replaceableOutputDocuments) {
+                try (OutputStream output = context.getContentResolver().openOutputStream(uri, "w")) {
+                    if (output == null) {
+                        Log.w("CustomCommandWorker", "取消后无法清空指定输出文件：" + uri);
+                    } else {
+                        output.flush();
+                    }
+                } catch (Exception e) {
+                    Log.w("CustomCommandWorker", "取消后清空指定输出文件失败：" + uri, e);
+                }
+            }
+            replaceableOutputDocuments.clear();
+        }
+    }
+
+    /** 正常终态与取消请求串行化，避免任务已正常结束后误删成功输出 */
+    private boolean markTerminalResultIfNotCancelled() {
+        synchronized (stateLock) {
+            if (stopped || isStopped()) return false;
+            terminalResultChosen = true;
+            activeOutputFiles.clear();
+            publishedFileOutputs.clear();
+            publishedDocumentOutputs.clear();
+            replaceableOutputDocuments.clear();
+            activeSession = null;
+            return true;
+        }
     }
 
     private Result failure(String message) {
@@ -878,10 +1050,17 @@ public class CustomCommandWorker extends Worker {
 
     @Override
     public void onStopped() {
-        stopped = true;
-        FFmpegSession session = currentSession;
-        if (session != null) {
-            try { FFmpegKit.cancel(session.getSessionId()); } catch (Exception e) {
+        FFmpegSession session;
+        boolean cancellationPending;
+        synchronized (stateLock) {
+            cancellationPending = !terminalResultChosen;
+            if (cancellationPending) stopped = true;
+            session = currentSession;
+        }
+        if (cancellationPending && session != null) {
+            try {
+                FFmpegKit.cancel(session.getSessionId());
+            } catch (Exception e) {
                 Log.w("CustomCommandWorker", "取消 FFmpeg 会话失败", e);
             }
         }
