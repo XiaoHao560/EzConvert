@@ -87,6 +87,7 @@ public class MainActivity extends BaseActivity implements
     private boolean isTaskRunning = false;
     private boolean isMainActivityVisible = false;
     private long lastPermissionCheck = 0;
+    private int displayedTaskIndex = -1;
 
     private String currentInputPath = "";
     private String currentOutputPath = "";
@@ -275,6 +276,7 @@ public class MainActivity extends BaseActivity implements
     // 开始处理当前队列，具体 Worker 的创建与监听由 ConversionManager 负责
     private void startQueue(String taskType) {
         if (taskType == null || queueManager.isEmpty()) return;
+        displayedTaskIndex = -1;
         queueManager.setTaskType(taskType);
         queueManager.setCurrentIndex(0);
         queueManager.clearCompletedOutputs();
@@ -426,6 +428,7 @@ public class MainActivity extends BaseActivity implements
 
         String fileName = uri != null ? FileUtils.getDisplayName(this, uri) : new File(queueManager.getCurrentKey()).getName();
         if (fileName == null) fileName = "file";
+        displayedTaskIndex = queueManager.getCurrentPosition();
         updateStatus(getString(R.string.status_processing, fileName,
                 queueManager.getCurrentPosition(), queueManager.size()));
     }
@@ -457,25 +460,29 @@ public class MainActivity extends BaseActivity implements
     }
 
     private void cancelAndCleanup() {
-        conversionManager.cancelCurrent();
         isTaskRunning = false;
         hideCancelButton();
+        displayedTaskIndex = -1;
 
-        new Thread(() -> {
-            deleteFileIfExists(currentOutputFile);
-            for (String path : queueManager.getCompletedOutputFiles()) deleteFileIfExists(path);
-            queueManager.clearCompletedOutputs();
-            queueManager.clearSelection();
-            currentInputPath = "";
-            currentOutputFile = "";
+        // 等待 Worker 进入终态后再读取持久化输出列表，避免漏删刚完成的文件
+        conversionManager.cancelCurrent(() -> {
+            queueManager.refreshWorkerProgressFromPersistence();
+            new Thread(() -> {
+                deleteFileIfExists(currentOutputFile);
+                for (String path : queueManager.getCompletedOutputFiles()) deleteFileIfExists(path);
+                queueManager.clearCompletedOutputs();
+                queueManager.clearSelection();
+                currentInputPath = "";
+                currentOutputFile = "";
 
-            runOnUiThread(() -> {
-                queueManager.resetProcessingState();
-                updateStatus(getString(R.string.status_cancelled_cleaned));
-                resetProgressUI();
-                setFunctionButtonsEnabled(permissionsGranted);
-            });
-        }).start();
+                runOnUiThread(() -> {
+                    queueManager.resetProcessingState();
+                    updateStatus(getString(R.string.status_cancelled_cleaned));
+                    resetProgressUI();
+                    setFunctionButtonsEnabled(permissionsGranted);
+                });
+            }).start();
+        });
     }
 
     private void deleteFileIfExists(String path) {
@@ -545,6 +552,7 @@ public class MainActivity extends BaseActivity implements
     // 所有队列任务完成后的统一收尾，恢复按钮、清空队列并重置进度 UI
     private void finishQueue() {
         int total = queueManager.size();
+        displayedTaskIndex = -1;
         hideCancelButton();
         updateStatus(getString(R.string.status_all_complete, total));
         queueManager.resetProcessingState();
@@ -558,6 +566,7 @@ public class MainActivity extends BaseActivity implements
 
     // Worker 失败或取消后的 UI 收尾，真正的 WorkManager 状态判断由 ConversionManager 完成
     private void handleWorkerFailure(String message) {
+        displayedTaskIndex = -1;
         boolean cancelled = getString(R.string.error_cancelled).equals(message);
         if (cancelled) {
             updateStatus(getString(R.string.error_cancelled));
@@ -575,9 +584,24 @@ public class MainActivity extends BaseActivity implements
     }
 
     // 将 Worker 的进度数据转换为页面上的进度条、文字和取消按钮状态
-    private void updateProgressUI(int progress, long time) {
+    private void updateProgressUI(int progress, long time, int taskIndex, int totalTasks) {
         // 取消任务后，主线程队列中可能仍有尚未执行的进度回调，不能再覆盖已重置的 UI
         if (!isTaskRunning) return;
+
+        // 同步批量任务在单个 Worker 内推进，需要通过进度数据更新当前文件名和队列序号
+        if (taskIndex > 0 && taskIndex != displayedTaskIndex && taskIndex <= queueManager.size()) {
+            java.util.List<String> selectedFiles = queueManager.getSelectedFilePaths();
+            if (taskIndex <= selectedFiles.size()) {
+                String key = selectedFiles.get(taskIndex - 1);
+                Uri uri = queueManager.getUri(key);
+                String fileName = uri != null ? FileUtils.getDisplayName(this, uri) : new File(key).getName();
+                if (fileName == null || fileName.isEmpty()) fileName = "file";
+                displayedTaskIndex = taskIndex;
+                updateStatus(getString(R.string.status_processing, fileName,
+                        taskIndex, totalTasks > 0 ? totalTasks : queueManager.size()));
+            }
+        }
+
         AnimationUtils.animateProgressSmoothly(progressBar, progress);
         progressText.setText(getString(R.string.progress_text, progress));
         AnimationUtils.animateStatusUpdate(progressText);
@@ -585,8 +609,8 @@ public class MainActivity extends BaseActivity implements
     }
 
     @Override
-    public void onProgress(int progress, long time) {
-        runOnUiThread(() -> updateProgressUI(progress, time));
+    public void onProgress(int progress, long time, int taskIndex, int totalTasks) {
+        runOnUiThread(() -> updateProgressUI(progress, time, taskIndex, totalTasks));
     }
 
     // ConversionManager 通知当前 Worker 结束后，决定继续队列、弹参数框或结束整个任务

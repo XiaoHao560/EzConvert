@@ -82,6 +82,8 @@ public class FfmpegWorker extends ListenableWorker {
     private static final ExecutorService WORK_EXECUTOR = Executors.newCachedThreadPool();
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    // 同步取消请求与 FFmpeg 会话创建，避免 onStopped 在 session 赋值前错过正在启动的会话
+    private final Object sessionLock = new Object();
     private volatile boolean isCancelled = false;
     private FFmpegSession currentSession = null;
     private volatile long totalDurationMs = -1;
@@ -353,6 +355,20 @@ public class FfmpegWorker extends ListenableWorker {
                                            String fileName, Result result,
                                            String initialOutputPathBase, String initialOutputTreeUri,
                                            int initialTaskIndex) {
+        // FFmpeg 完成回调与 WorkManager 取消可能并发，取消后不得再登记输出或启动下一项
+        if (isCancelled || isStopped()) {
+            String outputPath = result.getOutputData().getString(KEY_OUTPUT_PATH);
+            deleteOutputPath(context, outputPath);
+            completer.set(Result.failure(new Data.Builder()
+                    .putString(KEY_ERROR_MESSAGE, context.getString(com.tech.ezconvert.R.string.error_cancelled))
+                    .putString(KEY_FILE_NAME, fileName)
+                    .putInt(KEY_TASK_INDEX, queue.getCurrentPosition())
+                    .putInt(KEY_TOTAL_TASKS, queue.size())
+                    .putBoolean(KEY_SYNC_BATCH, true)
+                    .build()));
+            return;
+        }
+
         if (result instanceof Result.Success) {
             String outputPath = result.getOutputData().getString(KEY_OUTPUT_PATH);
             if (outputPath == null || outputPath.isEmpty()) {
@@ -386,6 +402,19 @@ public class FfmpegWorker extends ListenableWorker {
                 .putInt(KEY_TOTAL_TASKS, queue.size())
                 .putBoolean(KEY_SYNC_BATCH, true)
                 .build()));
+    }
+
+    private void deleteOutputPath(Context context, String path) {
+        if (path == null || path.isEmpty()) return;
+        if (path.startsWith("content://")) {
+            try {
+                DocumentsContract.deleteDocument(context.getContentResolver(), Uri.parse(path));
+            } catch (Exception e) {
+                Log.w(TAG, "取消任务时删除 SAF 输出失败: " + path, e);
+            }
+        } else {
+            deleteTempFile(path);
+        }
     }
 
     private String getPathDisplayName(Context context, String path, String fallback) {
@@ -475,6 +504,19 @@ public class FfmpegWorker extends ListenableWorker {
 
         // 获取视频时长用于进度计算
         getVideoDuration(usablePath, durationMs -> {
+            // 时长探测是异步操作；Worker 可能在探测期间已被取消，不能再启动下一项 FFmpeg
+            if (isCancelled || isStopped()) {
+                if (isFromCache) CacheManager.releaseCacheFile(usablePath);
+                if (usablePath.contains("/shared_files/")) deleteTempFile(usablePath);
+                Log.d(TAG, "任务已取消，跳过 FFmpeg 启动: " + fileName);
+                taskCallback.onResult(Result.failure(new Data.Builder()
+                        .putString(KEY_ERROR_MESSAGE, context.getString(com.tech.ezconvert.R.string.error_cancelled))
+                        .putString(KEY_FILE_NAME, fileName)
+                        .putInt(KEY_TASK_INDEX, taskIndex)
+                        .build()));
+                return;
+            }
+
             totalDurationMs = durationMs;
             updateProgressNotification(context, fileName, 0, durationMs <= 0);
             executeFfmpeg(commandString, fileName, outputPath, outputTreeUriString, usablePath,
@@ -503,111 +545,128 @@ public class FfmpegWorker extends ListenableWorker {
 
         Context context = getApplicationContext();
 
-        currentSession = FFmpegKit.executeAsync(commandString, new FFmpegSessionCompleteCallback() {
-            @Override
-            public void apply(FFmpegSession session) {
-                ReturnCode returnCode = session.getReturnCode();
+        synchronized (sessionLock) {
+            // 与 onStopped 使用同一把锁，保证取消请求不会错过即将创建的 FFmpeg 会话
+            if (isCancelled || isStopped()) {
+                if (isFromCache) CacheManager.releaseCacheFile(usablePath);
+                if (usablePath.contains("/shared_files/")) deleteTempFile(usablePath);
+                deleteTempFile(outputPath);
+                Log.d(TAG, "任务已取消，跳过 FFmpeg 会话创建: " + fileName);
+                taskCallback.onResult(Result.failure(new Data.Builder()
+                        .putString(KEY_ERROR_MESSAGE, context.getString(com.tech.ezconvert.R.string.error_cancelled))
+                        .putString(KEY_FILE_NAME, fileName)
+                        .putInt(KEY_TASK_INDEX, taskIndex)
+                        .build()));
+                return;
+            }
 
-                // 清理缓存文件
-                if (isFromCache) {
-                    CacheManager.releaseCacheFile(usablePath);
-                }
-                // 清理临时共享文件
-                if (usablePath.contains("/shared_files/")) {
-                    deleteTempFile(usablePath);
-                }
+            currentSession = FFmpegKit.executeAsync(commandString, new FFmpegSessionCompleteCallback() {
+                @Override
+                public void apply(FFmpegSession session) {
+                    ReturnCode returnCode = session.getReturnCode();
 
-                if (isCancelled) {
-                    if (outputTreeUriString != null && !outputTreeUriString.isEmpty()) deleteTempFile(outputPath);
-                    LogManager.getInstance(context).appendFfmpegLog(
-                            "=== Task [" + workIdStr + "] END (CANCELLED) ===",
-                            Level.AV_LOG_WARNING
-                    );
-                    taskCallback.onResult(Result.failure(new Data.Builder()
-                            .putString(KEY_ERROR_MESSAGE, "操作已取消")
-                            .putString(KEY_FILE_NAME, fileName)
-                            .putInt(KEY_TASK_INDEX, taskIndex)
-                            .build()));
-                    return;
-                }
+                    // 清理缓存文件
+                    if (isFromCache) {
+                        CacheManager.releaseCacheFile(usablePath);
+                    }
+                    // 清理临时共享文件
+                    if (usablePath.contains("/shared_files/")) {
+                        deleteTempFile(usablePath);
+                    }
 
-                if (ReturnCode.isSuccess(returnCode)) {
-                    String finalOutputPath = outputPath;
-                    if (outputTreeUriString != null && !outputTreeUriString.isEmpty()) {
-                        finalOutputPath = publishToSafDirectory(outputPath, outputTreeUriString, fileName);
-                        if (finalOutputPath == null) {
-                            LogManager.getInstance(context).appendFfmpegLog(
-                                    "=== Task [" + workIdStr + "] END (FAILED: 无法写入自定义输出目录) ===",
-                                    Level.AV_LOG_ERROR
-                            );
-                            deleteTempFile(outputPath);
-                            taskCallback.onResult(Result.failure(new Data.Builder()
-                                    .putString(KEY_ERROR_MESSAGE, "无法写入自定义输出目录，请重新选择输出目录")
-                                    .putString(KEY_FILE_NAME, fileName)
-                                    .putInt(KEY_TASK_INDEX, taskIndex)
-                                    .build()));
-                            return;
-                        }
+                    if (isCancelled || isStopped()) {
+                        // 取消时同时清理当前文件系统输出或 SAF 临时输出，避免留下不完整文件
                         deleteTempFile(outputPath);
+                        LogManager.getInstance(context).appendFfmpegLog(
+                                "=== Task [" + workIdStr + "] END (CANCELLED) ===",
+                                Level.AV_LOG_WARNING
+                        );
+                        taskCallback.onResult(Result.failure(new Data.Builder()
+                                .putString(KEY_ERROR_MESSAGE, "操作已取消")
+                                .putString(KEY_FILE_NAME, fileName)
+                                .putInt(KEY_TASK_INDEX, taskIndex)
+                                .build()));
+                        return;
                     }
 
-                    LogManager.getInstance(context).appendFfmpegLog(
-                            "=== Task [" + workIdStr + "] END (SUCCESS) ===",
-                            Level.AV_LOG_INFO
-                    );
-                    taskCallback.onResult(Result.success(new Data.Builder()
-                            .putString(KEY_OUTPUT_PATH, finalOutputPath)
-                            .putString(KEY_FILE_NAME, fileName)
-                            .putInt(KEY_TASK_INDEX, taskIndex)
-                            .build()));
-                } else {
-                    if (outputTreeUriString != null && !outputTreeUriString.isEmpty()) deleteTempFile(outputPath);
-                    String errorMessage = "处理失败";
-                    if (session.getFailStackTrace() != null) {
-                        errorMessage += ": " + session.getFailStackTrace();
-                    } else if (returnCode != null) {
-                        errorMessage += "，返回码: " + returnCode.getValue();
+                    if (ReturnCode.isSuccess(returnCode)) {
+                        String finalOutputPath = outputPath;
+                        if (outputTreeUriString != null && !outputTreeUriString.isEmpty()) {
+                            finalOutputPath = publishToSafDirectory(outputPath, outputTreeUriString, fileName);
+                            if (finalOutputPath == null) {
+                                LogManager.getInstance(context).appendFfmpegLog(
+                                        "=== Task [" + workIdStr + "] END (FAILED: 无法写入自定义输出目录) ===",
+                                        Level.AV_LOG_ERROR
+                                );
+                                deleteTempFile(outputPath);
+                                taskCallback.onResult(Result.failure(new Data.Builder()
+                                        .putString(KEY_ERROR_MESSAGE, "无法写入自定义输出目录，请重新选择输出目录")
+                                        .putString(KEY_FILE_NAME, fileName)
+                                        .putInt(KEY_TASK_INDEX, taskIndex)
+                                        .build()));
+                                return;
+                            }
+                            deleteTempFile(outputPath);
+                        }
+
+                        LogManager.getInstance(context).appendFfmpegLog(
+                                "=== Task [" + workIdStr + "] END (SUCCESS) ===",
+                                Level.AV_LOG_INFO
+                        );
+                        taskCallback.onResult(Result.success(new Data.Builder()
+                                .putString(KEY_OUTPUT_PATH, finalOutputPath)
+                                .putString(KEY_FILE_NAME, fileName)
+                                .putInt(KEY_TASK_INDEX, taskIndex)
+                                .build()));
+                    } else {
+                        if (outputTreeUriString != null && !outputTreeUriString.isEmpty()) deleteTempFile(outputPath);
+                        String errorMessage = "处理失败";
+                        if (session.getFailStackTrace() != null) {
+                            errorMessage += ": " + session.getFailStackTrace();
+                        } else if (returnCode != null) {
+                            errorMessage += "，返回码: " + returnCode.getValue();
+                        }
+                        LogManager.getInstance(context).appendFfmpegLog(
+                                "=== Task [" + workIdStr + "] END (FAILED: " + errorMessage + ") ===",
+                                Level.AV_LOG_ERROR
+                        );
+                        taskCallback.onResult(Result.failure(new Data.Builder()
+                                .putString(KEY_ERROR_MESSAGE, errorMessage)
+                                .putString(KEY_FILE_NAME, fileName)
+                                .putInt(KEY_TASK_INDEX, taskIndex)
+                                .build()));
                     }
-                    LogManager.getInstance(context).appendFfmpegLog(
-                            "=== Task [" + workIdStr + "] END (FAILED: " + errorMessage + ") ===",
-                            Level.AV_LOG_ERROR
-                    );
-                    taskCallback.onResult(Result.failure(new Data.Builder()
-                            .putString(KEY_ERROR_MESSAGE, errorMessage)
-                            .putString(KEY_FILE_NAME, fileName)
-                            .putInt(KEY_TASK_INDEX, taskIndex)
-                            .build()));
                 }
-            }
-        }, null, new StatisticsCallback() {
-            @Override
-            public void apply(Statistics statistics) {
-                if (isCancelled) return;
+            }, null, new StatisticsCallback() {
+                @Override
+                public void apply(Statistics statistics) {
+                    if (isCancelled) return;
 
-                long mediaTimeMs = Math.max(0L, Math.round(statistics.getTime()));
-                long durationMs = totalDurationMs;
-                boolean indeterminate = durationMs <= 0L;
-                int progress = 0;
+                    long mediaTimeMs = Math.max(0L, Math.round(statistics.getTime()));
+                    long durationMs = totalDurationMs;
+                    boolean indeterminate = durationMs <= 0L;
+                    int progress = 0;
 
-                if (!indeterminate) {
-                    progress = (int) ((mediaTimeMs * 100.0) / durationMs);
-                    progress = Math.min(100, Math.max(0, progress));
+                    if (!indeterminate) {
+                        progress = (int) ((mediaTimeMs * 100.0) / durationMs);
+                        progress = Math.min(100, Math.max(0, progress));
+                    }
+
+                    // 通过 WorkManager 进度机制上报，媒体时间使用 long 避免长文件发生整数溢出
+                    Data progressData = new Data.Builder()
+                            .putInt(KEY_PROGRESS, progress)
+                            .putLong(KEY_TIME, mediaTimeMs)
+                            .putInt(KEY_TASK_INDEX, activeTaskIndex)
+                            .putInt(KEY_TOTAL_TASKS, activeTaskTotal)
+                            .putString(KEY_STATUS, "RUNNING")
+                            .build();
+                    setProgressAsync(progressData);
+
+                    // WorkManager 启动前台服务后，通过 NotificationManager 更新同一个通知 ID
+                    updateProgressNotification(context, fileName, progress, indeterminate);
                 }
-
-                // 通过 WorkManager 进度机制上报，媒体时间使用 long 避免长文件发生整数溢出
-                Data progressData = new Data.Builder()
-                        .putInt(KEY_PROGRESS, progress)
-                        .putLong(KEY_TIME, mediaTimeMs)
-                        .putInt(KEY_TASK_INDEX, activeTaskIndex)
-                        .putInt(KEY_TOTAL_TASKS, activeTaskTotal)
-                        .putString(KEY_STATUS, "RUNNING")
-                        .build();
-                setProgressAsync(progressData);
-
-                // WorkManager 启动前台服务后，通过 NotificationManager 更新同一个通知 ID
-                updateProgressNotification(context, fileName, progress, indeterminate);
-            }
-        });
+            });
+        }
     }
 
     /**
@@ -768,10 +827,18 @@ public class FfmpegWorker extends ListenableWorker {
     @Override
     public void onStopped() {
         super.onStopped();
-        isCancelled = true;
-        if (currentSession != null) {
-            FFmpegKit.cancel(currentSession.getSessionId());
-            Log.d(TAG, "Worker 被取消，终止 FFmpeg 会话: " + currentSession.getSessionId());
+
+        FFmpegSession sessionToCancel;
+        synchronized (sessionLock) {
+            // 先标记取消，再读取会话；executeFfmpeg 若尚未启动将无法越过取消检查
+            isCancelled = true;
+            sessionToCancel = currentSession;
+        }
+
+        // FFmpegKitNext 的取消接口是异步的；在锁外调用，避免阻塞会话创建与回调
+        if (sessionToCancel != null) {
+            FFmpegKit.cancel(sessionToCancel.getSessionId());
+            Log.d(TAG, "Worker 被取消，正在终止 FFmpeg 会话: " + sessionToCancel.getSessionId());
         }
     }
 }

@@ -31,7 +31,7 @@ import java.lang.ref.WeakReference;
  */
 public class ConversionManager {
     public interface Listener {
-        void onProgress(int progress, long time);
+        void onProgress(int progress, long time, int taskIndex, int totalTasks);
         void onCompleted(boolean success, String message, String outputPath);
         void onRestored();
         void onIdleAfterRestore();
@@ -50,6 +50,7 @@ public class ConversionManager {
     private Observer<WorkInfo> currentWorkObserver;
     private boolean uiActive = false;
     private UUID currentWorkId;
+    private volatile boolean cancellationRequested = false;
 
     public ConversionManager(Context context, ConversionQueueManager queue, Listener listener) {
         this.context = context.getApplicationContext();
@@ -82,6 +83,7 @@ public class ConversionManager {
 
     /** 提交当前任务，可对本次任务临时覆盖输出目录模式，不修改持久化设置 */
     public void submitCurrent(ParameterData params, String outputBasePath, LifecycleOwner owner, String outputModeOverride) {
+        cancellationRequested = false;
         String inputKey = queue.getCurrentKey();
         Uri fileUri = queue.getCurrentUri();
         String uriString = fileUri != null ? fileUri.toString() : "";
@@ -233,19 +235,47 @@ public class ConversionManager {
      * 取消当前 Worker
      */
     public void cancelCurrent() {
+        cancelCurrent(null);
+    }
+
+    /**
+     * 取消任务并在 Worker 进入终态后通知调用方，确保清理时能读取完整的批量输出记录
+     */
+    public void cancelCurrent(Runnable onStopped) {
         NotificationHelper.cancelNeedParametersNotification(context);
         UUID workId = currentWorkId;
-        if (workId != null) {
-            // 先清除当前任务标识，避免取消回调与主动提示同时触发 Toast
-            queue.setCurrentWorkId("");
-            queue.setPendingParameterPrompt(false);
-            currentWorkId = null;
-            workManager.cancelWorkById(workId);
-
-            Context localizedContext = LanguageManager.applySavedLanguage(context);
-            ToastUtils.show(localizedContext,
-                    localizedContext.getString(R.string.toast_cancelled));
+        if (workId == null) {
+            if (onStopped != null) onStopped.run();
+            return;
         }
+
+        // 保留持久化队列状态直到 Worker 终止，避免覆盖它刚写入的完成文件列表
+        cancellationRequested = true;
+        currentWorkId = null;
+        workManager.cancelWorkById(workId);
+
+        Context localizedContext = LanguageManager.applySavedLanguage(context);
+        ToastUtils.show(localizedContext,
+                localizedContext.getString(R.string.toast_cancelled));
+
+        LiveData<WorkInfo> workInfoLiveData = workManager.getWorkInfoByIdLiveData(workId);
+        Observer<WorkInfo> cancelObserver = new Observer<WorkInfo>() {
+            @Override
+            public void onChanged(WorkInfo workInfo) {
+                if (workInfo == null || !(workInfo.getState() == WorkInfo.State.CANCELLED
+                        || workInfo.getState() == WorkInfo.State.SUCCEEDED
+                        || workInfo.getState() == WorkInfo.State.FAILED)) {
+                    return;
+                }
+                workInfoLiveData.removeObserver(this);
+                queue.refreshWorkerProgressFromPersistence();
+                queue.setCurrentWorkId("");
+                queue.setPendingParameterPrompt(false);
+                cancellationRequested = false;
+                if (onStopped != null) onStopped.run();
+            }
+        };
+        workInfoLiveData.observeForever(cancelObserver);
     }
 
     /** Activity 销毁时仅断开 UI 引用，Worker 监听仍由此管理器独立维持 */
@@ -284,7 +314,9 @@ public class ConversionManager {
                     }
                 }
                 notifyProgress(progress.getInt(FfmpegWorker.KEY_PROGRESS, 0),
-                        progress.getLong(FfmpegWorker.KEY_TIME, 0));
+                        progress.getLong(FfmpegWorker.KEY_TIME, 0),
+                        progress.getInt(FfmpegWorker.KEY_TASK_INDEX, queue.getCurrentPosition()),
+                        progress.getInt(FfmpegWorker.KEY_TOTAL_TASKS, queue.size()));
             } else if (state == WorkInfo.State.SUCCEEDED
                     || state == WorkInfo.State.FAILED
                     || state == WorkInfo.State.CANCELLED) {
@@ -296,6 +328,8 @@ public class ConversionManager {
 
     /** 只处理仍然属于当前队列的 Worker，防止 Activity 重建后出现重复推进 */
     private synchronized void handleTerminalWork(WorkInfo workInfo) {
+        // 用户主动取消时，统一由取消观察器在 Worker 终止后清理，避免旧状态覆盖新输出记录
+        if (cancellationRequested) return;
         boolean isSyncBatch = isSyncBatchWork(workInfo);
         if (isSyncBatch) {
             queue.refreshWorkerProgressFromPersistence();
@@ -436,9 +470,9 @@ public class ConversionManager {
         workManager.enqueue(workRequest);
     }
 
-    private void notifyProgress(int progress, long time) {
+    private void notifyProgress(int progress, long time, int taskIndex, int totalTasks) {
         Listener listener = getListener();
-        if (listener != null) listener.onProgress(progress, time);
+        if (listener != null) listener.onProgress(progress, time, taskIndex, totalTasks);
     }
 
     private void notifyCompleted(boolean success, String message, String outputPath) {
