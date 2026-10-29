@@ -17,6 +17,8 @@ import com.tech.ezconvert.utils.FileUtils;
 import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.utils.NotificationHelper;
+import com.tech.ezconvert.utils.LanguageManager;
+import com.tech.ezconvert.utils.ToastUtils;
 import com.tech.ezconvert.utils.ParameterData;
 import com.tech.ezconvert.worker.FfmpegWorker;
 
@@ -300,6 +302,10 @@ public class ConversionManager {
                 queue.setPendingParameterPrompt(false);
                 NotificationHelper.cancelNeedParametersNotification(context);
                 NotificationHelper.showAllTasksCompleteNotification(context);
+                // 统一由任务管理器发布完成提示，ToastUtils 会根据执行时的前后台状态选择样式
+                Context localizedContext = LanguageManager.applySavedLanguage(context);
+                ToastUtils.showLong(localizedContext,
+                        localizedContext.getString(R.string.toast_all_complete));
             }
 
             notifyCompleted(true, context.getString(R.string.status_processing_complete), path);
@@ -316,6 +322,13 @@ public class ConversionManager {
         if (!context.getString(R.string.error_cancelled).equals(error)) {
             NotificationHelper.showCompleteNotification(context, "", false, error);
         }
+
+        // 统一由任务管理器发布失败或取消提示，避免依赖 Activity 回调
+        Context localizedContext = LanguageManager.applySavedLanguage(context);
+        String toastMessage = context.getString(R.string.error_cancelled).equals(error)
+                ? localizedContext.getString(R.string.toast_cancelled)
+                : localizedContext.getString(R.string.status_failed, error);
+        ToastUtils.show(localizedContext, toastMessage);
 
         currentWorkId = null;
         notifyCompleted(false, error, null);

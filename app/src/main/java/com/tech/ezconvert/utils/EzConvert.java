@@ -37,6 +37,8 @@ public class EzConvert extends Application {
             @Override
             public void onActivityResumed(Activity activity) {
             	activityResumedCount++;
+                // 记录当前页面主题，确保由后台任务触发的前台 Toast 使用正确的动态颜色
+                ToastUtils.setCurrentActivity(activity);
                 // 只要有一个 Activity 处于 Resumed 状态，默认为前台
                 ToastUtils.setForeground(true);
             }
@@ -44,6 +46,7 @@ public class EzConvert extends Application {
             @Override
             public void onActivityPaused(Activity activity) {
             	activityResumedCount--;
+                ToastUtils.clearCurrentActivity(activity);
                 // 当所有 Activity 都暂停，才认为进入后台
                 if (activityResumedCount == 0) {
                     ToastUtils.setForeground(false);
