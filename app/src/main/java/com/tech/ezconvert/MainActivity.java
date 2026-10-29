@@ -547,7 +547,6 @@ public class MainActivity extends BaseActivity implements
         int total = queueManager.size();
         hideCancelButton();
         updateStatus(getString(R.string.status_all_complete, total));
-        ToastUtils.showLong(this, getString(R.string.toast_all_complete));
         queueManager.resetProcessingState();
         queueManager.clearSelection();
         currentInputPath = "";
@@ -562,12 +561,10 @@ public class MainActivity extends BaseActivity implements
         boolean cancelled = getString(R.string.error_cancelled).equals(message);
         if (cancelled) {
             updateStatus(getString(R.string.error_cancelled));
-            ToastUtils.show(this, getString(R.string.toast_cancelled));
             queueManager.resetProcessingState();
             queueManager.clearSelection();
         } else {
             updateStatus(getString(R.string.status_failed, message));
-            ToastUtils.show(this, getString(R.string.status_failed, message));
         }
         hideCancelButton();
         resetProgressUI();

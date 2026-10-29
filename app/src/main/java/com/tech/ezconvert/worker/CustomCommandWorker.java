@@ -37,6 +37,7 @@ import com.tech.ezconvert.utils.LanguageManager;
 import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.utils.LogManager;
 import com.tech.ezconvert.utils.NotificationHelper;
+import com.tech.ezconvert.utils.ToastUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -216,6 +217,9 @@ public class CustomCommandWorker extends Worker {
                         .putInt("currentProgress", 100).putInt("itemIndex", total).putInt("totalItems", total)
                         .putString("status", "SUCCEEDED").build());
                 NotificationHelper.showCompleteNotification(context, context.getString(com.tech.ezconvert.R.string.custom_command_title), true, "");
+                Context localizedContext = LanguageManager.applySavedLanguage(context);
+                ToastUtils.showLong(localizedContext,
+                        localizedContext.getString(com.tech.ezconvert.R.string.custom_command_status_succeeded, successCount));
                 return Result.success(new Data.Builder()
                         .putInt(KEY_SUCCESS_COUNT, successCount)
                         .putInt(KEY_FAILED_COUNT, 0)
@@ -228,6 +232,9 @@ public class CustomCommandWorker extends Worker {
             if (!errors.isEmpty()) message += "\n\n" + TextUtils.join("\n\n", errors);
             message = truncate(message, 7000);
             NotificationHelper.showCompleteNotification(context, context.getString(com.tech.ezconvert.R.string.custom_command_title), false, truncate(message, 240));
+            Context localizedContext = LanguageManager.applySavedLanguage(context);
+            ToastUtils.showLong(localizedContext,
+                    localizedContext.getString(com.tech.ezconvert.R.string.custom_command_status_failed, message));
             return Result.failure(new Data.Builder()
                     .putString(KEY_ERROR_MESSAGE, message)
                     .putInt(KEY_SUCCESS_COUNT, successCount)
@@ -248,6 +255,9 @@ public class CustomCommandWorker extends Worker {
                     ? context.getString(com.tech.ezconvert.R.string.custom_command_worker_failed_generic)
                     : truncate(e.getMessage(), 7000);
             NotificationHelper.showCompleteNotification(context, context.getString(com.tech.ezconvert.R.string.custom_command_title), false, truncate(message, 240));
+            Context localizedContext = LanguageManager.applySavedLanguage(context);
+            ToastUtils.showLong(localizedContext,
+                    localizedContext.getString(com.tech.ezconvert.R.string.custom_command_status_failed, message));
             return failure(message);
         }
     }
