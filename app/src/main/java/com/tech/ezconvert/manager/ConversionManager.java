@@ -234,11 +234,17 @@ public class ConversionManager {
      */
     public void cancelCurrent() {
         NotificationHelper.cancelNeedParametersNotification(context);
-        if (currentWorkId != null) {
-            workManager.cancelWorkById(currentWorkId);
+        UUID workId = currentWorkId;
+        if (workId != null) {
+            // 先清除当前任务标识，避免取消回调与主动提示同时触发 Toast
             queue.setCurrentWorkId("");
             queue.setPendingParameterPrompt(false);
             currentWorkId = null;
+            workManager.cancelWorkById(workId);
+
+            Context localizedContext = LanguageManager.applySavedLanguage(context);
+            ToastUtils.show(localizedContext,
+                    localizedContext.getString(R.string.toast_cancelled));
         }
     }
 
