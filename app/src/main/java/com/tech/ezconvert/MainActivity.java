@@ -243,6 +243,10 @@ public class MainActivity extends BaseActivity implements
     private void setupButtonListeners() {
         selectFileBtn.setOnClickListener(v -> {
             AnimationUtils.animateButtonClick(v);
+            if (isTaskRunning || queueManager.hasActiveWorkOrPendingPrompt()) {
+                ToastUtils.show(this, getString(R.string.toast_selection_blocked_during_processing));
+                return;
+            }
             if (permissionsGranted) {
                 mediaSelectionManager.openFilePicker(filePickerLauncher);
             } else {
@@ -276,6 +280,7 @@ public class MainActivity extends BaseActivity implements
     // 开始处理当前队列，具体 Worker 的创建与监听由 ConversionManager 负责
     private void startQueue(String taskType) {
         if (taskType == null || queueManager.isEmpty()) return;
+        queueManager.clearPendingFailureMessage();
         displayedTaskIndex = -1;
         queueManager.setTaskType(taskType);
         queueManager.setCurrentIndex(0);
@@ -511,12 +516,16 @@ public class MainActivity extends BaseActivity implements
     private void showCancelButton() {
         isTaskRunning = true;
         cancelBtn.setVisibility(View.VISIBLE);
+        selectFileBtn.setEnabled(false);
+        selectFileBtn.setAlpha(0.5f);
         setFunctionButtonsEnabled(false);
     }
 
     private void hideCancelButton() {
         isTaskRunning = false;
         cancelBtn.setVisibility(View.GONE);
+        selectFileBtn.setEnabled(permissionsGranted);
+        selectFileBtn.setAlpha(permissionsGranted ? 1.0f : 0.5f);
         setFunctionButtonsEnabled(permissionsGranted);
     }
 
@@ -622,6 +631,7 @@ public class MainActivity extends BaseActivity implements
             if (!isMainActivityVisible) return;
 
             if (!success) {
+                queueManager.consumePendingFailureMessage();
                 handleWorkerFailure(message);
                 return;
             }
@@ -790,6 +800,13 @@ public class MainActivity extends BaseActivity implements
     protected void onResume() {
         super.onResume();
         checkPermissions();
+
+        // 后台失败时 Activity 可能不在前台，消费持久化结果以恢复正确的界面状态
+        String pendingFailure = queueManager != null ? queueManager.consumePendingFailureMessage() : null;
+        if (pendingFailure != null && !pendingFailure.isEmpty()) {
+            handleWorkerFailure(pendingFailure);
+            return;
+        }
 
         // 非同步队列在后台等待参数时，回到 MainActivity 后继续弹出参数设置
         if (queueManager != null && queueManager.hasPendingParameterPrompt()

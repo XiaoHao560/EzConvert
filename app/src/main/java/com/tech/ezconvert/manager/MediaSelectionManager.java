@@ -124,6 +124,12 @@ public class MediaSelectionManager {
      */
     private void validateAndLoadUris(List<Uri> uris, boolean fromShare) {
         if (uris == null || uris.isEmpty()) return;
+        if (queue.hasActiveWorkOrPendingPrompt()) {
+            mainHandler.post(() -> ToastUtils.show(context,
+                    context.getString(R.string.toast_selection_blocked_during_processing)));
+            Log.w("MediaSelectionManager", "拒绝在现有转换任务结束前替换文件队列");
+            return;
+        }
 
         synchronized (this) {
             if (validationInProgress) {
