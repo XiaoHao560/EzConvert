@@ -108,6 +108,8 @@ public class NotificationHelper {
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setOngoing(true)
                 .setContentIntent(pendingIntent)
+                // 前台服务通知默认可能被 Android 延迟显示，任务启动时需要立即展示进度通知
+                .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
                 .setOnlyAlertOnce(true)
                 .build();
     }
