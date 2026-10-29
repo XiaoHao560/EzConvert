@@ -649,9 +649,18 @@ public class CustomCommandWorker extends Worker {
                 }
             });
         }
-        while (!latch.await(500, TimeUnit.MILLISECONDS)) {
+        while (latch.getCount() > 0) {
+            try {
+                if (latch.await(500, TimeUnit.MILLISECONDS)) break;
+            } catch (InterruptedException interrupted) {
+                // WorkManager 停止 Worker 时可能中断等待线程；先终止 FFmpeg 并等待回调，之后再清理输出文件
+                cancelActiveFfmpegSession();
+                awaitFfmpegCompletion(latch);
+                throw interrupted;
+            }
             if (stopped || isStopped()) {
-                if (currentSession != null) FFmpegKit.cancel(currentSession.getSessionId());
+                cancelActiveFfmpegSession();
+                awaitFfmpegCompletion(latch);
                 throw new InterruptedException(context.getString(com.tech.ezconvert.R.string.custom_command_worker_cancelled));
             }
         }
@@ -660,6 +669,34 @@ public class CustomCommandWorker extends Worker {
             if (currentSession == completedSession) currentSession = null;
         }
         return completedSession;
+    }
+
+    /** 请求终止当前 FFmpeg 会话；会话完成回调会负责释放等待中的 Worker 线程 */
+    private void cancelActiveFfmpegSession() {
+        FFmpegSession session = currentSession;
+        if (session == null) return;
+        try {
+            FFmpegKit.cancel(session.getSessionId());
+        } catch (Exception e) {
+            Log.w("CustomCommandWorker", "取消 FFmpeg 会话失败", e);
+        }
+    }
+
+    /**
+     * FFmpegKit 的取消操作是异步的。即使 Worker 线程被再次中断，也要等完成回调，
+     * 避免先删除输出文件、FFmpeg 随后又将残留内容写回磁盘。
+     */
+    private void awaitFfmpegCompletion(CountDownLatch latch) {
+        boolean interrupted = false;
+        while (latch.getCount() > 0) {
+            try {
+                latch.await(500, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                interrupted = true;
+                cancelActiveFfmpegSession();
+            }
+        }
+        if (interrupted) Thread.currentThread().interrupt();
     }
 
     /** 用 FFprobe 估算输入媒体时长；遇到图片、直播流或未知时长时返回 -1，让界面显示不确定进度 */
