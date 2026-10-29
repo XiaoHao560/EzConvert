@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.UUID;
 
 public class CacheManager {
     private static final String TAG = "CacheManager";
@@ -128,7 +129,9 @@ public class CacheManager {
                 fileName = "temp_" + System.currentTimeMillis();
             }
         }
-        File cacheFile = new File(cacheDir, fileName);
+        String safeName = new File(fileName).getName();
+        String uniqueName = "temp_" + UUID.randomUUID().toString().substring(0, 8) + "_" + safeName;
+        File cacheFile = new File(cacheDir, uniqueName);
         
         // 检查缓存空间（粗略估计）
         if (!ensureCacheSpace(context, 10 * 1024 * 1024)) {

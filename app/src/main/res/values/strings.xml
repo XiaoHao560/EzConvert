@@ -55,6 +55,7 @@
     <string name="status_validating_files">正在使用 FFmpeg 验证 %1$d 个文件，请稍候…</string>
     <string name="status_no_valid_media_files">所选文件中没有可识别的音频或视频文件</string>
     <string name="toast_validating_files">正在验证已选择的文件，请稍候</string>
+    <string name="toast_selection_blocked_during_processing">请先完成或取消当前转换任务，再选择新文件</string>
     <string name="toast_invalid_media_skipped">已跳过 %1$d 个无法识别为音频或视频的文件（例如：%2$s）</string>
     <string name="status_file_not_exist">无法访问文件或文件不存在</string>
     <string name="status_all_complete">所有文件处理完成，共 %1$d 个</string>

@@ -16,6 +16,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.UUID;
 
 /**
  * 负责生成输出文件路径
@@ -46,9 +47,10 @@ public class OutputPathManager {
             Log.w("OutputPathManager", "无法创建输出目录: " + outputDir);
         }
 
-        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.US).format(new Date());
+        String uniqueSuffix = UUID.randomUUID().toString().substring(0, 8);
         String prefix = getPrefixTaskType(taskType);
-        String path = new File(outputDir, baseName + "_" + prefix + timestamp).getAbsolutePath();
+        String path = new File(outputDir, baseName + "_" + prefix + timestamp + "_" + uniqueSuffix).getAbsolutePath();
         Log.d("OutputPathManager", "输出路径基础: " + path + ", mode=" + outputMode);
         return path;
     }
@@ -56,10 +58,12 @@ public class OutputPathManager {
     /** 为通过分享入口接收的文件生成临时/输出路径 */
     public String generateSharePath(String inputKey, Uri uri) {
         String base = getBaseName(inputKey, uri, "shared");
-        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.US).format(new Date());
+        String uniqueSuffix = UUID.randomUUID().toString().substring(0, 8);
         File outputDir = getOutputDir();
         if (!outputDir.exists()) outputDir.mkdirs();
-        return new File(outputDir, base + context.getString(R.string.filename_suffix_share) + timestamp).getAbsolutePath();
+        return new File(outputDir, base + context.getString(R.string.filename_suffix_share)
+                + timestamp + "_" + uniqueSuffix).getAbsolutePath();
     }
 
     /** 根据参数决定最终输出扩展名和完整路径 */

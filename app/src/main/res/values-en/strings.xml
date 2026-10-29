@@ -55,6 +55,7 @@
     <string name="status_validating_files">Validating %1$d file(s) with FFmpeg, please wait…</string>
     <string name="status_no_valid_media_files">None of the selected files could be recognized as audio or video</string>
     <string name="toast_validating_files">Selected files are being validated, please wait</string>
+    <string name="toast_selection_blocked_during_processing">Finish or cancel the current conversion before selecting new files</string>
     <string name="toast_invalid_media_skipped">Skipped %1$d file(s) that could not be recognized as audio or video (for example: %2$s)</string>
     <string name="status_file_not_exist">Cannot access file or file does not exist</string>
     <string name="status_all_complete">All files processed, total %1$d</string>
