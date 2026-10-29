@@ -243,8 +243,13 @@ public class ConversionManager {
      */
     public void cancelCurrent(Runnable onStopped) {
         NotificationHelper.cancelNeedParametersNotification(context);
+        Context localizedContext = LanguageManager.applySavedLanguage(context);
+        ToastUtils.show(localizedContext, localizedContext.getString(R.string.toast_cancelled));
+
         UUID workId = currentWorkId;
         if (workId == null) {
+            queue.setPendingParameterPrompt(false);
+            queue.setCurrentWorkId("");
             if (onStopped != null) onStopped.run();
             return;
         }
@@ -253,10 +258,6 @@ public class ConversionManager {
         cancellationRequested = true;
         currentWorkId = null;
         workManager.cancelWorkById(workId);
-
-        Context localizedContext = LanguageManager.applySavedLanguage(context);
-        ToastUtils.show(localizedContext,
-                localizedContext.getString(R.string.toast_cancelled));
 
         LiveData<WorkInfo> workInfoLiveData = workManager.getWorkInfoByIdLiveData(workId);
         Observer<WorkInfo> cancelObserver = new Observer<WorkInfo>() {
@@ -414,6 +415,7 @@ public class ConversionManager {
         ToastUtils.show(localizedContext, toastMessage);
 
         currentWorkId = null;
+        queue.setPendingFailureMessage(error);
         notifyCompleted(false, error, null);
     }
 

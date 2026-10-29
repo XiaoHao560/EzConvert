@@ -55,6 +55,7 @@
     <string name="status_validating_files">正在使用 FFmpeg 验证 %1$d 个文件，请稍候…</string>
     <string name="status_no_valid_media_files">所选文件中没有可识别的音频或视频文件</string>
     <string name="toast_validating_files">正在验证已选择的文件，请稍候</string>
+    <string name="toast_task_already_running">当前转换任务仍在运行，请等待完成或取消后再开始新任务</string>
     <string name="toast_selection_blocked_during_processing">请先完成或取消当前转换任务，再选择新文件</string>
     <string name="toast_invalid_media_skipped">已跳过 %1$d 个无法识别为音频或视频的文件（例如：%2$s）</string>
     <string name="status_file_not_exist">无法访问文件或文件不存在</string>
@@ -69,6 +70,8 @@
 
     <string name="error_cancelled">操作已取消</string>
     <string name="error_unknown">未知错误</string>
+    <string name="error_output_path_unique_failed">无法为输出文件分配唯一路径</string>
+    <string name="error_custom_output_directory_write_failed">无法写入自定义输出目录，请重新选择输出目录</string>
     <string name="status_failed">处理失败: %1$s</string>
     <string name="status_error">错误: %1$s</string>
 
