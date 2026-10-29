@@ -55,6 +55,7 @@
     <string name="status_validating_files">Validating %1$d file(s) with FFmpeg, please wait…</string>
     <string name="status_no_valid_media_files">None of the selected files could be recognized as audio or video</string>
     <string name="toast_validating_files">Selected files are being validated, please wait</string>
+    <string name="toast_task_already_running">A conversion is still running. Wait for it to finish or cancel it before starting another task</string>
     <string name="toast_selection_blocked_during_processing">Finish or cancel the current conversion before selecting new files</string>
     <string name="toast_invalid_media_skipped">Skipped %1$d file(s) that could not be recognized as audio or video (for example: %2$s)</string>
     <string name="status_file_not_exist">Cannot access file or file does not exist</string>
@@ -69,6 +70,8 @@
 
     <string name="error_cancelled">Operation cancelled</string>
     <string name="error_unknown">Unknown error</string>
+    <string name="error_output_path_unique_failed">Could not generate a unique output path</string>
+    <string name="error_custom_output_directory_write_failed">Cannot write to the custom output directory; choose the directory again</string>
     <string name="status_failed">Processing failed: %1$s</string>
     <string name="status_error">Error: %1$s</string>
 

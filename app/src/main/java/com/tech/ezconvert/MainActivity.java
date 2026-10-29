@@ -257,6 +257,11 @@ public class MainActivity extends BaseActivity implements
 
         View.OnClickListener functionListener = v -> {
             AnimationUtils.animateButtonClick(v);
+            String activeWorkId = queueManager.getCurrentWorkId();
+            if (isTaskRunning || (activeWorkId != null && !activeWorkId.isEmpty())) {
+                ToastUtils.show(this, getString(R.string.toast_task_already_running));
+                return;
+            }
             if (permissionsGranted && !queueManager.isEmpty()) {
                 startQueue(getTaskTypeFromId(v.getId()));
             } else if (!permissionsGranted) {
@@ -280,6 +285,11 @@ public class MainActivity extends BaseActivity implements
     // 开始处理当前队列，具体 Worker 的创建与监听由 ConversionManager 负责
     private void startQueue(String taskType) {
         if (taskType == null || queueManager.isEmpty()) return;
+        String activeWorkId = queueManager.getCurrentWorkId();
+        if (isTaskRunning || (activeWorkId != null && !activeWorkId.isEmpty())) {
+            ToastUtils.show(this, getString(R.string.toast_task_already_running));
+            return;
+        }
         queueManager.clearPendingFailureMessage();
         displayedTaskIndex = -1;
         queueManager.setTaskType(taskType);
@@ -465,8 +475,12 @@ public class MainActivity extends BaseActivity implements
     }
 
     private void cancelAndCleanup() {
-        isTaskRunning = false;
-        hideCancelButton();
+        // 保持操作入口禁用，直到旧 Worker 终止且文件清理完成，避免新任务被旧回调清空
+        isTaskRunning = true;
+        cancelBtn.setVisibility(View.GONE);
+        selectFileBtn.setEnabled(false);
+        selectFileBtn.setAlpha(0.5f);
+        setFunctionButtonsEnabled(false);
         displayedTaskIndex = -1;
 
         // 等待 Worker 进入终态后再读取持久化输出列表，避免漏删刚完成的文件
@@ -482,8 +496,11 @@ public class MainActivity extends BaseActivity implements
 
                 runOnUiThread(() -> {
                     queueManager.resetProcessingState();
+                    isTaskRunning = false;
                     updateStatus(getString(R.string.status_cancelled_cleaned));
                     resetProgressUI();
+                    selectFileBtn.setEnabled(permissionsGranted);
+                    selectFileBtn.setAlpha(permissionsGranted ? 1.0f : 0.5f);
                     setFunctionButtonsEnabled(permissionsGranted);
                 });
             }).start();
@@ -583,6 +600,8 @@ public class MainActivity extends BaseActivity implements
             queueManager.clearSelection();
         } else {
             updateStatus(getString(R.string.status_failed, message));
+            // 失败后保留用户选择的文件供重试，但清除同步模式和运行标记，允许重新选择文件
+            queueManager.resetProcessingState();
         }
         hideCancelButton();
         resetProgressUI();
@@ -669,6 +688,11 @@ public class MainActivity extends BaseActivity implements
     @Override
     public void onIdleAfterRestore() {
         // Activity 初始状态已经由权限/选择逻辑负责，这里不覆盖现有 UI
+    }
+
+    @Override
+    public boolean isSelectionBlocked() {
+        return isTaskRunning;
     }
 
     @Override

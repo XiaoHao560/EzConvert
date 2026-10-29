@@ -29,6 +29,8 @@ import java.util.concurrent.Executors;
  */
 public class MediaSelectionManager {
     public interface Listener {
+        /** 主界面可在 Worker 终止后继续执行异步清理；这段时间仍必须阻止队列替换 */
+        boolean isSelectionBlocked();
         void onSelectionValidating(int count);
         void onFilesSelected(int count, String firstFileName, boolean fromShare);
         void onSelectionCleared(String message);
@@ -124,7 +126,7 @@ public class MediaSelectionManager {
      */
     private void validateAndLoadUris(List<Uri> uris, boolean fromShare) {
         if (uris == null || uris.isEmpty()) return;
-        if (queue.hasActiveWorkOrPendingPrompt()) {
+        if (listener.isSelectionBlocked() || queue.hasActiveWorkOrPendingPrompt()) {
             mainHandler.post(() -> ToastUtils.show(context,
                     context.getString(R.string.toast_selection_blocked_during_processing)));
             Log.w("MediaSelectionManager", "拒绝在现有转换任务结束前替换文件队列");

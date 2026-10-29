@@ -25,6 +25,8 @@ public class ConversionQueueManager {
     private static final String TAG = "ConversionQueueManager";
     private static final String PREFS = "conversion_session";
     private static final String KEY_STATE = "state";
+    // 多个队列管理器实例共享一份 SharedPreferences，因此需要串行化会话切换和状态写入
+    private static final Object PERSISTENCE_LOCK = new Object();
 
     private final Context context;
     private final SharedPreferences prefs;
@@ -44,6 +46,7 @@ public class ConversionQueueManager {
     private String currentWorkId = "";
     // 当前任务已完成，但下一项需要用户返回界面设置参数
     private boolean pendingParameterPrompt = false;
+    private String pendingFailureMessage = "";
 
     private static class PersistedState {
         List<String> paths = new ArrayList<>();
@@ -57,6 +60,7 @@ public class ConversionQueueManager {
         String sessionId;
         String currentWorkId;
         boolean pendingParameterPrompt;
+        String pendingFailureMessage;
     }
 
     public ConversionQueueManager(Context context) {
@@ -70,23 +74,27 @@ public class ConversionQueueManager {
      * 文件路径（或 key）与 Uri 分开保存，便于后续 Worker 同时兼容两种输入来源
      */
     public synchronized void replaceSelection(List<String> keys, Map<String, Uri> uris) {
-        selectedFilePaths.clear();
-        pathToUriMap.clear();
-        if (keys != null) selectedFilePaths.addAll(keys);
-        if (uris != null) pathToUriMap.putAll(uris);
-        currentIndex = 0;
-        taskType = "";
-        syncMode = false;
-        syncParams = null;
-        effectiveOutputModeOverride = null;
-        completedOutputFiles.clear();
-        // 文件选择本身不是可恢复任务：在用户真正开始转换之前，不要把选择结果写入持久化会话
-        // 这样即使用户在选择文件后闪退/被系统杀死，重新启动也不会加载这批“未开始”的文件
-        currentWorkId = "";
-        pendingParameterPrompt = false;
-        sessionId = UUID.randomUUID().toString();
-        // 新的文件选择会话尚未开始任务，必须移除上一会话可能遗留的可恢复状态
-        prefs.edit().remove(KEY_STATE).apply();
+        synchronized (PERSISTENCE_LOCK) {
+            selectedFilePaths.clear();
+            pathToUriMap.clear();
+            if (keys != null) selectedFilePaths.addAll(keys);
+            if (uris != null) pathToUriMap.putAll(uris);
+            currentIndex = 0;
+            taskType = "";
+            syncMode = false;
+            syncParams = null;
+            effectiveOutputModeOverride = null;
+            completedOutputFiles.clear();
+            // 文件选择本身不是可恢复任务：在用户真正开始转换之前，不要持久化所选文件
+            // 但保留一个不含文件的 session 标记，阻止旧 Worker 在新任务开始前复活旧状态
+            currentWorkId = "";
+            pendingParameterPrompt = false;
+            pendingFailureMessage = "";
+            sessionId = UUID.randomUUID().toString();
+            PersistedState marker = new PersistedState();
+            marker.sessionId = sessionId;
+            prefs.edit().putString(KEY_STATE, gson.toJson(marker)).apply();
+        }
     }
 
     public synchronized void clearSelection() {
@@ -95,6 +103,7 @@ public class ConversionQueueManager {
         currentIndex = 0;
         currentWorkId = "";
         pendingParameterPrompt = false;
+        pendingFailureMessage = "";
         saveState();
     }
 
@@ -112,6 +121,7 @@ public class ConversionQueueManager {
         effectiveOutputModeOverride = null;
         currentWorkId = "";
         pendingParameterPrompt = false;
+        pendingFailureMessage = "";
         completedOutputFiles.clear();
         saveState();
     }
@@ -122,6 +132,26 @@ public class ConversionQueueManager {
 
     public synchronized boolean isEmpty() { 
         return selectedFilePaths.isEmpty(); 
+    }
+
+    /** 当前队列是否仍有运行中的 Worker 或等待用户继续设置参数的任务 */
+    public synchronized boolean hasActiveWorkOrPendingPrompt() {
+        return (currentWorkId != null && !currentWorkId.isEmpty())
+                || pendingParameterPrompt
+                || (syncMode && syncParams != null && currentIndex < selectedFilePaths.size());
+    }
+
+    /** 检查磁盘上的队列会话是否仍属于当前实例 */
+    public synchronized boolean isCurrentSession() {
+        synchronized (PERSISTENCE_LOCK) {
+            return isCurrentSessionLocked();
+        }
+    }
+
+    private boolean isCurrentSessionLocked() {
+        PersistedState state = readPersistedState();
+        return state != null && sessionId != null && !sessionId.isEmpty()
+                && sessionId.equals(state.sessionId);
     }
 
     public synchronized int size() {
@@ -167,28 +197,34 @@ public class ConversionQueueManager {
     }
 
     /** 原子记录批量任务完成结果并推进下标，保留当前 Worker ID 以支持中断恢复 */
-    public synchronized void completeBatchItem(String outputPath) {
-        if (outputPath != null && !outputPath.isEmpty() && !completedOutputFiles.contains(outputPath)) {
-            completedOutputFiles.add(outputPath);
+    public synchronized boolean completeBatchItem(String outputPath) {
+        synchronized (PERSISTENCE_LOCK) {
+            PersistedState state = readPersistedState();
+            if (state == null || sessionId == null || !sessionId.equals(state.sessionId)) {
+                Log.w(TAG, "拒绝提交旧会话的批量进度，sessionId=" + sessionId);
+                return false;
+            }
+            currentIndex = Math.max(0, Math.min(state.currentIndex, selectedFilePaths.size()));
+            completedOutputFiles.clear();
+            if (state.completedOutputs != null) completedOutputFiles.addAll(state.completedOutputs);
+            if (outputPath != null && !outputPath.isEmpty() && !completedOutputFiles.contains(outputPath)) {
+                completedOutputFiles.add(outputPath);
+            }
+            if (currentIndex < selectedFilePaths.size()) currentIndex++;
+            saveState();
+            return true;
         }
-        if (currentIndex < selectedFilePaths.size()) currentIndex++;
-        saveState();
     }
 
-    /** 同步独立 Worker 保存的批量进度，避免 Activity 内存中的队列状态覆盖持久化状态 */
-    public synchronized void refreshWorkerProgressFromPersistence() {
-        String json = prefs.getString(KEY_STATE, null);
-        if (json == null || json.isEmpty()) return;
-        try {
-            PersistedState state = gson.fromJson(json, PersistedState.class);
-            if (state == null) return;
+    /** 同步独立 Worker 保存的批量进度；会话不匹配时不会读取或覆盖其他队列状态 */
+    public synchronized boolean refreshWorkerProgressFromPersistence() {
+        synchronized (PERSISTENCE_LOCK) {
+            PersistedState state = readPersistedState();
+            if (state == null || sessionId == null || !sessionId.equals(state.sessionId)) return false;
             currentIndex = Math.max(0, Math.min(state.currentIndex, selectedFilePaths.size()));
-            if (state.completedOutputs != null) {
-                completedOutputFiles.clear();
-                completedOutputFiles.addAll(state.completedOutputs);
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "刷新批量任务进度失败", e);
+            completedOutputFiles.clear();
+            if (state.completedOutputs != null) completedOutputFiles.addAll(state.completedOutputs);
+            return true;
         }
     }
 
@@ -249,14 +285,42 @@ public class ConversionQueueManager {
      * 同时收到同一个 WorkInfo 回调并重复推进队列
      */
     public synchronized boolean tryClaimCurrentWorkCompletion(String workId) {
-        if (workId == null || !workId.equals(currentWorkId)) return false;
-        currentWorkId = "";
-        saveState();
-        return true;
+        synchronized (PERSISTENCE_LOCK) {
+            if (!isCurrentSessionLocked() || workId == null || !workId.equals(currentWorkId)) return false;
+            currentWorkId = "";
+            saveState();
+            return true;
+        }
     }
 
     public synchronized void setPendingParameterPrompt(boolean pending) {
         pendingParameterPrompt = pending;
+        saveState();
+    }
+
+    public synchronized void setPendingFailureMessage(String message) {
+        pendingFailureMessage = message == null ? "" : message;
+        saveState();
+    }
+
+    /** 主界面恢复时读取并消费持久化的后台失败结果 */
+    public synchronized String consumePendingFailureMessage() {
+        synchronized (PERSISTENCE_LOCK) {
+            PersistedState state = readPersistedState();
+            if (state != null && sessionId != null && sessionId.equals(state.sessionId)) {
+                pendingFailureMessage = state.pendingFailureMessage == null ? "" : state.pendingFailureMessage;
+            }
+            String message = pendingFailureMessage;
+            if (message != null && !message.isEmpty()) {
+                pendingFailureMessage = "";
+                saveState();
+            }
+            return message;
+        }
+    }
+
+    public synchronized void clearPendingFailureMessage() {
+        pendingFailureMessage = "";
         saveState();
     }
 
@@ -276,74 +340,103 @@ public class ConversionQueueManager {
     }
 
     private synchronized void saveState() {
-        PersistedState state = new PersistedState();
-        state.paths.addAll(selectedFilePaths);
-        for (String key : selectedFilePaths) {
-            Uri uri = pathToUriMap.get(key);
-            state.uris.add(uri == null ? "" : uri.toString());
+        synchronized (PERSISTENCE_LOCK) {
+            PersistedState existing = readPersistedState();
+            // 只有显式的队列替换流程会更换 session；旧实例不得覆盖新会话
+            if (existing != null && existing.sessionId != null && !existing.sessionId.isEmpty()
+                    && !existing.sessionId.equals(sessionId)) {
+                Log.w(TAG, "忽略旧会话的状态写入，当前=" + sessionId + "，磁盘=" + existing.sessionId);
+                return;
+            }
+            PersistedState state = new PersistedState();
+            state.paths.addAll(selectedFilePaths);
+            for (String key : selectedFilePaths) {
+                Uri uri = pathToUriMap.get(key);
+                state.uris.add(uri == null ? "" : uri.toString());
+            }
+            state.completedOutputs.addAll(completedOutputFiles);
+            state.currentIndex = currentIndex;
+            state.taskType = taskType;
+            state.syncMode = syncMode;
+            state.syncParams = syncParams;
+            state.effectiveOutputModeOverride = effectiveOutputModeOverride;
+            state.sessionId = sessionId;
+            state.currentWorkId = currentWorkId;
+            state.pendingParameterPrompt = pendingParameterPrompt;
+            state.pendingFailureMessage = pendingFailureMessage;
+            prefs.edit().putString(KEY_STATE, gson.toJson(state)).apply();
         }
-        state.completedOutputs.addAll(completedOutputFiles);
-        state.currentIndex = currentIndex;
-        state.taskType = taskType;
-        state.syncMode = syncMode;
-        state.syncParams = syncParams;
-        state.effectiveOutputModeOverride = effectiveOutputModeOverride;
-        state.sessionId = sessionId;
-        state.currentWorkId = currentWorkId;
-        state.pendingParameterPrompt = pendingParameterPrompt;
-        prefs.edit().putString(KEY_STATE, gson.toJson(state)).apply();
+    }
+
+    private PersistedState readPersistedState() {
+        String json = prefs.getString(KEY_STATE, null);
+        if (json == null || json.isEmpty()) return null;
+        try {
+            return gson.fromJson(json, PersistedState.class);
+        } catch (Exception e) {
+            Log.e(TAG, "读取持久化队列状态失败", e);
+            return null;
+        }
     }
 
     private synchronized void loadState() {
-        String json = prefs.getString(KEY_STATE, null);
-        if (json == null || json.isEmpty()) return;
-        try {
-            PersistedState state = gson.fromJson(json, PersistedState.class);
-            if (state == null) return;
-            selectedFilePaths.clear();
-            pathToUriMap.clear();
-            completedOutputFiles.clear();
-            if (state.paths != null) selectedFilePaths.addAll(state.paths);
-            if (state.paths != null && state.uris != null) {
-                for (int i = 0; i < state.paths.size() && i < state.uris.size(); i++) {
-                    String uri = state.uris.get(i);
-                    if (uri != null && !uri.isEmpty()) pathToUriMap.put(state.paths.get(i), Uri.parse(uri));
-                }
-            }
-            if (state.completedOutputs != null) completedOutputFiles.addAll(state.completedOutputs);
-            // currentIndex == size 表示整个队列已经完成，恢复时需要保留这一状态
-            currentIndex = Math.max(0, Math.min(state.currentIndex, selectedFilePaths.size()));
-            taskType = state.taskType == null ? "" : state.taskType;
-            syncMode = state.syncMode;
-            syncParams = state.syncParams;
-            effectiveOutputModeOverride = state.effectiveOutputModeOverride;
-            sessionId = state.sessionId == null ? "" : state.sessionId;
-            currentWorkId = state.currentWorkId == null ? "" : state.currentWorkId;
-            pendingParameterPrompt = state.pendingParameterPrompt;
-
-            // 只有已经创建 Worker 的会话才属于“可恢复任务”
-            // 旧版本/异常退出可能只留下了选中的文件，但没有真正开始任务
-            // 这类状态必须视为临时选择并丢弃，避免下次启动误触发恢复流程
-            if (currentWorkId.isEmpty() && !pendingParameterPrompt) {
+        // 将队列恢复与会话替换及所有持久化状态变更串行化
+        synchronized (PERSISTENCE_LOCK) {
+            String json = prefs.getString(KEY_STATE, null);
+            if (json == null || json.isEmpty()) return;
+            try {
+                PersistedState state = gson.fromJson(json, PersistedState.class);
+                if (state == null) return;
                 selectedFilePaths.clear();
                 pathToUriMap.clear();
                 completedOutputFiles.clear();
-                currentIndex = 0;
-                taskType = "";
-                syncMode = false;
-                syncParams = null;
-                effectiveOutputModeOverride = null;
-                sessionId = "";
-                pendingParameterPrompt = false;
-                Log.d(TAG, "发现未启动任务的残留文件选择，已丢弃，不进入恢复流程");
-                prefs.edit().remove(KEY_STATE).apply();
-                return;
-            }
+                if (state.paths != null) selectedFilePaths.addAll(state.paths);
+                if (state.paths != null && state.uris != null) {
+                    for (int i = 0; i < state.paths.size() && i < state.uris.size(); i++) {
+                        String uri = state.uris.get(i);
+                        if (uri != null && !uri.isEmpty()) {
+                            pathToUriMap.put(state.paths.get(i), Uri.parse(uri));
+                        }
+                    }
+                }
+                if (state.completedOutputs != null) completedOutputFiles.addAll(state.completedOutputs);
+                // 即使 currentIndex == size，也表示整个队列已经完成，恢复时需要保留这一状态
+                currentIndex = Math.max(0, Math.min(state.currentIndex, selectedFilePaths.size()));
+                taskType = state.taskType == null ? "" : state.taskType;
+                syncMode = state.syncMode;
+                syncParams = state.syncParams;
+                effectiveOutputModeOverride = state.effectiveOutputModeOverride;
+                sessionId = state.sessionId == null ? "" : state.sessionId;
+                currentWorkId = state.currentWorkId == null ? "" : state.currentWorkId;
+                pendingParameterPrompt = state.pendingParameterPrompt;
+                pendingFailureMessage = state.pendingFailureMessage == null ? "" : state.pendingFailureMessage;
 
-            Log.d(TAG, "已加载可恢复任务: " + selectedFilePaths.size() + " 个文件, currentIndex=" + currentIndex
-                    + ", currentWorkId=" + currentWorkId);
-        } catch (Exception e) {
-            Log.e(TAG, "恢复队列状态失败", e);
+                // 只有已经创建 Worker 的会话才属于“可恢复任务”
+                // 未启动的选择要丢弃，但要保留该 session 的空闲标记，防止旧实例复活旧队列
+                if (currentWorkId.isEmpty() && !pendingParameterPrompt && pendingFailureMessage.isEmpty()) {
+                    selectedFilePaths.clear();
+                    pathToUriMap.clear();
+                    completedOutputFiles.clear();
+                    currentIndex = 0;
+                    taskType = "";
+                    syncMode = false;
+                    syncParams = null;
+                    effectiveOutputModeOverride = null;
+                    pendingParameterPrompt = false;
+                    pendingFailureMessage = "";
+                    if (sessionId.isEmpty()) sessionId = UUID.randomUUID().toString();
+                    PersistedState idleMarker = new PersistedState();
+                    idleMarker.sessionId = sessionId;
+                    prefs.edit().putString(KEY_STATE, gson.toJson(idleMarker)).apply();
+                    Log.d(TAG, "发现未启动任务的残留文件选择，已丢弃，并保留空闲会话标记");
+                    return;
+                }
+
+                Log.d(TAG, "已加载可恢复任务: " + selectedFilePaths.size() + " 个文件, currentIndex=" + currentIndex
+                        + ", currentWorkId=" + currentWorkId);
+            } catch (Exception e) {
+                Log.e(TAG, "恢复队列状态失败", e);
+            }
         }
     }
 }
