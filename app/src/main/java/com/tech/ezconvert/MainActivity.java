@@ -487,8 +487,13 @@ public class MainActivity extends BaseActivity implements
         conversionManager.cancelCurrent(() -> {
             queueManager.refreshWorkerProgressFromPersistence();
             new Thread(() -> {
-                deleteFileIfExists(currentOutputFile);
-                for (String path : queueManager.getCompletedOutputFiles()) deleteFileIfExists(path);
+                java.util.Set<String> outputsToDelete = new java.util.LinkedHashSet<>();
+                if (currentOutputFile != null && !currentOutputFile.isEmpty()) {
+                    outputsToDelete.add(currentOutputFile);
+                }
+                outputsToDelete.addAll(queueManager.getCompletedOutputFiles());
+                Log.d(TAG, "取消任务后清理已生成输出，记录数量: " + outputsToDelete.size());
+                for (String path : outputsToDelete) deleteFileIfExists(path);
                 queueManager.clearCompletedOutputs();
                 queueManager.clearSelection();
                 currentInputPath = "";
@@ -513,8 +518,8 @@ public class MainActivity extends BaseActivity implements
             Uri uri = Uri.parse(path);
             if ("content".equalsIgnoreCase(uri.getScheme())) {
                 try {
-                    DocumentsContract.deleteDocument(getContentResolver(), uri);
-                    Log.d(TAG, "删除 SAF 文件: " + path);
+                    boolean deleted = DocumentsContract.deleteDocument(getContentResolver(), uri);
+                    Log.d(TAG, "删除 SAF 文件 " + path + ": " + (deleted ? "成功" : "失败"));
                 } catch (Exception e) {
                     Log.w(TAG, "删除 SAF 文件失败: " + path, e);
                 }
@@ -581,7 +586,9 @@ public class MainActivity extends BaseActivity implements
         displayedTaskIndex = -1;
         hideCancelButton();
         updateStatus(getString(R.string.status_all_complete, total));
-        queueManager.resetProcessingState();
+        // 取消确认框可能在最后一项完成前已打开，因此完成收尾不能提前清空输出清理记录
+        // 新一轮文件选择会替换会话并清空旧记录
+        queueManager.resetProcessingStatePreservingCompletedOutputs();
         queueManager.clearSelection();
         currentInputPath = "";
         currentOutputPath = "";

@@ -114,6 +114,15 @@ public class ConversionQueueManager {
 
     /** 重置一次转换流程产生的临时状态，但不会自动删除已经选择的文件 */
     public synchronized void resetProcessingState() {
+        resetProcessingState(false);
+    }
+
+    /** 队列正常完成时保留输出记录，避免已打开的取消确认框在完成回调后丢失清理目标 */
+    public synchronized void resetProcessingStatePreservingCompletedOutputs() {
+        resetProcessingState(true);
+    }
+
+    private synchronized void resetProcessingState(boolean preserveCompletedOutputs) {
         currentIndex = 0;
         taskType = "";
         syncMode = false;
@@ -122,7 +131,7 @@ public class ConversionQueueManager {
         currentWorkId = "";
         pendingParameterPrompt = false;
         pendingFailureMessage = "";
-        completedOutputFiles.clear();
+        if (!preserveCompletedOutputs) completedOutputFiles.clear();
         saveState();
     }
 
