@@ -166,6 +166,32 @@ public class ConversionQueueManager {
         saveState();
     }
 
+    /** 原子记录批量任务完成结果并推进下标，保留当前 Worker ID 以支持中断恢复 */
+    public synchronized void completeBatchItem(String outputPath) {
+        if (outputPath != null && !outputPath.isEmpty() && !completedOutputFiles.contains(outputPath)) {
+            completedOutputFiles.add(outputPath);
+        }
+        if (currentIndex < selectedFilePaths.size()) currentIndex++;
+        saveState();
+    }
+
+    /** 同步独立 Worker 保存的批量进度，避免 Activity 内存中的队列状态覆盖持久化状态 */
+    public synchronized void refreshWorkerProgressFromPersistence() {
+        String json = prefs.getString(KEY_STATE, null);
+        if (json == null || json.isEmpty()) return;
+        try {
+            PersistedState state = gson.fromJson(json, PersistedState.class);
+            if (state == null) return;
+            currentIndex = Math.max(0, Math.min(state.currentIndex, selectedFilePaths.size()));
+            if (state.completedOutputs != null) {
+                completedOutputFiles.clear();
+                completedOutputFiles.addAll(state.completedOutputs);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "刷新批量任务进度失败", e);
+        }
+    }
+
     public synchronized String getTaskType() {
         return taskType;
     }
@@ -285,7 +311,8 @@ public class ConversionQueueManager {
                 }
             }
             if (state.completedOutputs != null) completedOutputFiles.addAll(state.completedOutputs);
-            currentIndex = Math.max(0, Math.min(state.currentIndex, Math.max(0, selectedFilePaths.size() - 1)));
+            // currentIndex == size 表示整个队列已经完成，恢复时需要保留这一状态
+            currentIndex = Math.max(0, Math.min(state.currentIndex, selectedFilePaths.size()));
             taskType = state.taskType == null ? "" : state.taskType;
             syncMode = state.syncMode;
             syncParams = state.syncParams;

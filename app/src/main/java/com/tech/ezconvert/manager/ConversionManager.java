@@ -39,6 +39,7 @@ public class ConversionManager {
 
     public static final String WORK_TAG_QUEUE = "ezconvert_queue";
     public static final String WORK_TAG_CURRENT = "ezconvert_current";
+    public static final String WORK_TAG_SYNC_BATCH = "ezconvert_sync_batch";
 
     private final Context context;
     private final WorkManager workManager;
@@ -98,15 +99,20 @@ public class ConversionManager {
                 .putString(FfmpegWorker.KEY_SESSION_ID, queue.getSessionId())
                 .putInt(FfmpegWorker.KEY_TASK_INDEX, queue.getCurrentPosition())
                 .putInt(FfmpegWorker.KEY_TOTAL_TASKS, queue.size())
+                .putBoolean(FfmpegWorker.KEY_SYNC_BATCH,
+                        queue.isSyncMode() && queue.getSyncParams() != null)
                 .build();
 
-        OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(FfmpegWorker.class)
+        boolean isSyncBatch = queue.isSyncMode() && queue.getSyncParams() != null;
+        OneTimeWorkRequest.Builder requestBuilder = new OneTimeWorkRequest.Builder(FfmpegWorker.class)
                 .setInputData(inputData)
                 .addTag(WORK_TAG_QUEUE)
                 .addTag(WORK_TAG_CURRENT)
                 .addTag("ezconvert_session_" + queue.getSessionId())
-                .addTag("ezconvert_task_" + queue.getCurrentPosition())
-                .build();
+                .addTag("ezconvert_task_" + queue.getCurrentPosition());
+        // WorkInfo 不公开 InputData，因此用标签保存批量任务标识，供恢复和状态监听使用
+        if (isSyncBatch) requestBuilder.addTag(WORK_TAG_SYNC_BATCH);
+        OneTimeWorkRequest workRequest = requestBuilder.build();
 
         currentWorkId = workRequest.getId();
         queue.setCurrentWorkId(currentWorkId.toString());
@@ -165,7 +171,11 @@ public class ConversionManager {
                     || state == WorkInfo.State.ENQUEUED
                     || state == WorkInfo.State.BLOCKED) {
                 currentWorkId = workInfo.getId();
-                syncQueueIndexFromTags(workInfo);
+                if (isSyncBatchWork(workInfo)) {
+                    queue.refreshWorkerProgressFromPersistence();
+                } else {
+                    syncQueueIndexFromTags(workInfo);
+                }
                 observe(currentWorkId);
                 notifyRestored();
                 return;
@@ -174,10 +184,11 @@ public class ConversionManager {
             // Activity 可能在 Worker 完成回调之前被杀死，此时让 Activity 按正常完成流程推进一次队列
             if (state == WorkInfo.State.SUCCEEDED || state == WorkInfo.State.FAILED) {
                 Data output = workInfo.getOutputData();
+                boolean isSyncBatch = isSyncBatchWork(workInfo);
                 int taskIndex = output.getInt(FfmpegWorker.KEY_TASK_INDEX, -1);
-                boolean isCurrentItem = taskIndex > 0
+                boolean isCurrentItem = isSyncBatch || (taskIndex > 0
                         && taskIndex <= queue.size()
-                        && taskIndex - 1 == queue.getCurrentIndex();
+                        && taskIndex - 1 == queue.getCurrentIndex());
 
                 if (isCurrentItem) {
                     handleTerminalWork(workInfo);
@@ -191,6 +202,12 @@ public class ConversionManager {
             notifyIdleAfterRestore();
         };
         liveData.observeForever(restoreObserver[0]);
+    }
+
+    private boolean isSyncBatchWork(WorkInfo info) {
+        // 运行中通过标签识别批量任务，终态时再兼容读取 Worker 输出数据
+        return info.getTags().contains(WORK_TAG_SYNC_BATCH)
+                || info.getOutputData().getBoolean(FfmpegWorker.KEY_SYNC_BATCH, false);
     }
 
     private boolean isCurrentSessionWork(WorkInfo info) {
@@ -253,6 +270,13 @@ public class ConversionManager {
 
             if (state == WorkInfo.State.RUNNING) {
                 Data progress = workInfo.getProgress();
+                if (isSyncBatchWork(workInfo)) {
+                    int reportedTaskIndex = progress.getInt(
+                            FfmpegWorker.KEY_TASK_INDEX, queue.getCurrentPosition());
+                    if (reportedTaskIndex != queue.getCurrentPosition()) {
+                        queue.refreshWorkerProgressFromPersistence();
+                    }
+                }
                 notifyProgress(progress.getInt(FfmpegWorker.KEY_PROGRESS, 0),
                         progress.getLong(FfmpegWorker.KEY_TIME, 0));
             } else if (state == WorkInfo.State.SUCCEEDED
@@ -266,6 +290,10 @@ public class ConversionManager {
 
     /** 只处理仍然属于当前队列的 Worker，防止 Activity 重建后出现重复推进 */
     private synchronized void handleTerminalWork(WorkInfo workInfo) {
+        boolean isSyncBatch = isSyncBatchWork(workInfo);
+        if (isSyncBatch) {
+            queue.refreshWorkerProgressFromPersistence();
+        }
         if (!queue.tryClaimCurrentWorkCompletion(workInfo.getId().toString())) {
             return;
         }
@@ -275,6 +303,19 @@ public class ConversionManager {
 
         if (state == WorkInfo.State.SUCCEEDED) {
             String path = output.getString(FfmpegWorker.KEY_OUTPUT_PATH);
+            if (isSyncBatch) {
+                if (path != null) queue.addCompletedOutput(path);
+                currentWorkId = null;
+                queue.setPendingParameterPrompt(false);
+                NotificationHelper.cancelNeedParametersNotification(context);
+                NotificationHelper.showAllTasksCompleteNotification(context);
+                Context localizedContext = LanguageManager.applySavedLanguage(context);
+                ToastUtils.showLong(localizedContext,
+                        localizedContext.getString(R.string.toast_all_complete));
+                notifyCompleted(true, context.getString(R.string.status_processing_complete), path);
+                return;
+            }
+
             if (path != null) {
                 queue.addCompletedOutput(path);
                 String displayName = new File(path).getName();
@@ -320,7 +361,9 @@ public class ConversionManager {
             error = context.getString(R.string.error_unknown);
         }
         if (!context.getString(R.string.error_cancelled).equals(error)) {
-            NotificationHelper.showCompleteNotification(context, "", false, error);
+            String failedFileName = output.getString(FfmpegWorker.KEY_FILE_NAME);
+            NotificationHelper.showCompleteNotification(context,
+                    failedFileName == null ? "" : failedFileName, false, error);
         }
 
         // 统一由任务管理器发布失败或取消提示，避免依赖 Activity 回调
@@ -334,7 +377,7 @@ public class ConversionManager {
         notifyCompleted(false, error, null);
     }
 
-    /** 使用已保存的同步参数直接提交下一项，不需要 Activity 存在 */
+    /** 兼容旧版本已入队的同步任务；新任务会在单个 Worker 内完成整个同步队列 */
     private void submitNextSyncWork() {
         ParameterData params = queue.getSyncParams();
         if (params == null || queue.isEmpty() || queue.getCurrentIndex() >= queue.size()) return;
@@ -370,6 +413,7 @@ public class ConversionManager {
                 .putString(FfmpegWorker.KEY_SESSION_ID, queue.getSessionId())
                 .putInt(FfmpegWorker.KEY_TASK_INDEX, queue.getCurrentPosition())
                 .putInt(FfmpegWorker.KEY_TOTAL_TASKS, queue.size())
+                .putBoolean(FfmpegWorker.KEY_SYNC_BATCH, false)
                 .build();
 
         OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(FfmpegWorker.class)
