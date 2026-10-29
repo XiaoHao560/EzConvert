@@ -121,6 +121,17 @@ public class NotificationHelper {
     }
 
     public static void showCompleteNotification(Context context, String fileName, boolean success, String message) {
+        showCompleteNotification(context, fileName, success, message, true);
+    }
+
+    /** 批量 Worker 尚未结束时显示单文件完成通知，但保留正在使用的前台进度通知 */
+    public static void showCompleteNotificationPreservingProgress(Context context, String fileName,
+                                                                  boolean success, String message) {
+        showCompleteNotification(context, fileName, success, message, false);
+    }
+
+    private static void showCompleteNotification(Context context, String fileName, boolean success,
+                                                 String message, boolean cancelProgressNotification) {
         if (!ConfigManager.getInstance(context).isNotificationEnabled()) return;
         if (!areNotificationsEnabled(context)) return;
 
@@ -154,8 +165,9 @@ public class NotificationHelper {
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
 
-        // 取消进度通知
-        NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID_PROGRESS);
+        if (cancelProgressNotification) {
+            NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID_PROGRESS);
+        }
 
         // 显示完成通知（使用递增ID避免覆盖）
         NotificationManagerCompat.from(context).notify(completeNotificationId++, builder.build());

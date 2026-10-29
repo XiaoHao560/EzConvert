@@ -27,7 +27,11 @@ import com.arthenica.ffmpegkit.Statistics;
 import com.arthenica.ffmpegkit.StatisticsCallback;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
+import com.tech.ezconvert.manager.ConversionQueueManager;
+import com.tech.ezconvert.manager.OutputPathManager;
 import com.tech.ezconvert.utils.CacheManager;
+import com.tech.ezconvert.utils.ConfigManager;
+import com.tech.ezconvert.utils.FileUtils;
 import com.tech.ezconvert.utils.FfmpegCommandBuilder;
 import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.utils.LogManager;
@@ -39,6 +43,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -60,6 +66,7 @@ public class FfmpegWorker extends ListenableWorker {
     public static final String KEY_SESSION_ID = "session_id";
     public static final String KEY_TASK_INDEX = "task_index";
     public static final String KEY_TOTAL_TASKS = "total_tasks";
+    public static final String KEY_SYNC_BATCH = "sync_batch";
 
     // Progress keys
     public static final String KEY_PROGRESS = "progress";
@@ -78,6 +85,8 @@ public class FfmpegWorker extends ListenableWorker {
     private volatile boolean isCancelled = false;
     private FFmpegSession currentSession = null;
     private volatile long totalDurationMs = -1;
+    private volatile int activeTaskIndex = 1;
+    private volatile int activeTaskTotal = 1;
     private final Gson gson = new Gson();
 
     public FfmpegWorker(@NonNull Context context, @NonNull WorkerParameters params) {
@@ -93,7 +102,8 @@ public class FfmpegWorker extends ListenableWorker {
 
             String inputPath = inputData.getString(KEY_INPUT_PATH);
             String inputUriString = inputData.getString(KEY_INPUT_URI);
-            Uri inputUri = (inputUriString != null && !inputUriString.isEmpty()) ? Uri.parse(inputUriString) : null;
+            Uri inputUri = (inputUriString != null && !inputUriString.isEmpty())
+                    ? Uri.parse(inputUriString) : null;
             String outputPathBase = inputData.getString(KEY_OUTPUT_PATH_BASE);
             String outputTreeUriString = inputData.getString(KEY_OUTPUT_TREE_URI);
             String paramsJson = inputData.getString(KEY_PARAMS_JSON);
@@ -103,28 +113,45 @@ public class FfmpegWorker extends ListenableWorker {
                     : suppliedFileName;
             int taskIndex = inputData.getInt(KEY_TASK_INDEX, 1);
             int totalTasks = inputData.getInt(KEY_TOTAL_TASKS, 1);
+            boolean syncBatch = inputData.getBoolean(KEY_SYNC_BATCH, false);
+            ConversionQueueManager batchQueue = syncBatch ? new ConversionQueueManager(context) : null;
 
             if ((inputPath == null && inputUri == null) || outputPathBase == null || paramsJson == null) {
                 Log.e(TAG, "Worker 参数缺失");
                 completer.set(Result.failure(new Data.Builder()
                         .putString(KEY_ERROR_MESSAGE, "Worker 参数缺失")
                         .putInt(KEY_TASK_INDEX, taskIndex)
+                        .putBoolean(KEY_SYNC_BATCH, syncBatch)
                         .build()));
                 return "ffmpeg-work";
             }
 
-            // 先请求 WorkManager 将任务切换到前台，再异步准备文件，避免阻塞 startWork 的调用线程
-            Notification initialNotification = NotificationHelper.buildProgressNotification(context, fileName, 0, true);
+            String initialNotificationFileName = syncBatch
+                    ? getBatchFileName(context, batchQueue) : fileName;
+            Notification initialNotification = NotificationHelper.buildProgressNotification(
+                    context, initialNotificationFileName, 0, true);
+
             ListenableFuture<Void> foregroundFuture;
             try {
                 foregroundFuture = setForegroundAsync(createForegroundInfo(initialNotification));
             } catch (Exception e) {
-                Log.e(TAG, "无法请求建立前台进度通知", e);
-                completeForegroundStartFailure(context, taskIndex, completer);
+                if (isForegroundStartNotAllowed(e)) {
+                    Log.w(TAG, "系统限制了后台前台服务启动，将继续执行普通后台任务", e);
+                    postProgressNotification(context, initialNotification);
+                    WORK_EXECUTOR.execute(() -> beginTaskFlow(context, syncBatch, batchQueue,
+                            inputPath, inputUri, outputPathBase, outputTreeUriString, paramsJson,
+                            fileName, taskIndex, totalTasks, completer));
+                } else {
+                    Log.e(TAG, "无法请求建立前台进度通知", e);
+                    completeForegroundStartFailure(context, taskIndex, fileName, syncBatch, completer);
+                }
                 return "ffmpeg-work";
             }
 
             final String taskFileName = fileName;
+            final String taskOutputBase = outputPathBase;
+            final String taskOutputTreeUri = outputTreeUriString;
+            final String taskParamsJson = paramsJson;
             foregroundFuture.addListener(() -> {
                 try {
                     // 监听器运行时前台切换 Future 已结束，不会在启动线程上等待服务启动
@@ -132,39 +159,258 @@ public class FfmpegWorker extends ListenableWorker {
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     Log.e(TAG, "等待前台通知建立时被中断", e);
-                    completeForegroundStartFailure(context, taskIndex, completer);
+                    completeForegroundStartFailure(context, taskIndex, taskFileName, syncBatch, completer);
                     return;
                 } catch (ExecutionException e) {
                     Throwable cause = e.getCause() != null ? e.getCause() : e;
-                    Log.e(TAG, "无法建立前台进度通知", cause);
-                    completeForegroundStartFailure(context, taskIndex, completer);
+                    if (isForegroundStartNotAllowed(cause)) {
+                        // Android 12+ 不允许从后台重新启动前台服务时，不能直接判失败
+                        // 同步队列会在同一个 Worker 内继续执行，避免每个文件重复启动前台服务
+                        Log.w(TAG, "系统限制了后台前台服务启动，将继续执行普通后台任务", cause);
+                        postProgressNotification(context, initialNotification);
+                        beginTaskFlow(context, syncBatch, batchQueue, inputPath, inputUri,
+                                taskOutputBase, taskOutputTreeUri, taskParamsJson, taskFileName,
+                                taskIndex, totalTasks, completer);
+                    } else {
+                        Log.e(TAG, "无法建立前台进度通知", cause);
+                        completeForegroundStartFailure(context, taskIndex, taskFileName, syncBatch, completer);
+                    }
                     return;
                 } catch (Exception e) {
                     Log.e(TAG, "建立前台进度通知时发生异常", e);
-                    completeForegroundStartFailure(context, taskIndex, completer);
+                    completeForegroundStartFailure(context, taskIndex, taskFileName, syncBatch, completer);
                     return;
                 }
 
                 // WorkManager 负责建立前台服务，后续通知内容使用 NotificationManager 直接更新
                 postProgressNotification(context, initialNotification);
-                try {
-                    prepareAndRun(context, inputPath, inputUri, outputPathBase, outputTreeUriString,
-                            paramsJson, taskFileName, taskIndex, totalTasks, completer);
-                } catch (Exception e) {
-                    Log.e(TAG, "准备 FFmpeg 任务失败", e);
-                    String message = e.getMessage();
-                    if (message == null || message.trim().isEmpty()) {
-                        message = context.getString(com.tech.ezconvert.R.string.error_unknown);
-                    }
-                    completer.set(Result.failure(new Data.Builder()
-                            .putString(KEY_ERROR_MESSAGE, message)
-                            .putInt(KEY_TASK_INDEX, taskIndex)
-                            .build()));
-                }
+                beginTaskFlow(context, syncBatch, batchQueue, inputPath, inputUri,
+                        taskOutputBase, taskOutputTreeUri, taskParamsJson, taskFileName,
+                        taskIndex, totalTasks, completer);
             }, WORK_EXECUTOR);
 
             return "ffmpeg-work";
         });
+    }
+
+    private void beginTaskFlow(Context context, boolean syncBatch, ConversionQueueManager batchQueue,
+                               String inputPath, Uri inputUri, String outputPathBase,
+                               String outputTreeUriString, String paramsJson, String fileName,
+                               int taskIndex, int totalTasks,
+                               CallbackToFutureAdapter.Completer<Result> completer) {
+        if (syncBatch) {
+            runNextSyncBatchTask(context, batchQueue, outputPathBase, outputTreeUriString,
+                    taskIndex, completer);
+            return;
+        }
+
+        try {
+            prepareAndRun(context, inputPath, inputUri, outputPathBase, outputTreeUriString,
+                    paramsJson, fileName, taskIndex, totalTasks, result -> completer.set(result));
+        } catch (Exception e) {
+            Log.e(TAG, "准备 FFmpeg 任务失败", e);
+            String message = e.getMessage();
+            if (message == null || message.trim().isEmpty()) {
+                message = context.getString(com.tech.ezconvert.R.string.error_unknown);
+            }
+            completer.set(Result.failure(new Data.Builder()
+                    .putString(KEY_ERROR_MESSAGE, message)
+                    .putString(KEY_FILE_NAME, fileName)
+                    .putInt(KEY_TASK_INDEX, taskIndex)
+                    .build()));
+        }
+    }
+
+    private boolean isForegroundStartNotAllowed(Throwable error) {
+        Throwable current = error;
+        while (current != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                    && "android.app.ForegroundServiceStartNotAllowedException".equals(
+                    current.getClass().getName())) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
+    private String getBatchFileName(Context context, ConversionQueueManager queue) {
+        if (queue == null || queue.getCurrentIndex() >= queue.size()) {
+            return context.getString(com.tech.ezconvert.R.string.notification_file_placeholder);
+        }
+        String key = queue.getCurrentKey();
+        Uri uri = queue.getCurrentUri();
+        String name = uri != null ? FileUtils.getDisplayName(context, uri) : new File(key).getName();
+        return name == null || name.trim().isEmpty()
+                ? context.getString(com.tech.ezconvert.R.string.notification_file_placeholder) : name;
+    }
+
+    private String getOutputTreeUri(Context context, String outputModeOverride) {
+        ConfigManager config = ConfigManager.getInstance(context);
+        String mode = outputModeOverride != null
+                ? outputModeOverride : config.getOutputPathMode();
+        if (!ConfigManager.OUTPUT_PATH_CUSTOM.equals(mode)) return "";
+        String uri = config.getCustomOutputUri();
+        return uri == null ? "" : uri;
+    }
+
+    /** 在同一个前台 Worker 中依次执行同步参数队列，避免后台逐项启动前台服务被系统拒绝 */
+    private void runNextSyncBatchTask(Context context, ConversionQueueManager queue,
+                                      String initialOutputPathBase, String initialOutputTreeUri,
+                                      int initialTaskIndex,
+                                      CallbackToFutureAdapter.Completer<Result> completer) {
+        if (queue == null || queue.getSyncParams() == null) {
+            String message = context.getString(com.tech.ezconvert.R.string.error_unknown);
+            completer.set(Result.failure(new Data.Builder()
+                    .putString(KEY_ERROR_MESSAGE, message)
+                    .putInt(KEY_TASK_INDEX, queue == null ? 1 : queue.getCurrentPosition())
+                    .putBoolean(KEY_SYNC_BATCH, true)
+                    .build()));
+            return;
+        }
+        if (isCancelled || isStopped()) {
+            completer.set(Result.failure(new Data.Builder()
+                    .putString(KEY_ERROR_MESSAGE, context.getString(com.tech.ezconvert.R.string.error_cancelled))
+                    .putInt(KEY_TASK_INDEX, queue.getCurrentPosition())
+                    .putBoolean(KEY_SYNC_BATCH, true)
+                    .build()));
+            return;
+        }
+
+        int currentIndex = queue.getCurrentIndex();
+        int taskIndex = currentIndex + 1;
+        int totalTasks = queue.size();
+        if (currentIndex >= totalTasks) {
+            List<String> outputs = new ArrayList<>(queue.getCompletedOutputFiles());
+            String lastOutput = outputs.isEmpty() ? null : outputs.get(outputs.size() - 1);
+            Data.Builder output = new Data.Builder()
+                    .putBoolean(KEY_SYNC_BATCH, true)
+                    .putInt(KEY_TASK_INDEX, totalTasks)
+                    .putInt(KEY_TOTAL_TASKS, totalTasks);
+            if (lastOutput != null) output.putString(KEY_OUTPUT_PATH, lastOutput);
+            completer.set(Result.success(output.build()));
+            return;
+        }
+
+        String inputKey = queue.getCurrentKey();
+        Uri inputUri = queue.getCurrentUri();
+        ParameterData params = queue.getSyncParams();
+        String fileName = getBatchFileName(context, queue);
+        String outputModeOverride = queue.getEffectiveOutputModeOverride();
+
+        String outputPathBase;
+        String outputTreeUriString;
+        if (taskIndex == initialTaskIndex && initialOutputPathBase != null) {
+            outputPathBase = initialOutputPathBase;
+            outputTreeUriString = initialOutputTreeUri == null ? "" : initialOutputTreeUri;
+        } else {
+            OutputPathManager outputPathManager = new OutputPathManager(context);
+            outputPathBase = outputModeOverride != null && !outputModeOverride.isEmpty()
+                    ? outputPathManager.generateBasePathForMode(inputKey, inputUri,
+                    params.taskType, outputModeOverride)
+                    : outputPathManager.generateBasePath(inputKey, inputUri, params.taskType);
+            outputTreeUriString = getOutputTreeUri(context, outputModeOverride);
+        }
+
+        activeTaskIndex = taskIndex;
+        activeTaskTotal = totalTasks;
+        updateProgressNotification(context, fileName, 0, true);
+        Data progress = new Data.Builder()
+                .putInt(KEY_PROGRESS, 0)
+                .putLong(KEY_TIME, 0L)
+                .putInt(KEY_TASK_INDEX, taskIndex)
+                .putInt(KEY_TOTAL_TASKS, totalTasks)
+                .putString(KEY_STATUS, "RUNNING")
+                .build();
+        setProgressAsync(progress);
+
+        final String taskOutputPathBase = outputPathBase;
+        final String taskOutputTreeUri = outputTreeUriString;
+        final String taskParamsJson = gson.toJson(params);
+        try {
+            prepareAndRun(context, inputKey, inputUri, taskOutputPathBase, taskOutputTreeUri,
+                    taskParamsJson, fileName, taskIndex, totalTasks,
+                    result -> handleSyncBatchTaskResult(context, queue, completer, fileName, result,
+                            initialOutputPathBase, initialOutputTreeUri, initialTaskIndex));
+        } catch (Exception e) {
+            Log.e(TAG, "准备同步队列任务失败", e);
+            String message = e.getMessage();
+            if (message == null || message.trim().isEmpty()) {
+                message = context.getString(com.tech.ezconvert.R.string.error_unknown);
+            }
+            Result failure = Result.failure(new Data.Builder()
+                    .putString(KEY_ERROR_MESSAGE, message)
+                    .putString(KEY_FILE_NAME, fileName)
+                    .putInt(KEY_TASK_INDEX, taskIndex)
+                    .build());
+            handleSyncBatchTaskResult(context, queue, completer, fileName, failure,
+                    initialOutputPathBase, initialOutputTreeUri, initialTaskIndex);
+        }
+    }
+
+    private void handleSyncBatchTaskResult(Context context, ConversionQueueManager queue,
+                                           CallbackToFutureAdapter.Completer<Result> completer,
+                                           String fileName, Result result,
+                                           String initialOutputPathBase, String initialOutputTreeUri,
+                                           int initialTaskIndex) {
+        if (result instanceof Result.Success) {
+            String outputPath = result.getOutputData().getString(KEY_OUTPUT_PATH);
+            if (outputPath == null || outputPath.isEmpty()) {
+                result = Result.failure(new Data.Builder()
+                        .putString(KEY_ERROR_MESSAGE, context.getString(com.tech.ezconvert.R.string.error_unknown))
+                        .putString(KEY_FILE_NAME, fileName)
+                        .putInt(KEY_TASK_INDEX, queue.getCurrentPosition())
+                        .build());
+            } else {
+                queue.completeBatchItem(outputPath);
+                String displayName = getPathDisplayName(context, outputPath, fileName);
+                NotificationHelper.showCompleteNotificationPreservingProgress(context, displayName, true, "");
+                WORK_EXECUTOR.execute(() -> runNextSyncBatchTask(context, queue,
+                        initialOutputPathBase, initialOutputTreeUri, initialTaskIndex, completer));
+                return;
+            }
+        }
+
+        Data taskOutput = result.getOutputData();
+        String errorMessage = taskOutput.getString(KEY_ERROR_MESSAGE);
+        if (errorMessage == null || errorMessage.trim().isEmpty()) {
+            errorMessage = context.getString(com.tech.ezconvert.R.string.error_unknown);
+        }
+        int failedTaskIndex = taskOutput.getInt(KEY_TASK_INDEX, queue.getCurrentPosition());
+        String failedFileName = taskOutput.getString(KEY_FILE_NAME);
+        if (failedFileName == null || failedFileName.isEmpty()) failedFileName = fileName;
+        completer.set(Result.failure(new Data.Builder()
+                .putString(KEY_ERROR_MESSAGE, errorMessage)
+                .putString(KEY_FILE_NAME, failedFileName)
+                .putInt(KEY_TASK_INDEX, failedTaskIndex)
+                .putInt(KEY_TOTAL_TASKS, queue.size())
+                .putBoolean(KEY_SYNC_BATCH, true)
+                .build()));
+    }
+
+    private String getPathDisplayName(Context context, String path, String fallback) {
+        if (path != null && path.startsWith("content://")) {
+            String displayName = FileUtils.getDisplayName(context, Uri.parse(path));
+            if (displayName != null && !displayName.isEmpty()) return displayName;
+        }
+        String displayName = path == null ? null : new File(path).getName();
+        return displayName == null || displayName.isEmpty() ? fallback : displayName;
+    }
+
+    private void completeForegroundStartFailure(Context context, int taskIndex, String fileName,
+                                                boolean syncBatch,
+                                                CallbackToFutureAdapter.Completer<Result> completer) {
+        String message = context.getString(com.tech.ezconvert.R.string.notification_foreground_start_failed);
+        completer.set(Result.failure(new Data.Builder()
+                .putString(KEY_ERROR_MESSAGE, message)
+                .putString(KEY_FILE_NAME, fileName)
+                .putInt(KEY_TASK_INDEX, taskIndex)
+                .putBoolean(KEY_SYNC_BATCH, syncBatch)
+                .build()));
+    }
+
+    private interface TaskResultCallback {
+        void onResult(Result result);
     }
 
     private ForegroundInfo createForegroundInfo(Notification notification) {
@@ -178,22 +424,16 @@ public class FfmpegWorker extends ListenableWorker {
         return new ForegroundInfo(NOTIFICATION_ID, notification);
     }
 
-    private void completeForegroundStartFailure(Context context, int taskIndex,
-                                                CallbackToFutureAdapter.Completer<Result> completer) {
-        String message = context.getString(com.tech.ezconvert.R.string.notification_foreground_start_failed);
-        completer.set(Result.failure(new Data.Builder()
-                .putString(KEY_ERROR_MESSAGE, message)
-                .putInt(KEY_TASK_INDEX, taskIndex)
-                .build()));
-    }
-
     private void prepareAndRun(Context context, String inputPath, Uri inputUri,
                                String outputPathBase, String outputTreeUriString, String paramsJson,
                                String fileName, int taskIndex, int totalTasks,
-                               CallbackToFutureAdapter.Completer<Result> completer) throws Exception {
+                               TaskResultCallback taskCallback) throws Exception {
+        activeTaskIndex = taskIndex;
+        activeTaskTotal = totalTasks;
         if (isCancelled || isStopped()) {
-            completer.set(Result.failure(new Data.Builder()
+            taskCallback.onResult(Result.failure(new Data.Builder()
                     .putString(KEY_ERROR_MESSAGE, context.getString(com.tech.ezconvert.R.string.error_cancelled))
+                    .putString(KEY_FILE_NAME, fileName)
                     .putInt(KEY_TASK_INDEX, taskIndex)
                     .build()));
             return;
@@ -217,8 +457,9 @@ public class FfmpegWorker extends ListenableWorker {
                     "=== Task [" + workIdStr + "] END (FAILED: 无法访问输入文件) ===",
                     Level.AV_LOG_ERROR
             );
-            completer.set(Result.failure(new Data.Builder()
+            taskCallback.onResult(Result.failure(new Data.Builder()
                     .putString(KEY_ERROR_MESSAGE, "无法访问输入文件")
+                    .putString(KEY_FILE_NAME, fileName)
                     .putInt(KEY_TASK_INDEX, taskIndex)
                     .build()));
             return;
@@ -237,7 +478,7 @@ public class FfmpegWorker extends ListenableWorker {
             totalDurationMs = durationMs;
             updateProgressNotification(context, fileName, 0, durationMs <= 0);
             executeFfmpeg(commandString, fileName, outputPath, outputTreeUriString, usablePath,
-                    isFromCache, workIdStr, taskIndex, completer);
+                    isFromCache, workIdStr, taskIndex, taskCallback);
         });
     }
 
@@ -258,7 +499,7 @@ public class FfmpegWorker extends ListenableWorker {
 
     private void executeFfmpeg(String commandString, String fileName, String outputPath, String outputTreeUriString,
                                String usablePath, boolean isFromCache, String workIdStr, int taskIndex,
-                               CallbackToFutureAdapter.Completer<Result> completer) {
+                               TaskResultCallback taskCallback) {
 
         Context context = getApplicationContext();
 
@@ -282,8 +523,9 @@ public class FfmpegWorker extends ListenableWorker {
                             "=== Task [" + workIdStr + "] END (CANCELLED) ===",
                             Level.AV_LOG_WARNING
                     );
-                    completer.set(Result.failure(new Data.Builder()
+                    taskCallback.onResult(Result.failure(new Data.Builder()
                             .putString(KEY_ERROR_MESSAGE, "操作已取消")
+                            .putString(KEY_FILE_NAME, fileName)
                             .putInt(KEY_TASK_INDEX, taskIndex)
                             .build()));
                     return;
@@ -299,8 +541,9 @@ public class FfmpegWorker extends ListenableWorker {
                                     Level.AV_LOG_ERROR
                             );
                             deleteTempFile(outputPath);
-                            completer.set(Result.failure(new Data.Builder()
+                            taskCallback.onResult(Result.failure(new Data.Builder()
                                     .putString(KEY_ERROR_MESSAGE, "无法写入自定义输出目录，请重新选择输出目录")
+                                    .putString(KEY_FILE_NAME, fileName)
                                     .putInt(KEY_TASK_INDEX, taskIndex)
                                     .build()));
                             return;
@@ -312,8 +555,9 @@ public class FfmpegWorker extends ListenableWorker {
                             "=== Task [" + workIdStr + "] END (SUCCESS) ===",
                             Level.AV_LOG_INFO
                     );
-                    completer.set(Result.success(new Data.Builder()
+                    taskCallback.onResult(Result.success(new Data.Builder()
                             .putString(KEY_OUTPUT_PATH, finalOutputPath)
+                            .putString(KEY_FILE_NAME, fileName)
                             .putInt(KEY_TASK_INDEX, taskIndex)
                             .build()));
                 } else {
@@ -328,8 +572,9 @@ public class FfmpegWorker extends ListenableWorker {
                             "=== Task [" + workIdStr + "] END (FAILED: " + errorMessage + ") ===",
                             Level.AV_LOG_ERROR
                     );
-                    completer.set(Result.failure(new Data.Builder()
+                    taskCallback.onResult(Result.failure(new Data.Builder()
                             .putString(KEY_ERROR_MESSAGE, errorMessage)
+                            .putString(KEY_FILE_NAME, fileName)
                             .putInt(KEY_TASK_INDEX, taskIndex)
                             .build()));
                 }
@@ -353,6 +598,8 @@ public class FfmpegWorker extends ListenableWorker {
                 Data progressData = new Data.Builder()
                         .putInt(KEY_PROGRESS, progress)
                         .putLong(KEY_TIME, mediaTimeMs)
+                        .putInt(KEY_TASK_INDEX, activeTaskIndex)
+                        .putInt(KEY_TOTAL_TASKS, activeTaskTotal)
                         .putString(KEY_STATUS, "RUNNING")
                         .build();
                 setProgressAsync(progressData);
