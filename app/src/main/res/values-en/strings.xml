@@ -546,7 +546,7 @@
     <string name="notification_channel_progress_desc">Shows media file conversion progress</string>
     <string name="notification_channel_complete_name">Conversion Complete</string>
     <string name="notification_channel_complete_desc">Notifications for conversion success or failure</string>
-    <string name="notification_progress_title">Converting: %s</string>
+    <string name="notification_progress_title">Processing: %s</string>
     <string name="notification_progress_indeterminate">Processing</string>
     <string name="notification_progress_text">Progress: %d%%</string>
     <string name="notification_complete_title_success">Conversion Complete</string>

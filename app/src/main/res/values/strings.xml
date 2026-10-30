@@ -546,7 +546,7 @@
     <string name="notification_channel_progress_desc">显示媒体文件转换进度</string>
     <string name="notification_channel_complete_name">转换完成</string>
     <string name="notification_channel_complete_desc">转换成功或失败的通知</string>
-    <string name="notification_progress_title">正在转换: %s</string>
+    <string name="notification_progress_title">正在处理: %s</string>
     <string name="notification_progress_indeterminate">正在处理中</string>
     <string name="notification_progress_text">进度: %d%%</string>
     <string name="notification_complete_title_success">转换完成</string>
