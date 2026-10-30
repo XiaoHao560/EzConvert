@@ -65,6 +65,29 @@ public class CustomCommandWorker extends Worker {
     public static final String KEY_SUCCESS_COUNT = "custom_command_success_count";
     public static final String KEY_FAILED_COUNT = "custom_command_failed_count";
 
+    // 需要读取独立参数值的常见 FFmpeg 选项，用于区分选项值和输出路径
+    private static final Set<String> FFMPEG_OPTIONS_WITH_VALUE = new HashSet<>(java.util.Arrays.asList(
+            "-i", "-f", "-c", "-codec", "-acodec", "-vcodec", "-scodec", "-dcodec",
+            "-map", "-map_channel", "-map_metadata", "-map_chapters",
+            "-t", "-to", "-ss", "-sseof", "-itsoffset", "-itsscale", "-readrate",
+            "-r", "-s", "-aspect", "-ar", "-ac", "-channel_layout", "-sample_fmt",
+            "-b", "-q", "-qscale", "-vframes", "-frames", "-fs", "-minrate", "-maxrate",
+            "-bufsize", "-max_muxing_queue_size", "-max_interleave_delta",
+            "-metadata", "-disposition", "-program", "-stream_group",
+            "-vf", "-af", "-filter", "-filter_complex", "-filter_complex_script",
+            "-filter_script", "-vf_script", "-af_script", "-filter_threads", "-filter_complex_threads",
+            "-preset", "-tune", "-profile", "-level", "-crf",
+            "-g", "-keyint_min", "-sc_threshold", "-pix_fmt", "-threads", "-thread_type",
+            "-thread_queue_size", "-movflags", "-brand", "-tag", "-video_track_timescale",
+            "-vstats_file", "-pass", "-passlogfile", "-sdp_file", "-attach", "-dump_attachment",
+            "-protocol_whitelist", "-protocol_blacklist", "-progress", "-loglevel", "-stats_period",
+            "-segment_list", "-segment_list_type", "-segment_time", "-segment_times",
+            "-segment_frames", "-segment_format", "-segment_start_number",
+            "-hls_segment_filename", "-hls_fmp4_init_filename", "-hls_segment_options",
+            "-hls_time", "-hls_list_size", "-hls_flags", "-hls_base_url",
+            "-var_stream_map", "-master_pl_name"
+    ));
+
     private final Object stateLock = new Object();
     private final Set<File> activeOutputFiles = java.util.Collections.synchronizedSet(new HashSet<>());
     private final Set<File> publishedFileOutputs = java.util.Collections.synchronizedSet(new HashSet<>());
@@ -164,7 +187,7 @@ public class CustomCommandWorker extends Worker {
                 if (stopped || isStopped()) return cancelled(sessionId, workDirectory, outputTempDirectory);
 
                 List<String> commandArgs = resolveArguments(context, session, parsed, activeInputPaths, outputFiles, workDirectory);
-                trackDirectOutputIfNew(session, commandArgs, outputFiles);
+                Set<File> directOutputsForItem = trackDirectOutputsIfNew(session, commandArgs, outputFiles);
                 Log.i("CustomCommandWorker", "执行自定义 FFmpeg 命令，任务 " + (item + 1) + "/" + total
                         + "，参数数量=" + commandArgs.size());
                 int percentBefore = Math.min(99, (int) (item * 100f / Math.max(1, total)));
@@ -182,6 +205,8 @@ public class CustomCommandWorker extends Worker {
                 if (stopped || isStopped()) return cancelled(sessionId, workDirectory, outputTempDirectory);
                 ReturnCode returnCode = ffmpegSession == null ? null : ffmpegSession.getReturnCode();
                 if (!ReturnCode.isSuccess(returnCode)) {
+                    // FFmpeg 会话已经终止，可以清理本轮新建的部分输出
+                    cleanupTrackedDirectOutputs(directOutputsForItem, "FFmpeg 执行失败");
                     // 保留 FFmpeg 返回码和失败栈信息；批量模式下记录错误后继续处理剩余输入
                     String detail = ffmpegSession == null ? context.getString(com.tech.ezconvert.R.string.custom_command_worker_no_ffmpeg_session) : ffmpegSession.getFailStackTrace();
                     if (TextUtils.isEmpty(detail) && ffmpegSession != null) detail = ffmpegSession.getAllLogsAsString();
@@ -212,6 +237,8 @@ public class CustomCommandWorker extends Worker {
                     if (stopped || isStopped() || publishError instanceof InterruptedException) {
                         return cancelled(sessionId, workDirectory, outputTempDirectory);
                     }
+                    // 输出发布失败时清理本轮直接写入的目标
+                    cleanupTrackedDirectOutputs(directOutputsForItem, "输出发布失败");
                     String publishMessage = context.getString(com.tech.ezconvert.R.string.custom_command_worker_publish_failed, item + 1, safeMessage(publishError));
                     errors.add(publishMessage);
                     recordTaskLog(context, session.id, publishMessage, Level.AV_LOG_ERROR);
@@ -413,23 +440,109 @@ public class CustomCommandWorker extends Worker {
     }
 
     /**
-     * 记录用户直接填写的常规输出路径。只追踪执行前不存在的文件，取消时不删除用户已有文件；
-     * 应用托管的占位符输出由 activeOutputFiles 单独管理。
+     * 识别命令中由 FFmpeg 直接创建的本地输出目标
+     *
+     * FFmpeg 支持在同一条命令中指定多个输出文件，扫描时跳过输入路径和常见选项值
+     * 只登记任务开始前不存在的本地路径，避免清理时误删用户已有文件
      */
-    private void trackDirectOutputIfNew(CustomCommandSession session, List<String> args,
-                                        Map<Integer, File> outputFiles) {
-        if (args == null || args.isEmpty()) return;
-        String lastArgument = args.get(args.size() - 1);
-        if (!TextUtils.isEmpty(session.outputCommandPath) && session.outputCommandPath.equals(lastArgument)) return;
+    private Set<File> trackDirectOutputsIfNew(CustomCommandSession session, List<String> args,
+                                              Map<Integer, File> outputFiles) {
+        Set<File> trackedOutputs = new HashSet<>();
+        if (args == null || args.isEmpty()) return trackedOutputs;
 
-        File candidate = localFileFromArgument(lastArgument);
-        if (candidate == null || candidate.exists()) return;
-        for (File managedOutput : outputFiles.values()) {
-            if (managedOutput != null && managedOutput.equals(candidate)) return;
+        Set<String> managedOutputPaths = new HashSet<>();
+        if (outputFiles != null) {
+            for (File managedOutput : outputFiles.values()) {
+                if (managedOutput != null) {
+                    managedOutputPaths.add(getCanonicalPath(managedOutput));
+                }
+            }
+        }
+        if (!TextUtils.isEmpty(session.outputCommandPath)) {
+            managedOutputPaths.add(getCanonicalPath(new File(session.outputCommandPath)));
         }
 
-        // 取消任务时清理 FFmpeg 在目标路径中创建的半成品；成功结束后由终态保护逻辑保留文件
-        publishedFileOutputs.add(candidate);
+        boolean skipNextArgument = false;
+        for (String argument : args) {
+            if (skipNextArgument) {
+                skipNextArgument = false;
+                continue;
+            }
+            if (TextUtils.isEmpty(argument)) continue;
+
+            if (argument.startsWith("-")) {
+                skipNextArgument = optionConsumesNextArgument(argument);
+                continue;
+            }
+
+            // 文件协议指向本地文件，其余协议及标准输出不能通过 File 删除
+            if (!argument.startsWith("file://")
+                    && (argument.contains("://") || argument.startsWith("pipe:")
+                    || argument.startsWith("fd:") || argument.startsWith("data:")
+                    || argument.startsWith("concat:") || argument.startsWith("subfile:")
+                    || argument.startsWith("crypto:") || argument.startsWith("async:")
+                    || argument.startsWith("cache:") || argument.equals("-"))) {
+                continue;
+            }
+
+            File candidate = resolveDirectOutputFile(argument);
+            if (candidate == null) continue;
+
+            String candidatePath = getCanonicalPath(candidate);
+            if (managedOutputPaths.contains(candidatePath) || candidate.exists()) continue;
+
+            trackedOutputs.add(candidate);
+            synchronized (publishedFileOutputs) {
+                publishedFileOutputs.add(candidate);
+            }
+            Log.d("CustomCommandWorker", "已登记本轮直接输出目标，取消或失败时可清理: " + candidate);
+        }
+        return trackedOutputs;
+    }
+
+    /** 判断选项是否会消费下一个参数，并支持带流说明符的选项 */
+    private boolean optionConsumesNextArgument(String argument) {
+        if (argument.indexOf('=') >= 0) return false;
+        if (FFMPEG_OPTIONS_WITH_VALUE.contains(argument)) return true;
+
+        int streamSpecifier = argument.indexOf(':');
+        return streamSpecifier > 0
+                && FFMPEG_OPTIONS_WITH_VALUE.contains(argument.substring(0, streamSpecifier));
+    }
+
+    /** 将 FFmpeg 位置参数转换为本地文件路径 */
+    private File resolveDirectOutputFile(String argument) {
+        if (argument.startsWith("file://")) return localFileFromArgument(argument);
+        return new File(argument).getAbsoluteFile();
+    }
+
+    /** 获取规范路径，避免相对路径造成重复追踪 */
+    private String getCanonicalPath(File file) {
+        try {
+            return file.getCanonicalPath();
+        } catch (IOException e) {
+            Log.w("CustomCommandWorker", "无法解析输出文件规范路径，使用绝对路径: " + file, e);
+            return file.getAbsolutePath();
+        }
+    }
+
+    /** 清理当前输入项目新建的直接输出 */
+    private void cleanupTrackedDirectOutputs(Set<File> outputs, String reason) {
+        if (outputs == null || outputs.isEmpty()) return;
+        synchronized (publishedFileOutputs) {
+            for (File file : outputs) {
+                boolean removed = file == null || !file.exists();
+                if (file != null && file.exists()) {
+                    removed = file.delete();
+                    if (removed) {
+                        Log.d("CustomCommandWorker", reason + "，已删除不完整的直接输出: " + file);
+                    } else {
+                        Log.w("CustomCommandWorker", reason + "，无法删除不完整的直接输出: " + file);
+                    }
+                }
+                if (removed) publishedFileOutputs.remove(file);
+            }
+        }
     }
 
     private void requireDirectStoragePermission(Context context, File file) {
