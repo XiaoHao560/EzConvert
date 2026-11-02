@@ -628,7 +628,7 @@ public class CustomCommandWorker extends Worker {
         if (index < 0 || index >= session.inputs.size()) throw new IllegalArgumentException(context.getString(com.tech.ezconvert.R.string.custom_command_worker_input_index));
         CustomCommandSession.InputSource source = session.inputs.get(index);
         Uri uri = Uri.parse(source.uri);
-        String name = sanitizeFileName(source.displayName);
+        String name = sanitizeInputFileName(source.displayName);
         if (TextUtils.isEmpty(name)) name = "input.bin";
         File cached = null;
         if (!TextUtils.isEmpty(source.commandPath)) {
@@ -637,8 +637,10 @@ public class CustomCommandWorker extends Worker {
             if (isPathWithin(requested, managedRoot)) cached = requested;
         }
         if (cached == null) {
-            File inputDirectory = new File(workDirectory, "input");
-            cached = new File(inputDirectory, String.format(Locale.US, "%03d_%s", index + 1, name));
+            // 每个输入使用独立目录，避免同名文件冲突，同时保留原始文件名
+            File inputDirectory = new File(new File(workDirectory, "input"),
+                    String.format(Locale.US, "%03d", index + 1));
+            cached = new File(inputDirectory, name);
         }
         File parent = cached.getParentFile();
         if (parent != null && !parent.exists() && !parent.mkdirs()) {
@@ -1123,6 +1125,13 @@ public class CustomCommandWorker extends Worker {
         if (name == null) return "output";
         int dot = name.lastIndexOf('.');
         return dot > 0 ? name.substring(0, dot) : name;
+    }
+
+    private String sanitizeInputFileName(String name) {
+        if (name == null) return "";
+        String value = new File(name).getName();
+        value = value.replaceAll("[\\\\/\\p{Cntrl}]", "_").trim();
+        return ".".equals(value) || "..".equals(value) ? "" : value;
     }
 
     private String sanitizeFileName(String name) {

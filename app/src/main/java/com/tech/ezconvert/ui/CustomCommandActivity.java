@@ -506,8 +506,21 @@ public class CustomCommandActivity extends BaseActivity {
     }
 
     private String createInputCommandPath(String name) {
-        File directory = new File(new File(getCacheDir(), "custom_command_paths"), "input");
-        return new File(directory, UUID.randomUUID() + "_" + sanitizePathFileName(name)).getAbsolutePath();
+        // 使用独立目录隔离同名文件，缓存文件本身保留原始文件名
+        File directory = new File(new File(new File(getCacheDir(), "custom_command_paths"), "input"),
+                UUID.randomUUID().toString());
+        String fileName = sanitizeInputFileName(name);
+        return new File(directory, fileName).getAbsolutePath();
+    }
+
+    private String sanitizeInputFileName(String name) {
+        if (TextUtils.isEmpty(name)) return "input.bin";
+        String fileName = new File(name).getName();
+        fileName = fileName.replaceAll("[\\\\/\\p{Cntrl}]", "_").trim();
+        if (TextUtils.isEmpty(fileName) || ".".equals(fileName) || "..".equals(fileName)) {
+            return "input.bin";
+        }
+        return fileName;
     }
 
     private String createOutputCommandPath(String name) {
