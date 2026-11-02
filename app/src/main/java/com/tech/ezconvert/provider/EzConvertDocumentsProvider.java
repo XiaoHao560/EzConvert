@@ -33,6 +33,8 @@ import java.util.List;
  * 通过系统文档框架共享 EzConvert 自身的应用私有目录
  *
  * 根目录包含内部数据目录、应用专属外部数据目录、OBB 目录和可用的设备加密目录
+ *
+ * 参考自: https://github.com/L-JINBIN/MTDataFilesProvider
  */
 public class EzConvertDocumentsProvider extends DocumentsProvider {
 
@@ -369,7 +371,8 @@ public class EzConvertDocumentsProvider extends DocumentsProvider {
                     row.add(documentId);
                     break;
                 case DocumentsContract.Document.COLUMN_DISPLAY_NAME:
-                    row.add(root ? getContext().getPackageName()
+                    row.add(root ? getContext().getApplicationInfo()
+                            .loadLabel(getContext().getPackageManager()).toString()
                             : getRootDisplayName(documentId, file));
                     break;
                 case DocumentsContract.Document.COLUMN_SIZE:
