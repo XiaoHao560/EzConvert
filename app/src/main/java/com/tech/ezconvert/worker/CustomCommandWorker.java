@@ -51,6 +51,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -65,28 +68,11 @@ public class CustomCommandWorker extends Worker {
     public static final String KEY_SUCCESS_COUNT = "custom_command_success_count";
     public static final String KEY_FAILED_COUNT = "custom_command_failed_count";
 
-    // 需要读取独立参数值的常见 FFmpeg 选项，用于区分选项值和输出路径
-    private static final Set<String> FFMPEG_OPTIONS_WITH_VALUE = new HashSet<>(java.util.Arrays.asList(
-            "-i", "-f", "-c", "-codec", "-acodec", "-vcodec", "-scodec", "-dcodec",
-            "-map", "-map_channel", "-map_metadata", "-map_chapters",
-            "-t", "-to", "-ss", "-sseof", "-itsoffset", "-itsscale", "-readrate",
-            "-r", "-s", "-aspect", "-ar", "-ac", "-channel_layout", "-sample_fmt",
-            "-b", "-q", "-qscale", "-vframes", "-frames", "-fs", "-minrate", "-maxrate",
-            "-bufsize", "-max_muxing_queue_size", "-max_interleave_delta",
-            "-metadata", "-disposition", "-program", "-stream_group",
-            "-vf", "-af", "-filter", "-filter_complex", "-filter_complex_script",
-            "-filter_script", "-vf_script", "-af_script", "-filter_threads", "-filter_complex_threads",
-            "-preset", "-tune", "-profile", "-level", "-crf",
-            "-g", "-keyint_min", "-sc_threshold", "-pix_fmt", "-threads", "-thread_type",
-            "-thread_queue_size", "-movflags", "-brand", "-tag", "-video_track_timescale",
-            "-vstats_file", "-pass", "-passlogfile", "-sdp_file", "-attach", "-dump_attachment",
-            "-protocol_whitelist", "-protocol_blacklist", "-progress", "-loglevel", "-stats_period",
-            "-segment_list", "-segment_list_type", "-segment_time", "-segment_times",
-            "-segment_frames", "-segment_format", "-segment_start_number",
-            "-hls_segment_filename", "-hls_fmp4_init_filename", "-hls_segment_options",
-            "-hls_time", "-hls_list_size", "-hls_flags", "-hls_base_url",
-            "-var_stream_map", "-master_pl_name"
-    ));
+    // FFmpeg 主输出日志和文件协议打开写入日志，后者还能覆盖部分分段文件
+    private static final Pattern LOG_OUTPUT_TO =
+            Pattern.compile("Output #\\d+,[^,]*, to '(.+?)':?\\s*$");
+    private static final Pattern LOG_OPENING_FOR_WRITING =
+            Pattern.compile("Opening '(.+?)' for writing");
 
     private final Object stateLock = new Object();
     private final Set<File> activeOutputFiles = java.util.Collections.synchronizedSet(new HashSet<>());
@@ -131,10 +117,22 @@ public class CustomCommandWorker extends Worker {
             return failure(context.getString(com.tech.ezconvert.R.string.notification_foreground_start_failed));
         }
 
-        File workDirectory = new File(new File(context.getFilesDir(), "custom_command_work"), session.id);
-        File outputTempDirectory = new File(new File(context.getCacheDir(), "custom_command_output"), session.id);
-        if (!workDirectory.exists() && !workDirectory.mkdirs()) return failure(context.getString(com.tech.ezconvert.R.string.custom_command_worker_create_input_directory));
-        if (!outputTempDirectory.exists() && !outputTempDirectory.mkdirs()) return failure(context.getString(com.tech.ezconvert.R.string.custom_command_worker_create_output_directory));
+        File workRoot = new File(context.getFilesDir(), "custom_command_work");
+        File outputRoot = new File(context.getCacheDir(), "custom_command_output");
+        File workDirectory = new File(workRoot, session.id);
+        File outputTempDirectory = new File(outputRoot, session.id);
+        // Session ID 来自持久化任务数据，先验证规范路径，避免异常 ID 将清理范围引出应用专属目录
+        if (!isPathWithin(workDirectory, workRoot) || !isPathWithin(outputTempDirectory, outputRoot)) {
+            return failure(context.getString(com.tech.ezconvert.R.string.custom_command_worker_failed_generic));
+        }
+        // Worker 可能在进程被系统回收后重试，先清理同一 Session 上次遗留的专属目录
+        deleteRecursively(workDirectory);
+        deleteRecursively(outputTempDirectory);
+        if (!workDirectory.mkdirs()) return failure(context.getString(com.tech.ezconvert.R.string.custom_command_worker_create_input_directory));
+        if (!outputTempDirectory.mkdirs()) {
+            deleteRecursively(workDirectory);
+            return failure(context.getString(com.tech.ezconvert.R.string.custom_command_worker_create_output_directory));
+        }
 
         try {
             List<String> parsed = CustomCommandParser.parse(context, session.commandText);
@@ -187,7 +185,8 @@ public class CustomCommandWorker extends Worker {
                 if (stopped || isStopped()) return cancelled(sessionId, workDirectory, outputTempDirectory);
 
                 List<String> commandArgs = resolveArguments(context, session, parsed, activeInputPaths, outputFiles, workDirectory);
-                Set<File> directOutputsForItem = trackDirectOutputsIfNew(session, commandArgs, outputFiles);
+                Set<String> managedOutputPaths = buildManagedOutputPaths(session, outputFiles, activeInputPaths);
+                Set<File> directOutputsForItem = java.util.Collections.synchronizedSet(new HashSet<>());
                 Log.i("CustomCommandWorker", "执行自定义 FFmpeg 命令，任务 " + (item + 1) + "/" + total
                         + "，参数数量=" + commandArgs.size());
                 int percentBefore = Math.min(99, (int) (item * 100f / Math.max(1, total)));
@@ -201,7 +200,8 @@ public class CustomCommandWorker extends Worker {
                         + " 项，预计媒体时长=" + (expectedDurationMs > 0 ? expectedDurationMs + "ms" : "未知；进度将以不确定状态显示"), Level.AV_LOG_INFO);
 
                 FFmpegSession ffmpegSession = runFfmpeg(commandArgs, context, item, total,
-                        expectedDurationMs, session.id, startedAt);
+                        expectedDurationMs, session.id, startedAt, managedOutputPaths, directOutputsForItem,
+                        workDirectory, outputTempDirectory);
                 if (stopped || isStopped()) return cancelled(sessionId, workDirectory, outputTempDirectory);
                 ReturnCode returnCode = ffmpegSession == null ? null : ffmpegSession.getReturnCode();
                 if (!ReturnCode.isSuccess(returnCode)) {
@@ -439,75 +439,82 @@ public class CustomCommandWorker extends Worker {
         return argument.startsWith("/") ? new File(argument) : null;
     }
 
-    /**
-     * 识别命令中由 FFmpeg 直接创建的本地输出目标
-     *
-     * FFmpeg 支持在同一条命令中指定多个输出文件，扫描时跳过输入路径和常见选项值
-     * 只登记任务开始前不存在的本地路径，避免清理时误删用户已有文件
-     */
-    private Set<File> trackDirectOutputsIfNew(CustomCommandSession session, List<String> args,
-                                              Map<Integer, File> outputFiles) {
-        Set<File> trackedOutputs = new HashSet<>();
-        if (args == null || args.isEmpty()) return trackedOutputs;
-
-        Set<String> managedOutputPaths = new HashSet<>();
+    /** 构建本轮已经由 EzConvert 管理的输入和输出路径，避免重复登记或误删输入文件 */
+    private Set<String> buildManagedOutputPaths(CustomCommandSession session, Map<Integer, File> outputFiles,
+                                                List<String> activeInputPaths) {
+        Set<String> paths = new HashSet<>();
         if (outputFiles != null) {
-            for (File managedOutput : outputFiles.values()) {
-                if (managedOutput != null) {
-                    managedOutputPaths.add(getCanonicalPath(managedOutput));
+            for (File file : outputFiles.values()) {
+                if (file != null) paths.add(getCanonicalPath(file));
+            }
+        }
+        if (session != null) {
+            if (!TextUtils.isEmpty(session.outputCommandPath)) {
+                File output = localFileFromArgument(session.outputCommandPath);
+                if (output != null) paths.add(getCanonicalPath(output));
+            }
+            if (session.inputs != null) {
+                for (CustomCommandSession.InputSource input : session.inputs) {
+                    if (input == null) continue;
+                    File inputFile = localFileFromArgument(input.commandPath);
+                    if (inputFile != null) paths.add(getCanonicalPath(inputFile));
                 }
             }
         }
-        if (!TextUtils.isEmpty(session.outputCommandPath)) {
-            managedOutputPaths.add(getCanonicalPath(new File(session.outputCommandPath)));
+        if (activeInputPaths != null) {
+            for (String inputPath : activeInputPaths) {
+                File inputFile = localFileFromArgument(inputPath);
+                if (inputFile != null) paths.add(getCanonicalPath(inputFile));
+            }
         }
-
-        boolean skipNextArgument = false;
-        for (String argument : args) {
-            if (skipNextArgument) {
-                skipNextArgument = false;
-                continue;
-            }
-            if (TextUtils.isEmpty(argument)) continue;
-
-            if (argument.startsWith("-")) {
-                skipNextArgument = optionConsumesNextArgument(argument);
-                continue;
-            }
-
-            // 文件协议指向本地文件，其余协议及标准输出不能通过 File 删除
-            if (!argument.startsWith("file://")
-                    && (argument.contains("://") || argument.startsWith("pipe:")
-                    || argument.startsWith("fd:") || argument.startsWith("data:")
-                    || argument.startsWith("concat:") || argument.startsWith("subfile:")
-                    || argument.startsWith("crypto:") || argument.startsWith("async:")
-                    || argument.startsWith("cache:") || argument.equals("-"))) {
-                continue;
-            }
-
-            File candidate = resolveDirectOutputFile(argument);
-            if (candidate == null) continue;
-
-            String candidatePath = getCanonicalPath(candidate);
-            if (managedOutputPaths.contains(candidatePath) || candidate.exists()) continue;
-
-            trackedOutputs.add(candidate);
-            synchronized (publishedFileOutputs) {
-                publishedFileOutputs.add(candidate);
-            }
-            Log.d("CustomCommandWorker", "已登记本轮直接输出目标，取消或失败时可清理: " + candidate);
-        }
-        return trackedOutputs;
+        return paths;
     }
 
-    /** 判断选项是否会消费下一个参数，并支持带流说明符的选项 */
-    private boolean optionConsumesNextArgument(String argument) {
-        if (argument.indexOf('=') >= 0) return false;
-        if (FFMPEG_OPTIONS_WITH_VALUE.contains(argument)) return true;
+    /**
+     * 从 FFmpeg 日志收集本轮在应用专属目录中创建的额外输出
+     * 日志回调可能晚于底层文件打开，因此绝不根据日志推断任意外部文件的所有权
+     */
+    private void collectDirectOutputsFromLog(String message, Set<String> managedOutputPaths,
+                                             Set<File> directOutputs, File workDirectory,
+                                             File outputTempDirectory) {
+        if (TextUtils.isEmpty(message)) return;
 
-        int streamSpecifier = argument.indexOf(':');
-        return streamSpecifier > 0
-                && FFMPEG_OPTIONS_WITH_VALUE.contains(argument.substring(0, streamSpecifier));
+        String path = null;
+        Matcher matcher = LOG_OPENING_FOR_WRITING.matcher(message);
+        if (matcher.find()) {
+            path = matcher.group(1);
+        } else {
+            matcher = LOG_OUTPUT_TO.matcher(message);
+            if (matcher.find()) path = matcher.group(1);
+        }
+        if (TextUtils.isEmpty(path) || isNonLocalOutputPath(path)) return;
+
+        File candidate = resolveDirectOutputFile(path);
+        if (candidate == null) return;
+        String canonicalPath = getCanonicalPath(candidate);
+        if (managedOutputPaths.contains(canonicalPath)) return;
+        candidate = new File(canonicalPath);
+
+        // 只清理每个 Session 独占的应用私有目录，外部路径可能覆盖用户文件，不能自动删除
+        if (!isPathWithin(candidate, workDirectory) && !isPathWithin(candidate, outputTempDirectory)) {
+            Log.d("CustomCommandWorker", "发现外部 FFmpeg 输出，出于安全原因不纳入自动清理: " + candidate);
+            return;
+        }
+
+        if (directOutputs.add(candidate)) {
+            publishedFileOutputs.add(candidate);
+            Log.d("CustomCommandWorker", "已登记应用工作目录中的 FFmpeg 额外输出: " + candidate);
+        }
+    }
+
+    /** 排除不能通过本地 File 安全管理的输出协议和设备路径 */
+    private boolean isNonLocalOutputPath(String path) {
+        if (path.regionMatches(true, 0, "file://", 0, 7)) return false;
+        return path.contains("://") || path.startsWith("pipe:") || path.startsWith("fd:")
+                || path.startsWith("data:") || path.startsWith("concat:")
+                || path.startsWith("subfile:") || path.startsWith("crypto:")
+                || path.startsWith("async:") || path.startsWith("cache:")
+                || path.startsWith("/dev/") || "-".equals(path);
     }
 
     /** 将 FFmpeg 位置参数转换为本地文件路径 */
@@ -526,21 +533,26 @@ public class CustomCommandWorker extends Worker {
         }
     }
 
-    /** 清理当前输入项目新建的直接输出 */
+    /** 清理当前项目在应用专属目录中产生的额外输出 */
     private void cleanupTrackedDirectOutputs(Set<File> outputs, String reason) {
         if (outputs == null || outputs.isEmpty()) return;
-        synchronized (publishedFileOutputs) {
-            for (File file : outputs) {
-                boolean removed = file == null || !file.exists();
-                if (file != null && file.exists()) {
-                    removed = file.delete();
-                    if (removed) {
-                        Log.d("CustomCommandWorker", reason + "，已删除不完整的直接输出: " + file);
-                    } else {
-                        Log.w("CustomCommandWorker", reason + "，无法删除不完整的直接输出: " + file);
-                    }
+        Set<File> snapshot = new HashSet<>();
+        synchronized (outputs) {
+            snapshot.addAll(outputs);
+        }
+        for (File file : snapshot) {
+            boolean removed = file == null || !file.exists();
+            if (file != null && file.exists()) {
+                removed = file.delete();
+                if (removed) {
+                    Log.d("CustomCommandWorker", reason + "，已删除不完整的直接输出: " + file);
+                } else {
+                    Log.w("CustomCommandWorker", reason + "，无法删除不完整的直接输出: " + file);
                 }
-                if (removed) publishedFileOutputs.remove(file);
+            }
+            if (removed) {
+                outputs.remove(file);
+                publishedFileOutputs.remove(file);
             }
         }
     }
@@ -746,8 +758,23 @@ public class CustomCommandWorker extends Worker {
         return args;
     }
 
+    /** 从完整 Session 日志补扫输出，避免日志回调与完成回调的线程调度顺序造成遗漏 */
+    private void collectDirectOutputsFromSessionLogs(FFmpegSession session, Set<String> managedOutputPaths,
+                                                     Set<File> directOutputs, File workDirectory,
+                                                     File outputTempDirectory) {
+        if (session == null) return;
+        String allLogs = session.getAllLogsAsString();
+        if (TextUtils.isEmpty(allLogs)) return;
+        for (String line : allLogs.split("\\R")) {
+            collectDirectOutputsFromLog(line, managedOutputPaths, directOutputs,
+                    workDirectory, outputTempDirectory);
+        }
+    }
+
     private FFmpegSession runFfmpeg(List<String> args, Context context, int itemIndex, int total,
-                                    long expectedDurationMs, String sessionId, long startedAt) throws Exception {
+                                    long expectedDurationMs, String sessionId, long startedAt,
+                                    Set<String> managedOutputPaths, Set<File> directOutputs,
+                                    File workDirectory, File outputTempDirectory) throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
         final FFmpegSession[] result = new FFmpegSession[1];
         String[] command = args.toArray(new String[0]);
@@ -762,6 +789,8 @@ public class CustomCommandWorker extends Worker {
             }, log -> {
                 // FFmpeg 原始日志同时写入应用的 FFmpeg 日志和当前会话日志，方便用户独立排查该任务
                 recordTaskLog(context, sessionId, log.getMessage(), log.getLevel());
+                collectDirectOutputsFromLog(log.getMessage(), managedOutputPaths, directOutputs,
+                        workDirectory, outputTempDirectory);
             }, new StatisticsCallback() {
                 @Override
                 public void apply(Statistics statistics) {
@@ -802,15 +831,21 @@ public class CustomCommandWorker extends Worker {
                 // WorkManager 停止 Worker 时可能中断等待线程；先终止 FFmpeg 并等待回调，之后再清理输出文件
                 cancelActiveFfmpegSession();
                 awaitFfmpegCompletion(latch);
+                collectDirectOutputsFromSessionLogs(result[0], managedOutputPaths, directOutputs,
+                        workDirectory, outputTempDirectory);
                 throw interrupted;
             }
             if (stopped || isStopped()) {
                 cancelActiveFfmpegSession();
                 awaitFfmpegCompletion(latch);
+                collectDirectOutputsFromSessionLogs(result[0], managedOutputPaths, directOutputs,
+                        workDirectory, outputTempDirectory);
                 throw new InterruptedException(context.getString(com.tech.ezconvert.R.string.custom_command_worker_cancelled));
             }
         }
         FFmpegSession completedSession = result[0];
+        collectDirectOutputsFromSessionLogs(completedSession, managedOutputPaths, directOutputs,
+                workDirectory, outputTempDirectory);
         synchronized (stateLock) {
             if (currentSession == completedSession) currentSession = null;
         }
@@ -1139,7 +1174,9 @@ public class CustomCommandWorker extends Worker {
                                        File workDirectory, File outputDirectory) {
         synchronized (activeOutputFiles) {
             for (File file : activeOutputFiles) {
-                if (file != null && file.exists()) deleteRecursively(file);
+                if (file != null && isPathWithin(file, outputDirectory) && file.exists()) {
+                    deleteRecursively(file);
+                }
             }
             activeOutputFiles.clear();
         }
@@ -1153,8 +1190,10 @@ public class CustomCommandWorker extends Worker {
             deleteManagedPath(context, session.outputCommandPath, "output");
         }
 
-        deleteRecursively(workDirectory);
-        deleteRecursively(outputDirectory);
+        File workRoot = new File(context.getFilesDir(), "custom_command_work");
+        File outputRoot = new File(context.getCacheDir(), "custom_command_output");
+        if (isPathWithin(workDirectory, workRoot)) deleteRecursively(workDirectory);
+        if (isPathWithin(outputDirectory, outputRoot)) deleteRecursively(outputDirectory);
     }
 
     /** 只删除应用缓存下专门为自定义命令创建的路径，避免误删用户手动指定的文件 */
@@ -1170,12 +1209,15 @@ public class CustomCommandWorker extends Worker {
     /** 取消时删除本次任务已经发布到普通目录或 SAF 目录的输出 */
     private void cleanupPublishedOutputs(Context context) {
         synchronized (publishedFileOutputs) {
-            for (File file : publishedFileOutputs) {
-                if (file != null && file.exists() && !file.delete()) {
+            Iterator<File> iterator = publishedFileOutputs.iterator();
+            while (iterator.hasNext()) {
+                File file = iterator.next();
+                if (file == null || !file.exists() || file.delete()) {
+                    iterator.remove();
+                } else {
                     Log.w("CustomCommandWorker", "取消后无法删除已发布的输出文件：" + file);
                 }
             }
-            publishedFileOutputs.clear();
         }
 
         synchronized (publishedDocumentOutputs) {
