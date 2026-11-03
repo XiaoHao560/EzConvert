@@ -54,6 +54,7 @@ public class CustomCommandPresetManager {
                 String placeholder = session.inputs.size() == 1 && i == 0
                         ? "%INPUT%" : "%INPUT_" + (i + 1) + "%";
                 command = replacePath(command, input.commandPath, placeholder);
+                command = replacePath(command, input.displayName, placeholder);
                 command = replacePath(command, input.uri, placeholder);
             }
         }
