@@ -877,6 +877,7 @@
     <string name="custom_command_execute">检查命令并开始执行</string>
     <string name="custom_command_cancel_task">取消当前任务</string>
     <string name="custom_command_error_no_inputs">请至少选择一个输入文件</string>
+    <string name="custom_command_error_ambiguous_input_name">所选文件中存在多个同名文件，无法仅凭文件名确定输入：%1$s</string>
     <string name="custom_command_error_no_outputs">请至少保留一个输出目标</string>
     <string name="custom_command_error_empty_output_name">输出目标 %1$d 的文件名模板不能为空</string>
     <string name="custom_command_error_batch_input_placeholder">逐个文件模式只支持 %INPUT% 或 %INPUT_1%</string>
@@ -886,7 +887,7 @@
     <string name="custom_command_error_single_document_batch">逐个文件模式不能将所有结果写入同一个指定输出文件，请改用输出文件夹</string>
     <string name="custom_command_error_save_session">无法保存任务：%1$s</string>
     <string name="custom_command_output_file_selected_path">输出文件：%1$s\n命令中使用的可访问路径：%2$s\n任务完成后会保存到所选文件</string>
-    <string name="custom_command_path_input_option">输入文件 %1$d：%2$s\n%3$s</string>
+    <string name="custom_command_path_input_option">输入文件 %1$d：%2$s</string>
     <string name="custom_command_path_output_option">输出文件：%1$s\n%2$s</string>
     <string name="custom_command_path_picker_empty">请先选择输入文件或指定输出文件</string>
     <string name="custom_command_choose_placeholder_title">选择要替换的占位符</string>

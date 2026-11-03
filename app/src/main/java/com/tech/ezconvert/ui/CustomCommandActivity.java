@@ -794,8 +794,8 @@ public class CustomCommandActivity extends BaseActivity {
         for (int i = 0; i < inputs.size(); i++) {
             CustomCommandSession.InputSource input = inputs.get(i);
             options.add(getString(R.string.custom_command_path_input_option,
-                    i + 1, input.displayName, input.commandPath));
-            paths.add(input.commandPath);
+                    i + 1, input.displayName));
+            paths.add(input.displayName);
             inputPaths.add(true);
         }
         if (!TextUtils.isEmpty(currentOutputState.documentUri)
@@ -830,7 +830,7 @@ public class CustomCommandActivity extends BaseActivity {
         }
         List<String> placeholders = new ArrayList<>(found);
         if (placeholders.isEmpty()) {
-            // 命令中没有对应占位符时，将路径插入当前光标处，避免要求用户先手动编写占位符
+            // 命令中没有对应占位符时，优先插入文件名，Worker 会在执行前解析为可访问的实际路径
             insertPathAtCursor(path);
             saveDraft();
             return;
@@ -881,9 +881,11 @@ public class CustomCommandActivity extends BaseActivity {
             CustomCommandSession.InputSource input = inputs.get(i);
             if (input == null) continue;
             String path = input.commandPath;
-            if (!TextUtils.isEmpty(path)) {
-                command = replacePathToken(command, path, i == 0 && inputs.size() == 1
-                        ? "%INPUT%" : "%INPUT_" + (i + 1) + "%");
+            String placeholder = i == 0 && inputs.size() == 1
+                    ? "%INPUT%" : "%INPUT_" + (i + 1) + "%";
+            if (!TextUtils.isEmpty(path)) command = replacePathToken(command, path, placeholder);
+            if (!TextUtils.isEmpty(input.displayName)) {
+                command = replacePathToken(command, input.displayName, placeholder);
             }
         }
         commandEditor.setText(command);

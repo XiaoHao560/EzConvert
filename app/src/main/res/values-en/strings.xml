@@ -877,6 +877,7 @@
     <string name="custom_command_execute">Validate and execute</string>
     <string name="custom_command_cancel_task">Cancel current task</string>
     <string name="custom_command_error_no_inputs">Select at least one input file</string>
+    <string name="custom_command_error_ambiguous_input_name">Multiple selected files have the same name, so the input cannot be resolved by filename alone: %1$s</string>
     <string name="custom_command_error_no_outputs">Keep at least one output target</string>
     <string name="custom_command_error_empty_output_name">Filename template for output target %1$d cannot be empty</string>
     <string name="custom_command_error_batch_input_placeholder">Per-file mode only supports %INPUT% or %INPUT_1%</string>
@@ -886,7 +887,7 @@
     <string name="custom_command_error_single_document_batch">Per-file mode cannot write all results to the same selected output file. Choose an output folder instead.</string>
     <string name="custom_command_error_save_session">Unable to save task: %1$s</string>
     <string name="custom_command_output_file_selected_path">Output file: %1$s\nAccessible command path: %2$s\nThe result will be copied to the selected file after execution.</string>
-    <string name="custom_command_path_input_option">Input %1$d: %2$s\n%3$s</string>
+    <string name="custom_command_path_input_option">Input %1$d: %2$s</string>
     <string name="custom_command_path_output_option">Output file: %1$s\n%2$s</string>
     <string name="custom_command_path_picker_empty">Select an input file or choose a specific output file first</string>
     <string name="custom_command_choose_placeholder_title">Choose a placeholder to replace</string>

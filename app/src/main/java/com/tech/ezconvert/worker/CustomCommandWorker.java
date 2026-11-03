@@ -314,7 +314,11 @@ public class CustomCommandWorker extends Worker {
         if (session.inputs == null) session.inputs = new ArrayList<>();
         boolean hasInputReference = false;
         for (String arg : args) {
-            if (CustomCommandParser.isInputPlaceholder(arg) || findSelectedInputPathIndex(session, arg) >= 0) {
+            int selectedIndex = findSelectedInputPathIndex(session, arg);
+            if (selectedIndex == -2) {
+                throw new IllegalArgumentException(context.getString(com.tech.ezconvert.R.string.custom_command_error_ambiguous_input_name, arg));
+            }
+            if (CustomCommandParser.isInputPlaceholder(arg) || selectedIndex >= 0) {
                 hasInputReference = true;
             }
         }
@@ -366,7 +370,16 @@ public class CustomCommandWorker extends Worker {
             CustomCommandSession.InputSource input = session.inputs.get(i);
             if (input != null && path.equals(input.commandPath) && !TextUtils.isEmpty(input.commandPath)) return i;
         }
-        return -1;
+        // 用户可以直接手写已选文件名；只有名称唯一时才安全地映射到对应授权 URI
+        int matchedIndex = -1;
+        for (int i = 0; i < session.inputs.size(); i++) {
+            CustomCommandSession.InputSource input = session.inputs.get(i);
+            if (input != null && path.equals(input.displayName) && !TextUtils.isEmpty(input.displayName)) {
+                if (matchedIndex >= 0) return -2;
+                matchedIndex = i;
+            }
+        }
+        return matchedIndex;
     }
 
     private int findSelectedInputUriIndex(CustomCommandSession session, String uri) {
@@ -741,13 +754,16 @@ public class CustomCommandWorker extends Worker {
             } else {
                 int selectedPathIndex = findSelectedInputPathIndex(session, arg);
                 if (selectedPathIndex >= 0) {
-                    if ("batch".equals(session.executionMode) && selectedPathIndex == 0) {
-                        // 在逐个文件模式中保留命令里显示的具体路径，但实际传入当前轮次输入
+                    if ("batch".equals(session.executionMode)) {
+                        // 逐个文件模式下，手写的任一已选文件名都代表当前轮次输入
                         args.add(inputPaths.get(0));
                     } else {
                         args.add(prepareInput(context, session, selectedPathIndex, workDirectory));
                     }
                     continue;
+                }
+                if (selectedPathIndex == -2) {
+                    throw new IllegalArgumentException(context.getString(com.tech.ezconvert.R.string.custom_command_error_ambiguous_input_name, arg));
                 }
                 int selectedUriIndex = findSelectedInputUriIndex(session, arg);
                 if (selectedUriIndex >= 0) {
