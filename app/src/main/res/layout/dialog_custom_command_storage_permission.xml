@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/custom_command_storage_permission_root"
+    android:background="?attr/colorSurface"
+    android:gravity="center_vertical"
+    android:orientation="vertical"
+    android:paddingStart="28dp"
+    android:paddingTop="32dp"
+    android:paddingEnd="28dp"
+    android:paddingBottom="24dp">
+
+    <ImageView
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_gravity="center_horizontal"
+        android:contentDescription="@string/custom_command_storage_permission_icon_description"
+        android:src="@drawable/round_folder"
+        android:tint="?attr/colorPrimary" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:gravity="center"
+        android:text="@string/custom_command_storage_permission_title"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="24sp"
+        android:fontFamily="sans-serif-medium" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:lineSpacingExtra="4dp"
+        android:text="@string/custom_command_storage_permission_message"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textSize="15sp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:lineSpacingExtra="6dp"
+        android:text="@string/custom_command_storage_permission_steps"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="14sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/custom_command_storage_permission_settings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/custom_command_storage_permission_settings" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/custom_command_storage_permission_later"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/custom_command_storage_permission_later" />
+</LinearLayout>

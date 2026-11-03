@@ -1,9 +1,11 @@
 package com.tech.ezconvert.ui;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.database.Cursor;
@@ -33,6 +35,10 @@ import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -83,6 +89,7 @@ public class CustomCommandActivity extends BaseActivity {
     private ActivityResultLauncher<Intent> inputPicker;
     private ActivityResultLauncher<Intent> folderPicker;
     private ActivityResultLauncher<Intent> outputFilePicker;
+    private Dialog directStoragePermissionDialog;
 
     private Spinner modeSpinner;
     private TextView inputListText;
@@ -1484,6 +1491,10 @@ public class CustomCommandActivity extends BaseActivity {
     }
 
     private void showError(String message) {
+        if (TextUtils.equals(message, getString(R.string.custom_command_direct_storage_permission_required))) {
+            showDirectStoragePermissionGuide();
+            return;
+        }
         new MaterialAlertDialogBuilder(this).setTitle(R.string.custom_command_error_title)
                 .setMessage(TextUtils.isEmpty(message) ? getString(R.string.error_unknown) : message)
                 .setPositiveButton(R.string.dialog_close, null).show();
@@ -1493,9 +1504,83 @@ public class CustomCommandActivity extends BaseActivity {
         ToastUtils.showCustomLong(this, message);
     }
 
+    /** 使用全屏引导说明直接路径所需的共享存储权限 */
+    private void showDirectStoragePermissionGuide() {
+        if (isFinishing() || (directStoragePermissionDialog != null && directStoragePermissionDialog.isShowing())) return;
+        // 使用非悬浮全屏窗口主题，否则 Dialog 窗口本身仍会避开状态栏区域
+        Dialog dialog = new Dialog(this, R.style.FullScreenDialogTheme);
+        dialog.setContentView(R.layout.dialog_custom_command_storage_permission);
+        dialog.setCancelable(true);
+        dialog.setCanceledOnTouchOutside(false);
+        android.view.Window window = dialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawableResource(android.R.color.transparent);
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        }
+        dialog.findViewById(R.id.custom_command_storage_permission_later).setOnClickListener(v -> dialog.dismiss());
+        dialog.findViewById(R.id.custom_command_storage_permission_settings).setOnClickListener(v -> openAllFilesAccessSettings());
+        dialog.setOnDismissListener(ignored -> {
+            if (directStoragePermissionDialog == dialog) directStoragePermissionDialog = null;
+        });
+        directStoragePermissionDialog = dialog;
+        dialog.show();
+        if (dialog.getWindow() != null) {
+            android.view.Window dialogWindow = dialog.getWindow();
+            dialogWindow.setBackgroundDrawableResource(android.R.color.transparent);
+            dialogWindow.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            dialogWindow.setStatusBarColor(Color.TRANSPARENT);
+            dialogWindow.setNavigationBarColor(Color.TRANSPARENT);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                dialogWindow.setNavigationBarContrastEnforced(false);
+                dialogWindow.setStatusBarContrastEnforced(false);
+            }
+            WindowCompat.setDecorFitsSystemWindows(dialogWindow, false);
+
+            // 全屏窗口绘制到系统栏下方，同时为内容保留安全区域
+            View content = dialog.findViewById(R.id.custom_command_storage_permission_root);
+            if (content != null) {
+                final int initialLeft = content.getPaddingLeft();
+                final int initialTop = content.getPaddingTop();
+                final int initialRight = content.getPaddingRight();
+                final int initialBottom = content.getPaddingBottom();
+                ViewCompat.setOnApplyWindowInsetsListener(content, (view, insets) -> {
+                    Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars()
+                            | WindowInsetsCompat.Type.displayCutout());
+                    view.setPadding(initialLeft + systemBars.left, initialTop + systemBars.top,
+                            initialRight + systemBars.right, initialBottom + systemBars.bottom);
+                    return WindowInsetsCompat.CONSUMED;
+                });
+                ViewCompat.requestApplyInsets(content);
+            }
+        }
+    }
+
+    /** 打开系统的所有文件访问权限页面，兼容无法打开应用专属页面的设备 */
+    private void openAllFilesAccessSettings() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return;
+        Intent appSettings = new Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                Uri.parse("package:" + getPackageName()));
+        try {
+            startActivity(appSettings);
+        } catch (ActivityNotFoundException | SecurityException e) {
+            Log.w("CustomCommandActivity", "无法打开应用专属的所有文件访问设置，尝试通用设置页面", e);
+            try {
+                startActivity(new Intent(android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION));
+            } catch (ActivityNotFoundException | SecurityException fallbackError) {
+                Log.e("CustomCommandActivity", "无法打开所有文件访问设置页面", fallbackError);
+                showToast(getString(R.string.custom_command_storage_settings_unavailable));
+            }
+        }
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Environment.isExternalStorageManager()
+                && directStoragePermissionDialog != null && directStoragePermissionDialog.isShowing()) {
+            directStoragePermissionDialog.dismiss();
+            showToast(getString(R.string.custom_command_storage_permission_granted));
+        }
         startUiRefresh();
     }
 
