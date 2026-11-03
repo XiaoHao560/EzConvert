@@ -3,13 +3,18 @@ package com.tech.ezconvert.ui;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.view.Window;
+import android.view.Gravity;
+import android.view.WindowManager;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import android.os.Bundle;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.LayoutInflater;
@@ -170,13 +175,49 @@ public class ParameterDialogFragment extends DialogFragment {
         }
     }
 
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        Dialog dialog = super.onCreateDialog(savedInstanceState);
+        // 在 Dialog 显示和进入动画开始前完成窗口尺寸配置，避免动画过程中窗口突然扩展
+        configureDialogWindow(dialog);
+        return dialog;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Dialog 此时已经附着到 Window，主动请求 Insets；监听器已提前安装，不会产生首帧布局跳动
+        View view = getView();
+        if (view != null) {
+            ViewCompat.requestApplyInsets(view);
+        }
+    }
+
+    /** 在 Dialog 显示前配置全屏窗口，避免进入动画期间改变窗口尺寸 */
+    private void configureDialogWindow(@NonNull Dialog dialog) {
+        Window window = dialog.getWindow();
+        if (window == null) return;
+
+        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
+        window.setGravity(Gravity.FILL);
+        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        window.setStatusBarColor(Color.TRANSPARENT);
+        window.setNavigationBarColor(Color.TRANSPARENT);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.setStatusBarContrastEnforced(false);
+            window.setNavigationBarContrastEnforced(false);
+        }
+        WindowCompat.setDecorFitsSystemWindows(window, false);
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                             @Nullable Bundle savedInstanceState) {
-        // 使用 Activity 的 LayoutInflater，确保继承动态颜色主题
-        LayoutInflater activityInflater = LayoutInflater.from(getActivity());
-        View view = activityInflater.inflate(R.layout.dialog_parameter, container, false);
+        // 使用 DialogFragment 提供的 LayoutInflater，使 FullScreenDialogTheme 正确应用到组件
+        View view = inflater.inflate(R.layout.dialog_parameter, container, false);
         
         initViews(view);
         setupToolbar(view);
@@ -192,54 +233,49 @@ public class ParameterDialogFragment extends DialogFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // 延迟执行，确保布局完成，获取正确的 insets
-        view.post(() -> applyEdgeToEdge(view));
+        // 在 View 附着到 Dialog Window 前安装 Insets 监听器，确保首次绘制前完成安全区域布局
+        applyEdgeToEdge(view);
         updateUIForTaskType();
     }
 
     // 应用 Edge-to-Edge，避免内容被状态栏/导航栏遮挡
     private void applyEdgeToEdge(View rootView) {
-        Dialog dialog = getDialog();
-        if (dialog == null) return;
-        Window window = dialog.getWindow();
-        if (window == null) return;
-
-        // 取消窗口自动适配系统栏
-        WindowCompat.setDecorFitsSystemWindows(window, false);
-
         View toolbar = rootView.findViewById(R.id.toolbar);
         View bottomActions = rootView.findViewById(R.id.bottom_actions);
 
-        // 使用标记避免重复设置相同的 padding
-        final int[] lastStatusBarHeight = { -1 };
-        final int[] lastNavBarHeight = { -1 };
+        // 保存布局原始内边距，避免系统 Insets 多次分发时重复叠加
+        final int toolbarLeft = toolbar == null ? 0 : toolbar.getPaddingLeft();
+        final int toolbarTop = toolbar == null ? 0 : toolbar.getPaddingTop();
+        final int toolbarRight = toolbar == null ? 0 : toolbar.getPaddingRight();
+        final int toolbarBottom = toolbar == null ? 0 : toolbar.getPaddingBottom();
+        // Toolbar 使用固定高度，顶部 Insets 不能只增加 Padding，否则会挤压标题的可用空间
+        final int toolbarBaseHeight = toolbar == null ? 0 : toolbar.getLayoutParams().height;
+        final int actionsLeft = bottomActions == null ? 0 : bottomActions.getPaddingLeft();
+        final int actionsTop = bottomActions == null ? 0 : bottomActions.getPaddingTop();
+        final int actionsRight = bottomActions == null ? 0 : bottomActions.getPaddingRight();
+        final int actionsBottom = bottomActions == null ? 0 : bottomActions.getPaddingBottom();
 
         ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, insets) -> {
-            int statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
-            int navBarHeight = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+            androidx.core.graphics.Insets systemBars = insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
 
-            // 只在高度变化时更新，避免重复设置
-            if (toolbar != null && statusBarHeight != lastStatusBarHeight[0]) {
-                toolbar.setPadding(
-                    toolbar.getPaddingLeft(),
-                    statusBarHeight,
-                    toolbar.getPaddingRight(),
-                    toolbar.getPaddingBottom()
-                );
-                if (toolbar.getLayoutParams() != null) {
-                    toolbar.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            if (toolbar != null) {
+                // 同时扩展 Toolbar 高度和顶部内边距，让标题整体下移而不是被状态栏挤压
+                ViewGroup.LayoutParams toolbarParams = toolbar.getLayoutParams();
+                int targetHeight = toolbarBaseHeight > 0
+                        ? toolbarBaseHeight + systemBars.top
+                        : toolbarParams.height;
+                if (toolbarParams.height != targetHeight) {
+                    toolbarParams.height = targetHeight;
+                    toolbar.setLayoutParams(toolbarParams);
                 }
-                lastStatusBarHeight[0] = statusBarHeight;
+                toolbar.setPadding(toolbarLeft + systemBars.left, toolbarTop + systemBars.top,
+                        toolbarRight + systemBars.right, toolbarBottom);
             }
 
-            if (bottomActions != null && navBarHeight != lastNavBarHeight[0]) {
-                bottomActions.setPadding(
-                    bottomActions.getPaddingLeft(),
-                    bottomActions.getPaddingTop(),
-                    bottomActions.getPaddingRight(),
-                    navBarHeight
-                );
-                lastNavBarHeight[0] = navBarHeight;
+            if (bottomActions != null) {
+                bottomActions.setPadding(actionsLeft + systemBars.left, actionsTop,
+                        actionsRight + systemBars.right, actionsBottom + systemBars.bottom);
             }
 
             return WindowInsetsCompat.CONSUMED;
