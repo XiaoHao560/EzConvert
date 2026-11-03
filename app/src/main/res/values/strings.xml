@@ -989,4 +989,12 @@
     <string name="custom_command_output_custom_path_missing">应用设置中的自定义输出目录未配置或授权已失效，请选择一个输出文件夹</string>
     <string name="custom_command_output_folder_permission_missing">无法持久访问所选输出文件夹，请重新选择文件夹并授予访问权限</string>
     <string name="custom_command_output_file_permission_missing">无法持久访问所选输出文件，请重新选择输出文件</string>
+    <string name="custom_command_storage_permission_icon_description">文件访问权限</string>
+    <string name="custom_command_storage_permission_title">需要授予文件访问权限</string>
+    <string name="custom_command_storage_permission_message">检测到命令中使用了直接输入的共享存储路径。Android 对应用访问共享存储有限制，需要授予 EzConvert“所有文件访问”权限，才能按路径读取或写入文件</string>
+    <string name="custom_command_storage_permission_steps">请按照以下步骤操作：\n\n1. 点击下方“前往设置”\n2. 找到 EzConvert\n3. 开启“允许访问所有文件”\n4. 返回应用后即可继续使用</string>
+    <string name="custom_command_storage_permission_settings">前往设置</string>
+    <string name="custom_command_storage_permission_later">稍后再说</string>
+    <string name="custom_command_storage_permission_granted">所有文件访问权限已授予</string>
+    <string name="custom_command_storage_settings_unavailable">无法打开系统权限设置，请手动前往系统设置开启所有文件访问权限</string>
 </resources>

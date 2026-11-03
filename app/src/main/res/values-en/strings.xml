@@ -989,4 +989,12 @@
     <string name="custom_command_output_custom_path_missing">The custom output folder in app settings is not configured or its permission has expired. Choose an output folder.</string>
     <string name="custom_command_output_folder_permission_missing">The selected output folder cannot be accessed persistently. Choose it again and grant access.</string>
     <string name="custom_command_output_file_permission_missing">The selected output file cannot be accessed persistently. Choose the output file again.</string>
+    <string name="custom_command_storage_permission_icon_description">File access permission</string>
+    <string name="custom_command_storage_permission_title">File access permission required</string>
+    <string name="custom_command_storage_permission_message">A directly entered shared-storage path was detected in the command. Android restricts access to shared storage. Grant EzConvert “All files access” to read or write files by path</string>
+    <string name="custom_command_storage_permission_steps">Follow these steps:\n\n1. Tap “Go to settings” below\n2. Find EzConvert\n3. Enable “Allow access to manage all files”\n4. Return to the app to continue</string>
+    <string name="custom_command_storage_permission_settings">Go to settings</string>
+    <string name="custom_command_storage_permission_later">Not now</string>
+    <string name="custom_command_storage_permission_granted">All files access permission granted</string>
+    <string name="custom_command_storage_settings_unavailable">Unable to open system permission settings. Open system settings and enable All files access manually.</string>
 </resources>
