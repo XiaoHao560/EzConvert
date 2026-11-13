@@ -17,10 +17,11 @@
             android:layout_height="wrap_content"
             android:minHeight="56dp"
             android:background="@android:color/transparent"
+            style="@style/Widget.Material3.Toolbar"
             app:navigationIcon="@drawable/round_arrow_back"
-            app:navigationIconTint="?attr/colorOnSurfaceVariant"
+            app:navigationIconTint="@android:color/white"
             app:title="@string/background_crop_title"
-            app:titleTextColor="@android:color/white" />
+            app:titleTextColor="?attr/colorOnSurfaceVariant" />
 
         <com.tech.ezconvert.ui.BackgroundCropImageView
             android:id="@+id/background_crop_view"

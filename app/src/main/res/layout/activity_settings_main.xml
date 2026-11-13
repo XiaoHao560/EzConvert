@@ -4,13 +4,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
     android:background="?attr/colorSurfaceContainerLowest">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fitsSystemWindows="true"
         android:background="@android:color/transparent"
         android:elevation="0dp"
         app:elevation="0dp">
@@ -19,15 +17,12 @@
             android:id="@+id/title_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
             android:background="@android:color/transparent"
             app:navigationIcon="@drawable/round_arrow_back"
             app:navigationIconTint="?attr/colorOnSurfaceVariant"
             app:navigationContentDescription="@string/tooltip_back"
             app:title="@string/settings_title"
             app:titleCentered="true"
-            app:titleTextColor="?attr/colorPrimary"
-            app:titleMarginTop="17dp"
             style="@style/Widget.Material3.Toolbar.Surface" />
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -37,7 +32,8 @@
         android:layout_height="match_parent"
         android:scrollbarStyle="outsideOverlay"
         android:fadeScrollbars="true"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:id="@+id/activity_settings_main_scroll">
 
         <LinearLayout
             android:id="@+id/scroll_content"
@@ -56,7 +52,7 @@
                 android:layout_marginBottom="16dp"
                 android:gravity="center"
                 android:textSize="12sp"
-                android:fontFamily="?attr/textAppearanceLabelMedium"
+                android:textAppearance="?attr/textAppearanceLabelMedium"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:text="@string/settings_version_fallback" />
 
@@ -115,7 +111,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:textSize="16sp"
-                                android:fontFamily="?attr/textAppearanceTitleMedium"
+                                android:textAppearance="?attr/textAppearanceTitleMedium"
                                 android:textColor="?attr/colorOnSurface"
                                 android:text="@string/settings_transcode" />
 
@@ -123,7 +119,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:textSize="14sp"
-                                android:fontFamily="?attr/textAppearanceBodyMedium"
+                                android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:text="@string/settings_transcode_desc" />
 
@@ -181,7 +177,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:textSize="16sp"
-                                android:fontFamily="?attr/textAppearanceTitleMedium"
+                                android:textAppearance="?attr/textAppearanceTitleMedium"
                                 android:textColor="?attr/colorOnSurface"
                                 android:text="@string/settings_general" />
 
@@ -189,7 +185,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:textSize="14sp"
-                                android:fontFamily="?attr/textAppearanceBodyMedium"
+                                android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:text="@string/settings_general_desc" />
 
@@ -247,7 +243,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:textSize="16sp"
-                                android:fontFamily="?attr/textAppearanceTitleMedium"
+                                android:textAppearance="?attr/textAppearanceTitleMedium"
                                 android:textColor="?attr/colorOnSurface"
                                 android:text="@string/settings_about" />
 
@@ -255,7 +251,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:textSize="14sp"
-                                android:fontFamily="?attr/textAppearanceBodyMedium"
+                                android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:text="@string/settings_about_desc" />
 
@@ -278,7 +274,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:textSize="12sp"
-                android:fontFamily="?attr/textAppearanceLabelSmall"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:layout_marginTop="8dp"
                 android:text="@string/settings_footer" />

@@ -4,29 +4,27 @@
      xmlns:app="http://schemas.android.com/apk/res-auto"
      android:layout_height="match_parent"
      android:layout_width="match_parent"
-     android:background="?attr/colorSurfaceContainerLowest"
-     android:fitsSystemWindows="true">
+     android:background="?attr/colorSurfaceContainerLowest">
 
     <com.google.android.material.appbar.AppBarLayout
          android:layout_height="wrap_content"
          android:layout_width="match_parent"
          android:background="@android:color/transparent"
          android:elevation="0dp"
-         android:fitsSystemWindows="true"
          app:elevation="0dp">
 
         <com.google.android.material.appbar.MaterialToolbar
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
              app:navigationIconTint="?attr/colorOnSurfaceVariant"
-             app:titleMarginTop="17dp"
              app:navigationContentDescription="@string/tooltip_menu"
-             android:layout_marginBottom="8dp"
              android:background="@android:color/transparent"
              app:title="@string/app_title"
              app:titleCentered="true"
+             app:subtitleCentered="true"
+             app:subtitleTextAppearance="?attr/textAppearanceLabelSmall"
+             app:subtitleTextColor="?attr/colorOnSurfaceVariant"
              app:navigationIcon="@drawable/round_menu"
-             app:titleTextColor="?attr/colorPrimary"
              style="@style/Widget.Material3.Toolbar.Surface"
              android:id="@+id/title_container">
 
@@ -39,7 +37,8 @@
          android:layout_width="match_parent"
          app:layout_behavior="@string/appbar_scrolling_view_behavior"
          android:scrollbarStyle="outsideOverlay"
-         android:fadeScrollbars="true">
+         android:fadeScrollbars="true"
+        android:id="@+id/activity_main_scroll">
 
         <LinearLayout
              android:layout_height="wrap_content"
@@ -50,17 +49,6 @@
              android:paddingStart="16dp"
              android:id="@+id/scroll_content"
              android:paddingTop="8dp">
-
-            <TextView
-                 android:layout_height="wrap_content"
-                 android:layout_width="match_parent"
-                 android:layout_marginBottom="16dp"
-                 android:gravity="center"
-                 android:textSize="12sp"
-                 android:fontFamily="?attr/textAppearanceLabelMedium"
-                 android:textColor="?attr/colorOnSurfaceVariant"
-                 android:id="@+id/version_text"
-                 android:text="@string/version_text_default" />
 
             <com.google.android.material.card.MaterialCardView
                  android:layout_height="wrap_content"
@@ -85,7 +73,7 @@
                          android:layout_width="match_parent"
                          android:layout_marginBottom="16dp"
                          android:textSize="16sp"
-                         android:fontFamily="?attr/textAppearanceTitleMedium"
+                         android:textAppearance="?attr/textAppearanceTitleMedium"
                          android:textColor="?attr/colorOnSurface"
                          android:id="@+id/status_text"
                          android:text="@string/status_select_file" />
@@ -107,12 +95,12 @@
                          android:layout_width="match_parent"
                          android:gravity="center"
                          android:textSize="12sp"
-                         android:fontFamily="?attr/textAppearanceLabelSmall"
+                         android:textAppearance="?attr/textAppearanceLabelSmall"
                          android:textColor="?attr/colorOnSurfaceVariant"
                          android:id="@+id/progress_text"
                          android:text="@string/progress_default" />
 
-                    <Button
+                    <com.google.android.material.button.MaterialButton
                          android:layout_height="48dp"
                          android:layout_width="match_parent"
                          android:visibility="gone"
@@ -151,11 +139,11 @@
                          android:layout_width="match_parent"
                          android:layout_marginBottom="16dp"
                          android:textSize="16sp"
-                         android:fontFamily="?attr/textAppearanceTitleMedium"
+                         android:textAppearance="?attr/textAppearanceTitleMedium"
                          android:textColor="?attr/colorOnSurface"
                          android:text="@string/section_file_selection" />
 
-                    <Button
+                    <com.google.android.material.button.MaterialButton
                          android:layout_height="48dp"
                          android:layout_width="match_parent"
                          app:icon="@drawable/round_folder"
@@ -191,11 +179,11 @@
                          android:layout_width="match_parent"
                          android:layout_marginBottom="16dp"
                          android:textSize="16sp"
-                         android:fontFamily="?attr/textAppearanceTitleMedium"
+                         android:textAppearance="?attr/textAppearanceTitleMedium"
                          android:textColor="?attr/colorOnSurface"
                          android:text="@string/section_video_processing" />
 
-                    <Button
+                    <com.google.android.material.button.MaterialButton
                          android:layout_height="48dp"
                          android:layout_width="match_parent"
                          android:layout_marginBottom="8dp"
@@ -205,7 +193,7 @@
                          android:text="@string/btn_convert_format"
                          app:iconGravity="textStart" />
 
-                    <Button
+                    <com.google.android.material.button.MaterialButton
                          android:layout_height="48dp"
                          android:layout_width="match_parent"
                          android:layout_marginBottom="8dp"
@@ -215,7 +203,7 @@
                          android:text="@string/btn_compress_video"
                          app:iconGravity="textStart" />
 
-                    <Button
+                    <com.google.android.material.button.MaterialButton
                          android:layout_height="48dp"
                          android:layout_width="match_parent"
                          android:layout_marginBottom="8dp"
@@ -225,7 +213,7 @@
                          android:text="@string/btn_extract_audio"
                          app:iconGravity="textStart" />
 
-                    <Button
+                    <com.google.android.material.button.MaterialButton
                          android:layout_height="48dp"
                          android:layout_width="match_parent"
                          android:layout_marginBottom="8dp"
@@ -235,7 +223,7 @@
                          android:text="@string/btn_cut_video"
                          app:iconGravity="textStart" />
 
-                    <Button
+                    <com.google.android.material.button.MaterialButton
                          android:layout_height="48dp"
                          android:layout_width="match_parent"
                          app:icon="@drawable/round_camera_alt"
@@ -271,11 +259,11 @@
                          android:layout_width="match_parent"
                          android:layout_marginBottom="16dp"
                          android:textSize="16sp"
-                         android:fontFamily="?attr/textAppearanceTitleMedium"
+                         android:textAppearance="?attr/textAppearanceTitleMedium"
                          android:textColor="?attr/colorOnSurface"
                          android:text="@string/section_audio_processing" />
 
-                    <Button
+                    <com.google.android.material.button.MaterialButton
                          android:layout_height="48dp"
                          android:layout_width="match_parent"
                          android:layout_marginBottom="8dp"
@@ -285,7 +273,7 @@
                          android:text="@string/btn_convert_audio"
                          app:iconGravity="textStart" />
 
-                    <Button
+                    <com.google.android.material.button.MaterialButton
                          android:layout_height="48dp"
                          android:layout_width="match_parent"
                          app:icon="@drawable/round_audiotrack"
@@ -321,11 +309,11 @@
                          android:layout_width="match_parent"
                          android:layout_marginBottom="16dp"
                          android:textSize="16sp"
-                         android:fontFamily="?attr/textAppearanceTitleMedium"
+                         android:textAppearance="?attr/textAppearanceTitleMedium"
                          android:textColor="?attr/colorOnSurface"
                          android:text="@string/section_image_processing" />
 
-                    <Button
+                    <com.google.android.material.button.MaterialButton
                          android:layout_height="48dp"
                          android:layout_width="match_parent"
                          app:icon="@drawable/round_transform"
@@ -343,7 +331,7 @@
                  android:layout_width="match_parent"
                  android:gravity="center"
                  android:textSize="12sp"
-                 android:fontFamily="?attr/textAppearanceLabelSmall"
+                 android:textAppearance="?attr/textAppearanceLabelSmall"
                  android:textColor="?attr/colorOnSurfaceVariant"
                  android:layout_marginTop="8dp"
                  android:text="@string/hint_output_location" />

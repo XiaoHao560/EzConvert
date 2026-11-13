@@ -6,7 +6,8 @@
      android:layout_width="match_parent"
      android:background="?attr/colorSurfaceContainerLowest"
      android:scrollbarStyle="outsideOverlay"
-     android:fadeScrollbars="true">
+     android:fadeScrollbars="true"
+     android:id="@+id/activity_crash_scroll">
 
     <LinearLayout
          android:layout_height="wrap_content"
@@ -18,13 +19,11 @@
         <com.google.android.material.appbar.MaterialToolbar
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
-             android:layout_marginBottom="16dp"
              android:background="@android:color/transparent"
              app:navigationIconTint="?attr/colorOnSurfaceVariant"
              app:title="@string/crash_title"
              app:titleCentered="true"
              app:navigationIcon="@drawable/round_arrow_back"
-             app:titleTextColor="?attr/colorPrimary"
              app:navigationContentDescription="@string/tooltip_exit"
              style="@style/Widget.Material3.Toolbar.Surface"
              android:id="@+id/title_container">

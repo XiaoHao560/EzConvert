@@ -17,15 +17,12 @@
             style="@style/Widget.Material3.Toolbar.Surface"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:layout_marginBottom="4dp"
             android:background="@android:color/transparent"
             app:navigationIcon="@drawable/round_arrow_back"
             app:navigationIconTint="?attr/colorOnSurfaceVariant"
             app:navigationContentDescription="@string/tooltip_back"
             app:title="@string/custom_command_title"
-            app:titleCentered="true"
-            app:titleMarginTop="8dp"
-            app:titleTextColor="?attr/colorPrimary" />
+            app:titleCentered="true" />
     </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -83,21 +80,19 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <TextView
+                    <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/custom_command_execution_mode"
-                        android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp"
-                        android:fontFamily="sans-serif-medium" />
-
-                    <Spinner
-                        android:id="@+id/custom_command_mode_spinner"
-                        android:layout_width="match_parent"
-                        android:layout_height="52dp"
                         android:layout_marginTop="4dp"
-                        android:entries="@array/custom_command_modes"
-                        android:spinnerMode="dropdown" />
+                        android:hint="@string/custom_command_execution_mode"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                            android:id="@+id/custom_command_mode_spinner"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none" />
+                    </com.google.android.material.textfield.TextInputLayout>
 
                     <View
                         android:layout_width="match_parent"
@@ -434,15 +429,18 @@
                         android:textSize="16sp"
                         android:fontFamily="sans-serif-medium" />
 
-                    <ProgressBar
+                    <com.google.android.material.progressindicator.LinearProgressIndicator
                         android:id="@+id/custom_command_progress_bar"
-                        style="?android:attr/progressBarStyleHorizontal"
+                        style="@style/Widget.Material3.LinearProgressIndicator"
                         android:layout_width="match_parent"
-                        android:layout_height="8dp"
+                        android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:indeterminate="false"
                         android:max="100"
-                        android:progress="0" />
+                        android:progress="0"
+                        app:indicatorColor="?attr/colorPrimary"
+                        app:trackColor="?attr/colorSurfaceContainerHighest"
+                        app:trackThickness="4dp" />
 
                     <TextView
                         android:id="@+id/custom_command_status"

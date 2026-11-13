@@ -2,7 +2,7 @@ package com.tech.ezconvert.ui;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.widget.Button;
+import com.google.android.material.button.MaterialButton;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -26,7 +26,7 @@ public class TranscodeSettingsActivity extends BaseActivity {
     
     private MaterialSwitch hardwareAccelerationSwitch;
     private MaterialSwitch multithreadingSwitch;
-    private Button saveSettingsBtn;
+    private MaterialButton saveSettingsBtn;
     private MaterialToolbar toolbar;
     private ConfigManager configManager;
     

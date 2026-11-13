@@ -13,11 +13,12 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorSurface"
-        app:titleTextColor="?attr/colorOnSurface"
+        app:titleTextColor="?attr/colorOnSurfaceVariant"
         app:navigationIcon="@drawable/round_close"
         app:navigationIconTint="?attr/colorOnSurfaceVariant"
         app:navigationContentDescription="@string/dialog_close"
-        android:minHeight="?attr/actionBarSize" />
+        android:minHeight="?attr/actionBarSize"
+        style="@style/Widget.Material3.Toolbar.Surface" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -35,7 +36,7 @@
             android:text="@string/preset_quick"
             android:textSize="14sp"
             android:textColor="?attr/colorOnSurfaceVariant"
-            android:fontFamily="?attr/textAppearanceLabelMedium"
+            android:textAppearance="?attr/textAppearanceLabelMedium"
             android:layout_marginBottom="8dp" />
 
         <androidx.recyclerview.widget.RecyclerView
@@ -82,7 +83,8 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:fillViewport="true"
-        android:scrollbarStyle="outsideOverlay">
+        android:scrollbarStyle="outsideOverlay"
+        android:id="@+id/dialog_parameter_scroll">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -100,7 +102,7 @@
                 android:text="@string/current_file_none"
                 android:textSize="14sp"
                 android:textColor="?attr/colorOnSurfaceVariant"
-                android:fontFamily="?attr/textAppearanceBodyMedium"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:layout_marginBottom="16dp" />
 
             <LinearLayout
@@ -115,7 +117,7 @@
                     android:text="@string/video_params_title"
                     android:textSize="16sp"
                     android:textColor="?attr/colorPrimary"
-                    android:fontFamily="?attr/textAppearanceTitleMedium"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:layout_marginBottom="8dp" />
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -163,7 +165,7 @@
                         android:text="@string/quick_conversion_source_info_title"
                         android:textColor="?attr/colorOnSurface"
                         android:textSize="14sp"
-                        android:fontFamily="?attr/textAppearanceTitleSmall"
+                        android:textAppearance="?attr/textAppearanceTitleSmall"
                         android:layout_marginBottom="6dp" />
 
                     <TextView
@@ -218,7 +220,7 @@
                         android:text="@string/video_bitrate_title"
                         android:textSize="14sp"
                         android:textColor="?attr/colorOnSurfaceVariant"
-                        android:fontFamily="?attr/textAppearanceLabelMedium"
+                        android:textAppearance="?attr/textAppearanceLabelMedium"
                         android:layout_marginBottom="4dp" />
 
                     <LinearLayout
@@ -313,7 +315,7 @@
                         android:text="@string/audio_bitrate_title"
                         android:textSize="14sp"
                         android:textColor="?attr/colorOnSurfaceVariant"
-                        android:fontFamily="?attr/textAppearanceLabelMedium"
+                        android:textAppearance="?attr/textAppearanceLabelMedium"
                         android:layout_marginBottom="4dp" />
 
                     <LinearLayout
@@ -393,15 +395,14 @@
                     android:text="@string/image_params_title"
                     android:textSize="16sp"
                     android:textColor="?attr/colorPrimary"
-                    android:fontFamily="?attr/textAppearanceTitleMedium"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:layout_marginBottom="8dp" />
 
-                <androidx.cardview.widget.CardView
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    app:cardCornerRadius="8dp"
-                    app:cardElevation="2dp"
+                    style="@style/Widget.Material3.CardView.Elevated"
                     app:cardBackgroundColor="?attr/colorSurfaceContainerLow">
 
                     <LinearLayout
@@ -427,10 +428,10 @@
                             android:gravity="center"
                             android:textSize="14sp"
                             android:textColor="?attr/colorOnSurfaceVariant"
-                            android:fontFamily="?attr/textAppearanceBodyMedium"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
                             android:text="@string/unknown_resolution" />
                     </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                </com.google.android.material.card.MaterialCardView>
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
@@ -460,7 +461,7 @@
                         android:text="@string/image_quality_title"
                         android:textSize="14sp"
                         android:textColor="?attr/colorOnSurfaceVariant"
-                        android:fontFamily="?attr/textAppearanceLabelMedium"
+                        android:textAppearance="?attr/textAppearanceLabelMedium"
                         android:layout_marginBottom="4dp" />
 
                     <LinearLayout
@@ -518,7 +519,7 @@
                     android:text="@string/image_resolution_title"
                     android:textSize="14sp"
                     android:textColor="?attr/colorOnSurfaceVariant"
-                    android:fontFamily="?attr/textAppearanceLabelMedium"
+                    android:textAppearance="?attr/textAppearanceLabelMedium"
                     android:layout_marginBottom="4dp" />
 
                 <LinearLayout
@@ -613,7 +614,7 @@
                     android:text="@string/screenshot_params_title"
                     android:textSize="16sp"
                     android:textColor="?attr/colorPrimary"
-                    android:fontFamily="?attr/textAppearanceTitleMedium"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:layout_marginBottom="8dp" />
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -693,7 +694,7 @@
                     android:text="@string/cut_params_title"
                     android:textSize="16sp"
                     android:textColor="?attr/colorPrimary"
-                    android:fontFamily="?attr/textAppearanceTitleMedium"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:layout_marginBottom="8dp" />
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -767,7 +768,7 @@
                         android:text="@string/advanced_audio_section_title"
                         android:textColor="?attr/colorPrimary"
                         android:textSize="15sp"
-                        android:fontFamily="?attr/textAppearanceTitleSmall" />
+                        android:textAppearance="?attr/textAppearanceTitleSmall" />
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
@@ -851,7 +852,7 @@
                         android:text="@string/advanced_video_section_title"
                         android:textColor="?attr/colorPrimary"
                         android:textSize="15sp"
-                        android:fontFamily="?attr/textAppearanceTitleSmall" />
+                        android:textAppearance="?attr/textAppearanceTitleSmall" />
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
@@ -1012,7 +1013,7 @@
                         android:text="@string/advanced_image_section_title"
                         android:textColor="?attr/colorPrimary"
                         android:textSize="15sp"
-                        android:fontFamily="?attr/textAppearanceTitleSmall" />
+                        android:textAppearance="?attr/textAppearanceTitleSmall" />
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
@@ -1065,7 +1066,7 @@
                     android:text="@string/advanced_raw_options_title"
                     android:textColor="?attr/colorPrimary"
                     android:textSize="15sp"
-                    android:fontFamily="?attr/textAppearanceTitleSmall" />
+                    android:textAppearance="?attr/textAppearanceTitleSmall" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
@@ -1119,7 +1120,7 @@
                     android:text="@string/volume_title"
                     android:textSize="14sp"
                     android:textColor="?attr/colorOnSurfaceVariant"
-                    android:fontFamily="?attr/textAppearanceLabelMedium" />
+                    android:textAppearance="?attr/textAppearanceLabelMedium" />
 
                 <LinearLayout
                     android:layout_width="match_parent"

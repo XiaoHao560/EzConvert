@@ -18,6 +18,9 @@ import android.widget.TextView;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
@@ -40,6 +43,7 @@ import com.tech.ezconvert.utils.ToastUtils;
 import java.io.File;
 import java.util.Locale;
 
+/** 提供媒体文件预览、播放控制与横屏全屏播放功能 */
 public class PreviewActivity extends BaseActivity {
     public static final String EXTRA_RETURN_TARGET = "preview_return_target";
     public static final String RETURN_TARGET_MAIN = "main";
@@ -48,7 +52,18 @@ public class PreviewActivity extends BaseActivity {
 
     @Override
     protected int getTitleContainerId() {
-        return R.id.title_container;
+        return R.id.toolbar_inset_container;
+    }
+
+    @Override
+    protected boolean shouldApplyHorizontalInsetsToRoot() {
+        // 播放画面需要延伸到横屏两侧，左右安全区域只留给顶部和底部操作控件
+        return false;
+    }
+
+    @Override
+    protected int getBottomInsetContainerId() {
+        return R.id.bottom_controls;
     }
 
     @Override
@@ -57,14 +72,10 @@ public class PreviewActivity extends BaseActivity {
         return false;
     }
 
-//    @Override 
-//    protected int getScrollContentId() { 
-//        return R.id.scroll_content; 
-//    }
-
     private FrameLayout playerContainer;
     private PlayerView playerView;
     private MaterialToolbar toolbar;
+    private FrameLayout toolbarInsetContainer;
     private MaterialButton selectFileBtn;
     private MaterialCardView emptyStateCard;
     private CircularProgressIndicator loadingIndicator;
@@ -102,6 +113,7 @@ public class PreviewActivity extends BaseActivity {
     private GestureDetector gestureDetector;
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
     private Runnable hideControlsRunnable;
+    private Runnable showToolbarRunnable;
     private Runnable progressUpdateRunnable;
 
     private ActivityResultLauncher<Intent> filePickerLauncher;
@@ -149,6 +161,7 @@ public class PreviewActivity extends BaseActivity {
         playerContainer = findViewById(R.id.player_container);
         playerView = findViewById(R.id.player_view);
         toolbar = findViewById(R.id.title_container);
+        toolbarInsetContainer = findViewById(R.id.toolbar_inset_container);
         selectFileBtn = findViewById(R.id.select_file_btn);
         emptyStateCard = findViewById(R.id.empty_state_card);
         loadingIndicator = findViewById(R.id.loading_indicator);
@@ -939,30 +952,71 @@ public class PreviewActivity extends BaseActivity {
     }
 
     private void showToolbar() {
+        cancelToolbarAnimation();
+        toolbarInsetContainer.setVisibility(View.VISIBLE);
         toolbar.setVisibility(View.VISIBLE);
-        toolbar.setAlpha(0f);
-        toolbar.setTranslationY(-toolbar.getHeight() * 0.3f);
-        toolbar.animate()
-            .alpha(1f)
-            .translationY(0f)
-            .setDuration(250)
-            .setInterpolator(new DecelerateInterpolator())
-            .start();
+        toolbar.setAlpha(1f);
+        toolbar.setTranslationY(0f);
+        toolbarInsetContainer.setAlpha(0f);
+
+        // 等待容器完成测量，再让系统栏安全区域与 Toolbar 一起进入画面
+        showToolbarRunnable = () -> {
+            showToolbarRunnable = null;
+            if (toolbarInsetContainer.getVisibility() != View.VISIBLE) {
+                return;
+            }
+
+            int height = toolbarInsetContainer.getHeight();
+            if (height <= 0) {
+                height = toolbar.getHeight()
+                        + toolbarInsetContainer.getPaddingTop()
+                        + toolbarInsetContainer.getPaddingBottom();
+            }
+            toolbarInsetContainer.setTranslationY(-height);
+            toolbarInsetContainer.animate()
+                    .alpha(1f)
+                    .translationY(0f)
+                    .setDuration(250)
+                    .setInterpolator(new DecelerateInterpolator())
+                    .start();
+        };
+        toolbarInsetContainer.post(showToolbarRunnable);
     }
 
     private void hideToolbar(boolean animate) {
-        if (animate) {
-            toolbar.animate()
-                .alpha(0f)
-                .translationY(-toolbar.getHeight() * 0.3f)
-                .setDuration(250)
-                .setInterpolator(new DecelerateInterpolator())
-                .withEndAction(() -> toolbar.setVisibility(View.GONE))
-                .start();
+        cancelToolbarAnimation();
+        if (animate && toolbarInsetContainer.getHeight() > 0) {
+            // 顶部 Insets 属于 Toolbar 的整体显示区域，必须与内容一起移出屏幕
+            toolbarInsetContainer.animate()
+                    .alpha(0f)
+                    .translationY(-toolbarInsetContainer.getHeight())
+                    .setDuration(250)
+                    .setInterpolator(new DecelerateInterpolator())
+                    .withEndAction(() -> {
+                        toolbarInsetContainer.setVisibility(View.GONE);
+                        toolbarInsetContainer.setAlpha(1f);
+                        toolbarInsetContainer.setTranslationY(0f);
+                    })
+                    .start();
         } else {
-            toolbar.setVisibility(View.GONE);
-            toolbar.setAlpha(0f);
+            toolbarInsetContainer.setVisibility(View.GONE);
+            toolbarInsetContainer.setAlpha(1f);
+            toolbarInsetContainer.setTranslationY(0f);
         }
+
+        toolbar.setVisibility(View.VISIBLE);
+        toolbar.setAlpha(1f);
+        toolbar.setTranslationY(0f);
+    }
+
+    /** 取消顶部栏及其安全区域正在执行或等待执行的动画 */
+    private void cancelToolbarAnimation() {
+        if (showToolbarRunnable != null) {
+            toolbarInsetContainer.removeCallbacks(showToolbarRunnable);
+            showToolbarRunnable = null;
+        }
+        toolbarInsetContainer.animate().cancel();
+        toolbar.animate().cancel();
     }
 
     private void scheduleHideControls() {
@@ -1003,15 +1057,8 @@ public class PreviewActivity extends BaseActivity {
         // 切换为横屏
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
-        // 隐藏系统 UI（沉浸式）
-        getWindow().getDecorView().setSystemUiVisibility(
-            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-            | View.SYSTEM_UI_FLAG_FULLSCREEN
-            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-        );
+        // 使用兼容 Insets API 隐藏系统栏，避免旧版系统 UI 标志在退出页面时残留
+        setSystemBarsVisible(false);
 
         // 更新图标
         fullscreenBtn.setImageResource(R.drawable.round_fullscreen_exit);
@@ -1033,8 +1080,8 @@ public class PreviewActivity extends BaseActivity {
         // 恢复竖屏
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        // 显示系统 UI
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
+        // 恢复系统栏
+        setSystemBarsVisible(true);
 
         // 更新图标
         fullscreenBtn.setImageResource(R.drawable.round_fullscreen);
@@ -1049,6 +1096,31 @@ public class PreviewActivity extends BaseActivity {
         }
     }
 
+    /** 根据全屏状态切换系统栏，并统一设置沉浸式手势行为 */
+    private void setSystemBarsVisible(boolean visible) {
+        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(
+                getWindow(), getWindow().getDecorView());
+        if (visible) {
+            controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_DEFAULT);
+            controller.show(WindowInsetsCompat.Type.systemBars());
+        } else {
+            controller.setSystemBarsBehavior(
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+            controller.hide(WindowInsetsCompat.Type.systemBars());
+        }
+    }
+
+    /** 离开预览页面前恢复窗口状态，避免横屏沉浸式标志影响返回页面 */
+    private void restoreFullscreenWindowState() {
+        if (!isFullscreen) {
+            return;
+        }
+
+        isFullscreen = false;
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        setSystemBarsVisible(true);
+    }
+
     @Override
     public void onBackPressed() {
         // 如果当前是全屏状态，先退出全屏而不是退出 Activity
@@ -1060,6 +1132,9 @@ public class PreviewActivity extends BaseActivity {
     }
 
     private void navigateBackToOrigin() {
+        // Toolbar 返回会直接结束 Activity，因此必须先恢复横屏期间修改的窗口状态
+        restoreFullscreenWindowState();
+
         // 正常情况下直接结束预览即可回到调用页面；只有预览意外成为任务栈根时才恢复调用页面
         if (isTaskRoot()) {
             String target = getIntent().getStringExtra(EXTRA_RETURN_TARGET);
@@ -1140,6 +1215,8 @@ public class PreviewActivity extends BaseActivity {
 
     @Override
     public void finish() {
+        // 兜底处理其他路径直接结束 Activity 的情况
+        restoreFullscreenWindowState();
         super.finish();
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }

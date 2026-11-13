@@ -9,6 +9,7 @@
     <string name="unknown">Unknown</string>
     <string name="none">None</string>
     <string name="btn_cancel">Cancel</string>
+    <string name="btn_confirm">Confirm</string>
     <string name="btn_cancel_dialog">Cancel</string>
     <string name="btn_confirm_export">Confirm Export</string>
     <string name="btn_save">Save</string>
@@ -452,6 +453,13 @@
     <string name="toast_all_complete_with_path">All files processed!\nOutput saved in: Download/EzConvert/</string>
     <string name="toast_cancelled">Operation cancelled</string>
     <string name="toast_delete_temp_failed">Failed to delete temporary files\nPlease delete manually</string>
+    <string name="loading_default">Loading…</string>
+    <string name="migration_progress_message">Migrating settings…</string>
+    <string name="migration_success_title">Migration complete</string>
+    <string name="migration_success_message">Settings were migrated successfully. The configuration file was saved to:\n%1$s</string>
+    <string name="migration_error_title">Migration failed</string>
+    <string name="migration_error_message">An error occurred while migrating settings. Default settings will be used.</string>
+    <string name="migration_view_config">View configuration file</string>
     <string name="toast_migration_complete">Settings migration complete</string>
     <string name="toast_config_path">Config file path: %1$s</string>
     <string name="toast_no_share_file">No shared file received</string>
