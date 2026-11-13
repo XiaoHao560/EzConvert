@@ -5,7 +5,8 @@
      android:layout_height="match_parent"
      android:layout_width="match_parent"
      android:background="?attr/colorSurfaceContainerLowest"
-     android:fadeScrollbars="true">
+     android:fadeScrollbars="true"
+        android:id="@+id/activity_developer_scroll">
 
     <LinearLayout
          android:layout_height="wrap_content"
@@ -64,7 +65,7 @@
                                  android:layout_height="wrap_content"
                                  android:layout_width="wrap_content"
                                  android:textSize="20sp"
-                                 android:textColor="@color/text_primary"
+                                 android:textColor="?attr/colorOnSurface"
                                  android:text="开发者选项"
                                  android:textStyle="bold" />
 
@@ -72,7 +73,7 @@
                                  android:layout_height="wrap_content"
                                  android:layout_width="wrap_content"
                                  android:textSize="12sp"
-                                 android:textColor="@color/text_hint"
+                                 android:textColor="?attr/colorOnSurfaceVariant"
                                  android:layout_marginTop="2dp"
                                  android:text="调试与测试工具" />
 
@@ -84,7 +85,7 @@
                          android:layout_height="wrap_content"
                          android:layout_width="match_parent"
                          android:textSize="13sp"
-                         android:textColor="@color/text_primary"
+                         android:textColor="?attr/colorOnSurface"
                          android:layout_marginTop="16dp"
                          android:lineSpacingExtra="4dp"
                          android:text="⚠️ 警告：以下功能仅用于开发和测试目的，不当使用可能导致应用崩溃或数据丢失。" />
@@ -116,7 +117,7 @@
                          android:layout_width="match_parent"
                          android:layout_marginBottom="12dp"
                          android:textSize="16sp"
-                         android:textColor="@color/text_primary"
+                         android:textColor="?attr/colorOnSurface"
                          android:text="崩溃测试"
                          android:textStyle="bold" />
 
@@ -166,7 +167,7 @@
                                      android:layout_height="wrap_content"
                                      android:layout_width="match_parent"
                                      android:textSize="12sp"
-                                     android:textColor="@color/text_hint"
+                                     android:textColor="?attr/colorOnSurfaceVariant"
                                      android:text="测试 CrashHandler 崩溃捕获机制" />
 
                             </LinearLayout>
@@ -208,7 +209,7 @@
                          android:layout_width="match_parent"
                          android:layout_marginBottom="12dp"
                          android:textSize="16sp"
-                         android:textColor="@color/text_primary"
+                         android:textColor="?attr/colorOnSurface"
                          android:text="编解码器检查"
                          android:textStyle="bold" />
 
@@ -258,7 +259,7 @@
                                      android:layout_height="wrap_content"
                                      android:layout_width="match_parent"
                                      android:textSize="12sp"
-                                     android:textColor="@color/text_hint"
+                                     android:textColor="?attr/colorOnSurfaceVariant"
                                      android:text="检查当前集成的音视频编解码器支持" />
 
                             </LinearLayout>
@@ -325,7 +326,7 @@
                              android:layout_height="wrap_content"
                              android:layout_width="match_parent"
                              android:textSize="12sp"
-                             android:textColor="@color/text_hint"
+                             android:textColor="?attr/colorOnSurfaceVariant"
                              android:text="查看当前集成的 FFmpeg 复用器支持" />
 
                     </LinearLayout>
@@ -388,7 +389,7 @@
                              android:layout_height="wrap_content"
                              android:layout_width="match_parent"
                              android:textSize="12sp"
-                             android:textColor="@color/text_hint"
+                             android:textColor="?attr/colorOnSurfaceVariant"
                              android:text="查看当前集成的 FFmpeg 格式支持" />
 
                     </LinearLayout>
@@ -408,7 +409,7 @@
                  android:layout_width="match_parent"
                  android:gravity="center"
                  android:textSize="12sp"
-                 android:textColor="@color/text_hint"
+                 android:textColor="?attr/colorOnSurfaceVariant"
                  android:layout_marginTop="16dp"
                  android:text="EzConvert Developer Mode" />
 

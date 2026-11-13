@@ -9,16 +9,17 @@ import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.core.widget.NestedScrollView;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.color.MaterialColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.FFmpegUtil;
 import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.utils.ToastUtils;
 
+/** 开发者工具页面，提供 FFmpeg 能力检查和调试入口 */
 public class DeveloperActivity extends BaseActivity {
 
     private static final String TAG = "DeveloperActivity";
@@ -158,7 +159,7 @@ public class DeveloperActivity extends BaseActivity {
         textView.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyMedium);
         textView.setTextIsSelectable(true);
         textView.setLineSpacing(0, 1.3f);
-        textView.setTextColor(getColor(R.color.text_primary));
+        textView.setTextColor(MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurface, android.graphics.Color.BLACK));
         
         scrollView.addView(textView);
         
@@ -279,7 +280,7 @@ public class DeveloperActivity extends BaseActivity {
         textView.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyMedium);
         textView.setTextIsSelectable(true);
         textView.setLineSpacing(0, 1.3f);
-        textView.setTextColor(getColor(R.color.text_primary));
+        textView.setTextColor(MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurface, android.graphics.Color.BLACK));
         scrollView.addView(textView);
 
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this)
@@ -312,7 +313,7 @@ public class DeveloperActivity extends BaseActivity {
         textView.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodySmall);
         textView.setTextIsSelectable(true);
         textView.setHorizontallyScrolling(true); // 横向滚动看长行
-        textView.setTextColor(getColor(R.color.text_primary));
+        textView.setTextColor(MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurface, android.graphics.Color.BLACK));
         
         // 设置等宽字体更整齐
         textView.setTypeface(android.graphics.Typeface.MONOSPACE);

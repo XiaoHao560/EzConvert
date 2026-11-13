@@ -12,7 +12,6 @@ import android.view.Gravity;
 import android.view.WindowManager;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import android.os.Bundle;
 import android.os.Build;
 import android.os.Handler;
@@ -44,6 +43,8 @@ import com.arthenica.ffmpegkit.FFprobeKit;
 import com.arthenica.ffmpegkit.FFprobeSession;
 import com.arthenica.ffmpegkit.ReturnCode;
 import com.tech.ezconvert.R;
+import com.tech.ezconvert.ui.components.DropdownMenuHelper;
+import com.tech.ezconvert.ui.insets.WindowInsetsHelper;
 import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.utils.ParameterData;
@@ -238,51 +239,11 @@ public class ParameterDialogFragment extends DialogFragment {
         updateUIForTaskType();
     }
 
-    // 应用 Edge-to-Edge，避免内容被状态栏/导航栏遮挡
+    // 参数弹窗复用 Activity 的 Insets 处理规则，Toolbar 与底部操作区分别接收安全区域
     private void applyEdgeToEdge(View rootView) {
         View toolbar = rootView.findViewById(R.id.toolbar);
         View bottomActions = rootView.findViewById(R.id.bottom_actions);
-
-        // 保存布局原始内边距，避免系统 Insets 多次分发时重复叠加
-        final int toolbarLeft = toolbar == null ? 0 : toolbar.getPaddingLeft();
-        final int toolbarTop = toolbar == null ? 0 : toolbar.getPaddingTop();
-        final int toolbarRight = toolbar == null ? 0 : toolbar.getPaddingRight();
-        final int toolbarBottom = toolbar == null ? 0 : toolbar.getPaddingBottom();
-        // Toolbar 使用固定高度，顶部 Insets 不能只增加 Padding，否则会挤压标题的可用空间
-        final int toolbarBaseHeight = toolbar == null ? 0 : toolbar.getLayoutParams().height;
-        final int actionsLeft = bottomActions == null ? 0 : bottomActions.getPaddingLeft();
-        final int actionsTop = bottomActions == null ? 0 : bottomActions.getPaddingTop();
-        final int actionsRight = bottomActions == null ? 0 : bottomActions.getPaddingRight();
-        final int actionsBottom = bottomActions == null ? 0 : bottomActions.getPaddingBottom();
-
-        ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, insets) -> {
-            androidx.core.graphics.Insets systemBars = insets.getInsets(
-                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
-
-            if (toolbar != null) {
-                // 同时扩展 Toolbar 高度和顶部内边距，让标题整体下移而不是被状态栏挤压
-                ViewGroup.LayoutParams toolbarParams = toolbar.getLayoutParams();
-                int targetHeight = toolbarBaseHeight > 0
-                        ? toolbarBaseHeight + systemBars.top
-                        : toolbarParams.height;
-                if (toolbarParams.height != targetHeight) {
-                    toolbarParams.height = targetHeight;
-                    toolbar.setLayoutParams(toolbarParams);
-                }
-                toolbar.setPadding(toolbarLeft + systemBars.left, toolbarTop + systemBars.top,
-                        toolbarRight + systemBars.right, toolbarBottom);
-            }
-
-            if (bottomActions != null) {
-                bottomActions.setPadding(actionsLeft + systemBars.left, actionsTop,
-                        actionsRight + systemBars.right, actionsBottom + systemBars.bottom);
-            }
-
-            return WindowInsetsCompat.CONSUMED;
-        });
-
-        // 请求应用 insets
-        ViewCompat.requestApplyInsets(rootView);
+        WindowInsetsHelper.apply(rootView, toolbar, bottomActions);
     }
 
     private void initViews(View view) {
@@ -607,23 +568,23 @@ public class ParameterDialogFragment extends DialogFragment {
     private void setupSpinners() {
         // 输出格式
         String[] formats = getOutputFormatsForTask();
-        setupSpinner(spinnerOutputFormat, formats, formats[0]);
+        setupDropdown(spinnerOutputFormat, formats, formats[0]);
 
         // 视频编码器（动态更新）
-        setupSpinner(spinnerVideoCodec, new String[]{getString(R.string.codec_h264_hw_best)}, getString(R.string.codec_h264_hw_best));
+        setupDropdown(spinnerVideoCodec, new String[]{getString(R.string.codec_h264_hw_best)}, getString(R.string.codec_h264_hw_best));
 
         // 音频编码器
-        setupSpinner(spinnerAudioCodec, new String[]{getString(R.string.codec_aac_best)}, getString(R.string.codec_aac_best));
+        setupDropdown(spinnerAudioCodec, new String[]{getString(R.string.codec_aac_best)}, getString(R.string.codec_aac_best));
 
         // 码率单位
-        setupSpinner(spinnerBitrateUnit, new String[]{getString(R.string.unit_kbps), getString(R.string.unit_mbps)}, getString(R.string.unit_mbps));
+        setupDropdown(spinnerBitrateUnit, new String[]{getString(R.string.unit_kbps), getString(R.string.unit_mbps)}, getString(R.string.unit_mbps));
 
         // 截图格式
-        setupSpinner(spinnerScreenshotFormat, new String[]{getString(R.string.format_jpeg), getString(R.string.format_png)}, getString(R.string.format_jpeg));
+        setupDropdown(spinnerScreenshotFormat, new String[]{getString(R.string.format_jpeg), getString(R.string.format_png)}, getString(R.string.format_jpeg));
 
         // 图片格式
         String[] imageFormats = getImageFormats();
-        setupSpinner(spinnerImageFormat, imageFormats, imageFormats[0]);
+        setupDropdown(spinnerImageFormat, imageFormats, imageFormats[0]);
         // 监听图片格式变化，更新质量可见性
         spinnerImageFormat.setOnItemClickListener((parent, view, position, id) -> {
             String format = parent.getAdapter().getItem(position).toString().toLowerCase();
@@ -710,11 +671,8 @@ public class ParameterDialogFragment extends DialogFragment {
         };
     }
 
-    private void setupSpinner(MaterialAutoCompleteTextView spinner, String[] items, String defaultVal) {
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                requireContext(), R.layout.item_dropdown, items);
-        spinner.setAdapter(adapter);
-        spinner.setText(defaultVal, false);
+    private void setupDropdown(MaterialAutoCompleteTextView dropdown, String[] items, String defaultValue) {
+        DropdownMenuHelper.setItems(requireContext(), dropdown, items, defaultValue);
     }
 
     private void updateCodecOptions(String format) {
@@ -723,11 +681,11 @@ public class ParameterDialogFragment extends DialogFragment {
 
         // 视频编码器
         String[] videoCodecs = getVideoCodecsForFormat(format, hardwareAccel);
-        setupSpinner(spinnerVideoCodec, videoCodecs, videoCodecs[0]);
+        setupDropdown(spinnerVideoCodec, videoCodecs, videoCodecs[0]);
 
         // 音频编码器
         String[] audioCodecs = getAudioCodecsForFormat(format);
-        setupSpinner(spinnerAudioCodec, audioCodecs, audioCodecs[0]);
+        setupDropdown(spinnerAudioCodec, audioCodecs, audioCodecs[0]);
     }
 
     private String[] getVideoCodecsForFormat(String format, boolean hwAccel) {
@@ -1560,7 +1518,7 @@ public class ParameterDialogFragment extends DialogFragment {
                 screenshotContainer.setVisibility(View.VISIBLE);
                 cutContainer.setVisibility(View.GONE);
                 // 设置输出格式为图片格式
-                setupSpinner(spinnerOutputFormat, new String[]{
+                setupDropdown(spinnerOutputFormat, new String[]{
                     getString(R.string.format_jpeg),
                     getString(R.string.format_png)
                 }, getString(R.string.format_jpeg));

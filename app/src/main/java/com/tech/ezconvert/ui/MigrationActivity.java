@@ -1,22 +1,22 @@
 package com.tech.ezconvert.ui;
 
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
-import androidx.appcompat.app.AppCompatActivity;
 import com.tech.ezconvert.R;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.tech.ezconvert.utils.ConfigManager;
+import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.utils.ToastUtils;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/** 负责将旧版配置迁移到当前配置文件 */
 public class MigrationActivity extends BaseActivity {
     
     private AlertDialog progressDialog;
@@ -45,7 +45,7 @@ public class MigrationActivity extends BaseActivity {
                 configManager.migrateOldSettings();
                 success = true;
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e("MigrationActivity", "迁移设置失败", e);
                 success = false;
             }
             
@@ -59,15 +59,14 @@ public class MigrationActivity extends BaseActivity {
     
     private void showProgressDialog() {
         // 构建自定义进度对话框
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
         
         // 创建自定义布局
         LayoutInflater inflater = getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_migration_progress, null);
         
-        ProgressBar progressBar = dialogView.findViewById(R.id.migration_progress_bar);
         TextView messageText = dialogView.findViewById(R.id.migration_message_text);
-        messageText.setText("正在迁移设置数据...");
+        messageText.setText(R.string.migration_progress_message);
         
         builder.setView(dialogView);
         builder.setCancelable(false);
@@ -92,14 +91,14 @@ public class MigrationActivity extends BaseActivity {
     }
     
     private void showSuccessDialog(String configPath) {
-        new AlertDialog.Builder(this)
-            .setTitle("迁移成功")
-            .setMessage("设置迁移完成！\n\n配置文件已保存到:\n" + configPath)
-            .setPositiveButton("确定", (dialog, which) -> {
+        new MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.migration_success_title)
+            .setMessage(getString(R.string.migration_success_message, configPath))
+            .setPositiveButton(R.string.btn_confirm, (dialog, which) -> {
                 navigateToMainActivity();
             })
-            .setNeutralButton("查看配置文件", (dialog, which) -> {
-                ToastUtils.showLong(this, "配置文件位置: " + configPath);
+            .setNeutralButton(R.string.migration_view_config, (dialog, which) -> {
+                ToastUtils.showLong(this, getString(R.string.toast_config_path, configPath));
                 navigateToMainActivity();
             })
             .setCancelable(false)
@@ -107,10 +106,10 @@ public class MigrationActivity extends BaseActivity {
     }
     
     private void showErrorDialog() {
-        new AlertDialog.Builder(this)
-            .setTitle("迁移失败")
-            .setMessage("设置迁移过程中出现错误，将使用默认设置")
-            .setPositiveButton("确定", (dialog, which) -> {
+        new MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.migration_error_title)
+            .setMessage(R.string.migration_error_message)
+            .setPositiveButton(R.string.btn_confirm, (dialog, which) -> {
                 navigateToMainActivity();
             })
             .setCancelable(false)

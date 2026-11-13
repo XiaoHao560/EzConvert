@@ -2,10 +2,9 @@ package com.tech.ezconvert.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Button;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.radiobutton.MaterialRadioButton;
 import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.AnimationUtils;
@@ -29,7 +28,7 @@ public class LogSettingsActivity extends BaseActivity {
     }
 
     private MaterialRadioButton rbAll, rbError;
-    private Button btnViewLog;
+    private MaterialButton btnViewLog;
     private MaterialToolbar toolbar;
     private ConfigManager configManager;
 

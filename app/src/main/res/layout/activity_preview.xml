@@ -84,20 +84,25 @@
              android:lineSpacingMultiplier="1.2"
              android:id="@+id/realtime_info_text" />
 
-        <com.google.android.material.appbar.MaterialToolbar
+        <FrameLayout
              android:layout_height="wrap_content"
              android:layout_width="match_parent"
              android:background="?attr/colorSurfaceContainer"
-             app:navigationIconTint="?attr/colorOnSurface"
-             android:elevation="0dp"
-             app:titleTextAppearance="?attr/textAppearanceTitleMedium"
-             app:titleMarginTop="20dp"
-             app:navigationIcon="@drawable/round_arrow_back"
-             app:titleTextColor="?attr/colorOnSurface"
-             app:navigationContentDescription="@string/tooltip_back"
-             android:id="@+id/title_container">
+             android:layout_gravity="top"
+             android:id="@+id/toolbar_inset_container">
 
-        </com.google.android.material.appbar.MaterialToolbar>
+            <com.google.android.material.appbar.MaterialToolbar
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:background="?attr/colorSurfaceContainer"
+                 app:navigationIconTint="?attr/colorOnSurface"
+                 android:elevation="0dp"
+                 style="@style/Widget.Material3.Toolbar.Surface"
+                 app:navigationIcon="@drawable/round_arrow_back"
+                 app:navigationContentDescription="@string/tooltip_back"
+                 android:id="@+id/title_container" />
+
+        </FrameLayout>
 
         <LinearLayout
              android:layout_height="wrap_content"

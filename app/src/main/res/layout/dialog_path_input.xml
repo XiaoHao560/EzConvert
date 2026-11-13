@@ -35,7 +35,7 @@
          android:layout_height="wrap_content"
          android:layout_width="match_parent"
          android:textSize="12sp"
-         android:textColor="@color/text_secondary"
+         android:textColor="?attr/colorOnSurfaceVariant"
          android:layout_marginTop="8dp"
          android:text="文件将保存为 logs_时间戳.zip 格式" />
 

@@ -9,7 +9,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.DocumentsContract;
 import android.provider.Settings;
-import android.widget.RadioButton;
+import com.google.android.material.radiobutton.MaterialRadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
@@ -17,7 +17,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
-import androidx.core.view.WindowCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.google.android.material.button.MaterialButton;
@@ -45,12 +44,12 @@ public class WelcomeActivity extends BaseActivity {
 
     private RadioGroup outputGroup;
     private RadioGroup themeGroup;
-    private RadioButton outputDownload;
-    private RadioButton outputDcim;
-    private RadioButton outputCustom;
-    private RadioButton themeSystem;
-    private RadioButton themeLight;
-    private RadioButton themeDark;
+    private MaterialRadioButton outputDownload;
+    private MaterialRadioButton outputDcim;
+    private MaterialRadioButton outputCustom;
+    private MaterialRadioButton themeSystem;
+    private MaterialRadioButton themeLight;
+    private MaterialRadioButton themeDark;
     private TextView customPathText;
     private TextView mediaPermissionStatus;
     private TextView notificationPermissionStatus;
@@ -72,6 +71,11 @@ public class WelcomeActivity extends BaseActivity {
     }
 
     @Override
+    protected int getScrollContentId() {
+        return R.id.welcome_scroll;
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (isWelcomeCompleted(this)) {
@@ -79,8 +83,6 @@ public class WelcomeActivity extends BaseActivity {
             return;
         }
 
-        // 欢迎页保留系统栏安全区域，避免底部主按钮被导航栏遮挡
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
         configManager = ConfigManager.getInstance(this);
         themeManager = ThemeManager.getInstance(this);
 
@@ -195,7 +197,7 @@ public class WelcomeActivity extends BaseActivity {
         dynamicColorSwitch.setAlpha(dynamicColorAvailable ? 1f : 0.5f);
 
         String[] languageItems = getResources().getStringArray(R.array.language_options);
-        setupSpinner(languageSpinner, languageItems,
+        setupDropdown(languageSpinner, languageItems,
                 languageItems[mapLanguageToPosition(LanguageManager.getCurrentLanguage(this))]);
     }
 

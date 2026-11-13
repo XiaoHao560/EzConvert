@@ -64,6 +64,11 @@ public class LogViewerActivity extends BaseActivity {
         return R.id.scroll_content;
     }
 
+    @Override
+    protected int getBottomInsetContainerId() {
+        return R.id.bottom_buttons;
+    }
+
     private LogManager logManager;
     
     // 设备信息相关

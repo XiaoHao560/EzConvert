@@ -1,26 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
      xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
      android:layout_height="wrap_content"
      android:layout_width="match_parent"
      android:gravity="center"
      android:padding="24dp"
      android:orientation="vertical">
 
-    <ProgressBar
-         android:layout_height="48dp"
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+         android:id="@+id/migration_progress_bar"
          android:layout_width="48dp"
+         android:layout_height="48dp"
          android:layout_marginBottom="16dp"
          android:indeterminate="true"
-         style="?android:attr/progressBarStyleLarge"
-         android:id="@+id/migration_progress_bar" />
+         app:indicatorColor="?attr/colorPrimary"
+         app:indicatorSize="48dp"
+         app:trackThickness="4dp" />
 
     <TextView
          android:layout_height="wrap_content"
          android:layout_width="wrap_content"
-         android:textSize="16sp"
+         android:textAppearance="?attr/textAppearanceBodyLarge"
+         android:textColor="?attr/colorOnSurface"
          android:id="@+id/migration_message_text"
-         android:text="正在处理..."
+         android:text="@string/migration_progress_message"
          android:textStyle="normal" />
 
 </LinearLayout>

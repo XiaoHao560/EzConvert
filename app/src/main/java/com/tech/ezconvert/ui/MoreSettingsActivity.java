@@ -9,11 +9,9 @@ import android.graphics.BitmapFactory;
 import android.provider.DocumentsContract;
 import android.provider.Settings;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
-import android.widget.RadioButton;
+import com.google.android.material.radiobutton.MaterialRadioButton;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -61,9 +59,9 @@ public class MoreSettingsActivity extends BaseActivity {
     private LinearLayout itemThemeSystem;
     private LinearLayout itemThemeLight;
     private LinearLayout itemThemeDark;
-    private RadioButton radioThemeSystem;
-    private RadioButton radioThemeLight;
-    private RadioButton radioThemeDark;
+    private MaterialRadioButton radioThemeSystem;
+    private MaterialRadioButton radioThemeLight;
+    private MaterialRadioButton radioThemeDark;
     
     // 语言设置相关视图
     private MaterialAutoCompleteTextView languageSpinner;
@@ -83,8 +81,8 @@ public class MoreSettingsActivity extends BaseActivity {
     private LinearLayout backgroundEffectCustomControls;
     private LinearLayout itemBackgroundEffectAuto;
     private LinearLayout itemBackgroundEffectCustom;
-    private RadioButton radioBackgroundEffectAuto;
-    private RadioButton radioBackgroundEffectCustom;
+    private MaterialRadioButton radioBackgroundEffectAuto;
+    private MaterialRadioButton radioBackgroundEffectCustom;
     private Slider backgroundMaskSlider;
     private Slider backgroundBlurSlider;
     private android.widget.TextView backgroundMaskValue;
@@ -93,16 +91,16 @@ public class MoreSettingsActivity extends BaseActivity {
     // 动态取色来源相关视图
     private LinearLayout itemColorSourceImage;
     private LinearLayout itemColorSourceWallpaper;
-    private RadioButton radioColorSourceImage;
-    private RadioButton radioColorSourceWallpaper;
+    private MaterialRadioButton radioColorSourceImage;
+    private MaterialRadioButton radioColorSourceWallpaper;
     
     // 输出目录设置
     private LinearLayout itemOutputDownload;
     private LinearLayout itemOutputDcim;
     private LinearLayout itemOutputCustom;
-    private RadioButton radioOutputDownload;
-    private RadioButton radioOutputDcim;
-    private RadioButton radioOutputCustom;
+    private MaterialRadioButton radioOutputDownload;
+    private MaterialRadioButton radioOutputDcim;
+    private MaterialRadioButton radioOutputCustom;
     private android.widget.TextView customOutputPathText;
     private static final int REQUEST_OUTPUT_DIRECTORY = 1001;
     private static final int REQUEST_BACKGROUND_IMAGE = 1002;
@@ -161,7 +159,7 @@ public class MoreSettingsActivity extends BaseActivity {
         // 语言设置
         languageSpinner = findViewById(R.id.language_spinner);
         String[] languageItems = getResources().getStringArray(R.array.language_options);
-        setupSpinner(languageSpinner, languageItems, languageItems[0]);
+        setupDropdown(languageSpinner, languageItems, languageItems[0]);
         
         // 输出目录设置
         itemOutputDownload = findViewById(R.id.item_output_download);
@@ -236,7 +234,7 @@ public class MoreSettingsActivity extends BaseActivity {
         firebaseSwitch = findViewById(R.id.firebase_switch);
         
         String[] frequencyItems = getResources().getStringArray(R.array.update_frequency_options);
-        setupSpinner(frequencySpinner, frequencyItems, frequencyItems[0]);
+        setupDropdown(frequencySpinner, frequencyItems, frequencyItems[0]);
         
         // 设置 Toolbar
         setupToolbar();

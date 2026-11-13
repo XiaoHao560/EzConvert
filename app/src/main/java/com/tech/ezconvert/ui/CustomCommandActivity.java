@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -30,15 +29,10 @@ import android.view.ViewParent;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.ScrollView;
-import android.widget.Spinner;
 import android.widget.TextView;
 
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -48,8 +42,11 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.color.MaterialColors;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.gson.Gson;
@@ -58,6 +55,7 @@ import com.tech.ezconvert.customcommand.CustomCommandParser;
 import com.tech.ezconvert.customcommand.CustomCommandPresetManager;
 import com.tech.ezconvert.customcommand.CustomCommandSession;
 import com.tech.ezconvert.customcommand.CustomCommandSessionStore;
+import com.tech.ezconvert.ui.insets.WindowInsetsHelper;
 import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.utils.ToastUtils;
@@ -91,17 +89,17 @@ public class CustomCommandActivity extends BaseActivity {
     private ActivityResultLauncher<Intent> outputFilePicker;
     private Dialog directStoragePermissionDialog;
 
-    private Spinner modeSpinner;
+    private MaterialAutoCompleteTextView modeSpinner;
     private TextView inputListText;
     private TextView outputLocationText;
     private TextView statusText;
     private TextView commandLogText;
-    private ProgressBar progressBar;
+    private LinearProgressIndicator progressBar;
     private ScrollView commandLogScroll;
     private EditText commandEditor;
     private LinearLayout outputRows;
-    private View executeButton;
-    private View cancelButton;
+    private MaterialButton executeButton;
+    private MaterialButton cancelButton;
     private CustomCommandSessionPresetState currentOutputState = new CustomCommandSessionPresetState();
     private CustomCommandPresetManager presetManager;
     private UUID observedWorkId;
@@ -165,6 +163,8 @@ public class CustomCommandActivity extends BaseActivity {
             return false;
         });
         modeSpinner = findViewById(R.id.custom_command_mode_spinner);
+        String[] executionModes = getResources().getStringArray(R.array.custom_command_modes);
+        setupDropdown(modeSpinner, executionModes, executionModes[0]);
         inputListText = findViewById(R.id.custom_command_input_list);
         inputListText.setTextIsSelectable(false);
         inputListText.setMovementMethod(LinkMovementMethod.getInstance());
@@ -225,14 +225,7 @@ public class CustomCommandActivity extends BaseActivity {
         findViewById(R.id.custom_command_clear_log).setOnClickListener(v -> clearCurrentLog());
         executeButton.setOnClickListener(v -> confirmAndExecute());
         cancelButton.setOnClickListener(v -> cancelCurrentWork());
-        modeSpinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
-                saveDraft();
-            }
-            @Override
-            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
-        });
+        modeSpinner.setOnItemClickListener((parent, view, position, id) -> saveDraft());
         commandEditor.addTextChangedListener(new android.text.TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -243,6 +236,17 @@ public class CustomCommandActivity extends BaseActivity {
             }
             @Override public void afterTextChanged(Editable s) {}
         });
+    }
+
+    private boolean isBatchModeSelected() {
+        String[] modes = getResources().getStringArray(R.array.custom_command_modes);
+        return modes.length > 1 && TextUtils.equals(modeSpinner.getText(), modes[1]);
+    }
+
+    private void setExecutionMode(String executionMode) {
+        String[] modes = getResources().getStringArray(R.array.custom_command_modes);
+        int position = "batch".equals(executionMode) && modes.length > 1 ? 1 : 0;
+        modeSpinner.setText(modes[position], false);
     }
 
     private boolean hasAdvancedOutputPlaceholder(CharSequence command) {
@@ -270,7 +274,7 @@ public class CustomCommandActivity extends BaseActivity {
             }
         }
         commandEditor.setText(draft.commandText);
-        modeSpinner.setSelection("batch".equals(draft.executionMode) ? 1 : 0);
+        setExecutionMode(draft.executionMode);
         currentOutputState.treeUri = draft.outputTreeUri == null ? "" : draft.outputTreeUri;
         currentOutputState.documentUri = draft.outputDocumentUri == null ? "" : draft.outputDocumentUri;
         currentOutputState.documentName = draft.outputDocumentName == null ? "" : draft.outputDocumentName;
@@ -295,7 +299,7 @@ public class CustomCommandActivity extends BaseActivity {
     private void saveDraft() {
         if (commandEditor == null || modeSpinner == null || outputNameEditors == null) return;
         CustomCommandSession draft = new CustomCommandSession();
-        draft.executionMode = modeSpinner.getSelectedItemPosition() == 1 ? "batch" : "single";
+        draft.executionMode = isBatchModeSelected() ? "batch" : "single";
         draft.commandText = commandEditor.getText() == null ? "" : commandEditor.getText().toString();
         draft.inputs = new ArrayList<>(inputs);
         draft.outputFileNames = getOutputFileNames();
@@ -723,7 +727,7 @@ public class CustomCommandActivity extends BaseActivity {
         findViewById(R.id.custom_command_output_names_help).setVisibility(visibility);
         outputRows.setVisibility(visibility);
         findViewById(R.id.custom_command_add_output).setVisibility(visibility);
-        ((com.google.android.material.button.MaterialButton) findViewById(R.id.custom_command_toggle_output_options))
+        ((MaterialButton) findViewById(R.id.custom_command_toggle_output_options))
                 .setText(visible ? R.string.custom_command_hide_advanced_outputs : R.string.custom_command_show_advanced_outputs);
     }
 
@@ -760,7 +764,7 @@ public class CustomCommandActivity extends BaseActivity {
         });
 
         if (number > 1) {
-            com.google.android.material.button.MaterialButton remove = new com.google.android.material.button.MaterialButton(this);
+            MaterialButton remove = new MaterialButton(this);
             remove.setText(R.string.btn_delete);
             remove.setMinWidth(0);
             remove.setPadding(8, 0, 8, 0);
@@ -932,7 +936,7 @@ public class CustomCommandActivity extends BaseActivity {
 
     private CustomCommandSession buildDraftSession() {
         CustomCommandSession session = new CustomCommandSession();
-        session.executionMode = modeSpinner.getSelectedItemPosition() == 1 ? "batch" : "single";
+        session.executionMode = isBatchModeSelected() ? "batch" : "single";
         session.commandText = commandEditor.getText() == null ? "" : commandEditor.getText().toString();
         session.inputs = new ArrayList<>(inputs);
         session.outputFileNames = getOutputFileNames();
@@ -1112,8 +1116,10 @@ public class CustomCommandActivity extends BaseActivity {
                 .putString(KEY_SESSION_ID, activeSessionId)
                 .apply();
         commandLogText.setText(R.string.custom_command_log_waiting);
-        progressBar.setIndeterminate(true);
-        progressBar.setProgress(0);
+        if (!progressBar.isIndeterminate()) {
+            progressBar.setProgressCompat(0, false);
+        }
+        setProgressIndeterminate(true);
         observeWork(observedWorkId);
         executeButton.setEnabled(false);
         cancelButton.setVisibility(View.VISIBLE);
@@ -1140,25 +1146,24 @@ public class CustomCommandActivity extends BaseActivity {
             if (info.getState() == WorkInfo.State.ENQUEUED) {
                 executeButton.setEnabled(false);
                 cancelButton.setVisibility(View.VISIBLE);
-                progressBar.setIndeterminate(true);
+                setProgressIndeterminate(true);
                 statusText.setText(R.string.custom_command_status_queued);
             } else if (info.getState() == WorkInfo.State.RUNNING) {
                 executeButton.setEnabled(false);
                 cancelButton.setVisibility(View.VISIBLE);
                 renderRunningStatus(info);
             } else if (info.getState() == WorkInfo.State.SUCCEEDED) {
-                progressBar.setIndeterminate(false);
-                progressBar.setProgress(100);
+                progressBar.setProgressCompat(100, true);
                 statusText.setText(getString(R.string.custom_command_status_succeeded,
                         info.getOutputData().getInt(CustomCommandWorker.KEY_SUCCESS_COUNT, 1)));
                 finishObservedWork();
             } else if (info.getState() == WorkInfo.State.FAILED) {
-                progressBar.setIndeterminate(false);
+                progressBar.setProgressCompat(0, false);
                 String error = info.getOutputData().getString(CustomCommandWorker.KEY_ERROR_MESSAGE);
                 statusText.setText(getString(R.string.custom_command_status_failed, TextUtils.isEmpty(error) ? getString(R.string.error_unknown) : error));
                 finishObservedWork();
             } else if (info.getState() == WorkInfo.State.CANCELLED) {
-                progressBar.setIndeterminate(false);
+                progressBar.setProgressCompat(0, false);
                 statusText.setText(R.string.custom_command_status_cancelled);
                 finishObservedWork();
             }
@@ -1177,13 +1182,33 @@ public class CustomCommandActivity extends BaseActivity {
         long startedAt = progressData.getLong("startedAt", 0L);
         String elapsed = formatElapsed(startedAt > 0 ? System.currentTimeMillis() - startedAt : 0L);
 
-        progressBar.setIndeterminate(indeterminate);
-        if (!indeterminate) progressBar.setProgress(percent);
+        if (indeterminate) {
+            setProgressIndeterminate(true);
+        } else {
+            // 从不确定状态切换为确定状态由 Material 进度指示器完成平滑过渡
+            progressBar.setProgressCompat(percent, true);
+        }
         if (indeterminate) {
             statusText.setText(getString(R.string.custom_command_status_running_unknown, itemIndex, totalItems, elapsed));
         } else {
             statusText.setText(getString(R.string.custom_command_status_running_known,
                     itemIndex, totalItems, percent, currentPercent, elapsed));
+        }
+    }
+
+    /** 切换到不确定进度模式时先临时隐藏组件，避免 Material 组件在可见状态下切换模式 */
+    private void setProgressIndeterminate(boolean indeterminate) {
+        if (progressBar.isIndeterminate() == indeterminate) {
+            return;
+        }
+
+        int originalVisibility = progressBar.getVisibility();
+        if (originalVisibility == View.VISIBLE) {
+            progressBar.setVisibility(View.INVISIBLE);
+        }
+        progressBar.setIndeterminate(indeterminate);
+        if (originalVisibility == View.VISIBLE) {
+            progressBar.setVisibility(View.VISIBLE);
         }
     }
 
@@ -1264,9 +1289,8 @@ public class CustomCommandActivity extends BaseActivity {
                 com.google.android.material.R.attr.colorPrimary);
         int trackColor = MaterialColors.getColor(progressBar,
                 com.google.android.material.R.attr.colorSurfaceVariant);
-        progressBar.setProgressTintList(ColorStateList.valueOf(primaryColor));
-        progressBar.setIndeterminateTintList(ColorStateList.valueOf(primaryColor));
-        progressBar.setProgressBackgroundTintList(ColorStateList.valueOf(trackColor));
+        progressBar.setIndicatorColor(primaryColor);
+        progressBar.setTrackColor(trackColor);
     }
 
     /** 保留日志区域自己的触摸事件，避免外层页面抢走竖向滑动手势 */
@@ -1356,7 +1380,7 @@ public class CustomCommandActivity extends BaseActivity {
         inputs.clear();
         updateInputList();
         commandEditor.setText(R.string.custom_command_default_command);
-        modeSpinner.setSelection(0);
+        setExecutionMode("single");
         currentOutputState = new CustomCommandSessionPresetState();
         outputRows.removeAllViews();
         outputNameEditors.clear();
@@ -1370,8 +1394,7 @@ public class CustomCommandActivity extends BaseActivity {
                 && (latestWorkInfo.getState() == WorkInfo.State.ENQUEUED
                 || latestWorkInfo.getState() == WorkInfo.State.RUNNING);
         if (!workActive) {
-            progressBar.setIndeterminate(false);
-            progressBar.setProgress(0);
+            progressBar.setProgressCompat(0, false);
             statusText.setText(R.string.custom_command_status_idle);
             executeButton.setEnabled(true);
             cancelButton.setVisibility(View.GONE);
@@ -1444,7 +1467,7 @@ public class CustomCommandActivity extends BaseActivity {
                     CustomCommandSession preset = presetManager.load(list[which]);
                     if (preset == null) return;
                     commandEditor.setText(preset.commandText);
-                    modeSpinner.setSelection("batch".equals(preset.executionMode) ? 1 : 0);
+                    setExecutionMode(preset.executionMode);
                     outputRows.removeAllViews();
                     outputNameEditors.clear();
                     if (preset.outputFileNames != null) {
@@ -1539,18 +1562,7 @@ public class CustomCommandActivity extends BaseActivity {
             // 全屏窗口绘制到系统栏下方，同时为内容保留安全区域
             View content = dialog.findViewById(R.id.custom_command_storage_permission_root);
             if (content != null) {
-                final int initialLeft = content.getPaddingLeft();
-                final int initialTop = content.getPaddingTop();
-                final int initialRight = content.getPaddingRight();
-                final int initialBottom = content.getPaddingBottom();
-                ViewCompat.setOnApplyWindowInsetsListener(content, (view, insets) -> {
-                    Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars()
-                            | WindowInsetsCompat.Type.displayCutout());
-                    view.setPadding(initialLeft + systemBars.left, initialTop + systemBars.top,
-                            initialRight + systemBars.right, initialBottom + systemBars.bottom);
-                    return WindowInsetsCompat.CONSUMED;
-                });
-                ViewCompat.requestApplyInsets(content);
+                WindowInsetsHelper.apply(content, null, null);
             }
         }
     }

@@ -1,6 +1,5 @@
 package com.tech.ezconvert;
 
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -10,8 +9,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ProgressBar;
+import com.google.android.material.button.MaterialButton;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -22,6 +20,7 @@ import androidx.core.app.ActivityOptionsCompat;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.tech.ezconvert.manager.ConversionManager;
 import com.tech.ezconvert.manager.ConversionQueueManager;
 import com.tech.ezconvert.manager.MediaSelectionManager;
@@ -50,6 +49,10 @@ import com.tech.ezconvert.utils.ToastUtils;
 import com.tech.ezconvert.utils.UpdateChecker;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -64,24 +67,26 @@ public class MainActivity extends BaseActivity implements
         ConversionManager.Listener {
 
     private static final String TAG = "MainActivity";
+    private static final String EXTRA_APPEARANCE_RECREATE = "appearance_recreate";
+    private static final String EXTRA_SELECTED_PATHS = "appearance_selected_paths";
+    private static final String EXTRA_SELECTED_URIS = "appearance_selected_uris";
     private static final int PERMISSION_REQUEST_CODE = 100;
     private static final int MANAGE_STORAGE_REQUEST_CODE = 102;
     private static final long PERMISSION_COOLDOWN = 1000;
 
     private TextView statusText;
     private TextView progressText;
-    private TextView versionText;
-    private ProgressBar progressBar;
-    private Button selectFileBtn;
-    private Button convertBtn;
-    private Button compressBtn;
-    private Button extractAudioBtn;
-    private Button cutVideoBtn;
-    private Button screenshotBtn;
-    private Button convertAudioBtn;
-    private Button cutAudioBtn;
-    private Button convertImageBtn;
-    private Button cancelBtn;
+    private LinearProgressIndicator progressBar;
+    private MaterialButton selectFileBtn;
+    private MaterialButton convertBtn;
+    private MaterialButton compressBtn;
+    private MaterialButton extractAudioBtn;
+    private MaterialButton cutVideoBtn;
+    private MaterialButton screenshotBtn;
+    private MaterialButton convertAudioBtn;
+    private MaterialButton cutAudioBtn;
+    private MaterialButton convertImageBtn;
+    private MaterialButton cancelBtn;
 
     private boolean permissionsGranted = false;
     private boolean isTaskRunning = false;
@@ -113,10 +118,48 @@ public class MainActivity extends BaseActivity implements
     }
 
     @Override
+    protected void recreateForAppearanceChange() {
+        // 主界面使用启动主题和 SplashScreen，外观变化时创建全新的 Activity 窗口，避免复用旧 DecorView
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra(EXTRA_APPEARANCE_RECREATE, true);
+
+        // 尚未开始转换的文件选择只保存在内存中，外观重建时需要显式传递给新实例
+        if (!isTaskRunning && queueManager != null) {
+            List<String> selectedPaths = queueManager.getSelectedFilePaths();
+            if (!selectedPaths.isEmpty()) {
+                ArrayList<String> paths = new ArrayList<>(selectedPaths);
+                ArrayList<String> uris = new ArrayList<>();
+                for (String path : paths) {
+                    Uri uri = queueManager.getUri(path);
+                    uris.add(uri == null ? "" : uri.toString());
+                }
+                intent.putStringArrayListExtra(EXTRA_SELECTED_PATHS, paths);
+                intent.putStringArrayListExtra(EXTRA_SELECTED_URIS, uris);
+            }
+        }
+
+        int permissionFlags = getIntent().getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+                | Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
+        intent.addFlags(permissionFlags | Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        startActivity(intent);
+        overridePendingTransition(0, 0);
+        finish();
+        overridePendingTransition(0, 0);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d("TestLog", "Hello World!");
         LogManager.getInstance(this);
-        androidx.core.splashscreen.SplashScreen.installSplashScreen(this);
+        boolean appearanceRecreate = getIntent().getBooleanExtra(EXTRA_APPEARANCE_RECREATE, false);
+        if (appearanceRecreate) {
+            // 外观刷新使用独立 Activity 时跳过启动画面，但仍需切换到 AppCompat 主题
+            setTheme(R.style.AppTheme);
+        } else {
+            androidx.core.splashscreen.SplashScreen.installSplashScreen(this);
+        }
         FFmpegUtil.initLogging(this);
         super.onCreate(savedInstanceState);
         if (!WelcomeActivity.isWelcomeCompleted(this)) {
@@ -132,6 +175,7 @@ public class MainActivity extends BaseActivity implements
         outputPathManager = new OutputPathManager(this);
         conversionManager = new ConversionManager(this, queueManager, this);
         mediaSelectionManager = new MediaSelectionManager(this, queueManager, this);
+        restoreAppearanceSelectionIfNeeded();
 
         updateChecker = new UpdateChecker(this);
         updateChecker.setUpdateCheckListener(this);
@@ -141,16 +185,66 @@ public class MainActivity extends BaseActivity implements
 
         setupActivityResultLaunchers();
         initializeViews();
-        if (savedInstanceState == null) setupCardAnimations();
+        // 外观设置触发的 Activity 刷新不属于用户重新进入主界面，不播放卡片进入动画
+        if (savedInstanceState == null && !appearanceRecreate) setupCardAnimations();
 
         setFunctionButtonsEnabled(false);
         updateStatus(getString(R.string.status_checking_permission));
         checkPermissions();
-        mediaSelectionManager.handleShareIntent(getIntent());
+        if (!appearanceRecreate) {
+            mediaSelectionManager.handleShareIntent(getIntent());
+        } else {
+            updateRestoredSelectionStatus();
+        }
 
         ReleaseNotesManager.showIfNeeded(this);
         new Handler(Looper.getMainLooper()).postDelayed(() -> updateChecker.checkForAutoUpdate(), 2000);
         conversionManager.restoreRunningWorker(this);
+    }
+
+
+    /** 恢复外观重建前尚未开始转换的文件选择 */
+    private void restoreAppearanceSelectionIfNeeded() {
+        if (!getIntent().getBooleanExtra(EXTRA_APPEARANCE_RECREATE, false)) {
+            return;
+        }
+
+        ArrayList<String> paths = getIntent().getStringArrayListExtra(EXTRA_SELECTED_PATHS);
+        ArrayList<String> uriStrings = getIntent().getStringArrayListExtra(EXTRA_SELECTED_URIS);
+        if (paths == null || paths.isEmpty()) {
+            return;
+        }
+
+        Map<String, Uri> uriMap = new HashMap<>();
+        if (uriStrings != null) {
+            for (int i = 0; i < paths.size() && i < uriStrings.size(); i++) {
+                String uri = uriStrings.get(i);
+                if (uri != null && !uri.isEmpty()) {
+                    uriMap.put(paths.get(i), Uri.parse(uri));
+                }
+            }
+        }
+        queueManager.replaceSelection(paths, uriMap);
+    }
+
+    /** 更新恢复后的文件选择状态，避免重新触发文件选择提示 */
+    private void updateRestoredSelectionStatus() {
+        if (queueManager == null || queueManager.isEmpty()) {
+            return;
+        }
+        currentInputPath = queueManager.getCurrentKey();
+        Uri uri = queueManager.getCurrentUri();
+        currentOutputPath = outputPathManager.generateBasePath(currentInputPath, uri, null);
+        String fileName = uri != null
+                ? FileUtils.getDisplayName(this, uri)
+                : new File(currentInputPath).getName();
+        int count = queueManager.getSelectedFilePaths().size();
+        if (count == 1) {
+            updateStatus(getString(R.string.status_selected_file, fileName));
+        } else {
+            updateStatus(getString(R.string.status_selected_files, count, fileName));
+        }
+        setFunctionButtonsEnabled(permissionsGranted);
     }
 
     // 检查旧版本配置，并在需要时提示用户迁移设置
@@ -175,7 +269,6 @@ public class MainActivity extends BaseActivity implements
         statusText = findViewById(R.id.status_text);
         progressText = findViewById(R.id.progress_text);
         progressBar = findViewById(R.id.progress_bar);
-        versionText = findViewById(R.id.version_text);
         cancelBtn = findViewById(R.id.cancel_btn);
         selectFileBtn = findViewById(R.id.select_file_btn);
         convertBtn = findViewById(R.id.convert_btn);
@@ -552,13 +645,14 @@ public class MainActivity extends BaseActivity implements
     }
 
     private void setVersionText() {
+        MaterialToolbar toolbar = findViewById(R.id.title_container);
         try {
             String versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
-            versionText.setText(getString(R.string.version_format, versionName,
+            toolbar.setSubtitle(getString(R.string.version_format, versionName,
                     FFmpegUtil.getFFmpegVersion(), FFmpegUtil.getFFmpegKitVersion()));
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "版本号获取失败", e);
-            versionText.setText(getString(R.string.version_fallback));
+            toolbar.setSubtitle(R.string.version_fallback);
         }
     }
 
@@ -573,10 +667,8 @@ public class MainActivity extends BaseActivity implements
     }
 
     private void resetProgressUI() {
-        // clearAnimation 不会取消 ObjectAnimator，需要显式停止进度属性动画
-        AnimationUtils.cancelProgressAnimation(progressBar);
         progressBar.clearAnimation();
-        progressBar.setProgress(0);
+        progressBar.setProgressCompat(0, false);
         progressText.setText(getString(R.string.progress_default));
     }
 
@@ -637,7 +729,7 @@ public class MainActivity extends BaseActivity implements
             }
         }
 
-        AnimationUtils.animateProgressSmoothly(progressBar, progress);
+        progressBar.setProgressCompat(progress, true);
         progressText.setText(getString(R.string.progress_text, progress));
         AnimationUtils.animateStatusUpdate(progressText);
         if (isTaskRunning && cancelBtn.getVisibility() != View.VISIBLE) cancelBtn.setVisibility(View.VISIBLE);
@@ -798,10 +890,10 @@ public class MainActivity extends BaseActivity implements
     private void setFunctionButtonsEnabled(boolean enabled) {
         if (isTaskRunning) enabled = false;
         boolean hasFile = !queueManager.isEmpty();
-        Button[] buttons = {convertBtn, compressBtn, extractAudioBtn, cutVideoBtn,
+        MaterialButton[] buttons = {convertBtn, compressBtn, extractAudioBtn, cutVideoBtn,
                 screenshotBtn, convertAudioBtn, cutAudioBtn, convertImageBtn};
         float alpha = enabled && hasFile ? 1.0f : 0.5f;
-        for (Button button : buttons) {
+        for (MaterialButton button : buttons) {
             button.setEnabled(enabled && hasFile);
             button.setAlpha(alpha);
         }
@@ -884,7 +976,7 @@ public class MainActivity extends BaseActivity implements
 
     // 首次打开新版时提示迁移旧版配置
     private void showMigrationDialog() {
-        new AlertDialog.Builder(this)
+        new MaterialAlertDialogBuilder(this)
                 .setTitle(getString(R.string.dialog_title_migration))
                 .setMessage(getString(R.string.dialog_message_migration))
                 .setPositiveButton(getString(R.string.btn_migrate), (dialog, which) -> {

@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.RectF;
@@ -13,14 +12,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
-import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
@@ -29,6 +23,7 @@ import com.tech.ezconvert.R;
 import com.tech.ezconvert.utils.ConfigManager;
 import com.tech.ezconvert.utils.Log;
 import com.tech.ezconvert.utils.ThemeManager;
+import com.tech.ezconvert.utils.ToastUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -37,10 +32,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * 自定义背景图片编辑器：选择图片后立即进入，并允许之后从设置页反复重新调整。
- * 支持拖动、双指缩放；编辑区域比例跟随当前设备屏幕内容比例。
+ * 自定义背景图片编辑器，统一使用 BaseActivity 的主题和 Edge-to-Edge 处理
+ * 支持拖动、双指缩放，编辑区域比例跟随当前设备屏幕内容比例
  */
-public class BackgroundCropActivity extends AppCompatActivity {
+public class BackgroundCropActivity extends BaseActivity {
     private static final String TAG = "BackgroundCropActivity";
     private static final String EXTRA_SOURCE_URI = "source_uri";
     private static final String EXTRA_COMMIT_SOURCE = "commit_source";
@@ -50,6 +45,32 @@ public class BackgroundCropActivity extends AppCompatActivity {
     private String sourceUriString;
     private boolean commitSource;
     private boolean saving;
+
+    @Override
+    protected int getTitleContainerId() {
+        return R.id.background_crop_toolbar;
+    }
+
+    @Override
+    protected int getBottomInsetContainerId() {
+        return R.id.background_crop_bottom_bar;
+    }
+
+    @Override
+    protected boolean shouldApplyCustomBackground() {
+        // 裁剪页面使用固定的黑色编辑画布，不叠加用户自定义背景
+        return false;
+    }
+
+    @Override
+    protected boolean shouldApplyTranslucentToolbar() {
+        return false;
+    }
+
+    @Override
+    protected boolean shouldUseDarkSystemBarIcons() {
+        return false;
+    }
 
     public static void open(AppCompatActivity activity, Uri sourceUri, boolean commitSource) {
         Intent intent = new Intent(activity, BackgroundCropActivity.class);
@@ -61,7 +82,6 @@ public class BackgroundCropActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         setContentView(R.layout.activity_background_crop);
 
         sourceUriString = getIntent().getStringExtra(EXTRA_SOURCE_URI);
@@ -83,7 +103,6 @@ public class BackgroundCropActivity extends AppCompatActivity {
         confirmButton.setOnClickListener(v -> saveBackground());
 
         loadSourceBitmap();
-        applyInsets();
     }
 
     private void loadSourceBitmap() {
@@ -94,28 +113,14 @@ public class BackgroundCropActivity extends AppCompatActivity {
                 finish();
                 return;
             }
-            // 每次进入编辑器都从保存的完整原图重新开始。
-            // 不恢复上一次裁剪的缩放/偏移，这样用户可以重新调整整张原图。
+            // 每次进入编辑器都从保存的完整原图重新开始
+            // 不恢复上一次裁剪的缩放和偏移，让用户可以重新调整整张原图
             cropImageView.setBitmap(sourceBitmap);
         } catch (Throwable e) {
             Log.e(TAG, "加载背景图片失败", e);
             setResult(RESULT_CANCELED);
             finish();
         }
-    }
-
-    private void applyInsets() {
-        View root = findViewById(R.id.background_crop_root);
-        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
-            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            MaterialToolbar toolbar = findViewById(R.id.background_crop_toolbar);
-            toolbar.setPadding(toolbar.getPaddingLeft(), bars.top, toolbar.getPaddingRight(), toolbar.getPaddingBottom());
-
-            View bottom = findViewById(R.id.background_crop_bottom_bar);
-            bottom.setPadding(bottom.getPaddingLeft(), bottom.getPaddingTop(), bottom.getPaddingRight(), bars.bottom + dp(12));
-            return insets;
-        });
-        ViewCompat.requestApplyInsets(root);
     }
 
     private void saveBackground() {
@@ -186,8 +191,8 @@ public class BackgroundCropActivity extends AppCompatActivity {
             config.setCustomBackgroundUri(Uri.fromFile(target).toString());
             config.setCustomBackgroundEnabled(true);
             config.setDynamicColorSource(ConfigManager.DYNAMIC_COLOR_SOURCE_IMAGE);
-            // 裁剪结果覆盖同一个 background_image 文件，URI 不变。递增内容版本，
-            // 让已经存在的上一级 Activity 在返回时能够识别背景图片确实发生了变化。
+            // 裁剪结果覆盖同一个 background_image 文件，URI 不变，因此递增内容版本
+            // 让已经存在的上一级 Activity 在返回时能够识别背景图片确实发生了变化
             config.markCustomBackgroundUpdated();
             ThemeManager themeManager = ThemeManager.getInstance(this);
             themeManager.invalidateCustomBackgroundCache();
@@ -198,7 +203,7 @@ public class BackgroundCropActivity extends AppCompatActivity {
         } catch (Throwable e) {
             Log.e(TAG, "保存背景图片失败", e);
             saving = false;
-            android.widget.Toast.makeText(this, getString(R.string.background_crop_save_failed), android.widget.Toast.LENGTH_SHORT).show();
+            ToastUtils.show(this, getString(R.string.background_crop_save_failed));
         }
     }
 
@@ -258,10 +263,6 @@ public class BackgroundCropActivity extends AppCompatActivity {
             sourceBitmap = null;
         }
         super.onDestroy();
-    }
-
-    private int dp(int value) {
-        return Math.round(value * getResources().getDisplayMetrics().density);
     }
 
     private Bitmap decodeBitmap(Uri uri, int maxDimension) throws Exception {

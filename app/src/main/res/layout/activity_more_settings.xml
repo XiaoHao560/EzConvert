@@ -17,15 +17,12 @@
             android:id="@+id/title_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
             android:background="@android:color/transparent"
             app:navigationIcon="@drawable/round_arrow_back"
             app:navigationIconTint="?attr/colorOnSurfaceVariant"
             app:navigationContentDescription="@string/tooltip_back"
             app:title="@string/more_settings_title"
             app:titleCentered="true"
-            app:titleTextColor="?attr/colorPrimary"
-            app:titleMarginTop="17dp"
             style="@style/Widget.Material3.Toolbar.Surface" />
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -35,7 +32,8 @@
         android:layout_height="match_parent"
         android:scrollbarStyle="outsideOverlay"
         android:fadeScrollbars="true"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:id="@+id/activity_more_settings_scroll">
 
         <LinearLayout
             android:id="@+id/scroll_content"
@@ -205,7 +203,7 @@
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:textSize="12sp" />
                         </LinearLayout>
-                        <RadioButton
+                        <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/radio_output_download"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -260,7 +258,7 @@
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:textSize="12sp" />
                         </LinearLayout>
-                        <RadioButton
+                        <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/radio_output_dcim"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -319,7 +317,7 @@
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:textSize="12sp" />
                         </LinearLayout>
-                        <RadioButton
+                        <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/radio_output_custom"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -420,7 +418,7 @@
 
                             </LinearLayout>
 
-                            <RadioButton
+                            <com.google.android.material.radiobutton.MaterialRadioButton
                                 android:id="@+id/radio_theme_system"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -480,7 +478,7 @@
 
                             </LinearLayout>
 
-                            <RadioButton
+                            <com.google.android.material.radiobutton.MaterialRadioButton
                                 android:id="@+id/radio_theme_light"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -540,7 +538,7 @@
 
                             </LinearLayout>
 
-                            <RadioButton
+                            <com.google.android.material.radiobutton.MaterialRadioButton
                                 android:id="@+id/radio_theme_dark"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -881,7 +879,7 @@
 
                             </LinearLayout>
 
-                            <RadioButton
+                            <com.google.android.material.radiobutton.MaterialRadioButton
                                 android:id="@+id/radio_background_effect_auto"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -925,7 +923,7 @@
 
                             </LinearLayout>
 
-                            <RadioButton
+                            <com.google.android.material.radiobutton.MaterialRadioButton
                                 android:id="@+id/radio_background_effect_custom"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -1062,7 +1060,7 @@
 
                             </LinearLayout>
 
-                            <RadioButton
+                            <com.google.android.material.radiobutton.MaterialRadioButton
                                 android:id="@+id/radio_color_source_image"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -1106,7 +1104,7 @@
 
                             </LinearLayout>
 
-                            <RadioButton
+                            <com.google.android.material.radiobutton.MaterialRadioButton
                                 android:id="@+id/radio_color_source_wallpaper"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -1222,19 +1220,13 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="16dp"
                             style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                            app:boxBackgroundColor="?attr/colorSurface"
-                            app:boxStrokeColor="?attr/colorOutline"
-                            app:boxStrokeWidth="1dp"
-                            app:boxStrokeWidthFocused="2dp"
                             app:hintEnabled="false">
 
                             <com.google.android.material.textfield.MaterialAutoCompleteTextView
                                 android:id="@+id/language_spinner"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:inputType="none"
-                                android:paddingVertical="12dp"
-                                android:textColor="?attr/colorOnSurface" />
+                                android:inputType="none" />
 
                         </com.google.android.material.textfield.TextInputLayout>
 
@@ -1489,19 +1481,13 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                                app:boxBackgroundColor="?attr/colorSurface"
-                                app:boxStrokeColor="?attr/colorOutline"
-                                app:boxStrokeWidth="1dp"
-                                app:boxStrokeWidthFocused="2dp"
                                 app:hintEnabled="false">
 
                                 <com.google.android.material.textfield.MaterialAutoCompleteTextView
                                     android:id="@+id/frequency_spinner"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:inputType="none"
-                                    android:paddingVertical="12dp"
-                                    android:textColor="?attr/colorOnSurface" />
+                                    android:inputType="none" />
 
                             </com.google.android.material.textfield.TextInputLayout>
 

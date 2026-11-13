@@ -6,7 +6,7 @@
     android:layout_marginEnd="8dp"
     app:cardCornerRadius="8dp"
     app:cardElevation="0dp"
-    app:cardBackgroundColor="?@attr/colorSurface"
+    app:cardBackgroundColor="?attr/colorSurface"
     app:strokeWidth="0dp">
     <TextView
         android:id="@+id/preset_name"
@@ -18,5 +18,5 @@
         android:paddingBottom="8dp"
         android:textSize="14sp"
         android:textColor="?attr/colorOnSurface"
-        android:fontFamily="?attr/textAppearanceLabelMedium" />
+        android:textAppearance="?attr/textAppearanceLabelMedium" />
 </com.google.android.material.card.MaterialCardView>

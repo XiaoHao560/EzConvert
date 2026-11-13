@@ -9,6 +9,7 @@
     <string name="unknown">未知</string>
     <string name="none">无</string>
     <string name="btn_cancel">取消</string>
+    <string name="btn_confirm">确认</string>
     <string name="btn_cancel_dialog">取消</string>
     <string name="btn_confirm_export">确认导出</string>
     <string name="btn_save">保存</string>
@@ -452,6 +453,13 @@
     <string name="toast_all_complete_with_path">所有文件处理完成!\n输出保存在: Download/EzConvert/</string>
     <string name="toast_cancelled">已取消操作</string>
     <string name="toast_delete_temp_failed">删除临时文件失败\n请前往手动删除</string>
+    <string name="loading_default">加载中…</string>
+    <string name="migration_progress_message">正在迁移设置数据…</string>
+    <string name="migration_success_title">迁移成功</string>
+    <string name="migration_success_message">设置迁移完成，配置文件已保存到：\n%1$s</string>
+    <string name="migration_error_title">迁移失败</string>
+    <string name="migration_error_message">设置迁移过程中出现错误，将使用默认设置</string>
+    <string name="migration_view_config">查看配置文件</string>
     <string name="toast_migration_complete">设置迁移完成</string>
     <string name="toast_config_path">配置文件路径: %1$s</string>
     <string name="toast_no_share_file">未接收到分享文件</string>
