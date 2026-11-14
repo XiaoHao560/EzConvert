@@ -1,28 +1,74 @@
 ext {
-    // 版本号生成相关方法
+    // 通过 -PversionNameOverride 和 -PversionCodeOverride 显式覆盖自动生成的版本号。
+    // Debug 构建固定使用当天日期对应的基础 VersionCode，不附加 Git commit 数。
+    isDebugVersionBuild = {
+        def taskNames = gradle.startParameter.taskNames.collect { it.toLowerCase() }
+        return taskNames.any { it.contains("debug") } &&
+                !taskNames.any { it.contains("release") }
+    }
+
+    // 从 gradle/version.properties 读取可选的手动版本号覆盖。
+    // 留空或不填写对应属性时，使用自动生成逻辑。
+    getCustomVersionConfig = {
+        def configFile = rootProject.file("gradle/version.properties")
+        def config = new Properties()
+
+        if (configFile.exists()) {
+            configFile.withInputStream { stream ->
+                config.load(stream)
+            }
+        }
+
+        return [
+            versionName: config.getProperty("versionName")?.trim(),
+            versionCode: config.getProperty("versionCode")?.trim()
+        ]
+    }
+
     getGitVersionCode = {
+        def customVersionCode = getCustomVersionConfig().versionCode
+        if (customVersionCode) {
+            try {
+                def parsedVersionCode = customVersionCode.toInteger()
+                if (parsedVersionCode <= 0) {
+                    throw new GradleException("gradle/version.properties: versionCode must be greater than 0")
+                }
+                println "Using custom VersionCode from gradle/version.properties: $parsedVersionCode"
+                return parsedVersionCode
+            } catch (NumberFormatException e) {
+                throw new GradleException("Invalid versionCode in gradle/version.properties: ${customVersionCode}. It must be a positive 32-bit integer.", e)
+            }
+        }
+
         try {
             def commitCount = getCmdOutput("git rev-list --count HEAD").toInteger()
             def timestamp = new java.text.SimpleDateFormat("yyMMdd").format(new Date()).toInteger()
-            def versionCode = timestamp * 1000 + (commitCount % 1000)
-            
+            def debugBuild = isDebugVersionBuild()
+            def versionCode = timestamp * 1000 + (debugBuild ? 0 : commitCount % 1000)
+
             println "=== VersionCode Generation ==="
             println "Build Date: ${new Date()}"
-            println "Git Commit Count: $commitCount"
+            println "Build Type: ${debugBuild ? 'Debug' : 'Release/Other'}"
+            println "Git Commit Count: ${commitCount}"
+            println "Applied Commit Suffix: ${debugBuild ? 0 : commitCount % 1000}"
             println "Timestamp (YYMMDD): $timestamp"
             println "Generated VersionCode: $versionCode"
-            
             return versionCode
-            
         } catch (Exception e) {
             println "Warning: Could not get git version code: ${e.message}"
-            def fallback = new java.text.SimpleDateFormat("yyMMddHH").format(new Date()).toInteger()
+            def fallback = new java.text.SimpleDateFormat("yyMMdd").format(new Date()).toInteger() * 1000
             println "Using fallback version code: $fallback"
             return fallback
         }
     }
 
     getGitVersionName = {
+        def customVersionName = getCustomVersionConfig().versionName
+        if (customVersionName) {
+            println "Using custom VersionName from gradle/version.properties: $customVersionName"
+            return customVersionName
+        }
+
         try {
             def describe = getCmdOutput("git describe --tags --long --always")
             def commitHash = getCmdOutput("git rev-parse --short HEAD")
