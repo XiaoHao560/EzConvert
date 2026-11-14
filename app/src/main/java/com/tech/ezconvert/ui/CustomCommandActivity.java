@@ -123,18 +123,12 @@ public class CustomCommandActivity extends BaseActivity {
 
     @Override
     protected int getTitleContainerId() {
-        // BaseActivity 会给该容器增加状态栏内边距，避免固定高度的 Toolbar 被状态栏遮挡
-        return R.id.custom_command_toolbar_container;
+        return R.id.custom_command_toolbar;
     }
 
     @Override
     protected int getScrollContentId() {
         return R.id.custom_command_scroll;
-    }
-
-    @Override
-    protected boolean shouldApplyTranslucentToolbar() {
-        return false;
     }
 
     @Override
