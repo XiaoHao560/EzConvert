@@ -75,8 +75,8 @@ public class MoreSettingsActivity extends BaseActivity {
     private LinearLayout itemSelectBackground;
     private LinearLayout itemEditBackground;
     private MaterialSwitch customBackgroundSwitch;
-    private MaterialSwitch translucentToolbarSwitch;
-    private LinearLayout itemTranslucentToolbar;
+    private MaterialSwitch transparentToolbarSwitch;
+    private LinearLayout itemTransparentToolbar;
     private android.widget.TextView selectedBackgroundText;
     private LinearLayout backgroundEffectCustomControls;
     private LinearLayout itemBackgroundEffectAuto;
@@ -179,8 +179,8 @@ public class MoreSettingsActivity extends BaseActivity {
         itemSelectBackground = findViewById(R.id.item_select_background);
         itemEditBackground = findViewById(R.id.item_edit_background);
         customBackgroundSwitch = findViewById(R.id.custom_background_switch);
-        itemTranslucentToolbar = findViewById(R.id.item_translucent_toolbar);
-        translucentToolbarSwitch = findViewById(R.id.translucent_toolbar_switch);
+        itemTransparentToolbar = findViewById(R.id.item_transparent_toolbar);
+        transparentToolbarSwitch = findViewById(R.id.transparent_toolbar_switch);
         selectedBackgroundText = findViewById(R.id.selected_background_text);
 
         // 背景显示效果
@@ -268,13 +268,13 @@ public class MoreSettingsActivity extends BaseActivity {
             updateCustomBackgroundRelatedSettingsEnabled(isChecked);
             recreate();
         });
-        itemTranslucentToolbar.setOnClickListener(v -> {
-            if (translucentToolbarSwitch.isEnabled()) {
-                translucentToolbarSwitch.setChecked(!translucentToolbarSwitch.isChecked());
+        itemTransparentToolbar.setOnClickListener(v -> {
+            if (transparentToolbarSwitch.isEnabled()) {
+                transparentToolbarSwitch.setChecked(!transparentToolbarSwitch.isChecked());
             }
         });
-        translucentToolbarSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            configManager.setTranslucentToolbarEnabled(isChecked);
+        transparentToolbarSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            configManager.setTransparentToolbarEnabled(isChecked);
             recreate();
         });
         itemSelectBackground.setOnClickListener(v -> openBackgroundImagePicker());
@@ -387,7 +387,7 @@ public class MoreSettingsActivity extends BaseActivity {
         notificationSwitch.setOnCheckedChangeListener(null);
         dynamicColorSwitch.setOnCheckedChangeListener(null);
         customBackgroundSwitch.setOnCheckedChangeListener(null);
-        translucentToolbarSwitch.setOnCheckedChangeListener(null);
+        transparentToolbarSwitch.setOnCheckedChangeListener(null);
         firebaseSwitch.setOnCheckedChangeListener(null);
         
         // 加载当前设置
@@ -397,7 +397,7 @@ public class MoreSettingsActivity extends BaseActivity {
         boolean notificationEnabled = configManager.isNotificationEnabled();
         boolean dynamicColorEnabled = configManager.isDynamicColorEnabled();
         boolean customBackgroundEnabled = configManager.isCustomBackgroundEnabled();
-        boolean translucentToolbarEnabled = configManager.isTranslucentToolbarEnabled();
+        boolean transparentToolbarEnabled = configManager.isTransparentToolbarEnabled();
         String customBackgroundUri = configManager.getCustomBackgroundUri();
         String dynamicColorSource = configManager.getDynamicColorSource();
         String backgroundEffectMode = configManager.getBackgroundEffectMode();
@@ -417,7 +417,7 @@ public class MoreSettingsActivity extends BaseActivity {
         }
 
         customBackgroundSwitch.setChecked(customBackgroundEnabled);
-        translucentToolbarSwitch.setChecked(translucentToolbarEnabled);
+        transparentToolbarSwitch.setChecked(transparentToolbarEnabled);
         updateCustomBackgroundRelatedSettingsEnabled(customBackgroundEnabled);
         updateBackgroundImageUi(customBackgroundUri);
         updateDynamicColorSourceUi(dynamicColorSource);
@@ -476,8 +476,8 @@ public class MoreSettingsActivity extends BaseActivity {
             recreate();
         });
 
-        translucentToolbarSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            configManager.setTranslucentToolbarEnabled(isChecked);
+        transparentToolbarSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            configManager.setTransparentToolbarEnabled(isChecked);
             recreate();
         });
 
@@ -498,8 +498,8 @@ public class MoreSettingsActivity extends BaseActivity {
     private void updateCustomBackgroundRelatedSettingsEnabled(boolean enabled) {
         setSettingRowEnabled(itemSelectBackground, enabled);
         setSettingRowEnabled(itemEditBackground, enabled);
-        setSettingRowEnabled(itemTranslucentToolbar, enabled);
-        translucentToolbarSwitch.setEnabled(enabled);
+        setSettingRowEnabled(itemTransparentToolbar, enabled);
+        transparentToolbarSwitch.setEnabled(enabled);
         setSettingRowEnabled(itemBackgroundEffectAuto, enabled);
         setSettingRowEnabled(itemBackgroundEffectCustom, enabled);
         backgroundMaskSlider.setEnabled(enabled);

@@ -63,7 +63,7 @@ public class BackgroundCropActivity extends BaseActivity {
     }
 
     @Override
-    protected boolean shouldApplyTranslucentToolbar() {
+    protected boolean shouldApplyTransparentToolbar() {
         return false;
     }
 

@@ -8,14 +8,11 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
-import android.widget.ScrollView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
-import androidx.core.widget.NestedScrollView;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -62,8 +59,8 @@ public abstract class BaseActivity extends AppCompatActivity {
         return true;
     }
 
-    /** 是否允许当前 Activity 使用全局半透明 Toolbar 效果 */
-    protected boolean shouldApplyTranslucentToolbar() {
+    /** 是否允许当前 Activity 应用全局透明 Toolbar 设置 */
+    protected boolean shouldApplyTransparentToolbar() {
         return true;
     }
 
@@ -236,13 +233,11 @@ public abstract class BaseActivity extends AppCompatActivity {
                 toolbar,
                 com.google.android.material.R.attr.colorOnSurfaceVariant));
 
-        View scrollContainer = findScrollContainer(root);
         ToolbarAppearanceHelper.apply(
                 this,
                 toolbar,
                 titleContainer,
-                scrollContainer,
-                shouldApplyTranslucentToolbar());
+                shouldApplyTransparentToolbar());
     }
 
     private MaterialToolbar findToolbar(View view) {
@@ -261,49 +256,6 @@ public abstract class BaseActivity extends AppCompatActivity {
             }
         }
         return null;
-    }
-
-    /** 优先使用页面中声明的滚动区域，再回退到布局中的第一个常见滚动容器 */
-    private View findScrollContainer(@NonNull View root) {
-        int scrollContentId = getScrollContentId();
-        if (scrollContentId != View.NO_ID) {
-            View configuredView = findViewById(scrollContentId);
-            if (isScrollContainer(configuredView)) {
-                return configuredView;
-            }
-            ViewParent parent = configuredView == null ? null : configuredView.getParent();
-            while (parent instanceof View) {
-                if (isScrollContainer((View) parent)) {
-                    return (View) parent;
-                }
-                parent = parent.getParent();
-            }
-        }
-        return findScrollContainerRecursively(root);
-    }
-
-    private View findScrollContainerRecursively(View view) {
-        if (isScrollContainer(view)) {
-            return view;
-        }
-        if (!(view instanceof ViewGroup)) {
-            return null;
-        }
-
-        ViewGroup group = (ViewGroup) view;
-        for (int i = 0; i < group.getChildCount(); i++) {
-            View result = findScrollContainerRecursively(group.getChildAt(i));
-            if (result != null) {
-                return result;
-            }
-        }
-        return null;
-    }
-
-    private boolean isScrollContainer(View view) {
-        return view instanceof NestedScrollView
-                || view instanceof ScrollView
-                || view instanceof RecyclerView;
     }
 
     private void setupSystemBarAppearance() {

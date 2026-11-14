@@ -67,8 +67,8 @@ public class PreviewActivity extends BaseActivity {
     }
 
     @Override
-    protected boolean shouldApplyTranslucentToolbar() {
-        // 预览页面的工具栏由播放器布局控制，不跟随全局透明工具栏设置
+    protected boolean shouldApplyTransparentToolbar() {
+        // 预览页面的工具栏由播放器布局控制，不跟随全局透明 Toolbar 设置
         return false;
     }
 
