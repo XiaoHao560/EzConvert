@@ -794,7 +794,7 @@
                         </LinearLayout>
 
                         <LinearLayout
-                            android:id="@+id/item_translucent_toolbar"
+                            android:id="@+id/item_transparent_toolbar"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
@@ -814,7 +814,7 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:fontFamily="sans-serif-medium"
-                                    android:text="@string/translucent_toolbar"
+                                    android:text="@string/transparent_toolbar"
                                     android:textColor="?attr/colorOnSurface"
                                     android:textSize="14sp" />
 
@@ -822,14 +822,14 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="2dp"
-                                    android:text="@string/translucent_toolbar_desc"
+                                    android:text="@string/transparent_toolbar_desc"
                                     android:textColor="?attr/colorOnSurfaceVariant"
                                     android:textSize="12sp" />
 
                             </LinearLayout>
 
                             <com.google.android.material.materialswitch.MaterialSwitch
-                                android:id="@+id/translucent_toolbar_switch"
+                                android:id="@+id/transparent_toolbar_switch"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content" />
 

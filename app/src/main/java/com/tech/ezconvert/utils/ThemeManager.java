@@ -211,7 +211,7 @@ public class ThemeManager {
                 + configManager.isDynamicColorEnabled() + "|"
                 + configManager.getDynamicColorSource() + "|"
                 + configManager.isCustomBackgroundEnabled() + "|"
-                + configManager.isTranslucentToolbarEnabled() + "|"
+                + configManager.isTransparentToolbarEnabled() + "|"
                 + configManager.getCustomBackgroundUri() + "|"
                 + configManager.getCustomBackgroundVersion() + "|"
                 + configManager.getBackgroundEffectMode() + "|"
@@ -220,11 +220,11 @@ public class ThemeManager {
     }
 
     /**
-     * 判断当前 Activity 是否应该使用自定义背景下的半透明 Toolbar
+     * 判断当前 Activity 是否应该使用自定义背景下的透明 Toolbar
      */
-    public boolean shouldUseTranslucentToolbar() {
+    public boolean shouldUseTransparentToolbar() {
         return configManager.isCustomBackgroundEnabled()
-                && configManager.isTranslucentToolbarEnabled();
+                && configManager.isTransparentToolbarEnabled();
     }
 
     /**
