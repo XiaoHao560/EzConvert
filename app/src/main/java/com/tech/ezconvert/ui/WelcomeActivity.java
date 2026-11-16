@@ -169,6 +169,9 @@ public class WelcomeActivity extends BaseActivity {
         enableNotificationsSwitch = findViewById(R.id.welcome_enable_notifications_switch);
         notificationConfigContainer = findViewById(R.id.welcome_notification_config_container);
 
+        setupSwitchRowClick(findViewById(R.id.welcome_dynamic_color_row), dynamicColorSwitch);
+        setupSwitchRowClick(notificationConfigContainer, enableNotificationsSwitch);
+
         findViewById(R.id.welcome_start_button).setOnClickListener(v -> finishWelcome());
         enableNotificationsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             configManager.setNotificationEnabled(isChecked);
@@ -177,6 +180,17 @@ public class WelcomeActivity extends BaseActivity {
         grantMediaButton.setOnClickListener(v -> requestMediaPermissions());
         grantNotificationsButton.setOnClickListener(v -> requestNotificationPermission());
         findViewById(R.id.welcome_choose_folder).setOnClickListener(v -> openOutputDirectoryPicker());
+    }
+
+    /**
+     * 点击开关所在的整行时切换状态，开关自身仍使用原有状态监听。
+     */
+    private void setupSwitchRowClick(android.view.View row, MaterialSwitch switchView) {
+        row.setOnClickListener(v -> {
+            if (switchView.isEnabled()) {
+                switchView.setChecked(!switchView.isChecked());
+            }
+        });
     }
 
     private void loadCurrentSettings() {
@@ -194,6 +208,9 @@ public class WelcomeActivity extends BaseActivity {
         dynamicColorSwitch.setChecked(themeManager.isDynamicColorEnabled());
         boolean dynamicColorAvailable = com.google.android.material.color.DynamicColors.isDynamicColorAvailable();
         dynamicColorSwitch.setEnabled(dynamicColorAvailable);
+        android.view.View dynamicColorRow = findViewById(R.id.welcome_dynamic_color_row);
+        dynamicColorRow.setClickable(dynamicColorAvailable);
+        dynamicColorRow.setFocusable(dynamicColorAvailable);
         dynamicColorSwitch.setAlpha(dynamicColorAvailable ? 1f : 0.5f);
 
         String[] languageItems = getResources().getStringArray(R.array.language_options);

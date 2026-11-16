@@ -61,7 +61,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:padding="16dp"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:clipChildren="false"
+                    android:clipToPadding="false">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -72,44 +74,63 @@
                         android:textColor="?attr/colorOnSurface"
                         android:text="@string/performance_options" />
 
-                    <LinearLayout
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/item_hardware_acceleration"
                         android:layout_width="match_parent"
+                        android:layout_marginStart="-4dp"
+                        android:layout_marginEnd="-4dp"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
+                        android:clickable="true"
+                        android:focusable="true"
+                        app:cardBackgroundColor="@android:color/transparent"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:rippleColor="?attr/colorControlHighlight"
+                        app:strokeWidth="0dp">
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:layout_weight="1">
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
+                            android:layout_gravity="center_vertical"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
 
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:textSize="14sp"
-                                android:textAppearance="?attr/textAppearanceTitleSmall"
-                                android:textColor="?attr/colorOnSurface"
-                                android:text="@string/hardware_decode" />
 
-                            <TextView
-                                android:layout_width="match_parent"
+                            <LinearLayout
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:textSize="12sp"
-                                android:textAppearance="?attr/textAppearanceBodySmall"
-                                android:textColor="?attr/colorOnSurfaceVariant"
-                                android:layout_marginTop="2dp"
-                                android:text="@string/hardware_decode_desc" />
+                                android:orientation="vertical"
+                                android:layout_weight="1">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textSize="14sp"
+                                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:text="@string/hardware_decode" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textSize="12sp"
+                                    android:textAppearance="?attr/textAppearanceBodySmall"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:layout_marginTop="2dp"
+                                    android:text="@string/hardware_decode_desc" />
+
+                            </LinearLayout>
+
+                            <com.google.android.material.materialswitch.MaterialSwitch
+                                android:id="@+id/hardware_acceleration_switch"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+
 
                         </LinearLayout>
-
-                        <com.google.android.material.materialswitch.MaterialSwitch
-                            android:id="@+id/hardware_acceleration_switch"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-
-                    </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
 
                     <com.google.android.material.divider.MaterialDivider
                         android:layout_width="match_parent"
@@ -118,43 +139,62 @@
                         app:dividerThickness="1dp"
                         android:layout_marginBottom="16dp" />
 
-                    <LinearLayout
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/item_multithreading"
                         android:layout_width="match_parent"
+                        android:layout_marginStart="-4dp"
+                        android:layout_marginEnd="-4dp"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
+                        android:clickable="true"
+                        android:focusable="true"
+                        app:cardBackgroundColor="@android:color/transparent"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:rippleColor="?attr/colorControlHighlight"
+                        app:strokeWidth="0dp">
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:layout_weight="1">
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
+                            android:layout_gravity="center_vertical"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
 
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:textSize="14sp"
-                                android:textAppearance="?attr/textAppearanceTitleSmall"
-                                android:textColor="?attr/colorOnSurface"
-                                android:text="@string/multithreading_opt" />
 
-                            <TextView
-                                android:layout_width="match_parent"
+                            <LinearLayout
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:textSize="12sp"
-                                android:textAppearance="?attr/textAppearanceBodySmall"
-                                android:textColor="?attr/colorOnSurfaceVariant"
-                                android:layout_marginTop="2dp"
-                                android:text="@string/multithreading_desc" />
+                                android:orientation="vertical"
+                                android:layout_weight="1">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textSize="14sp"
+                                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:text="@string/multithreading_opt" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textSize="12sp"
+                                    android:textAppearance="?attr/textAppearanceBodySmall"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:layout_marginTop="2dp"
+                                    android:text="@string/multithreading_desc" />
+
+                            </LinearLayout>
+
+                            <com.google.android.material.materialswitch.MaterialSwitch
+                                android:id="@+id/multithreading_switch"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+
 
                         </LinearLayout>
-
-                        <com.google.android.material.materialswitch.MaterialSwitch
-                            android:id="@+id/multithreading_switch"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-
-                    </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
 
                 </LinearLayout>
 

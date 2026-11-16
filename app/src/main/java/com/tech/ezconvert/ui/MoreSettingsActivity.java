@@ -20,6 +20,7 @@ import java.io.OutputStream;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.color.DynamicColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
@@ -49,10 +50,10 @@ public class MoreSettingsActivity extends BaseActivity {
     private MaterialSwitch prereleaseSwitch;
     private MaterialSwitch notificationSwitch;
     private MaterialSwitch firebaseSwitch;
-    private LinearLayout itemNotification;
-    private LinearLayout itemAutoUpdate;
-    private LinearLayout itemPrerelease;
-    private LinearLayout itemFirebase;
+    private MaterialCardView itemNotification;
+    private MaterialCardView itemAutoUpdate;
+    private MaterialCardView itemPrerelease;
+    private MaterialCardView itemFirebase;
     private MaterialAutoCompleteTextView frequencySpinner;
     private LinearLayout frequencyLayout;
     private MaterialToolbar toolbar;
@@ -60,9 +61,9 @@ public class MoreSettingsActivity extends BaseActivity {
     private ThemeManager themeManager;
     
     // 主题设置相关视图
-    private LinearLayout itemThemeSystem;
-    private LinearLayout itemThemeLight;
-    private LinearLayout itemThemeDark;
+    private MaterialCardView itemThemeSystem;
+    private MaterialCardView itemThemeLight;
+    private MaterialCardView itemThemeDark;
     private MaterialRadioButton radioThemeSystem;
     private MaterialRadioButton radioThemeLight;
     private MaterialRadioButton radioThemeDark;
@@ -71,20 +72,20 @@ public class MoreSettingsActivity extends BaseActivity {
     private MaterialAutoCompleteTextView languageSpinner;
     
     // 动态取色相关视图
-    private LinearLayout itemDynamicColor;
+    private MaterialCardView itemDynamicColor;
     private MaterialSwitch dynamicColorSwitch;
 
     // 自定义背景相关视图
-    private LinearLayout itemCustomBackground;
-    private LinearLayout itemSelectBackground;
-    private LinearLayout itemEditBackground;
+    private MaterialCardView itemCustomBackground;
+    private MaterialCardView itemSelectBackground;
+    private MaterialCardView itemEditBackground;
     private MaterialSwitch customBackgroundSwitch;
     private MaterialSwitch transparentToolbarSwitch;
-    private LinearLayout itemTransparentToolbar;
+    private MaterialCardView itemTransparentToolbar;
     private android.widget.TextView selectedBackgroundText;
     private LinearLayout backgroundEffectCustomControls;
-    private LinearLayout itemBackgroundEffectAuto;
-    private LinearLayout itemBackgroundEffectCustom;
+    private MaterialCardView itemBackgroundEffectAuto;
+    private MaterialCardView itemBackgroundEffectCustom;
     private MaterialRadioButton radioBackgroundEffectAuto;
     private MaterialRadioButton radioBackgroundEffectCustom;
     private Slider backgroundMaskSlider;
@@ -93,15 +94,15 @@ public class MoreSettingsActivity extends BaseActivity {
     private android.widget.TextView backgroundBlurValue;
 
     // 动态取色来源相关视图
-    private LinearLayout itemColorSourceImage;
-    private LinearLayout itemColorSourceWallpaper;
+    private MaterialCardView itemColorSourceImage;
+    private MaterialCardView itemColorSourceWallpaper;
     private MaterialRadioButton radioColorSourceImage;
     private MaterialRadioButton radioColorSourceWallpaper;
     
     // 输出目录设置
-    private LinearLayout itemOutputDownload;
-    private LinearLayout itemOutputDcim;
-    private LinearLayout itemOutputCustom;
+    private MaterialCardView itemOutputDownload;
+    private MaterialCardView itemOutputDcim;
+    private MaterialCardView itemOutputCustom;
     private MaterialRadioButton radioOutputDownload;
     private MaterialRadioButton radioOutputDcim;
     private MaterialRadioButton radioOutputCustom;

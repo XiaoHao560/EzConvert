@@ -1,5 +1,6 @@
 package com.tech.ezconvert.ui;
 
+import com.google.android.material.card.MaterialCardView;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -42,10 +43,10 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
     private TextView versionText;
     private TextView updateStatusText;
     private LinearLayout testUpdateItem;
-    private LinearLayout testUpdateClickArea;
+    private MaterialCardView testUpdateClickArea;
     private LinearLayout forceCheckUpdateItem;
-    private LinearLayout forceCheckUpdateClickArea;
-    private LinearLayout developerItem;
+    private MaterialCardView forceCheckUpdateClickArea;
+    private MaterialCardView developerItem;
     private MaterialToolbar toolbar;
     private boolean isDevelopmentVersion = false;
     
@@ -107,7 +108,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
     
     private void setupClickListeners() {
         // 源代码
-        LinearLayout sourceCodeItem = findViewById(R.id.source_code_item);
+        MaterialCardView sourceCodeItem = findViewById(R.id.source_code_item);
         sourceCodeItem.setOnClickListener(v -> {
             try {
                 Intent intent = new Intent(Intent.ACTION_VIEW, 
@@ -119,7 +120,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
         });
         
         // 问题反馈
-        LinearLayout feedbackItem = findViewById(R.id.feedback_item);
+        MaterialCardView feedbackItem = findViewById(R.id.feedback_item);
         feedbackItem.setOnClickListener(v -> {
             try {
                 Intent intent = new Intent(Intent.ACTION_VIEW,
@@ -131,7 +132,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
         });
         
         // 检查更新
-        LinearLayout checkUpdateItem = findViewById(R.id.check_update_item);
+        MaterialCardView checkUpdateItem = findViewById(R.id.check_update_item);
         checkUpdateItem.setOnClickListener(v -> {
             ToastUtils.show(this, getString(R.string.toast_checking_update));
             updateStatusText.setText(R.string.update_status_checking);
@@ -140,7 +141,7 @@ public class AboutActivity extends BaseActivity implements UpdateChecker.UpdateC
         });
         
         // 开源许可证
-        LinearLayout licenseItem = findViewById(R.id.license_item);
+        MaterialCardView licenseItem = findViewById(R.id.license_item);
         licenseItem.setOnClickListener(v -> {
             ToastUtils.showLong(this, getString(R.string.toast_license_info));
         });

@@ -2,6 +2,7 @@ package com.tech.ezconvert.ui;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 import com.google.android.material.button.MaterialButton;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,6 +27,8 @@ public class TranscodeSettingsActivity extends BaseActivity {
     
     private MaterialSwitch hardwareAccelerationSwitch;
     private MaterialSwitch multithreadingSwitch;
+    private View hardwareAccelerationRow;
+    private View multithreadingRow;
     private MaterialButton saveSettingsBtn;
     private MaterialToolbar toolbar;
     private ConfigManager configManager;
@@ -53,6 +56,11 @@ public class TranscodeSettingsActivity extends BaseActivity {
     private void initializeViews() {
         hardwareAccelerationSwitch = findViewById(R.id.hardware_acceleration_switch);
         multithreadingSwitch = findViewById(R.id.multithreading_switch);
+        hardwareAccelerationRow = findViewById(R.id.item_hardware_acceleration);
+        multithreadingRow = findViewById(R.id.item_multithreading);
+
+        setupSwitchRowClick(hardwareAccelerationRow, hardwareAccelerationSwitch);
+        setupSwitchRowClick(multithreadingRow, multithreadingSwitch);
         saveSettingsBtn = findViewById(R.id.save_settings_btn);
         toolbar = findViewById(R.id.title_container);
     }
@@ -65,6 +73,17 @@ public class TranscodeSettingsActivity extends BaseActivity {
         });
     }
     
+    /**
+     * 允许点击开关所在整行切换状态，同时保留 MaterialSwitch 自身的交互。
+     */
+    private void setupSwitchRowClick(View row, MaterialSwitch switchView) {
+        row.setOnClickListener(v -> {
+            if (switchView.isEnabled()) {
+                switchView.setChecked(!switchView.isChecked());
+            }
+        });
+    }
+
     private void loadSettings() {
         boolean hardwareAcceleration = configManager.isHardwareAccelerationEnabled();
         boolean multithreading = configManager.isMultithreadingEnabled();

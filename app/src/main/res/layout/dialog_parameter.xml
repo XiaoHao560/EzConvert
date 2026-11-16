@@ -139,14 +139,49 @@
                     android:id="@+id/quick_conversion_switch_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginBottom="12dp">
+                    android:layout_marginBottom="12dp"
+                    android:orientation="vertical">
 
-                    <com.google.android.material.materialswitch.MaterialSwitch
-                        android:id="@+id/switch_quick_conversion"
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/row_switch_quick_conversion"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/quick_conversion_title" />
+                        android:clickable="true"
+                        android:focusable="true"
+                        app:cardBackgroundColor="@android:color/transparent"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:rippleColor="?attr/colorControlHighlight"
+                        app:strokeWidth="0dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:minHeight="56dp"
+                            android:orientation="horizontal"
+                            android:paddingStart="12dp"
+                            android:paddingTop="4dp"
+                            android:paddingEnd="8dp"
+                            android:paddingBottom="4dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/quick_conversion_title"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="14sp" />
+
+                                <com.google.android.material.materialswitch.MaterialSwitch
+                                    android:id="@+id/switch_quick_conversion"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:contentDescription="@string/quick_conversion_title" />
+
+                                </LinearLayout>
+
+                            </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
 
                 <LinearLayout
@@ -1034,28 +1069,173 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
-                    <com.google.android.material.materialswitch.MaterialSwitch
-                        android:id="@+id/switch_skip_automatic_video_quality"
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/row_skip_automatic_video_quality"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/advanced_skip_automatic_video_quality" />
-                    <com.google.android.material.materialswitch.MaterialSwitch
-                        android:id="@+id/switch_skip_automatic_audio_bitrate"
+                        android:clickable="true"
+                        android:focusable="true"
+                        app:cardBackgroundColor="@android:color/transparent"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:rippleColor="?attr/colorControlHighlight"
+                        app:strokeWidth="0dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:minHeight="56dp"
+                            android:orientation="horizontal"
+                            android:paddingStart="12dp"
+                            android:paddingTop="4dp"
+                            android:paddingEnd="8dp"
+                            android:paddingBottom="4dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/advanced_skip_automatic_video_quality"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="14sp" />
+
+                                <com.google.android.material.materialswitch.MaterialSwitch
+                                    android:id="@+id/switch_skip_automatic_video_quality"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:contentDescription="@string/advanced_skip_automatic_video_quality" />
+
+                                </LinearLayout>
+
+                            </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/row_skip_automatic_audio_bitrate"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
-                        android:text="@string/advanced_skip_automatic_audio_bitrate" />
-                    <com.google.android.material.materialswitch.MaterialSwitch
-                        android:id="@+id/switch_skip_automatic_audio_sample_rate"
+                        android:clickable="true"
+                        android:focusable="true"
+                        app:cardBackgroundColor="@android:color/transparent"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:rippleColor="?attr/colorControlHighlight"
+                        app:strokeWidth="0dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:minHeight="56dp"
+                            android:orientation="horizontal"
+                            android:paddingStart="12dp"
+                            android:paddingTop="4dp"
+                            android:paddingEnd="8dp"
+                            android:paddingBottom="4dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/advanced_skip_automatic_audio_bitrate"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="14sp" />
+
+                                <com.google.android.material.materialswitch.MaterialSwitch
+                                    android:id="@+id/switch_skip_automatic_audio_bitrate"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:contentDescription="@string/advanced_skip_automatic_audio_bitrate" />
+
+                                </LinearLayout>
+
+                            </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/row_skip_automatic_audio_sample_rate"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/advanced_skip_automatic_audio_sample_rate" />
-                    <com.google.android.material.materialswitch.MaterialSwitch
-                        android:id="@+id/switch_skip_automatic_audio_channels"
+                        android:clickable="true"
+                        android:focusable="true"
+                        app:cardBackgroundColor="@android:color/transparent"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:rippleColor="?attr/colorControlHighlight"
+                        app:strokeWidth="0dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:minHeight="56dp"
+                            android:orientation="horizontal"
+                            android:paddingStart="12dp"
+                            android:paddingTop="4dp"
+                            android:paddingEnd="8dp"
+                            android:paddingBottom="4dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/advanced_skip_automatic_audio_sample_rate"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="14sp" />
+
+                                <com.google.android.material.materialswitch.MaterialSwitch
+                                    android:id="@+id/switch_skip_automatic_audio_sample_rate"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:contentDescription="@string/advanced_skip_automatic_audio_sample_rate" />
+
+                                </LinearLayout>
+
+                            </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/row_skip_automatic_audio_channels"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
-                        android:text="@string/advanced_skip_automatic_audio_channels" />
+                        android:clickable="true"
+                        android:focusable="true"
+                        app:cardBackgroundColor="@android:color/transparent"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:rippleColor="?attr/colorControlHighlight"
+                        app:strokeWidth="0dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:minHeight="56dp"
+                            android:orientation="horizontal"
+                            android:paddingStart="12dp"
+                            android:paddingTop="4dp"
+                            android:paddingEnd="8dp"
+                            android:paddingBottom="4dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/advanced_skip_automatic_audio_channels"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="14sp" />
+
+                                <com.google.android.material.materialswitch.MaterialSwitch
+                                    android:id="@+id/switch_skip_automatic_audio_channels"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:contentDescription="@string/advanced_skip_automatic_audio_channels" />
+
+                                </LinearLayout>
+
+                            </com.google.android.material.card.MaterialCardView>
+
                 </LinearLayout>
 
                 <TextView
@@ -1159,14 +1339,49 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/switch_sync_all"
-                style="@style/Widget.Material3.CompoundButton.MaterialSwitch"
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/row_switch_sync_all"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="@string/sync_all_files"
-                android:checked="true" />
+                android:clickable="true"
+                android:focusable="true"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:rippleColor="?attr/colorControlHighlight"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:minHeight="56dp"
+                    android:orientation="horizontal"
+                    android:paddingStart="12dp"
+                    android:paddingTop="4dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="4dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/sync_all_files"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="14sp" />
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switch_sync_all"
+                        style="@style/Widget.Material3.CompoundButton.MaterialSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:contentDescription="@string/sync_all_files"
+                        android:checked="true" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
     </ScrollView>
