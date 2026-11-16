@@ -1300,8 +1300,12 @@
                             android:textSize="16sp" />
 
                         <LinearLayout
+                            android:id="@+id/item_notification"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
 
@@ -1392,8 +1396,12 @@
                             android:textSize="16sp" />
 
                         <LinearLayout
+                            android:id="@+id/item_auto_update"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
 
@@ -1430,8 +1438,12 @@
                         </LinearLayout>
 
                         <LinearLayout
+                            android:id="@+id/item_prerelease"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
                             android:layout_marginTop="16dp"
                             android:layout_marginBottom="16dp"
                             android:gravity="center_vertical"
@@ -1563,8 +1575,12 @@
                             android:textSize="16sp" />
 
                         <LinearLayout
+                            android:id="@+id/item_firebase"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
 
