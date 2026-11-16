@@ -527,11 +527,11 @@
     <string name="settings_version_fallback">EzConvert v0.0.0</string>
 
     <string name="settings_transcode">Transcoding</string>
-    <string name="settings_transcode_desc">Hardware acceleration, multi-threading, and other performance settings</string>
+    <string name="settings_transcode_desc">Hardware acceleration and performance options</string>
     <string name="settings_general">General</string>
-    <string name="settings_general_desc">Interface, language, notifications, and other general settings</string>
+    <string name="settings_general_desc">Language, appearance, and notification settings</string>
     <string name="settings_about">About</string>
-    <string name="settings_about_desc">Version info, help, and support</string>
+    <string name="settings_about_desc">Version information, help, and support</string>
     <string name="settings_footer">EzConvert Settings Mode</string>
 
     <string name="volume_setting">Volume Setting</string>
