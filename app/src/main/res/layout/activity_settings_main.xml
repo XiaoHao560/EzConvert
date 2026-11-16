@@ -74,205 +74,225 @@
                     android:padding="8dp"
                     android:orientation="vertical">
 
-                    <LinearLayout
+                    <com.google.android.material.card.MaterialCardView
                         android:id="@+id/transcode_settings_item"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:minHeight="80dp"
-                        android:paddingTop="12dp"
-                        android:paddingBottom="12dp"
-                        android:paddingEnd="16dp"
-                        android:background="?attr/selectableItemBackground"
-                        android:gravity="center_vertical"
                         android:clickable="true"
-                        android:orientation="horizontal"
-                        android:paddingStart="16dp"
-                        android:focusable="true">
+                        android:focusable="true"
+                        app:cardBackgroundColor="@android:color/transparent"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:rippleColor="?attr/colorControlHighlight"
+                        app:strokeWidth="0dp">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:paddingTop="12dp"
+                            android:paddingBottom="12dp"
+                            android:paddingEnd="16dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingStart="16dp">
 
-                        <FrameLayout
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:layout_marginEnd="16dp"
-                            android:background="@drawable/circle_background_primary_container">
+
+                            <FrameLayout
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_marginEnd="16dp"
+                                android:background="@drawable/circle_background_primary_container">
+
+                                <ImageView
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:src="@drawable/play_outline"
+                                    app:tint="?attr/colorPrimary"
+                                    android:layout_gravity="center" />
+
+                            </FrameLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:layout_weight="1">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textSize="16sp"
+                                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:text="@string/settings_transcode" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textSize="14sp"
+                                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:text="@string/settings_transcode_desc" />
+
+                            </LinearLayout>
 
                             <ImageView
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
-                                android:src="@drawable/play_outline"
-                                app:tint="?attr/colorPrimary"
-                                android:layout_gravity="center" />
+                                android:src="@drawable/round_arrow_forward"
+                                app:tint="?attr/colorOnSurfaceVariant" />
 
-                        </FrameLayout>
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:layout_weight="1">
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:textSize="16sp"
-                                android:textAppearance="?attr/textAppearanceTitleMedium"
-                                android:textColor="?attr/colorOnSurface"
-                                android:text="@string/settings_transcode" />
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:textSize="14sp"
-                                android:textAppearance="?attr/textAppearanceBodyMedium"
-                                android:textColor="?attr/colorOnSurfaceVariant"
-                                android:text="@string/settings_transcode_desc" />
 
                         </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
 
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/round_arrow_forward"
-                            app:tint="?attr/colorOnSurfaceVariant" />
-
-                    </LinearLayout>
-
-                    <com.google.android.material.divider.MaterialDivider
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:dividerColor="?attr/colorOutlineVariant"
-                        app:dividerThickness="1dp"
-                        android:layout_marginStart="72dp" />
-
-                    <LinearLayout
+                    <com.google.android.material.card.MaterialCardView
                         android:id="@+id/general_settings_item"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:minHeight="80dp"
-                        android:paddingTop="12dp"
-                        android:paddingBottom="12dp"
-                        android:paddingEnd="16dp"
-                        android:background="?attr/selectableItemBackground"
-                        android:gravity="center_vertical"
                         android:clickable="true"
-                        android:orientation="horizontal"
-                        android:paddingStart="16dp"
-                        android:focusable="true">
+                        android:focusable="true"
+                        app:cardBackgroundColor="@android:color/transparent"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:rippleColor="?attr/colorControlHighlight"
+                        app:strokeWidth="0dp">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:paddingTop="12dp"
+                            android:paddingBottom="12dp"
+                            android:paddingEnd="16dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingStart="16dp">
 
-                        <FrameLayout
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:layout_marginEnd="16dp"
-                            android:background="@drawable/circle_background_primary_container">
+
+                            <FrameLayout
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_marginEnd="16dp"
+                                android:background="@drawable/circle_background_primary_container">
+
+                                <ImageView
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:src="@drawable/cog_outline"
+                                    app:tint="?attr/colorPrimary"
+                                    android:layout_gravity="center" />
+
+                            </FrameLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:layout_weight="1">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textSize="16sp"
+                                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:text="@string/settings_general" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textSize="14sp"
+                                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:text="@string/settings_general_desc" />
+
+                            </LinearLayout>
 
                             <ImageView
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
-                                android:src="@drawable/cog_outline"
-                                app:tint="?attr/colorPrimary"
-                                android:layout_gravity="center" />
+                                android:src="@drawable/round_arrow_forward"
+                                app:tint="?attr/colorOnSurfaceVariant" />
 
-                        </FrameLayout>
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:layout_weight="1">
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:textSize="16sp"
-                                android:textAppearance="?attr/textAppearanceTitleMedium"
-                                android:textColor="?attr/colorOnSurface"
-                                android:text="@string/settings_general" />
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:textSize="14sp"
-                                android:textAppearance="?attr/textAppearanceBodyMedium"
-                                android:textColor="?attr/colorOnSurfaceVariant"
-                                android:text="@string/settings_general_desc" />
 
                         </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
 
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/round_arrow_forward"
-                            app:tint="?attr/colorOnSurfaceVariant" />
 
-                    </LinearLayout>
-
-                    <com.google.android.material.divider.MaterialDivider
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:dividerColor="?attr/colorOutlineVariant"
-                        app:dividerThickness="1dp"
-                        android:layout_marginStart="72dp" />
-
-                    <LinearLayout
+                    <com.google.android.material.card.MaterialCardView
                         android:id="@+id/about_item"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:minHeight="80dp"
-                        android:paddingTop="12dp"
-                        android:paddingBottom="12dp"
-                        android:paddingEnd="16dp"
-                        android:background="?attr/selectableItemBackground"
-                        android:gravity="center_vertical"
                         android:clickable="true"
-                        android:orientation="horizontal"
-                        android:paddingStart="16dp"
-                        android:focusable="true">
+                        android:focusable="true"
+                        app:cardBackgroundColor="@android:color/transparent"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:rippleColor="?attr/colorControlHighlight"
+                        app:strokeWidth="0dp">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:paddingTop="12dp"
+                            android:paddingBottom="12dp"
+                            android:paddingEnd="16dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingStart="16dp">
 
-                        <FrameLayout
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:layout_marginEnd="16dp"
-                            android:background="@drawable/circle_background_primary_container">
+
+                            <FrameLayout
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_marginEnd="16dp"
+                                android:background="@drawable/circle_background_primary_container">
+
+                                <ImageView
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:src="@drawable/information_outline"
+                                    app:tint="?attr/colorPrimary"
+                                    android:layout_gravity="center" />
+
+                            </FrameLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:layout_weight="1">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textSize="16sp"
+                                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:text="@string/settings_about" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textSize="14sp"
+                                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:text="@string/settings_about_desc" />
+
+                            </LinearLayout>
 
                             <ImageView
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
-                                android:src="@drawable/information_outline"
-                                app:tint="?attr/colorPrimary"
-                                android:layout_gravity="center" />
+                                android:src="@drawable/round_arrow_forward"
+                                app:tint="?attr/colorOnSurfaceVariant" />
 
-                        </FrameLayout>
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:layout_weight="1">
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:textSize="16sp"
-                                android:textAppearance="?attr/textAppearanceTitleMedium"
-                                android:textColor="?attr/colorOnSurface"
-                                android:text="@string/settings_about" />
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:textSize="14sp"
-                                android:textAppearance="?attr/textAppearanceBodyMedium"
-                                android:textColor="?attr/colorOnSurfaceVariant"
-                                android:text="@string/settings_about_desc" />
 
                         </LinearLayout>
-
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/round_arrow_forward"
-                            app:tint="?attr/colorOnSurfaceVariant" />
-
-                    </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
 
                 </LinearLayout>
 

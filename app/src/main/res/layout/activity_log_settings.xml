@@ -85,7 +85,8 @@
                             android:paddingVertical="12dp"
                             android:textSize="14sp"
                             android:textColor="?attr/colorOnSurface"
-                            android:text="@string/log_level_verbose" />
+                            android:text="@string/log_level_verbose"
+                            android:background="?attr/selectableItemBackground" />
 
                         <com.google.android.material.divider.MaterialDivider
                             android:layout_width="match_parent"
@@ -101,7 +102,8 @@
                             android:paddingVertical="12dp"
                             android:textSize="14sp"
                             android:textColor="?attr/colorOnSurface"
-                            android:text="@string/log_level_error" />
+                            android:text="@string/log_level_error"
+                            android:background="?attr/selectableItemBackground" />
 
                     </RadioGroup>
 

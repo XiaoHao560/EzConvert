@@ -88,6 +88,9 @@ public class ParameterDialogFragment extends DialogFragment {
     private MaterialSwitch switchSync, switchQuickConversion;
     private MaterialSwitch switchSkipAutomaticVideoQuality, switchSkipAutomaticAudioBitrate,
             switchSkipAutomaticAudioSampleRate, switchSkipAutomaticAudioChannels;
+    private View rowQuickConversionSwitch, rowSyncAllSwitch;
+    private View rowSkipAutomaticVideoQuality, rowSkipAutomaticAudioBitrate;
+    private View rowSkipAutomaticAudioSampleRate, rowSkipAutomaticAudioChannels;
     private TextView tvFileInfo, tvVolumePercent, tvCurrentBitrate, tvQuickConversionSourceInfo;
     private Slider sliderVolume;
     private MaterialAutoCompleteTextView spinnerOutputFormat, spinnerVideoCodec, spinnerAudioCodec, spinnerBitrateUnit;
@@ -246,6 +249,17 @@ public class ParameterDialogFragment extends DialogFragment {
         WindowInsetsHelper.apply(rootView, toolbar, bottomActions);
     }
 
+    /**
+     * 点击开关行的文字或空白区域时切换状态，Switch 本身仍保留原生触摸交互。
+     */
+    private void setupSwitchRowClick(View row, MaterialSwitch switchView) {
+        row.setOnClickListener(v -> {
+            if (switchView.isEnabled()) {
+                switchView.setChecked(!switchView.isChecked());
+            }
+        });
+    }
+
     private void initViews(View view) {
         presetRecycler = view.findViewById(R.id.preset_recycler);
         btnSavePreset = view.findViewById(R.id.btn_save_preset);
@@ -264,6 +278,19 @@ public class ParameterDialogFragment extends DialogFragment {
         switchSkipAutomaticAudioChannels = view.findViewById(R.id.switch_skip_automatic_audio_channels);
         switchSync = view.findViewById(R.id.switch_sync_all);
         switchQuickConversion = view.findViewById(R.id.switch_quick_conversion);
+        rowQuickConversionSwitch = view.findViewById(R.id.row_switch_quick_conversion);
+        rowSyncAllSwitch = view.findViewById(R.id.row_switch_sync_all);
+        rowSkipAutomaticVideoQuality = view.findViewById(R.id.row_skip_automatic_video_quality);
+        rowSkipAutomaticAudioBitrate = view.findViewById(R.id.row_skip_automatic_audio_bitrate);
+        rowSkipAutomaticAudioSampleRate = view.findViewById(R.id.row_skip_automatic_audio_sample_rate);
+        rowSkipAutomaticAudioChannels = view.findViewById(R.id.row_skip_automatic_audio_channels);
+
+        setupSwitchRowClick(rowQuickConversionSwitch, switchQuickConversion);
+        setupSwitchRowClick(rowSyncAllSwitch, switchSync);
+        setupSwitchRowClick(rowSkipAutomaticVideoQuality, switchSkipAutomaticVideoQuality);
+        setupSwitchRowClick(rowSkipAutomaticAudioBitrate, switchSkipAutomaticAudioBitrate);
+        setupSwitchRowClick(rowSkipAutomaticAudioSampleRate, switchSkipAutomaticAudioSampleRate);
+        setupSwitchRowClick(rowSkipAutomaticAudioChannels, switchSkipAutomaticAudioChannels);
         tvFileInfo = view.findViewById(R.id.current_file_info);
         tvVolumePercent = view.findViewById(R.id.tv_volume_percent);
         tvCurrentBitrate = view.findViewById(R.id.tv_current_bitrate);
@@ -1592,10 +1619,10 @@ public class ParameterDialogFragment extends DialogFragment {
         advancedVideoSection.setVisibility(!quick && videoTask ? View.VISIBLE : View.GONE);
         advancedImageSection.setVisibility(!quick && (imageTask || screenshotTask) ? View.VISIBLE : View.GONE);
         advancedAutomaticOptionsContainer.setVisibility(!quick && (videoTask || audioTask) ? View.VISIBLE : View.GONE);
-        switchSkipAutomaticVideoQuality.setVisibility(!quick && videoTask ? View.VISIBLE : View.GONE);
-        switchSkipAutomaticAudioBitrate.setVisibility(!quick && hasAudioOutput ? View.VISIBLE : View.GONE);
-        switchSkipAutomaticAudioSampleRate.setVisibility(!quick && hasAudioOutput ? View.VISIBLE : View.GONE);
-        switchSkipAutomaticAudioChannels.setVisibility(!quick && hasAudioOutput ? View.VISIBLE : View.GONE);
+        rowSkipAutomaticVideoQuality.setVisibility(!quick && videoTask ? View.VISIBLE : View.GONE);
+        rowSkipAutomaticAudioBitrate.setVisibility(!quick && hasAudioOutput ? View.VISIBLE : View.GONE);
+        rowSkipAutomaticAudioSampleRate.setVisibility(!quick && hasAudioOutput ? View.VISIBLE : View.GONE);
+        rowSkipAutomaticAudioChannels.setVisibility(!quick && hasAudioOutput ? View.VISIBLE : View.GONE);
     }
 
     private boolean isQuickConversionSupported() {

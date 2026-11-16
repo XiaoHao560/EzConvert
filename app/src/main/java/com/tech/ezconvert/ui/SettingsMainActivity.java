@@ -1,5 +1,6 @@
 package com.tech.ezconvert.ui;
 
+import com.google.android.material.card.MaterialCardView;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -24,9 +25,9 @@ public class SettingsMainActivity extends BaseActivity {
     }
     
     private TextView versionText;
-    private LinearLayout transcodeSettingsItem;
-    private LinearLayout generalSettingsItem;
-    private LinearLayout aboutItem;
+    private MaterialCardView transcodeSettingsItem;
+    private MaterialCardView generalSettingsItem;
+    private MaterialCardView aboutItem;
     private MaterialToolbar toolbar;
     
     @Override

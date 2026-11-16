@@ -19,7 +19,7 @@ public final class ToolbarAppearanceHelper {
     private ToolbarAppearanceHelper() {
     }
 
-    /** 开启透明 Toolbar 时移除背景；关闭时在自定义背景场景恢复 Material 3 Surface 背景 */
+    /** 仅在自定义背景和透明 Toolbar 同时启用时移除顶部栏背景 */
     public static void apply(
             @NonNull Activity activity,
             @Nullable MaterialToolbar toolbar,
@@ -43,13 +43,8 @@ public final class ToolbarAppearanceHelper {
             backgroundHost = appBarLayout;
         }
 
+        // 关闭透明 Toolbar 时不修改原有背景与滚动行为，保持和未启用自定义背景时一致
         if (!themeManager.shouldUseTransparentToolbar()) {
-            // 自定义背景下关闭透明效果时，使用不透背景的 Surface，避免背景图片穿透 Toolbar。
-            int surfaceColor = MaterialColors.getColor(
-                    toolbar,
-                    com.google.android.material.R.attr.colorSurfaceContainer);
-            backgroundHost.setBackgroundColor(surfaceColor);
-            toolbar.setBackgroundColor(surfaceColor);
             return;
         }
 
