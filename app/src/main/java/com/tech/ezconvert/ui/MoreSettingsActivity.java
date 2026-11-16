@@ -49,6 +49,10 @@ public class MoreSettingsActivity extends BaseActivity {
     private MaterialSwitch prereleaseSwitch;
     private MaterialSwitch notificationSwitch;
     private MaterialSwitch firebaseSwitch;
+    private LinearLayout itemNotification;
+    private LinearLayout itemAutoUpdate;
+    private LinearLayout itemPrerelease;
+    private LinearLayout itemFirebase;
     private MaterialAutoCompleteTextView frequencySpinner;
     private LinearLayout frequencyLayout;
     private MaterialToolbar toolbar;
@@ -228,9 +232,15 @@ public class MoreSettingsActivity extends BaseActivity {
         frequencyLayout = findViewById(R.id.frequency_layout);
         
         // 通知开关
+        itemNotification = findViewById(R.id.item_notification);
         notificationSwitch = findViewById(R.id.notification_switch);
         
+        // 更新设置开关
+        itemAutoUpdate = findViewById(R.id.item_auto_update);
+        itemPrerelease = findViewById(R.id.item_prerelease);
+        
         // Firebase 数据收集开关
+        itemFirebase = findViewById(R.id.item_firebase);
         firebaseSwitch = findViewById(R.id.firebase_switch);
         
         String[] frequencyItems = getResources().getStringArray(R.array.update_frequency_options);
@@ -256,10 +266,7 @@ public class MoreSettingsActivity extends BaseActivity {
         itemThemeDark.setOnClickListener(v -> setThemeMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES));
 
         // 自定义背景
-        itemCustomBackground.setOnClickListener(v -> {
-            boolean enabled = !customBackgroundSwitch.isChecked();
-            customBackgroundSwitch.setChecked(enabled);
-        });
+        setupSwitchRowClick(itemCustomBackground, customBackgroundSwitch);
         customBackgroundSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             configManager.setCustomBackgroundEnabled(isChecked);
             if (isChecked) {
@@ -268,11 +275,7 @@ public class MoreSettingsActivity extends BaseActivity {
             updateCustomBackgroundRelatedSettingsEnabled(isChecked);
             recreate();
         });
-        itemTransparentToolbar.setOnClickListener(v -> {
-            if (transparentToolbarSwitch.isEnabled()) {
-                transparentToolbarSwitch.setChecked(!transparentToolbarSwitch.isChecked());
-            }
-        });
+        setupSwitchRowClick(itemTransparentToolbar, transparentToolbarSwitch);
         transparentToolbarSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             configManager.setTransparentToolbarEnabled(isChecked);
             recreate();
@@ -328,6 +331,15 @@ public class MoreSettingsActivity extends BaseActivity {
             }
         });
 
+        // 开关所在整行均可点击，状态变化仍由各自的 OnCheckedChangeListener 处理
+        if (DynamicColors.isDynamicColorAvailable()) {
+            setupSwitchRowClick(itemDynamicColor, dynamicColorSwitch);
+        }
+        setupSwitchRowClick(itemNotification, notificationSwitch);
+        setupSwitchRowClick(itemAutoUpdate, autoUpdateSwitch);
+        setupSwitchRowClick(itemPrerelease, prereleaseSwitch);
+        setupSwitchRowClick(itemFirebase, firebaseSwitch);
+
         // 动态取色开关监听: 保存后即时刷新当前 Activity
         dynamicColorSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             configManager.setDynamicColorEnabled(isChecked);
@@ -377,6 +389,17 @@ public class MoreSettingsActivity extends BaseActivity {
         firebaseSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             configManager.setFirebaseAnalyticsEnabled(isChecked);
             FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(isChecked);
+        });
+    }
+
+    /**
+     * 让开关所在的整行都可以切换状态，复用开关自身的状态监听逻辑。
+     */
+    private void setupSwitchRowClick(View row, MaterialSwitch switchView) {
+        row.setOnClickListener(v -> {
+            if (switchView.isEnabled()) {
+                switchView.setChecked(!switchView.isChecked());
+            }
         });
     }
 
