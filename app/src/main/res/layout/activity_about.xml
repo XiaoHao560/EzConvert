@@ -574,13 +574,17 @@
                  app:strokeWidth="1dp"
                  app:cardBackgroundColor="@android:color/transparent"
                  style="@style/Widget.Material3.CardView.Outlined"
+                 android:clipChildren="false"
+                 android:clipToPadding="false"
                  app:cardCornerRadius="12dp">
 
                 <LinearLayout
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
                      android:padding="24dp"
-                     android:orientation="vertical">
+                     android:orientation="vertical"
+                     android:clipChildren="false"
+                     android:clipToPadding="false">
 
                     <com.google.android.material.card.MaterialCardView
                         android:layout_height="wrap_content"
