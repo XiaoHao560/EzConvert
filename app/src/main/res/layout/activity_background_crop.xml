@@ -71,5 +71,7 @@
                 android:layout_weight="1"
                 android:text="@string/background_crop_confirm" />
         </LinearLayout>
+
     </LinearLayout>
+
 </FrameLayout>
