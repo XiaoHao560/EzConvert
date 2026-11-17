@@ -1,492 +1,492 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout
-     xmlns:android="http://schemas.android.com/apk/res/android"
-     xmlns:app="http://schemas.android.com/apk/res-auto"
-     android:layout_height="match_parent"
-     android:layout_width="match_parent"
-     android:background="?attr/colorSurfaceContainerLowest">
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:background="?attr/colorSurfaceContainerLowest">
 
     <com.google.android.material.appbar.AppBarLayout
-         android:layout_height="wrap_content"
-         android:layout_width="match_parent"
-         android:background="@android:color/transparent"
-         android:elevation="0dp"
-         app:elevation="0dp">
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:background="@android:color/transparent"
+        android:elevation="0dp"
+        app:elevation="0dp">
 
         <com.google.android.material.appbar.MaterialToolbar
-             android:layout_height="wrap_content"
-             android:layout_width="match_parent"
-             app:navigationIconTint="?attr/colorOnSurfaceVariant"
-             app:navigationContentDescription="@string/tooltip_back"
-             android:background="@android:color/transparent"
-             app:title="@string/about_title"
-             app:titleCentered="true"
-             app:navigationIcon="@drawable/round_arrow_back"
-             style="@style/Widget.Material3.Toolbar.Surface"
-             android:id="@+id/title_container">
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:background="@android:color/transparent"
+            app:navigationIconTint="?attr/colorOnSurfaceVariant"
+            app:title="@string/about_title"
+            app:titleCentered="true"
+            app:navigationIcon="@drawable/round_arrow_back"
+            style="@style/Widget.Material3.Toolbar.Surface"
+            app:navigationContentDescription="@string/tooltip_back"
+            android:id="@+id/title_container">
 
         </com.google.android.material.appbar.MaterialToolbar>
 
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
-         android:layout_height="match_parent"
-         android:layout_width="match_parent"
-         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-         android:scrollbarStyle="outsideOverlay"
-         android:fadeScrollbars="true"
-         android:id="@+id/activity_about_scroll">
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:scrollbarStyle="outsideOverlay"
+        android:fadeScrollbars="true"
+        android:id="@+id/activity_about_scroll">
 
         <LinearLayout
-             android:layout_height="wrap_content"
-             android:layout_width="match_parent"
-             android:paddingEnd="16dp"
-             android:orientation="vertical"
-             android:paddingBottom="16dp"
-             android:paddingStart="16dp"
-             android:id="@+id/scroll_content"
-             android:paddingTop="8dp">
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:paddingEnd="16dp"
+            android:orientation="vertical"
+            android:paddingBottom="16dp"
+            android:paddingStart="16dp"
+            android:id="@+id/scroll_content"
+            android:paddingTop="8dp">
 
             <com.google.android.material.card.MaterialCardView
-                 android:layout_height="wrap_content"
-                 android:layout_width="match_parent"
-                 android:layout_marginBottom="12dp"
-                 app:strokeColor="?attr/colorOutline"
-                 app:cardElevation="0dp"
-                 app:strokeWidth="1dp"
-                 app:cardBackgroundColor="@android:color/transparent"
-                 style="@style/Widget.Material3.CardView.Outlined"
-                 app:cardCornerRadius="12dp">
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_marginBottom="12dp"
+                app:strokeColor="?attr/colorOutline"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                style="@style/Widget.Material3.CardView.Outlined"
+                app:cardCornerRadius="12dp">
 
                 <LinearLayout
-                     android:layout_height="wrap_content"
-                     android:layout_width="match_parent"
-                     android:padding="24dp"
-                     android:orientation="vertical">
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:padding="24dp"
+                    android:orientation="vertical">
 
                     <LinearLayout
-                         android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:layout_marginBottom="16dp"
-                         android:gravity="center"
-                         android:orientation="vertical">
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:layout_marginBottom="16dp"
+                        android:gravity="center"
+                        android:orientation="vertical">
 
                         <ImageView
-                             android:layout_height="64dp"
-                             android:layout_width="64dp"
-                             android:layout_marginBottom="8dp"
-                             android:src="@mipmap/ic_launcher_foreground" />
+                            android:layout_height="64dp"
+                            android:layout_width="64dp"
+                            android:layout_marginBottom="8dp"
+                            android:src="@mipmap/ic_launcher_foreground" />
 
                         <TextView
-                             android:layout_height="wrap_content"
-                             android:layout_width="wrap_content"
-                             android:textSize="24sp"
-                             android:fontFamily="sans-serif-medium"
-                             android:textColor="?attr/colorOnSurface"
-                             android:text="@string/about_app_name"
-                             android:textStyle="bold" />
+                            android:layout_height="wrap_content"
+                            android:layout_width="wrap_content"
+                            android:textSize="24sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:textColor="?attr/colorOnSurface"
+                            android:text="@string/about_app_name"
+                            android:textStyle="bold" />
 
                         <TextView
-                             android:layout_height="wrap_content"
-                             android:layout_width="wrap_content"
-                             android:textSize="14sp"
-                             android:fontFamily="sans-serif"
-                             android:textColor="?attr/colorOnSurfaceVariant"
-                             android:layout_marginTop="4dp"
-                             android:id="@+id/version_text"
-                             android:text="@string/about_version_default" />
+                            android:layout_height="wrap_content"
+                            android:layout_width="wrap_content"
+                            android:textSize="14sp"
+                            android:fontFamily="sans-serif"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:layout_marginTop="4dp"
+                            android:id="@+id/version_text"
+                            android:text="@string/about_version_default" />
 
                     </LinearLayout>
 
                     <TextView
-                         android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:layout_marginBottom="16dp"
-                         android:textSize="14sp"
-                         android:fontFamily="sans-serif"
-                         android:textColor="?attr/colorOnSurface"
-                         android:lineSpacingExtra="4dp"
-                         android:text="@string/about_app_description" />
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:layout_marginBottom="16dp"
+                        android:textSize="14sp"
+                        android:fontFamily="sans-serif"
+                        android:textColor="?attr/colorOnSurface"
+                        android:lineSpacingExtra="4dp"
+                        android:text="@string/about_app_description" />
 
                     <TextView
-                         android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:textSize="13sp"
-                         android:fontFamily="sans-serif"
-                         android:textColor="?attr/colorOnSurfaceVariant"
-                         android:lineSpacingExtra="4dp"
-                         android:text="@string/about_developer_info" />
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:textSize="13sp"
+                        android:fontFamily="sans-serif"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:lineSpacingExtra="4dp"
+                        android:text="@string/about_developer_info" />
 
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
-                 android:layout_height="wrap_content"
-                 android:layout_width="match_parent"
-                 android:layout_marginBottom="12dp"
-                 app:strokeColor="?attr/colorOutline"
-                 app:cardElevation="0dp"
-                 app:strokeWidth="1dp"
-                 app:cardBackgroundColor="@android:color/transparent"
-                 style="@style/Widget.Material3.CardView.Outlined"
-                 app:cardCornerRadius="12dp">
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_marginBottom="12dp"
+                app:strokeColor="?attr/colorOutline"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                style="@style/Widget.Material3.CardView.Outlined"
+                app:cardCornerRadius="12dp">
 
                 <LinearLayout
-                     android:layout_height="wrap_content"
-                     android:layout_width="match_parent"
-                     android:padding="8dp"
-                     android:orientation="vertical">
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:padding="8dp"
+                    android:orientation="vertical">
 
                     <TextView
-                         android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:layout_marginBottom="8dp"
-                         android:textSize="16sp"
-                         android:fontFamily="sans-serif-medium"
-                         android:textColor="?attr/colorOnSurface"
-                         android:layout_marginTop="8dp"
-                         android:layout_marginStart="16dp"
-                         android:text="@string/about_info_section_title" />
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:layout_marginBottom="8dp"
+                        android:textSize="16sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="?attr/colorOnSurface"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginStart="16dp"
+                        android:text="@string/about_info_section_title" />
 
                     <com.google.android.material.card.MaterialCardView
                         android:layout_height="wrap_content"
-                        android:minHeight="80dp"
                         android:layout_width="match_parent"
+                        app:rippleColor="?attr/colorControlHighlight"
                         android:clickable="true"
-                        android:focusable="true"
-                        android:id="@+id/source_code_item"
+                        android:minHeight="80dp"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="0dp"
                         app:cardBackgroundColor="@android:color/transparent"
                         app:cardCornerRadius="12dp"
-                        app:cardElevation="0dp"
-                        app:rippleColor="?attr/colorControlHighlight"
-                        app:strokeWidth="0dp">
+                        android:focusable="true"
+                        android:id="@+id/source_code_item">
+
                         <LinearLayout
-                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:paddingTop="12dp"
-                            android:paddingBottom="12dp"
+                            android:layout_width="match_parent"
                             android:paddingEnd="16dp"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
-                            android:paddingStart="16dp">
-
+                            android:paddingBottom="12dp"
+                            android:paddingStart="16dp"
+                            android:layout_gravity="center_vertical"
+                            android:paddingTop="12dp">
 
                             <FrameLayout
-                                 android:layout_height="40dp"
-                                 android:layout_width="40dp"
-                                 android:layout_marginEnd="16dp"
-                                 android:background="@drawable/circle_background_primary_container">
+                                android:layout_height="40dp"
+                                android:layout_width="40dp"
+                                android:layout_marginEnd="16dp"
+                                android:background="@drawable/circle_background_primary_container">
 
                                 <ImageView
-                                     android:layout_height="24dp"
-                                     android:layout_width="24dp"
-                                     android:src="@drawable/round_code"
-                                     app:tint="?attr/colorPrimary"
-                                     android:layout_gravity="center" />
+                                    android:layout_height="24dp"
+                                    android:layout_width="24dp"
+                                    android:src="@drawable/round_code"
+                                    app:tint="?attr/colorPrimary"
+                                    android:layout_gravity="center" />
 
                             </FrameLayout>
 
                             <LinearLayout
-                                 android:layout_height="wrap_content"
-                                 android:layout_width="0dp"
-                                 android:orientation="vertical"
-                                 android:layout_weight="1">
+                                android:layout_height="wrap_content"
+                                android:layout_width="0dp"
+                                android:orientation="vertical"
+                                android:layout_weight="1">
 
                                 <TextView
-                                     android:layout_height="wrap_content"
-                                     android:layout_width="match_parent"
-                                     android:textSize="16sp"
-                                     android:fontFamily="sans-serif-medium"
-                                     android:textColor="?attr/colorOnSurface"
-                                     android:text="@string/about_source_code" />
+                                    android:layout_height="wrap_content"
+                                    android:layout_width="match_parent"
+                                    android:textSize="16sp"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:text="@string/about_source_code" />
 
                                 <TextView
-                                     android:layout_height="wrap_content"
-                                     android:layout_width="match_parent"
-                                     android:textSize="12sp"
-                                     android:fontFamily="sans-serif"
-                                     android:textColor="?attr/colorOnSurfaceVariant"
-                                     android:text="@string/about_source_code_desc" />
+                                    android:layout_height="wrap_content"
+                                    android:layout_width="match_parent"
+                                    android:textSize="12sp"
+                                    android:fontFamily="sans-serif"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:text="@string/about_source_code_desc" />
 
                             </LinearLayout>
 
                             <ImageView
-                                 android:layout_height="24dp"
-                                 android:layout_width="24dp"
-                                 android:src="@drawable/round_arrow_forward"
-                                 app:tint="?attr/colorOnSurfaceVariant" />
-
+                                android:layout_height="24dp"
+                                android:layout_width="24dp"
+                                android:src="@drawable/round_arrow_forward"
+                                app:tint="?attr/colorOnSurfaceVariant" />
 
                         </LinearLayout>
+
                     </com.google.android.material.card.MaterialCardView>
 
                     <com.google.android.material.card.MaterialCardView
                         android:layout_height="wrap_content"
-                        android:minHeight="80dp"
                         android:layout_width="match_parent"
+                        app:rippleColor="?attr/colorControlHighlight"
                         android:clickable="true"
-                        android:focusable="true"
-                        android:id="@+id/feedback_item"
+                        android:minHeight="80dp"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="0dp"
                         app:cardBackgroundColor="@android:color/transparent"
                         app:cardCornerRadius="12dp"
-                        app:cardElevation="0dp"
-                        app:rippleColor="?attr/colorControlHighlight"
-                        app:strokeWidth="0dp">
+                        android:focusable="true"
+                        android:id="@+id/feedback_item">
+
                         <LinearLayout
-                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:paddingTop="12dp"
-                            android:paddingBottom="12dp"
+                            android:layout_width="match_parent"
                             android:paddingEnd="16dp"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
-                            android:paddingStart="16dp">
-
+                            android:paddingBottom="12dp"
+                            android:paddingStart="16dp"
+                            android:layout_gravity="center_vertical"
+                            android:paddingTop="12dp">
 
                             <FrameLayout
-                                 android:layout_height="40dp"
-                                 android:layout_width="40dp"
-                                 android:layout_marginEnd="16dp"
-                                 android:background="@drawable/circle_background_primary_container">
+                                android:layout_height="40dp"
+                                android:layout_width="40dp"
+                                android:layout_marginEnd="16dp"
+                                android:background="@drawable/circle_background_primary_container">
 
                                 <ImageView
-                                     android:layout_height="24dp"
-                                     android:layout_width="24dp"
-                                     android:src="@drawable/message_alert_outline"
-                                     app:tint="?attr/colorPrimary"
-                                     android:layout_gravity="center" />
+                                    android:layout_height="24dp"
+                                    android:layout_width="24dp"
+                                    android:src="@drawable/message_alert_outline"
+                                    app:tint="?attr/colorPrimary"
+                                    android:layout_gravity="center" />
 
                             </FrameLayout>
 
                             <LinearLayout
-                                 android:layout_height="wrap_content"
-                                 android:layout_width="0dp"
-                                 android:orientation="vertical"
-                                 android:layout_weight="1">
+                                android:layout_height="wrap_content"
+                                android:layout_width="0dp"
+                                android:orientation="vertical"
+                                android:layout_weight="1">
 
                                 <TextView
-                                     android:layout_height="wrap_content"
-                                     android:layout_width="match_parent"
-                                     android:textSize="16sp"
-                                     android:fontFamily="sans-serif-medium"
-                                     android:textColor="?attr/colorOnSurface"
-                                     android:text="@string/about_feedback" />
+                                    android:layout_height="wrap_content"
+                                    android:layout_width="match_parent"
+                                    android:textSize="16sp"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:text="@string/about_feedback" />
 
                                 <TextView
-                                     android:layout_height="wrap_content"
-                                     android:layout_width="match_parent"
-                                     android:textSize="12sp"
-                                     android:fontFamily="sans-serif"
-                                     android:textColor="?attr/colorOnSurfaceVariant"
-                                     android:text="@string/about_feedback_desc" />
+                                    android:layout_height="wrap_content"
+                                    android:layout_width="match_parent"
+                                    android:textSize="12sp"
+                                    android:fontFamily="sans-serif"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:text="@string/about_feedback_desc" />
 
                             </LinearLayout>
 
                             <ImageView
-                                 android:layout_height="24dp"
-                                 android:layout_width="24dp"
-                                 android:src="@drawable/round_arrow_forward"
-                                 app:tint="?attr/colorOnSurfaceVariant" />
-
+                                android:layout_height="24dp"
+                                android:layout_width="24dp"
+                                android:src="@drawable/round_arrow_forward"
+                                app:tint="?attr/colorOnSurfaceVariant" />
 
                         </LinearLayout>
+
                     </com.google.android.material.card.MaterialCardView>
 
                     <com.google.android.material.card.MaterialCardView
                         android:layout_height="wrap_content"
-                        android:minHeight="80dp"
                         android:layout_width="match_parent"
+                        app:rippleColor="?attr/colorControlHighlight"
                         android:clickable="true"
-                        android:focusable="true"
-                        android:id="@+id/check_update_item"
+                        android:minHeight="80dp"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="0dp"
                         app:cardBackgroundColor="@android:color/transparent"
                         app:cardCornerRadius="12dp"
-                        app:cardElevation="0dp"
-                        app:rippleColor="?attr/colorControlHighlight"
-                        app:strokeWidth="0dp">
+                        android:focusable="true"
+                        android:id="@+id/check_update_item">
+
                         <LinearLayout
-                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:paddingTop="12dp"
-                            android:paddingBottom="12dp"
+                            android:layout_width="match_parent"
                             android:paddingEnd="16dp"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
-                            android:paddingStart="16dp">
-
+                            android:paddingBottom="12dp"
+                            android:paddingStart="16dp"
+                            android:layout_gravity="center_vertical"
+                            android:paddingTop="12dp">
 
                             <FrameLayout
-                                 android:layout_height="40dp"
-                                 android:layout_width="40dp"
-                                 android:layout_marginEnd="16dp"
-                                 android:background="@drawable/circle_background_primary_container">
+                                android:layout_height="40dp"
+                                android:layout_width="40dp"
+                                android:layout_marginEnd="16dp"
+                                android:background="@drawable/circle_background_primary_container">
 
                                 <ImageView
-                                     android:layout_height="24dp"
-                                     android:layout_width="24dp"
-                                     android:src="@drawable/clock_outline"
-                                     app:tint="?attr/colorPrimary"
-                                     android:layout_gravity="center" />
+                                    android:layout_height="24dp"
+                                    android:layout_width="24dp"
+                                    android:src="@drawable/clock_outline"
+                                    app:tint="?attr/colorPrimary"
+                                    android:layout_gravity="center" />
 
                             </FrameLayout>
 
                             <LinearLayout
-                                 android:layout_height="wrap_content"
-                                 android:layout_width="0dp"
-                                 android:orientation="vertical"
-                                 android:layout_weight="1">
+                                android:layout_height="wrap_content"
+                                android:layout_width="0dp"
+                                android:orientation="vertical"
+                                android:layout_weight="1">
 
                                 <TextView
-                                     android:layout_height="wrap_content"
-                                     android:layout_width="match_parent"
-                                     android:textSize="16sp"
-                                     android:fontFamily="sans-serif-medium"
-                                     android:textColor="?attr/colorOnSurface"
-                                     android:text="@string/about_check_update" />
+                                    android:layout_height="wrap_content"
+                                    android:layout_width="match_parent"
+                                    android:textSize="16sp"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:text="@string/about_check_update" />
 
                                 <TextView
-                                     android:layout_height="wrap_content"
-                                     android:layout_width="match_parent"
-                                     android:clickable="true"
-                                     android:textSize="12sp"
-                                     android:fontFamily="sans-serif"
-                                     android:textColor="?attr/colorOnSurfaceVariant"
-                                     android:focusable="true"
-                                     android:id="@+id/update_status_text"
-                                     android:text="@string/about_update_status_default" />
+                                    android:layout_height="wrap_content"
+                                    android:layout_width="match_parent"
+                                    android:clickable="true"
+                                    android:textSize="12sp"
+                                    android:fontFamily="sans-serif"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:focusable="true"
+                                    android:id="@+id/update_status_text"
+                                    android:text="@string/about_update_status_default" />
 
                             </LinearLayout>
 
                             <ImageView
-                                 android:layout_height="24dp"
-                                 android:layout_width="24dp"
-                                 android:src="@drawable/round_arrow_forward"
-                                 app:tint="?attr/colorOnSurfaceVariant" />
-
+                                android:layout_height="24dp"
+                                android:layout_width="24dp"
+                                android:src="@drawable/round_arrow_forward"
+                                app:tint="?attr/colorOnSurfaceVariant" />
 
                         </LinearLayout>
+
                     </com.google.android.material.card.MaterialCardView>
 
                     <LinearLayout
-                         android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:visibility="gone"
-                         android:paddingEnd="16dp"
-                         android:orientation="vertical"
-                         android:paddingBottom="8dp"
-                         android:paddingStart="64dp"
-                         android:id="@+id/test_update_item"
-                         android:paddingTop="8dp">
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:visibility="gone"
+                        android:paddingEnd="16dp"
+                        android:orientation="vertical"
+                        android:paddingBottom="8dp"
+                        android:paddingStart="64dp"
+                        android:id="@+id/test_update_item"
+                        android:paddingTop="8dp">
 
                         <com.google.android.material.divider.MaterialDivider
-                             android:layout_height="wrap_content"
-                             android:layout_width="match_parent"
-                             android:layout_marginBottom="8dp"
-                             app:dividerColor="?attr/colorOutlineVariant"
-                             app:dividerThickness="1dp" />
+                            android:layout_height="wrap_content"
+                            android:layout_width="match_parent"
+                            android:layout_marginBottom="8dp"
+                            app:dividerColor="?attr/colorOutlineVariant"
+                            app:dividerThickness="1dp" />
 
                         <com.google.android.material.card.MaterialCardView
                             android:layout_height="wrap_content"
                             android:layout_width="match_parent"
+                            app:rippleColor="?attr/colorControlHighlight"
                             android:clickable="true"
-                            android:focusable="true"
-                            android:id="@+id/test_update_click_area"
+                            app:cardElevation="0dp"
+                            app:strokeWidth="0dp"
                             app:cardBackgroundColor="@android:color/transparent"
                             app:cardCornerRadius="8dp"
-                            app:cardElevation="0dp"
-                            app:rippleColor="?attr/colorControlHighlight"
-                            app:strokeWidth="0dp">
+                            android:focusable="true"
+                            android:id="@+id/test_update_click_area">
+
                             <LinearLayout
-                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_gravity="center_vertical"
+                                android:layout_width="match_parent"
                                 android:padding="8dp"
-                                android:orientation="vertical">
-
-
-                                <TextView
-                                     android:layout_height="wrap_content"
-                                     android:layout_width="match_parent"
-                                     android:textSize="14sp"
-                                     android:fontFamily="sans-serif-medium"
-                                     android:textColor="?attr/colorPrimary"
-                                     android:text="@string/about_test_update_title" />
+                                android:orientation="vertical"
+                                android:layout_gravity="center_vertical">
 
                                 <TextView
-                                     android:layout_height="wrap_content"
-                                     android:layout_width="match_parent"
-                                     android:textSize="10sp"
-                                     android:fontFamily="sans-serif"
-                                     android:textColor="?attr/colorOnSurfaceVariant"
-                                     android:layout_marginTop="2dp"
-                                     android:text="@string/about_test_update_desc" />
+                                    android:layout_height="wrap_content"
+                                    android:layout_width="match_parent"
+                                    android:textSize="14sp"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:textColor="?attr/colorPrimary"
+                                    android:text="@string/about_test_update_title" />
 
+                                <TextView
+                                    android:layout_height="wrap_content"
+                                    android:layout_width="match_parent"
+                                    android:textSize="10sp"
+                                    android:fontFamily="sans-serif"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:layout_marginTop="2dp"
+                                    android:text="@string/about_test_update_desc" />
 
                             </LinearLayout>
+
                         </com.google.android.material.card.MaterialCardView>
 
                     </LinearLayout>
 
                     <LinearLayout
-                         android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:visibility="gone"
-                         android:paddingEnd="16dp"
-                         android:orientation="vertical"
-                         android:paddingBottom="8dp"
-                         android:paddingStart="64dp"
-                         android:id="@+id/force_check_update_item"
-                         android:paddingTop="8dp">
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:visibility="gone"
+                        android:paddingEnd="16dp"
+                        android:orientation="vertical"
+                        android:paddingBottom="8dp"
+                        android:paddingStart="64dp"
+                        android:id="@+id/force_check_update_item"
+                        android:paddingTop="8dp">
 
                         <com.google.android.material.divider.MaterialDivider
-                             android:layout_height="wrap_content"
-                             android:layout_width="match_parent"
-                             android:layout_marginBottom="8dp"
-                             app:dividerColor="?attr/colorOutlineVariant"
-                             app:dividerThickness="1dp" />
+                            android:layout_height="wrap_content"
+                            android:layout_width="match_parent"
+                            android:layout_marginBottom="8dp"
+                            app:dividerColor="?attr/colorOutlineVariant"
+                            app:dividerThickness="1dp" />
 
                         <com.google.android.material.card.MaterialCardView
                             android:layout_height="wrap_content"
                             android:layout_width="match_parent"
+                            app:rippleColor="?attr/colorControlHighlight"
                             android:clickable="true"
-                            android:focusable="true"
-                            android:id="@+id/force_check_update_click_area"
+                            app:cardElevation="0dp"
+                            app:strokeWidth="0dp"
                             app:cardBackgroundColor="@android:color/transparent"
                             app:cardCornerRadius="8dp"
-                            app:cardElevation="0dp"
-                            app:rippleColor="?attr/colorControlHighlight"
-                            app:strokeWidth="0dp">
+                            android:focusable="true"
+                            android:id="@+id/force_check_update_click_area">
+
                             <LinearLayout
-                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_gravity="center_vertical"
+                                android:layout_width="match_parent"
                                 android:padding="8dp"
-                                android:orientation="vertical">
-
-
-                                <TextView
-                                     android:layout_height="wrap_content"
-                                     android:layout_width="match_parent"
-                                     android:textSize="14sp"
-                                     android:fontFamily="sans-serif-medium"
-                                     android:textColor="?attr/colorPrimary"
-                                     android:text="@string/about_force_check_update_title" />
+                                android:orientation="vertical"
+                                android:layout_gravity="center_vertical">
 
                                 <TextView
-                                     android:layout_height="wrap_content"
-                                     android:layout_width="match_parent"
-                                     android:textSize="10sp"
-                                     android:fontFamily="sans-serif"
-                                     android:textColor="?attr/colorOnSurfaceVariant"
-                                     android:layout_marginTop="2dp"
-                                     android:text="@string/about_force_check_update_desc" />
+                                    android:layout_height="wrap_content"
+                                    android:layout_width="match_parent"
+                                    android:textSize="14sp"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:textColor="?attr/colorPrimary"
+                                    android:text="@string/about_force_check_update_title" />
 
+                                <TextView
+                                    android:layout_height="wrap_content"
+                                    android:layout_width="match_parent"
+                                    android:textSize="10sp"
+                                    android:fontFamily="sans-serif"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:layout_marginTop="2dp"
+                                    android:text="@string/about_force_check_update_desc" />
 
                             </LinearLayout>
+
                         </com.google.android.material.card.MaterialCardView>
 
                     </LinearLayout>
@@ -495,71 +495,71 @@
                         android:layout_height="72dp"
                         android:layout_width="match_parent"
                         android:visibility="gone"
+                        app:rippleColor="?attr/colorControlHighlight"
                         android:clickable="true"
-                        android:focusable="true"
-                        android:id="@+id/developer_item"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="0dp"
                         app:cardBackgroundColor="@android:color/transparent"
                         app:cardCornerRadius="12dp"
-                        app:cardElevation="0dp"
-                        app:rippleColor="?attr/colorControlHighlight"
-                        app:strokeWidth="0dp">
+                        android:focusable="true"
+                        android:id="@+id/developer_item">
+
                         <LinearLayout
-                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
+                            android:layout_width="match_parent"
                             android:paddingEnd="16dp"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
-                            android:paddingStart="16dp">
-
+                            android:paddingStart="16dp"
+                            android:layout_gravity="center_vertical">
 
                             <FrameLayout
-                                 android:layout_height="40dp"
-                                 android:layout_width="40dp"
-                                 android:layout_marginEnd="16dp"
-                                 android:background="@drawable/circle_background_primary_container">
+                                android:layout_height="40dp"
+                                android:layout_width="40dp"
+                                android:layout_marginEnd="16dp"
+                                android:background="@drawable/circle_background_primary_container">
 
                                 <ImageView
-                                     android:layout_height="24dp"
-                                     android:layout_width="24dp"
-                                     android:src="@drawable/bug_outline"
-                                     app:tint="?attr/colorTertiary"
-                                     android:layout_gravity="center" />
+                                    android:layout_height="24dp"
+                                    android:layout_width="24dp"
+                                    android:src="@drawable/bug_outline"
+                                    app:tint="?attr/colorTertiary"
+                                    android:layout_gravity="center" />
 
                             </FrameLayout>
 
                             <LinearLayout
-                                 android:layout_height="wrap_content"
-                                 android:layout_width="0dp"
-                                 android:orientation="vertical"
-                                 android:layout_weight="1">
+                                android:layout_height="wrap_content"
+                                android:layout_width="0dp"
+                                android:orientation="vertical"
+                                android:layout_weight="1">
 
                                 <TextView
-                                     android:layout_height="wrap_content"
-                                     android:layout_width="match_parent"
-                                     android:textSize="16sp"
-                                     android:fontFamily="sans-serif-medium"
-                                     android:textColor="?attr/colorOnSurface"
-                                     android:text="@string/about_developer_options" />
+                                    android:layout_height="wrap_content"
+                                    android:layout_width="match_parent"
+                                    android:textSize="16sp"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:text="@string/about_developer_options" />
 
                                 <TextView
-                                     android:layout_height="wrap_content"
-                                     android:layout_width="match_parent"
-                                     android:textSize="12sp"
-                                     android:fontFamily="sans-serif"
-                                     android:textColor="?attr/colorOnSurfaceVariant"
-                                     android:text="@string/about_developer_options_desc" />
+                                    android:layout_height="wrap_content"
+                                    android:layout_width="match_parent"
+                                    android:textSize="12sp"
+                                    android:fontFamily="sans-serif"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:text="@string/about_developer_options_desc" />
 
                             </LinearLayout>
 
                             <ImageView
-                                 android:layout_height="24dp"
-                                 android:layout_width="24dp"
-                                 android:src="@drawable/round_arrow_forward"
-                                 app:tint="?attr/colorOnSurfaceVariant" />
-
+                                android:layout_height="24dp"
+                                android:layout_width="24dp"
+                                android:src="@drawable/round_arrow_forward"
+                                app:tint="?attr/colorOnSurfaceVariant" />
 
                         </LinearLayout>
+
                     </com.google.android.material.card.MaterialCardView>
 
                 </LinearLayout>
@@ -567,110 +567,110 @@
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
-                 android:layout_height="wrap_content"
-                 android:layout_width="match_parent"
-                 app:strokeColor="?attr/colorOutline"
-                 app:cardElevation="0dp"
-                 app:strokeWidth="1dp"
-                 app:cardBackgroundColor="@android:color/transparent"
-                 style="@style/Widget.Material3.CardView.Outlined"
-                 android:clipChildren="false"
-                 android:clipToPadding="false"
-                 app:cardCornerRadius="12dp">
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                app:strokeColor="?attr/colorOutline"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                android:clipChildren="false"
+                app:cardBackgroundColor="@android:color/transparent"
+                android:clipToPadding="false"
+                style="@style/Widget.Material3.CardView.Outlined"
+                app:cardCornerRadius="12dp">
 
                 <LinearLayout
-                     android:layout_height="wrap_content"
-                     android:layout_width="match_parent"
-                     android:padding="24dp"
-                     android:orientation="vertical"
-                     android:clipChildren="false"
-                     android:clipToPadding="false">
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:padding="24dp"
+                    android:orientation="vertical"
+                    android:clipChildren="false"
+                    android:clipToPadding="false">
 
                     <com.google.android.material.card.MaterialCardView
                         android:layout_height="wrap_content"
                         android:layout_width="match_parent"
-                        android:layout_marginStart="-4dp"
                         android:layout_marginEnd="-4dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:id="@+id/license_item"
-                        app:cardBackgroundColor="@android:color/transparent"
-                        app:cardCornerRadius="12dp"
-                        app:cardElevation="0dp"
                         app:rippleColor="?attr/colorControlHighlight"
-                        app:strokeWidth="0dp">
+                        android:clickable="true"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="0dp"
+                        app:cardBackgroundColor="@android:color/transparent"
+                        android:layout_marginStart="-4dp"
+                        app:cardCornerRadius="12dp"
+                        android:focusable="true"
+                        android:id="@+id/license_item">
+
                         <LinearLayout
-                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:paddingStart="4dp"
+                            android:layout_width="match_parent"
                             android:paddingEnd="4dp"
-                            android:layout_gravity="center_vertical"
-                            android:orientation="vertical">
-
-
-                            <TextView
-                                 android:layout_height="wrap_content"
-                                 android:layout_width="match_parent"
-                                 android:layout_marginBottom="8dp"
-                                 android:textSize="16sp"
-                                 android:fontFamily="sans-serif-medium"
-                                 android:textColor="?attr/colorOnSurface"
-                                 android:text="@string/about_license_title"
-                                 android:textStyle="bold" />
+                            android:orientation="vertical"
+                            android:paddingStart="4dp"
+                            android:layout_gravity="center_vertical">
 
                             <TextView
-                                 android:layout_height="wrap_content"
-                                 android:layout_width="match_parent"
-                                 android:textSize="13sp"
-                                 android:fontFamily="sans-serif"
-                                 android:textColor="?attr/colorOnSurface"
-                                 android:lineSpacingExtra="4dp"
-                                 android:text="@string/about_license_content" />
+                                android:layout_height="wrap_content"
+                                android:layout_width="match_parent"
+                                android:layout_marginBottom="8dp"
+                                android:textSize="16sp"
+                                android:fontFamily="sans-serif-medium"
+                                android:textColor="?attr/colorOnSurface"
+                                android:text="@string/about_license_title"
+                                android:textStyle="bold" />
 
+                            <TextView
+                                android:layout_height="wrap_content"
+                                android:layout_width="match_parent"
+                                android:textSize="13sp"
+                                android:fontFamily="sans-serif"
+                                android:textColor="?attr/colorOnSurface"
+                                android:lineSpacingExtra="4dp"
+                                android:text="@string/about_license_content" />
 
                         </LinearLayout>
+
                     </com.google.android.material.card.MaterialCardView>
 
                     <com.google.android.material.divider.MaterialDivider
-                         android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:layout_marginBottom="16dp"
-                         app:dividerColor="?attr/colorOutlineVariant"
-                         app:dividerThickness="1dp"
-                         android:layout_marginTop="16dp" />
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:layout_marginBottom="16dp"
+                        app:dividerColor="?attr/colorOutlineVariant"
+                        app:dividerThickness="1dp"
+                        android:layout_marginTop="16dp" />
 
                     <TextView
-                         android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:layout_marginBottom="8dp"
-                         android:textSize="16sp"
-                         android:fontFamily="sans-serif-medium"
-                         android:textColor="?attr/colorOnSurface"
-                         android:text="@string/about_credits_title"
-                         android:textStyle="bold" />
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:layout_marginBottom="8dp"
+                        android:textSize="16sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="?attr/colorOnSurface"
+                        android:text="@string/about_credits_title"
+                        android:textStyle="bold" />
 
                     <TextView
-                         android:layout_height="wrap_content"
-                         android:layout_width="match_parent"
-                         android:textSize="13sp"
-                         android:fontFamily="sans-serif"
-                         android:textColor="?attr/colorOnSurface"
-                         android:lineSpacingExtra="4dp"
-                         android:text="@string/about_credits_content" />
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:textSize="13sp"
+                        android:fontFamily="sans-serif"
+                        android:textColor="?attr/colorOnSurface"
+                        android:lineSpacingExtra="4dp"
+                        android:text="@string/about_credits_content" />
 
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
 
             <TextView
-                 android:layout_height="wrap_content"
-                 android:layout_width="match_parent"
-                 android:gravity="center"
-                 android:textSize="12sp"
-                 android:fontFamily="sans-serif"
-                 android:textColor="?attr/colorOnSurfaceVariant"
-                 android:layout_marginTop="16dp"
-                 android:text="@string/about_footer_thanks" />
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginTop="16dp"
+                android:text="@string/about_footer_thanks" />
 
         </LinearLayout>
 

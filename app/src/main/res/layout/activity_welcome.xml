@@ -120,7 +120,9 @@
                             android:checkable="false"
                             android:text="@string/welcome_feature_image" />
                     </com.google.android.material.chip.ChipGroup>
+
                 </LinearLayout>
+
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
@@ -219,6 +221,7 @@
                         android:layout_gravity="end"
                         android:text="@string/welcome_choose_folder" />
                 </LinearLayout>
+
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
@@ -326,7 +329,6 @@
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
 
-
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
@@ -358,6 +360,7 @@
                                 android:contentDescription="@string/welcome_dynamic_color_title" />
 
                         </LinearLayout>
+
                     </com.google.android.material.card.MaterialCardView>
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -375,7 +378,9 @@
                             android:importantForAutofill="no"
                             android:contentDescription="@string/welcome_language_title" />
                     </com.google.android.material.textfield.TextInputLayout>
+
                 </LinearLayout>
+
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
@@ -518,7 +523,6 @@
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
 
-
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
@@ -547,8 +551,11 @@
                                 android:contentDescription="@string/welcome_enable_notifications_title" />
 
                         </LinearLayout>
+
                     </com.google.android.material.card.MaterialCardView>
+
                 </LinearLayout>
+
             </com.google.android.material.card.MaterialCardView>
 
             <TextView
@@ -561,6 +568,7 @@
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="12sp" />
         </LinearLayout>
+
     </androidx.core.widget.NestedScrollView>
 
     <com.google.android.material.card.MaterialCardView
