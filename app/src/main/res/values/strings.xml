@@ -951,7 +951,7 @@
     <string name="custom_command_preset_deleted">已删除预设：%1$s</string>
     <string name="custom_command_delete_preset_confirm">确定删除预设“%1$s”吗？</string>
     <string name="custom_command_no_presets">没有已保存的自定义命令预设</string>
-    <string name="popup_custom_command">自定义命令</string>
+    <string name="popup_custom_command">自定义</string>
     <string-array name="custom_command_example_titles">
         <item>H.264 转码</item>
         <item>复制音视频流</item>
