@@ -249,11 +249,11 @@
     <string name="hardware_decode">硬件编解码</string>
     <string name="hardware_decode_desc">使用GPU加速视频处理</string>
     <string name="multithreading_opt">多线程优化</string>
-    <string name="multithreading_desc">使用多核CPU并行处理</string>
+    <string name="multithreading_desc">开启后，会在适用的任务参数中添加 -threads 0 参数，由 FFmpeg 自动选择线程数进行并行处理</string>
     <string name="hardware_decode_explain_title">硬件编解码说明</string>
     <string name="hardware_decode_explain_content">开启后，会优先选择使用硬件编解码器：使用 GPU 进行视频编解码，在设备支持的情况下，有助于提升部分视频任务的处理速度，但可能在某些设备上存在兼容性问题</string>
     <string name="multithreading_explain_title">多线程优化说明</string>
-    <string name="multithreading_explain_content">开启后，会使用多核 CPU 并行处理视频，有助于提升视频处理速度，但会增加 CPU 使用率和电池消耗</string>
+    <string name="multithreading_explain_content">开启后，会在适用的任务参数中添加 -threads 0 参数，由 FFmpeg 自动选择线程数进行并行处理，有助于提升视频处理速度，但会增加 CPU 使用率和电池消耗</string>
 
     <string name="theme_settings_title">主题设置</string>
     <string name="theme_follow_system">跟随系统</string>
