@@ -58,14 +58,49 @@
                 app:cardBackgroundColor="?attr/colorSecondaryContainer"
                 app:cardCornerRadius="16dp">
 
-                <TextView
+                <LinearLayout
                     android:layout_height="wrap_content"
                     android:layout_width="match_parent"
-                    android:drawablePadding="10dp"
-                    android:padding="16dp"
-                    android:textSize="14sp"
-                    android:textColor="?attr/colorOnSecondaryContainer"
-                    android:text="@string/custom_command_intro" />
+                    android:orientation="vertical"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp">
+
+                    <LinearLayout
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:layout_height="wrap_content"
+                            android:layout_width="wrap_content"
+                            style="@style/Widget.Material3.Button.TextButton"
+                            android:minWidth="0dp"
+                            android:textColor="?attr/colorOnSecondaryContainer"
+                            app:icon="@drawable/round_info"
+                            app:iconTint="?attr/colorOnSecondaryContainer"
+                            app:iconGravity="textStart"
+                            android:id="@+id/custom_command_help_button"
+                            android:text="@string/custom_command_help_button" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="12dp"
+                        android:textSize="13sp"
+                        android:lineSpacingExtra="2dp"
+                        android:textColor="?attr/colorOnSecondaryContainer"
+                        android:id="@+id/custom_command_intro"
+                        android:text="@string/custom_command_intro" />
+
+                </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
 

@@ -77,6 +77,11 @@
             android:label="@string/custom_command_title" />
 
         <activity
+            android:name=".ui.CustomCommandHelpActivity"
+            android:exported="false"
+            android:label="@string/custom_command_help_title" />
+
+        <activity
             android:name=".ui.SettingsMainActivity"
             android:exported="false"
             android:label="设置" />
