@@ -204,6 +204,8 @@ public class CustomCommandActivity extends BaseActivity {
         });
         findViewById(R.id.custom_command_insert_placeholder).setOnClickListener(v -> showPathPicker());
         findViewById(R.id.custom_command_examples).setOnClickListener(v -> showExamples());
+        findViewById(R.id.custom_command_help_button).setOnClickListener(v ->
+                startActivity(new Intent(this, CustomCommandHelpActivity.class)));
         findViewById(R.id.custom_command_choose_folder).setOnClickListener(v -> openFolderPicker());
         findViewById(R.id.custom_command_choose_file).setOnClickListener(v -> openOutputFilePicker());
         findViewById(R.id.custom_command_add_output).setOnClickListener(v -> addOutputEditor(getString(R.string.custom_command_output_default_template)));
