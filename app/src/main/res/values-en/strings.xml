@@ -249,11 +249,11 @@
     <string name="hardware_decode">Hardware Codec</string>
     <string name="hardware_decode_desc">Use GPU acceleration for video processing</string>
     <string name="multithreading_opt">Multi-threading Optimization</string>
-    <string name="multithreading_desc">Use multi-core CPU for parallel processing</string>
+    <string name="multithreading_desc">When enabled, -threads 0 is added to applicable task arguments, allowing FFmpeg to automatically select the thread count for parallel processing</string>
     <string name="hardware_decode_explain_title">Hardware Codec Info</string>
     <string name="hardware_decode_explain_content">When enabled, hardware codecs will be preferred. Using the GPU for video encoding and decoding may improve the performance of supported video tasks, but compatibility issues may occur on some devices</string>
     <string name="multithreading_explain_title">Multi-threading Info</string>
-    <string name="multithreading_explain_content">When enabled, video will be processed in parallel across multiple CPU cores. This may improve video processing speed, but will increase CPU usage and battery consumption</string>
+    <string name="multithreading_explain_content">When enabled, -threads 0 is added to applicable task arguments, allowing FFmpeg to automatically select the thread count for parallel processing. This may improve video processing speed but will increase CPU usage and battery consumption</string>
 
     <string name="theme_settings_title">Theme Settings</string>
     <string name="theme_follow_system">Follow System</string>
@@ -564,7 +564,7 @@
     <string name="notification_cancelled_title">Operation Cancelled</string>
     <string name="notification_cancelled_text">Processing of %s has been cancelled</string>
     <string name="notification_need_parameters_title">Please return to set parameters</string>
-    <string name="notification_need_parameters_text">The next file requires processing parameters to be set</string>
+    <string name="notification_need_parameters_text">The next file requires task parameters to be set</string>
     <string name="notification_all_tasks_complete_title">All file tasks completed!</string>
     <string name="notification_all_tasks_complete_text">All file tasks have been completed</string>
     <string name="notification_file_placeholder">File</string>
