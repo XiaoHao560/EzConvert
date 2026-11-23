@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">简转</string>
-    <string name="app_title">EzConvert 媒体转换器</string>
+    <string name="app_title">EzConvert 媒体处理工具</string>
     <string name="settings_title">应用设置</string>
     <string name="transcode_settings_title">转码设置</string>
     <string name="more_settings_title">通用设置</string>
@@ -56,8 +56,8 @@
     <string name="status_validating_files">正在使用 FFmpeg 验证 %1$d 个文件，请稍候…</string>
     <string name="status_no_valid_media_files">所选文件中没有可识别的音频或视频文件</string>
     <string name="toast_validating_files">正在验证已选择的文件，请稍候</string>
-    <string name="toast_task_already_running">当前转换任务仍在运行，请等待完成或取消后再开始新任务</string>
-    <string name="toast_selection_blocked_during_processing">请先完成或取消当前转换任务，再选择新文件</string>
+    <string name="toast_task_already_running">当前有任务正在执行，请等待完成或取消后再开始新任务</string>
+    <string name="toast_selection_blocked_during_processing">请先完成或取消当前任务，再选择新文件</string>
     <string name="toast_invalid_media_skipped">已跳过 %1$d 个无法识别为音频或视频的文件（例如：%2$s）</string>
     <string name="status_file_not_exist">无法访问文件或文件不存在</string>
     <string name="status_all_complete">所有文件处理完成，共 %1$d 个</string>
@@ -83,14 +83,14 @@
     <string name="filename_suffix_share">_share_</string>
 
     <string name="output_path_settings_title">输出文件路径</string>
-    <string name="output_path_settings_desc">选择转换完成后的文件保存位置</string>
+    <string name="output_path_settings_desc">选择处理结果的保存位置</string>
     <string name="output_path_download">下载目录</string>
     <string name="output_path_download_desc">内部存储/Download/EzConvert</string>
     <string name="output_path_dcim">相册目录</string>
     <string name="output_path_dcim_desc">内部存储/DCIM/EzConvert</string>
     <string name="output_path_custom">自定义输出目录</string>
     <string name="output_path_custom_hint">点击选择输出目录</string>
-    <string name="output_path_settings_explanation">选择后，所有转换文件都会保存到该目录</string>
+    <string name="output_path_settings_explanation">选择后，所有任务生成的文件都会保存到该目录</string>
     <string name="output_path_internal_storage">内部存储</string>
     <string name="dialog_dcim_audio_title">相册目录不支持音频文件</string>
     <string name="dialog_dcim_audio_message">当前输出目录为“相册目录”，但音频文件无法可靠保存到 DCIM/EzConvert\n\n本次任务将自动使用“下载目录”：\n内部存储/Download/EzConvert\n\n不会修改你的输出目录设置</string>
@@ -152,7 +152,7 @@
     <string name="sync_all_files">参数同步至所有文件</string>
     <string name="quick_conversion_title">快速转换</string>
     <string name="quick_conversion_dialog_title">启用快速转换？</string>
-    <string name="quick_conversion_dialog_message">开启后，FFmpeg 会将源文件中已有的音视频流直接复制到所选目标容器中，不会重新编码，可显著提高转换速度并减少性能消耗\n\n由于不会转换编码器，如果目标容器不支持源文件中的编码格式，任务可能会报错。若遇到报错，请关闭此功能后重新执行任务\n\n此模式不会应用编码器、码率和音量调整</string>
+    <string name="quick_conversion_dialog_message">开启后，FFmpeg 会将源文件中已有的音视频流直接复制到所选目标容器中，不会重新编码，可显著提高处理速度并减少性能消耗\n\n由于不会重新编码，如果目标容器不支持源文件中的编码格式，任务可能会报错。若遇到报错，请关闭此功能后重新执行任务\n\n此模式不会应用编码器、码率和音量调整</string>
     <string name="quick_conversion_dialog_enable">开启快速转换</string>
     <string name="quick_conversion_source_info_title">源媒体流参数</string>
     <string name="quick_conversion_info_loading">正在读取源媒体流信息…</string>
@@ -251,9 +251,9 @@
     <string name="multithreading_opt">多线程优化</string>
     <string name="multithreading_desc">使用多核CPU并行处理</string>
     <string name="hardware_decode_explain_title">硬件编解码说明</string>
-    <string name="hardware_decode_explain_content">开启后，会优先选择使用硬件编解码器：使用GPU进行视频编解码，可以显著提升转换速度，但可能在某些设备上存在兼容性问题</string>
+    <string name="hardware_decode_explain_content">开启后，会优先选择使用硬件编解码器：使用 GPU 进行视频编解码，在设备支持的情况下，有助于提升部分视频任务的处理速度，但可能在某些设备上存在兼容性问题</string>
     <string name="multithreading_explain_title">多线程优化说明</string>
-    <string name="multithreading_explain_content">开启后，会使用多核CPU并行处理视频：可以提升转换速度，但会增加CPU使用率和电池消耗</string>
+    <string name="multithreading_explain_content">开启后，会使用多核 CPU 并行处理视频，有助于提升视频处理速度，但会增加 CPU 使用率和电池消耗</string>
 
     <string name="theme_settings_title">主题设置</string>
     <string name="theme_follow_system">跟随系统</string>
@@ -311,8 +311,8 @@
 
     <string name="notification_settings_title">通知设置</string>
     <string name="notification_enable">启用通知</string>
-    <string name="notification_enable_desc">显示转换进度和完成提示</string>
-    <string name="notification_explanation">开启后，转换过程中会显示进度通知，完成后会显示成功或失败提示。需要系统通知权限</string>
+    <string name="notification_enable_desc">显示任务进度和完成提醒</string>
+    <string name="notification_explanation">开启后，任务执行期间会显示进度通知，完成后会显示成功或失败提示。需要系统通知权限</string>
     <string name="notification_foreground_start_failed">无法启动后台任务通知，请重试</string>
 
     <string name="update_settings_title">更新设置</string>
@@ -332,7 +332,7 @@
     <string name="about_app_name">EzConvert</string>
     <string name="about_version_format">版本 %1$s</string>
     <string name="about_version_default">版本 0.0.0</string>
-    <string name="about_app_description">一个简单易用的音视频转换工具，支持多种格式转换、压缩、裁剪等功能。</string>
+    <string name="about_app_description">一款简单易用的音视频处理工具，支持常见格式转换、压缩、裁剪、音频提取和视频截图等功能。</string>
     <string name="about_developer_info">开发者: XiaoHao\n邮箱: wzdmymzyl@163.com</string>
 
     <string name="about_info_section_title">相关信息</string>
@@ -421,7 +421,7 @@
     <string name="crash_export_failed">导出失败: %s</string>
 
     <string name="notification_permission_title">启用通知</string>
-    <string name="notification_permission_message">是否允许简转发送通知？\n\n通知用于显示转换进度和完成提示。</string>
+    <string name="notification_permission_message">是否允许简转发送通知？\n\n通知用于显示任务进度和完成提醒。</string>
     <string name="notification_permission_go_settings">去开启</string>
     <string name="notification_permission_later">暂不</string>
 
@@ -550,21 +550,21 @@
     <string name="tooltip_mediainfo">媒体信息</string>
     <string name="tooltip_folder">选择文件</string>
 
-    <string name="notification_channel_progress_name">转换进度</string>
-    <string name="notification_channel_progress_desc">显示媒体文件转换进度</string>
-    <string name="notification_channel_complete_name">转换完成</string>
-    <string name="notification_channel_complete_desc">转换成功或失败的通知</string>
+    <string name="notification_channel_progress_name">任务进度</string>
+    <string name="notification_channel_progress_desc">显示媒体处理任务的进度</string>
+    <string name="notification_channel_complete_name">任务结果</string>
+    <string name="notification_channel_complete_desc">显示任务完成、失败或取消的通知</string>
     <string name="notification_progress_title">正在处理: %s</string>
     <string name="notification_progress_indeterminate">正在处理中</string>
     <string name="notification_progress_text">进度: %d%%</string>
-    <string name="notification_complete_title_success">转换完成</string>
-    <string name="notification_complete_title_fail">转换失败</string>
-    <string name="notification_complete_text_success">%s 转换成功</string>
+    <string name="notification_complete_title_success">处理完成</string>
+    <string name="notification_complete_title_fail">处理失败</string>
+    <string name="notification_complete_text_success">%s 处理成功</string>
     <string name="notification_complete_text_fail">%1$s %2$s</string>
     <string name="notification_cancelled_title">操作已取消</string>
     <string name="notification_cancelled_text">%s 的处理已取消</string>
     <string name="notification_need_parameters_title">请返回设置参数</string>
-    <string name="notification_need_parameters_text">下一个文件需要设置转换参数</string>
+    <string name="notification_need_parameters_text">下一个文件需要设置任务参数</string>
     <string name="notification_all_tasks_complete_title">所有文件任务完成！</string>
     <string name="notification_all_tasks_complete_text">所有文件任务已处理完成</string>
     <string name="notification_file_placeholder">文件</string>
@@ -751,8 +751,8 @@
         <item>标准音质 (128k)</item>
         <item>低音质 (64k)</item>
     </string-array>
-    <string name="dialog_compatibility_change_title">转换兼容性提示</string>
-    <string name="dialog_compatibility_change_message">EzConvert 检测到以下兼容性调整或风险提示：\n\n%1$s\n\n某些自定义参数可能导致转换失败，点击确认后开始转换</string>
+    <string name="dialog_compatibility_change_title">参数兼容性提示</string>
+    <string name="dialog_compatibility_change_message">EzConvert 检测到以下兼容性调整或风险提示：\n\n%1$s\n\n部分自定义参数可能导致当前任务失败，确认后开始处理</string>
     <string name="dialog_compatibility_change_confirm">确认并开始</string>
     <string name="dialog_compatibility_change_cancel">取消</string>
     <string name="compatibility_precheck_failed">预检查兼容性调整时发生异常：%1$s</string>
@@ -800,28 +800,28 @@
     <string name="advanced_raw_options_title">通用 FFmpeg 命令行选项</string>
     <string name="hint_custom_input_options">自定义输入参数（放在输入文件 -i 之前）</string>
     <string name="hint_custom_output_options">自定义输出参数（放在输出文件路径之前）</string>
-    <string name="advanced_raw_options_note">支持填写多个参数，可使用单引号或双引号括起包含空格的值\n\n输入/输出文件路径和覆盖策略由应用管理，请勿在这里添加 -i、-y 或 -n\n\n自定义参数优先级高于上方常用参数。兼容性提示依据当前选择的格式和编码器生成，手动覆盖后可能无法检测到所有冲突\n\n如果通过 -f 改变封装格式，请确保输出扩展名与实际格式一致。错误的参数组合可能导致转换失败</string>
+    <string name="advanced_raw_options_note">支持填写多个参数，可使用单引号或双引号括起包含空格的值\n\n输入/输出文件路径和覆盖策略由应用管理，请勿在这里添加 -i、-y 或 -n\n\n自定义参数优先级高于上方常用参数。兼容性提示依据当前选择的格式和编码器生成，手动覆盖后可能无法检测到所有冲突\n\n如果通过 -f 改变封装格式，请确保输出扩展名与实际格式一致。错误的参数组合可能导致任务失败</string>
     <string name="toast_advanced_parameter_invalid">高级参数格式或组合不正确，请检查数值、分辨率、引号及互相冲突的设置</string>
-    <string name="compatibility_change_auto_audio_sample_rate_skipped">兼容性提示：编码器 %1$s 建议采样率为 %3$d Hz，但你选择不自动指定采样率（源采样率：%2$s）。转换可能失败</string>
-    <string name="compatibility_change_auto_audio_channels_skipped">兼容性提示：编码器 %1$s 建议使用 %3$d 声道，但你选择不自动指定声道数（源声道数：%2$s）。转换可能失败</string>
+    <string name="compatibility_change_auto_audio_sample_rate_skipped">兼容性提示：编码器 %1$s 建议采样率为 %3$d Hz，但你选择不自动指定采样率（源采样率：%2$s）。当前任务可能失败</string>
+    <string name="compatibility_change_auto_audio_channels_skipped">兼容性提示：编码器 %1$s 建议使用 %3$d 声道，但你选择不自动指定声道数（源声道数：%2$s）。当前任务可能失败</string>
     <string name="compatibility_change_auto_audio_sample_rate">兼容性调整：编码器 %1$s 的音频采样率已从 %2$s 调整为 %3$d Hz</string>
     <string name="compatibility_change_auto_audio_channels">兼容性调整：编码器 %1$s 的声道数已从 %2$s 调整为 %3$d 声道</string>
-    <string name="compatibility_change_custom_swf_sample_rate_conflict">兼容性警告：SWF 输出通常要求音频采样率为 44100 Hz，但你指定了 %1$d Hz。已保留你的设置，转换可能失败</string>
-    <string name="compatibility_change_custom_audio_rate_conflict">兼容性警告：编码器 %1$s 通常要求音频采样率 %3$d Hz，但你指定了 %2$d Hz。已保留你的设置，转换可能失败</string>
-    <string name="compatibility_change_custom_audio_channels_conflict">兼容性警告：编码器 %1$s 通常要求 %3$d 声道，但你指定了 %2$d 声道。已保留你的设置，转换可能失败</string>
-    <string name="compatibility_change_custom_audio_layout_conflict">兼容性警告：编码器 %1$s 通常要求 %3$d 声道，但你指定的布局为 %2$s。已保留你的设置，转换可能失败</string>
-    <string name="compatibility_change_custom_audio_rate_unsupported">兼容性警告：采样率 %2$d Hz 不在编码器 %1$s 的常见支持列表中（当前兼容性推荐值为 %3$d Hz）。已保留你的设置，转换可能失败</string>
+    <string name="compatibility_change_custom_swf_sample_rate_conflict">兼容性警告：SWF 输出通常要求音频采样率为 44100 Hz，但你指定了 %1$d Hz。已保留你的设置，当前任务可能失败</string>
+    <string name="compatibility_change_custom_audio_rate_conflict">兼容性警告：编码器 %1$s 通常要求音频采样率 %3$d Hz，但你指定了 %2$d Hz。已保留你的设置，当前任务可能失败</string>
+    <string name="compatibility_change_custom_audio_channels_conflict">兼容性警告：编码器 %1$s 通常要求 %3$d 声道，但你指定了 %2$d 声道。已保留你的设置，当前任务可能失败</string>
+    <string name="compatibility_change_custom_audio_layout_conflict">兼容性警告：编码器 %1$s 通常要求 %3$d 声道，但你指定的布局为 %2$s。已保留你的设置，当前任务可能失败</string>
+    <string name="compatibility_change_custom_audio_rate_unsupported">兼容性警告：采样率 %2$d Hz 不在编码器 %1$s 的常见支持列表中（当前兼容性推荐值为 %3$d Hz）。已保留你的设置，当前任务可能失败</string>
 
     <string name="welcome_logo_description">简转应用图标</string>
     <string name="welcome_title">欢迎使用简转</string>
-    <string name="welcome_subtitle">先花一点时间完成设置，之后即可轻松转换媒体文件</string>
-    <string name="welcome_about_title">让媒体转换更简单</string>
-    <string name="welcome_about_body">EzConvert 是一款基于 FFmpeg 的本地媒体处理工具，可帮助你转换常见音视频和图片格式，也支持压缩、裁剪、音频提取与视频截图。转换任务在设备本地处理</string>
-    <string name="welcome_feature_video">视频转换</string>
+    <string name="welcome_subtitle">先花一点时间完成设置，之后即可开始处理媒体文件</string>
+    <string name="welcome_about_title">让媒体处理更简单</string>
+    <string name="welcome_about_body">EzConvert 是一款基于 FFmpeg 的本地媒体处理工具，可帮助你转换常见音视频和图片格式，也支持压缩、裁剪、音频提取与视频截图。所有处理均在设备本地完成</string>
+    <string name="welcome_feature_video">视频处理</string>
     <string name="welcome_feature_audio">音频处理</string>
-    <string name="welcome_feature_image">图片转换</string>
+    <string name="welcome_feature_image">图片处理</string>
     <string name="welcome_output_title">输出文件路径设置</string>
-    <string name="welcome_output_desc">选择转换结果默认保存的位置，之后也可以在设置中更改</string>
+    <string name="welcome_output_desc">选择生成文件默认保存的位置，之后也可以在设置中更改</string>
     <string name="welcome_choose_folder">选择文件夹</string>
     <string name="welcome_appearance_title">外观与语言</string>
     <string name="welcome_appearance_desc">按你的使用习惯调整界面显示</string>
@@ -829,13 +829,13 @@
     <string name="welcome_dynamic_color_desc">使用系统动态颜色，让应用配色与设备保持协调（需要 Android 12 或更高版本）</string>
     <string name="welcome_language_title">应用语言</string>
     <string name="welcome_permissions_title">权限设置</string>
-    <string name="welcome_permissions_desc">媒体访问权限用于读取和处理媒体文件。通知权限是可选的，可显示转换进度和完成提醒。你也可以稍后在系统设置中修改权限</string>
+    <string name="welcome_permissions_desc">媒体访问权限用于读取和处理媒体文件。通知权限是可选的，可显示任务进度和完成提醒。你也可以稍后在系统设置中修改权限</string>
     <string name="welcome_media_permission_title">媒体访问权限（必要）</string>
     <string name="welcome_notification_permission_title">通知权限（可选）</string>
     <string name="welcome_permission_status_unknown">尚未检查</string>
     <string name="welcome_permission_status_granted">已授予</string>
     <string name="welcome_permission_status_required">需要授予才能正常选择和处理媒体</string>
-    <string name="welcome_permission_status_optional">用于显示转换进度及完成提醒</string>
+    <string name="welcome_permission_status_optional">用于显示任务进度及完成提醒</string>
     <string name="welcome_grant">授予</string>
     <string name="welcome_granted">已完成</string>
     <string name="welcome_enable">启用</string>
@@ -844,7 +844,7 @@
     <string name="welcome_media_permission_required_title">需要媒体访问权限</string>
     <string name="welcome_media_permission_required_message">EzConvert 需要媒体访问权限才能读取和处理媒体文件。请先授予权限，再开始使用</string>
     <string name="welcome_enable_notifications_title">启用通知</string>
-    <string name="welcome_enable_notifications_desc">显示转换进度、任务完成提醒等通知</string>
+    <string name="welcome_enable_notifications_desc">显示任务进度、完成提醒等通知</string>
     <string name="welcome_start">开始使用</string>
 
     <string name="custom_command_default_command">-i %INPUT% -c:v libx264 -crf 23 -preset medium -c:a aac %OUTPUT_1%</string>
